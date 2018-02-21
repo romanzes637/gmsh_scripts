@@ -100,4 +100,6 @@ Physical Surface ("Z") = {primitive_ss[5]};
 
 Physical Volume ("V") = {primitive_vs[]};
 
+//Physical Surface ("B") = {primitive_ss[]};
+
 Coherence;
