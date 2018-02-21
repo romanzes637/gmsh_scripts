@@ -2,17 +2,18 @@ Include "macro_primitive.geo";
 
 Geometry.AutoCoherence = 0;
 
+vs = {};
 bvs = {};
 bss = {};
 
-dX = -0.4;
-dY = 0.9;
-dZ = 0.3;
+dX = 0; //-0.4;
+dY = 0; //0.9;
+dZ = 0; //0.3;
 originX = 0;
 originY = 0;
 originZ = 3;
-angleX = Pi/36;
-angleY = Pi/18;
+angleX = 0; //Pi/36;
+angleY = 0; //Pi/18;
 angleZ = 0;
 
 primitive_lcs = {
@@ -152,7 +153,7 @@ primitive_t_9s = {
 0, 0, 0, 0
 };
 Call primitive;
-
+vs += primitive_vs[];
 
 primitive_zs = {
 9, 9, 9, 9,
@@ -179,6 +180,7 @@ bvs += primitive_vs[];
 bss += primitive_ss[5];
 
 // X
+primitive_t_6 = 0;
 primitive_xs = {
 4, 3, 3, 4,
 4, 3, 3, 4,
@@ -275,6 +277,7 @@ bss += primitive_ss[5];
 bss += primitive_ss[1];
 
 // Y
+primitive_t_6 = 0;
 primitive_xs = {
 4, -4, -3, 3,
 4, -4, -3, 3,
@@ -370,6 +373,7 @@ bss += primitive_ss[5];
 bss += primitive_ss[3];
 
 // NX
+primitive_t_6 = 1;
 primitive_xs = {
 -3, -4, -4, -3,
 -3, -4, -4, -3,
@@ -465,6 +469,7 @@ bss += primitive_ss[5];
 bss += primitive_ss[0];
 
 // NY
+primitive_t_6 = 3;
 primitive_xs = {
 3, -3, -4, 4,
 3, -3, -4, 4,
@@ -559,6 +564,7 @@ bvs += primitive_vs[];
 bss += primitive_ss[5];
 bss += primitive_ss[2];
 
+Physical Volume ("V") = {vs[]};
 Physical Volume ("BV") = {bvs[]};
 Physical Surface ("BS") = {bss[]};
 

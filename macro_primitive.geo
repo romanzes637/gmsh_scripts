@@ -30,8 +30,8 @@ Translate {primitive_ox, primitive_oy, primitive_oz} { Point{ primitive_ps[] }; 
 */
 If (#primitive_t_9s[])
   For primitive_i In {0 : #primitive_lcs[]-1}
-    For primitive_j In {0 : #primitive_t_9s[]/#lcs[]-1}
-      If (t9s[primitive_i + primitive_j*#lcs[]]) // If primitive_t_9s[point_index + deformation_index*n_points] > 0
+    For primitive_j In {0 : #primitive_t_9s[]/#primitive_lcs[]-1}
+      If (primitive_t_9s[primitive_i + primitive_j*#primitive_lcs[]]) // If primitive_t_9s[point_index + deformation_index*n_points] > 0
         Rotate { {1, 0, 0}, {
             primitive_t_9s_ro~{primitive_i}[0+3*primitive_j], 
             primitive_t_9s_ro~{primitive_i}[1+3*primitive_j],

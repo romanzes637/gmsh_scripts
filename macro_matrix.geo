@@ -137,7 +137,7 @@ For matrix_i In {0 : #matrix_x_centers[]-1}
           primitive_ox = matrix_x_centers[matrix_i]; primitive_oy = matrix_y_centers[matrix_j]; primitive_oz = matrix_z_centers[matrix_k]; // Origin: x, y, z
           primitive_t_5s = {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         ElseIf (matrix_type_map[matrix_global_idx] == 4) // CYLINDER HALF SHELL NX
-          matrix_type_r = matrix_x_r - matrix_x_starts[matrix_i];
+          matrix_type_r = matrix_x_r - matrix_x_ends[matrix_i];
           matrix_type_x_1 = matrix_x_r - matrix_type_r/Sqrt(2) - matrix_x_centers[matrix_i];
           matrix_type_x_2 = matrix_x_ends[matrix_i] - matrix_x_centers[matrix_i];
           matrix_type_x_r = matrix_x_r - matrix_x_centers[matrix_i];
@@ -149,36 +149,36 @@ For matrix_i In {0 : #matrix_x_centers[]-1}
           matrix_type_z_1 = matrix_z_starts[matrix_k] - matrix_z_centers[matrix_k];
           matrix_type_z_2 = matrix_z_ends[matrix_k] - matrix_z_centers[matrix_k];
           primitive_lcs = {
-            matrix_lc, matrix_lc, matrix_lc, matrix_lc,
-            matrix_lc, matrix_lc, matrix_lc, matrix_lc,
-            matrix_lc, matrix_lc, matrix_lc, matrix_lc,
-            matrix_lc, matrix_lc, matrix_lc, matrix_lc,
-            matrix_lc, matrix_lc, matrix_lc, matrix_lc
+              matrix_lc, matrix_lc, matrix_lc, matrix_lc,
+              matrix_lc, matrix_lc, matrix_lc, matrix_lc,
+              matrix_lc, matrix_lc, matrix_lc, matrix_lc,
+              matrix_lc, matrix_lc, matrix_lc, matrix_lc,
+              matrix_lc, matrix_lc, matrix_lc, matrix_lc
           };
           primitive_xs = {
-            matrix_type_x_2, matrix_type_x_1, matrix_type_x_1, matrix_type_x_2,
-            matrix_type_x_2, matrix_type_x_1, matrix_type_x_1, matrix_type_x_2,
-            0, 0, 0, 0,
-            0, matrix_type_x_r, matrix_type_x_r, 0,
-            0, 0, 0, 0
+              matrix_type_x_2, matrix_type_x_1, matrix_type_x_1, matrix_type_x_2,
+              matrix_type_x_2, matrix_type_x_1, matrix_type_x_1, matrix_type_x_2,
+              0, 0, 0, 0,
+              matrix_type_x_r, matrix_type_x_r, matrix_type_x_r, matrix_type_x_r,
+              0, 0, 0, 0
           };
           primitive_ys = {
-            matrix_type_y_2, matrix_type_y_2_2, matrix_type_y_1_2, matrix_type_y_1,
-            matrix_type_y_2, matrix_type_y_2_2, matrix_type_y_1_2, matrix_type_y_1,
-            0, 0, 0, 0,
-            0, matrix_type_y_r, matrix_type_y_r, 0,
-            0, 0, 0, 0
+              matrix_type_y_2, matrix_type_y_2_2, matrix_type_y_1_2, matrix_type_y_1,
+              matrix_type_y_2, matrix_type_y_2_2, matrix_type_y_1_2, matrix_type_y_1,
+              0, 0, 0, 0,
+              matrix_type_y_r, matrix_type_y_r, matrix_type_y_r, matrix_type_y_r,
+              0, 0, 0, 0
           };
           primitive_zs = {
-            matrix_type_z_1, matrix_type_z_1, matrix_type_z_1, matrix_type_z_1, 
-            matrix_type_z_2, matrix_type_z_2, matrix_type_z_2, matrix_type_z_2,
-            0, 0, 0, 0,
-            0, matrix_type_z_1, matrix_type_z_2, 0,
-            0, 0, 0, 0
+              matrix_type_z_1, matrix_type_z_1, matrix_type_z_1, matrix_type_z_1, 
+              matrix_type_z_2, matrix_type_z_2, matrix_type_z_2, matrix_type_z_2,
+              0, 0, 0, 0,
+              matrix_type_z_1, matrix_type_z_1, matrix_type_z_2, matrix_type_z_2,
+              0, 0, 0, 0
           };
           primitive_ox = matrix_x_centers[matrix_i]; primitive_oy = matrix_y_centers[matrix_j]; primitive_oz = matrix_z_centers[matrix_k]; // Origin: x, y, z
-          t5s = {0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0};
-          t6 = 1;
+          primitive_t_5s = {0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0};
+          primitive_t_6 = 1;
         ElseIf (matrix_type_map[matrix_global_idx] == 5)  // CYLINDER HALF SHELL NY
           matrix_type_r = matrix_y_r - matrix_y_starts[matrix_j];
           matrix_type_x_1 = matrix_x_starts[matrix_i] - matrix_x_centers[matrix_i];

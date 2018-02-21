@@ -168,7 +168,7 @@ matrix_physical_map = {
 
 Call matrix;
 
-pvns[] = Str("NONE", "B", "C", "D");
+pvns[] = Str("NONE", "A", "B", "C");
 If(#matrix_pvs[] > 0)
   Printf("Global Physical Volumes = %g", #pvns[]);
   For pvnsi In {0 : #pvns[]-1}
@@ -205,6 +205,6 @@ bss += matrix_yss[];
 bss += matrix_nzss[];
 bss += matrix_zss[];
 
-Physical Surface ("B") = {bss[]};
+//Physical Surface ("BS") = {bss[]};
 
 Coherence;
