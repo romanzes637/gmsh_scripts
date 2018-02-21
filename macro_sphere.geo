@@ -56,35 +56,35 @@ primitive_t_10s = {0, 0, 0, 0, 0, 0}; // Plane Surface?
 
 // sphere NX
 primitive_xs = {
-  -sphere_k*sphere_r, -sphere_r/Sqrt(2), -sphere_r/Sqrt(2), -sphere_k*sphere_r,
-  -sphere_k*sphere_r, -sphere_r/Sqrt(2), -sphere_r/Sqrt(2), -sphere_k*sphere_r, 
+  -sphere_k*sphere_r, -sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_k*sphere_r,
+  -sphere_k*sphere_r, -sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_k*sphere_r, 
   0, 0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0
 };
 primitive_ys = {
-  sphere_k*sphere_r, sphere_r/Sqrt(2), -sphere_r/Sqrt(2), -sphere_k*sphere_r,
-  sphere_k*sphere_r, sphere_r/Sqrt(2), -sphere_r/Sqrt(2), -sphere_k*sphere_r,
+  sphere_k*sphere_r, sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_k*sphere_r,
+  sphere_k*sphere_r, sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_k*sphere_r,
   0, 0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0
 };
 primitive_zs = {
-  -sphere_k*sphere_r, -sphere_r/Sqrt(2), -sphere_r/Sqrt(2), -sphere_k*sphere_r,
-  sphere_k*sphere_r, sphere_r/Sqrt(2), sphere_r/Sqrt(2), sphere_k*sphere_r,
+  -sphere_k*sphere_r, -sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_k*sphere_r,
+  sphere_k*sphere_r, sphere_r/Sqrt(3), sphere_r/Sqrt(3), sphere_k*sphere_r,
   0, 0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0
 };
 // Parameters
-primitive_t_1 = sphere_t_1; 
-If (sphere_t_1_1)
-  primitive_t_1_1 = 1/sphere_t_1_1;
+primitive_t_1 = sphere_t_2; 
+If (sphere_t_2_1)
+  primitive_t_1_1 = 1/sphere_t_2_1;
 Else
-  primitive_t_1_1 = sphere_t_1_1;
+  primitive_t_1_1 = sphere_t_2_1;
 EndIf
-primitive_t_1_2 = sphere_t_1_2; // Number of X nodes, progression, bump
-primitive_t_2 = sphere_t_1; primitive_t_2_1 = 0; primitive_t_2_2 = 0; // Number of Y nodes, progression, bump
+primitive_t_2_2 = sphere_t_2_2; // Number of X nodes, progression, bump
+primitive_t_2 = sphere_t_1; primitive_t_2_1 = sphere_t_1_1; primitive_t_2_2 = sphere_t_1_2; // Number of Y nodes, progression, bump
 primitive_t_3 = sphere_t_1; primitive_t_3_1 = 0; primitive_t_3_2 = 0; // Number of Z nodes, progression, bump
 primitive_t_5s = {0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0}; // Type of lines: 0 - straight, 1 - circle, 2 - ellipse, 3 - Bezier, 4 - BSpline, 5+ - Spline
 primitive_t_6 = 1; // Type of hex to tet splitting
@@ -96,28 +96,28 @@ sphere_vs += primitive_vs[];
 
 // sphere X
 primitive_xs = {
-  sphere_r/Sqrt(2), sphere_k*sphere_r, sphere_k*sphere_r, sphere_r/Sqrt(2), 
-  sphere_r/Sqrt(2), sphere_k*sphere_r, sphere_k*sphere_r, sphere_r/Sqrt(2), 
+  sphere_r/Sqrt(3), sphere_k*sphere_r, sphere_k*sphere_r, sphere_r/Sqrt(3), 
+  sphere_r/Sqrt(3), sphere_k*sphere_r, sphere_k*sphere_r, sphere_r/Sqrt(3), 
   0, 0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0
 };
 primitive_ys = {
-  sphere_r/Sqrt(2), sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_r/Sqrt(2),
-  sphere_r/Sqrt(2), sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_r/Sqrt(2),
+  sphere_r/Sqrt(3), sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_r/Sqrt(3),
+  sphere_r/Sqrt(3), sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_r/Sqrt(3),
   0, 0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0
 };
 primitive_zs = {
-  -sphere_r/Sqrt(2), -sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_r/Sqrt(2),
-  sphere_r/Sqrt(2), sphere_k*sphere_r, sphere_k*sphere_r, sphere_r/Sqrt(2),
+  -sphere_r/Sqrt(3), -sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_r/Sqrt(3),
+  sphere_r/Sqrt(3), sphere_k*sphere_r, sphere_k*sphere_r, sphere_r/Sqrt(3),
   0, 0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0
 };
-primitive_t_1 = sphere_t_1; primitive_t_1_1 = sphere_t_1_1; primitive_t_1_2 = sphere_t_1_2; // Number of X nodes, progression, bump
-primitive_t_2 = sphere_t_1; primitive_t_2_1 = 0; primitive_t_2_2 = 0; // Number of Y nodes, progression, bump
+primitive_t_1 = sphere_t_2; primitive_t_1_1 = sphere_t_2_1; primitive_t_1_2 = sphere_t_2_2; // Number of X nodes, progression, bump
+primitive_t_2 = sphere_t_1; primitive_t_2_1 = sphere_t_1_1; primitive_t_2_2 = sphere_t_1_2; // Number of Y nodes, progression, bump
 primitive_t_3 = sphere_t_1; primitive_t_3_1 = 0; primitive_t_3_2 = 0; // Number of Z nodes, progression, bump
 primitive_t_5s = {0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1}; // Type of lines: 0 - straight, 1 - circle, 2 - ellipse, 3 - Bezier, 4 - BSpline, 5+ - Spline
 primitive_t_6 = 0; // Type of hex to tet splitting
@@ -129,35 +129,35 @@ sphere_vs += primitive_vs[];
 
 // sphere NY
 primitive_xs = {
-  sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_r/Sqrt(2), sphere_r/Sqrt(2),
-  sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_r/Sqrt(2), sphere_r/Sqrt(2), 
+  sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_r/Sqrt(3), sphere_r/Sqrt(3),
+  sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_r/Sqrt(3), sphere_r/Sqrt(3), 
   0, 0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0
 };
 primitive_ys = {
-  -sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_r/Sqrt(2), -sphere_r/Sqrt(2),
-  -sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_r/Sqrt(2), -sphere_r/Sqrt(2),
+  -sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_r/Sqrt(3), -sphere_r/Sqrt(3),
+  -sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_r/Sqrt(3), -sphere_r/Sqrt(3),
   0, 0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0
 };
 primitive_zs = {
-  -sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_r/Sqrt(2), -sphere_r/Sqrt(2),
-  sphere_k*sphere_r, sphere_k*sphere_r, sphere_r/Sqrt(2), sphere_r/Sqrt(2),
+  -sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_r/Sqrt(3), -sphere_r/Sqrt(3),
+  sphere_k*sphere_r, sphere_k*sphere_r, sphere_r/Sqrt(3), sphere_r/Sqrt(3),
   0, 0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0
 };
-primitive_t_1 = sphere_t_1; primitive_t_1_1 = 0; primitive_t_1_2 = 0; // Number of X nodes, progression, bump
-primitive_t_2 = sphere_t_1; 
-If (sphere_t_1_1)
-  primitive_t_2_1 = 1/sphere_t_1_1;
+primitive_t_1 = sphere_t_1; primitive_t_1_1 = sphere_t_1_1; primitive_t_1_2 = sphere_t_1_2; // Number of X nodes, progression, bump
+primitive_t_2 = sphere_t_2;
+If (sphere_t_2_1)
+  primitive_t_2_1 = 1/sphere_t_2_1;
 Else
-  primitive_t_2_1 = sphere_t_1_1;
+  primitive_t_2_1 = sphere_t_2_1;
 EndIf
-primitive_t_2_2 = sphere_t_1_2; // Number of Y nodes, progression, bump
-primitive_t_3 = sphere_t_1; primitive_t_3_1 = 0; primitive_t_3_2 = 0; // Number of Z nodes, progression, bump
+primitive_t_2_2 = sphere_t_2_2; // Number of Y nodes, progression, bump
+primitive_t_3 = sphere_t_1; primitive_t_3_1 = sphere_t_1_1; primitive_t_3_2 = sphere_t_1_2; // Number of Z nodes, progression, bump
 primitive_t_5s = {0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1}; // Type of lines: 0 - straight, 1 - circle, 2 - ellipse, 3 - Bezier, 4 - BSpline, 5+ - Spline
 primitive_t_6 = 3; // Type of hex to tet splitting
 
@@ -168,29 +168,29 @@ sphere_vs += primitive_vs[];
 
 // sphere Y
 primitive_xs = {
-  sphere_r/Sqrt(2), -sphere_r/Sqrt(2), -sphere_k*sphere_r, sphere_k*sphere_r,
-  sphere_r/Sqrt(2), -sphere_r/Sqrt(2), -sphere_k*sphere_r, sphere_k*sphere_r,
+  sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_k*sphere_r, sphere_k*sphere_r,
+  sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_k*sphere_r, sphere_k*sphere_r,
   0, 0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0
 };
 primitive_ys = {
-  sphere_r/Sqrt(2), sphere_r/Sqrt(2), sphere_k*sphere_r, sphere_k*sphere_r,
-  sphere_r/Sqrt(2), sphere_r/Sqrt(2), sphere_k*sphere_r, sphere_k*sphere_r,
+  sphere_r/Sqrt(3), sphere_r/Sqrt(3), sphere_k*sphere_r, sphere_k*sphere_r,
+  sphere_r/Sqrt(3), sphere_r/Sqrt(3), sphere_k*sphere_r, sphere_k*sphere_r,
   0, 0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0
 };
 primitive_zs = {
-  -sphere_r/Sqrt(2), -sphere_r/Sqrt(2), -sphere_k*sphere_r, -sphere_k*sphere_r,
-  sphere_r/Sqrt(2), sphere_r/Sqrt(2), sphere_k*sphere_r, sphere_k*sphere_r,
+  -sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_k*sphere_r, -sphere_k*sphere_r,
+  sphere_r/Sqrt(3), sphere_r/Sqrt(3), sphere_k*sphere_r, sphere_k*sphere_r,
   0,  0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0
 };
-primitive_t_1 = sphere_t_1; primitive_t_1_1 = 0; primitive_t_1_2 = 0; // Number of X nodes, progression, bump
-primitive_t_2 = sphere_t_1; primitive_t_2_1 = sphere_t_1_1; primitive_t_2_2 = sphere_t_1_2; // Number of Y nodes, progression, bump
-primitive_t_3 = sphere_t_1; primitive_t_3_1 = 0; primitive_t_3_2 = 0; // Number of Z nodes, progression, bump
+primitive_t_1 = sphere_t_1; primitive_t_1_1 = sphere_t_1_1; primitive_t_1_2 = sphere_t_1_2; // Number of X nodes, progression, bump
+primitive_t_2 = sphere_t_2; primitive_t_2_1 = sphere_t_2_1; primitive_t_2_2 = sphere_t_2_2; // Number of Y nodes, progression, bump
+primitive_t_3 = sphere_t_1; primitive_t_3_1 = sphere_t_1_1; primitive_t_3_2 = sphere_t_1_2; // Number of Z nodes, progression, bump
 primitive_t_5s = {1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0}; // Type of lines: 0 - straight, 1 - circle, 2 - ellipse, 3 - Bezier, 4 - BSpline, 5+ - Spline
 primitive_t_6 = 0; // Type of hex to tet splitting
 
@@ -201,28 +201,28 @@ sphere_vs += primitive_vs[];
 
 // sphere NZ
 primitive_xs = {
-  sphere_r/Sqrt(2), -sphere_r/Sqrt(2), -sphere_r/Sqrt(2), sphere_r/Sqrt(2), 
+  sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_r/Sqrt(3), sphere_r/Sqrt(3), 
   sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_k*sphere_r, sphere_k*sphere_r,
   0, 0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0
 };
 primitive_ys = {
-  sphere_r/Sqrt(2), sphere_r/Sqrt(2), -sphere_r/Sqrt(2), -sphere_r/Sqrt(2),
+  sphere_r/Sqrt(3), sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_r/Sqrt(3),
   sphere_k*sphere_r, sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_k*sphere_r,
   0, 0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0
 };
 primitive_zs = {
-  -sphere_r/Sqrt(2), -sphere_r/Sqrt(2), -sphere_r/Sqrt(2), -sphere_r/Sqrt(2),
+  -sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_r/Sqrt(3),
   -sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_k*sphere_r,
   0, 0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0
 };
-primitive_t_1 = sphere_t_1; primitive_t_1_1 = 0; primitive_t_1_2 = 0; // Number of X nodes, progression, bump
-primitive_t_2 = sphere_t_1; primitive_t_2_1 = 0; primitive_t_2_2 = 0; // Number of Y nodes, progression, bump
+primitive_t_1 = sphere_t_2; primitive_t_1_1 = sphere_t_2_1; primitive_t_1_2 = sphere_t_2_2; // Number of X nodes, progression, bump
+primitive_t_2 = sphere_t_2; primitive_t_2_1 = sphere_t_2_1; primitive_t_2_2 = sphere_t_2_2; // Number of Y nodes, progression, bump
 primitive_t_3 = sphere_t_1;
 If (sphere_t_1_1)
   primitive_t_3_1 = 1/sphere_t_1_1;
@@ -241,28 +241,28 @@ sphere_vs += primitive_vs[];
 // sphere Z
 primitive_xs = {
   sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_k*sphere_r, sphere_k*sphere_r,
-  sphere_r/Sqrt(2), -sphere_r/Sqrt(2), -sphere_r/Sqrt(2), sphere_r/Sqrt(2), 
+  sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_r/Sqrt(3), sphere_r/Sqrt(3), 
   0, 0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0
 };
 primitive_ys = {
   sphere_k*sphere_r, sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_k*sphere_r,
-  sphere_r/Sqrt(2), sphere_r/Sqrt(2), -sphere_r/Sqrt(2), -sphere_r/Sqrt(2),
+  sphere_r/Sqrt(3), sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_r/Sqrt(3),
   0, 0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0
 };
 primitive_zs = {
   sphere_k*sphere_r, sphere_k*sphere_r, sphere_k*sphere_r, sphere_k*sphere_r,
-  sphere_r/Sqrt(2), sphere_r/Sqrt(2), sphere_r/Sqrt(2), sphere_r/Sqrt(2),
+  sphere_r/Sqrt(3), sphere_r/Sqrt(3), sphere_r/Sqrt(3), sphere_r/Sqrt(3),
   0, 0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0
 };
-primitive_t_1 = sphere_t_1; primitive_t_1_1 = 0; primitive_t_1_2 = 0; // Number of X nodes, progression, bump
-primitive_t_2 = sphere_t_1; primitive_t_2_1 = 0; primitive_t_2_2 = 0; // Number of Y nodes, progression, bump
-primitive_t_3 = sphere_t_1; primitive_t_3_1 = sphere_t_1_1; primitive_t_3_2 = sphere_t_1_2; // Number of Z nodes, progression, bump
+primitive_t_1 = sphere_t_1; primitive_t_1_1 = sphere_t_1_1; primitive_t_1_2 = sphere_t_1_2; // Number of X nodes, progression, bump
+primitive_t_2 = sphere_t_1; primitive_t_2_1 = sphere_t_1_1; primitive_t_2_2 = sphere_t_1_2; // Number of Y nodes, progression, bump
+primitive_t_3 = sphere_t_2; primitive_t_3_1 = sphere_t_2_1; primitive_t_3_2 = sphere_t_2_2; // Number of Z nodes, progression, bump
 primitive_t_5s = {0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0}; // Type of lines: 0 - straight, 1 - circle, 2 - ellipse, 3 - Bezier, 4 - BSpline, 5+ - Spline
 primitive_t_6 = 2; // Type of hex to tet splitting
 
