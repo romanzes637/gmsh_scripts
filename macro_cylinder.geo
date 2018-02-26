@@ -8,8 +8,7 @@ cylinder_nzss = {};
 cylinder_zss = {};
 cylinder_vs = {};
 
-
-// Hexahedron
+// Core
 hexahedron_lc = cylinder_lc; // Points characteristic length
 hexahedron_a = 2*cylinder_k*cylinder_r; // X length
 hexahedron_b = 2*cylinder_k*cylinder_r; // Y length
@@ -31,8 +30,7 @@ cylinder_nzss += hexahedron_nzss[];
 cylinder_zss += hexahedron_zss[];
 cylinder_vs += hexahedron_vs[];
 
-
-// Cylinders
+// General
 // X-Y-NZ point, NX-Y-NZ, NX-NY-NZ, X-NY-NZ, (X - X axis, NX - negative X axis, etc)
 // X-Y-Z, NX-Y-Z, NX-NY-Z, X-NY-Z,
 // X1 line circle center, X2, X3, X4, (Line numeration by right hand rule from line contains X-Y-NZ point)
@@ -59,7 +57,7 @@ primitive_t_8s = {0, 0, 0, 0, 0, 0}; // Surfaces for changes
 primitive_t_9s = {}; // Rotations
 primitive_t_10s = {0, 0, 0, 0, 0, 0}; // Plane Surface?
 
-// Cylinder NX
+// NX
 primitive_xs = {
   -cylinder_k*cylinder_r, -cylinder_r/Sqrt(2), -cylinder_r/Sqrt(2), -cylinder_k*cylinder_r,
   -cylinder_k*cylinder_r, -cylinder_r/Sqrt(2), -cylinder_r/Sqrt(2), -cylinder_k*cylinder_r, 
@@ -100,7 +98,7 @@ cylinder_nzss += primitive_ss[4];
 cylinder_zss += primitive_ss[5];
 cylinder_vs += primitive_vs[];
 
-// Cylinder X
+// X
 primitive_xs = {
   cylinder_r/Sqrt(2), cylinder_k*cylinder_r, cylinder_k*cylinder_r, cylinder_r/Sqrt(2), 
   cylinder_r/Sqrt(2), cylinder_k*cylinder_r, cylinder_k*cylinder_r, cylinder_r/Sqrt(2), 
@@ -134,7 +132,7 @@ cylinder_nzss += primitive_ss[4];
 cylinder_zss += primitive_ss[5];
 cylinder_vs += primitive_vs[];
 
-// Cylinder NY
+// NY
 primitive_xs = {
   cylinder_k*cylinder_r, -cylinder_k*cylinder_r, -cylinder_r/Sqrt(2), cylinder_r/Sqrt(2),
   cylinder_k*cylinder_r, -cylinder_k*cylinder_r, -cylinder_r/Sqrt(2), cylinder_r/Sqrt(2), 
@@ -168,7 +166,7 @@ cylinder_nzss += primitive_ss[4];
 cylinder_zss += primitive_ss[5];
 cylinder_vs += primitive_vs[];
 
-// Cylinder Y
+// Y
 primitive_xs = {
   cylinder_r/Sqrt(2), -cylinder_r/Sqrt(2), -cylinder_k*cylinder_r, cylinder_k*cylinder_r,
   cylinder_r/Sqrt(2), -cylinder_r/Sqrt(2), -cylinder_k*cylinder_r, cylinder_k*cylinder_r,

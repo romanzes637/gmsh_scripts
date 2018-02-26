@@ -6,15 +6,14 @@ Macro sphere
 sphere_lss = {};
 sphere_vs = {};
 
-
-// Hexahedron
+// Core
 hexahedron_lc = sphere_lc; // Points characteristic length
 hexahedron_a = 2*sphere_k*sphere_r; // X length
 hexahedron_b = 2*sphere_k*sphere_r; // Y length
 hexahedron_c = 2*sphere_k*sphere_r; // Z length
 hexahedron_ox = sphere_ox; hexahedron_oy = sphere_oy; hexahedron_oz = sphere_oz; // Origin: x, y, z
-hexahedron_rox = 0; hexahedron_roy = 0; hexahedron_roz = 0; // Local Rotation Origin: x, y, z
-hexahedron_rax = 0; hexahedron_ray = 0; hexahedron_raz = 0; // Local Rotation Angle: x, y, z
+hexahedron_rox = sphere_rox; hexahedron_roy = sphere_roy; hexahedron_roz = sphere_roz; // Local Rotation Origin: x, y, z
+hexahedron_rax = sphere_rax; hexahedron_ray = sphere_ray; hexahedron_raz = sphere_raz; // Local Rotation Angle: x, y, z
 // Parameters
 hexahedron_t_1 = sphere_t_1; hexahedron_t_1_1 = 0; hexahedron_t_1_2 = 0; // Number of X nodes, progression, bump
 hexahedron_t_2 = sphere_t_1; hexahedron_t_2_1 = 0; hexahedron_t_2_2 = 0; // Number of Y nodes, progression, bump
@@ -27,8 +26,7 @@ Call hexahedron;
 
 sphere_vs += hexahedron_vs[];
 
-
-// Sphere
+// General
 // X-Y-NZ point, NX-Y-NZ, NX-NY-NZ, X-NY-NZ, (X - X axis, NX - negative X axis, etc)
 // X-Y-Z, NX-Y-Z, NX-NY-Z, X-NY-Z,
 // X1 line circle center, X2, X3, X4, (Line numeration by right hand rule from line contains X-Y-NZ point)
@@ -45,8 +43,8 @@ primitive_lcs = {
   sphere_lc, sphere_lc, sphere_lc, sphere_lc
 };
 primitive_ox = sphere_ox; primitive_oy = sphere_oy; primitive_oz = sphere_oz; // Origin: x, y, z
-primitive_rox = 0; primitive_roy = 0; primitive_roz = 0; // Local Rotation Origin: x, y, z
-primitive_rax = 0; primitive_ray = 0; primitive_raz = 0; // Local Rotation Angle: x, y, z
+primitive_rox = sphere_rox; primitive_roy = sphere_roy; primitive_roz = sphere_roz; // Local Rotation Origin: x, y, z
+primitive_rax = sphere_rax; primitive_ray = sphere_ray; primitive_raz = sphere_raz; // Local Rotation Angle: x, y, z
 // Parameters
 primitive_t_4 = sphere_t_4; // Hex (1) or tet (0) mesh?
 primitive_t_7s = {}; // Inner Surfaces
@@ -54,7 +52,7 @@ primitive_t_8s = {0, 0, 0, 0, 0, 0}; // Surfaces for changes
 primitive_t_9s = {}; // Rotations
 primitive_t_10s = {0, 0, 0, 0, 0, 0}; // Plane Surface?
 
-// sphere NX
+// NX
 primitive_xs = {
   -sphere_k*sphere_r, -sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_k*sphere_r,
   -sphere_k*sphere_r, -sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_k*sphere_r, 
@@ -94,7 +92,7 @@ Call primitive;
 sphere_lss += primitive_ss[0];
 sphere_vs += primitive_vs[];
 
-// sphere X
+// X
 primitive_xs = {
   sphere_r/Sqrt(3), sphere_k*sphere_r, sphere_k*sphere_r, sphere_r/Sqrt(3), 
   sphere_r/Sqrt(3), sphere_k*sphere_r, sphere_k*sphere_r, sphere_r/Sqrt(3), 
@@ -166,7 +164,7 @@ Call primitive;
 sphere_lss += primitive_ss[2];
 sphere_vs += primitive_vs[];
 
-// sphere Y
+// Y
 primitive_xs = {
   sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_k*sphere_r, sphere_k*sphere_r,
   sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_k*sphere_r, sphere_k*sphere_r,
@@ -199,7 +197,7 @@ Call primitive;
 sphere_lss += primitive_ss[3];
 sphere_vs += primitive_vs[];
 
-// sphere NZ
+// NZ
 primitive_xs = {
   sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_r/Sqrt(3), sphere_r/Sqrt(3), 
   sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_k*sphere_r, sphere_k*sphere_r,
@@ -238,7 +236,7 @@ Call primitive;
 sphere_lss += primitive_ss[4];
 sphere_vs += primitive_vs[];
 
-// sphere Z
+// Z
 primitive_xs = {
   sphere_k*sphere_r, -sphere_k*sphere_r, -sphere_k*sphere_r, sphere_k*sphere_r,
   sphere_r/Sqrt(3), -sphere_r/Sqrt(3), -sphere_r/Sqrt(3), sphere_r/Sqrt(3), 
