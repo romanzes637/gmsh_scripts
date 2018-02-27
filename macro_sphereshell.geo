@@ -2,9 +2,10 @@ Include "macro_primitive.geo";
 
 Macro sphereshell
 
+sphereshell_nzss = {};
+sphereshell_zss = {};
 sphereshell_iss = {};
 sphereshell_lss = {};
-sphereshell_zss = {};
 sphereshell_vs = {};
 
 // General
@@ -95,7 +96,7 @@ primitive_t_6 = 1; // Type of hex to tet splitting
 Call primitive;
 
 If (sphereshell_t_5)
-  sphereshell_zss += primitive_ss[4];
+  sphereshell_nzss += primitive_ss[4];
 Else
   sphereshell_zss += primitive_ss[5];
 EndIf
@@ -158,7 +159,7 @@ primitive_t_6 = 0; // Type of hex to tet splitting
 Call primitive;
 
 If (sphereshell_t_5)
-  sphereshell_zss += primitive_ss[4];
+  sphereshell_nzss += primitive_ss[4];
 Else
   sphereshell_zss += primitive_ss[5];
 EndIf
@@ -221,7 +222,7 @@ primitive_t_6 = 3; // Type of hex to tet splitting
 Call primitive;
 
 If (sphereshell_t_5)
-  sphereshell_zss += primitive_ss[4];
+  sphereshell_nzss += primitive_ss[4];
 Else
   sphereshell_zss += primitive_ss[5];
 EndIf
@@ -284,7 +285,7 @@ primitive_t_6 = 0; // Type of hex to tet splitting
 Call primitive;
 
 If (sphereshell_t_5)
-  sphereshell_zss += primitive_ss[4];
+  sphereshell_nzss += primitive_ss[4];
 Else
   sphereshell_zss += primitive_ss[5];
 EndIf

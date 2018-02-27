@@ -17,8 +17,9 @@ hemisphere_t_5 = 0; // Up (1) or Down (0) part?
 
 Call hemisphere;
 
-Physical Surface ("L") = {hemisphere_lss[]};
+Physical Surface ("NZ") = {hemisphere_nzss[]};
 Physical Surface ("Z") = {hemisphere_zss[]};
+Physical Surface ("L") = {hemisphere_lss[]};
 
 Physical Volume ("V") = {hemisphere_vs[]};
 

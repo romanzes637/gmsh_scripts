@@ -5,7 +5,6 @@ Geometry.AutoCoherence = 0;
 sphereshell_lc = 0.1; // Points characteristic length
 sphereshell_r1 = 1; // Inner radius
 sphereshell_r2 = 2; // Outer radius
-sphereshell_h = 1; // Height
 sphereshell_ox = 0; sphereshell_oy = 0; sphereshell_oz = 0; // Origin: x, y, z
 sphereshell_rox = 0; sphereshell_roy = 0; sphereshell_roz = 0; // Local Rotation Origin: x, y, z
 sphereshell_rax = 0; sphereshell_ray = 0; sphereshell_raz = 0; // Local Rotation Angle: x, y, z
@@ -18,9 +17,10 @@ sphereshell_t_5 = 0; // Up (1) or Down (0) part?
 
 Call sphereshell;
 
-Physical Surface ("I") = {sphereshell_iss[]};
-Physical Surface ("L") = {sphereshell_lss[]};
+Physical Surface ("NZ") = {sphereshell_nzss[]};
 Physical Surface ("Z") = {sphereshell_zss[]};
+Physical Surface ("L") = {sphereshell_lss[]};
+Physical Surface ("I") = {sphereshell_iss[]};
 
 Physical Volume ("V") = {sphereshell_vs[]};
 

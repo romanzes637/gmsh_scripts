@@ -3,6 +3,7 @@ Include "macro_hexahedron.geo";
 
 Macro hemisphere
 
+hemisphere_nzss = {};
 hemisphere_zss = {};
 hemisphere_lss = {};
 hemisphere_vs = {};
@@ -31,7 +32,7 @@ hexahedron_t_7s = {}; // Inner Surfaces
 Call hexahedron;
 
 If (hemisphere_t_5)
-  hemisphere_zss += hexahedron_nzss[];
+  hemisphere_nzss += hexahedron_nzss[];
 Else
   hemisphere_zss += hexahedron_zss[];
 EndIf
@@ -126,7 +127,7 @@ primitive_t_6 = 1; // Type of hex to tet splitting
 Call primitive;
 
 If (hemisphere_t_5)
-  hemisphere_zss += primitive_ss[4];
+  hemisphere_nzss += primitive_ss[4];
 Else
   hemisphere_zss += primitive_ss[5];
 EndIf
@@ -191,7 +192,7 @@ primitive_t_6 = 0; // Type of hex to tet splitting
 Call primitive;
 
 If (hemisphere_t_5)
-  hemisphere_zss += primitive_ss[4];
+  hemisphere_nzss += primitive_ss[4];
 Else
   hemisphere_zss += primitive_ss[5];
 EndIf
@@ -260,7 +261,7 @@ primitive_t_6 = 3; // Type of hex to tet splitting
 Call primitive;
 
 If (hemisphere_t_5)
-  hemisphere_zss += primitive_ss[4];
+  hemisphere_nzss += primitive_ss[4];
 Else
   hemisphere_zss += primitive_ss[5];
 EndIf
@@ -323,7 +324,7 @@ primitive_t_6 = 0; // Type of hex to tet splitting
 Call primitive;
 
 If (hemisphere_t_5)
-  hemisphere_zss += primitive_ss[4];
+  hemisphere_nzss += primitive_ss[4];
 Else
   hemisphere_zss += primitive_ss[5];
 EndIf
