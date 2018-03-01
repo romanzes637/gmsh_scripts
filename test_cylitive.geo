@@ -21,6 +21,7 @@ cylitive_t3t1s = {0, 0, 0}; // Height nodes progression
 cylitive_t3t2s = {0, 0, 0}; // Height nodes progression bump
 cylitive_t4 = 0; // Hex (1) or tet (0) mesh?
 cylitive_t5 = 3; // Create spherical shells (0 - not, 1 - bottom, 2 - top, 3 - top and bottom)?
+cylitive_t6 = 1; // Full boundary surfaces?
 
 Call cylitive;
 

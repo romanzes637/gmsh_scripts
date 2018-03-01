@@ -14,6 +14,16 @@ bss = {};
 // Local Physical Volumes {pvnsI, nVolumes, v1, v2, v3, ..., vn, pvnsI, ...}
 lpvs = {};
 
+// Borehole 1 parameters
+borehole1_t1 = 4; // Number of circumferential nodes
+borehole1_t2s = {3, 3, 3}; // Number of radial nodes
+borehole1_t2t1s = {0, 0, 0}; // Radial nodes progression
+borehole1_t2t2s = {0, 0, 0}; // Radial nodes bump
+borehole1_t3s = {5, 3, 3, 25, 3, 3, 5}; // Number of height nodes
+borehole1_t3t1s = {0, 0, 0, 0, 0, 0, 0}; // Height nodes progression
+borehole1_t3t2s = {0, 0, 0, 0.07, 0, 0, 0}; // Height nodes progression bump
+cylitive_t6 = 1; // Full boundary surfaces?
+
 centerDepth = 487.5; // Repository center Z depth
 centerY = 0; // Repository Y center
 centerZ = 0; // Repository Z center
@@ -26,8 +36,8 @@ lpvs = {};
 startX = 0;
 dX = 23; // Interval of x boreholes
 dY = 15; // Interval of y boreholes
-nBoreholesX = 14; // Number of x boreholes 14
-nBoreholesY = 20; // Number of y boreholes 20
+nBoreholesX = 2; // Number of x boreholes 14
+nBoreholesY = 2; // Number of y boreholes 20
 startY = centerY - dY * (nBoreholesY - 1) / 2;
 lengthY = dY * (nBoreholesY - 1);
 lengthX += dX * (nBoreholesX - 1);
@@ -86,8 +96,8 @@ lpvs = {};
 startX = dX * nBoreholesX;
 dX = 26; // Interval of x boreholes
 dY = 23; // Interval of y boreholes
-nBoreholesX = 14; // Number of x boreholes 14
-nBoreholesY = 13; // Number of y boreholes 13
+nBoreholesX = 2; // Number of x boreholes 14
+nBoreholesY = 2; // Number of y boreholes 13
 startY = centerY - dY * (nBoreholesY - 1) / 2;
 lengthX += dX * (nBoreholesX - 1);
 For NkI In {0 : nBoreholesX-1}

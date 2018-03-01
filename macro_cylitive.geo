@@ -125,14 +125,16 @@ For cylitive_i In {0 : #cylitive_lvls[]-1}
   cylitive_iss_i += 0;
   cylitive_vs_i += #cylinder_vs[];
   cylitive_vs_i += cylinder_vs[];
-  If (cylitive_i == 0)
-    If (cylitive_t5 == 0 || cylitive_t5 == 2)
-      cylitive_bss += cylinder_nzss[];
+  If (cylitive_t6)
+    If (cylitive_i == 0)
+      If (cylitive_t5 == 0 || cylitive_t5 == 2)
+        cylitive_bss += cylinder_nzss[];
+      EndIf
     EndIf
-  EndIf
-  If (cylitive_i == #cylitive_lvls[]-1)
-    If (cylitive_t5 == 0 || cylitive_t5 == 1)
-      cylitive_bss += cylinder_zss[];
+    If (cylitive_i == #cylitive_lvls[]-1)
+      If (cylitive_t5 == 0 || cylitive_t5 == 1)
+        cylitive_bss += cylinder_zss[];
+      EndIf
     EndIf
   EndIf
   // SHELLS
@@ -160,14 +162,16 @@ For cylitive_i In {0 : #cylitive_lvls[]-1}
     cylitive_iss_i += cylshell_iss[];
     cylitive_vs_i += #cylshell_vs[];
     cylitive_vs_i += cylshell_vs[];
-    If (cylitive_i == 0)
-      If (cylitive_t5 == 0 || cylitive_t5 == 2)
-        cylitive_bss += cylshell_nzss[];
+    If (cylitive_t6)
+      If (cylitive_i == 0)
+        If (cylitive_t5 == 0 || cylitive_t5 == 2)
+          cylitive_bss += cylshell_nzss[];
+        EndIf
       EndIf
-    EndIf
-    If (cylitive_i == #cylitive_lvls[]-1)
-      If (cylitive_t5 == 0 || cylitive_t5 == 1)
-        cylitive_bss += cylshell_zss[];
+      If (cylitive_i == #cylitive_lvls[]-1)
+        If (cylitive_t5 == 0 || cylitive_t5 == 1)
+          cylitive_bss += cylshell_zss[];
+        EndIf
       EndIf
     EndIf
   EndFor
