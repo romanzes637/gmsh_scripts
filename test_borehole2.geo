@@ -1,5 +1,6 @@
 Include "macro_borehole2.geo";
 Include "macro_hexahedron.geo";
+Include "macro_pmapi.geo";
 
 Geometry.AutoCoherence = 0;
 
@@ -92,7 +93,7 @@ borehole2_t3t2s = {
 }; // Height nodes progression bump
 Call borehole2;
 
-hexahedron_lc = 50; // Points characteristic length
+hexahedron_lc = 100; // Points characteristic length
 hexahedron_a = 1000; // X length
 hexahedron_b = 1000; // Y length
 hexahedron_c = 487.5*2; // Z length
@@ -114,31 +115,26 @@ Physical Surface ("NY") = {hexahedron_nyss[]};
 Physical Surface ("Y") = {hexahedron_yss[]};
 Physical Surface ("NZ") = {hexahedron_nzss[]};
 Physical Surface ("Z") = {hexahedron_zss[]};
-If(#borehole2_pvs[] > 0)
-  Printf("Global Physical Volumes = %g", #borehole2_pvns[]);
-  For pvns_i In {0 : #borehole2_pvns[]-1}
-    Printf(borehole2_pvns[pvns_i]);
-    vs = {};
-    start_idx = 0;
-    For pvs_i In {0 : #borehole2_pvs[]-1}
-      If (pvs_i == start_idx)
-        nvs = borehole2_pvs[pvs_i+1];
-        start_idx += 1+nvs+1;
-        If (borehole2_pvs[pvs_i] == pvns_i)
-          For pvsj In {pvs_i+2 : pvs_i+2+nvs-1}
-            vs += borehole2_pvs[pvsj];
-          EndFor
-        EndIf
-      EndIf
-    EndFor
-    If (StrCmp(Str(borehole2_pvns[pvns_i]), "Environment") == 0) // If physical name is "Environment"
-      Physical Volume (Str(borehole2_pvns[pvns_i])) = {vs[], hexahedron_vs[]};
-    Else
-      Physical Volume (Str(borehole2_pvns[pvns_i])) = {vs[]};
-    EndIf
-  EndFor
-EndIf
-//Physical Surface ("B") = {borehole2_bss[]};
+
+pmapi_in = borehole2_pvs[];
+idcs[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}; // borehole2_pvns array indices
+Printf("Physical Volumes = %g", #idcs[]);
+For i In {0 : #idcs[]-1}
+  Printf(borehole2_pvns[idcs[i]]);
+  pmapi_idx = idcs[i];
+  Call pmapi;
+  Physical Volume (Str(borehole2_pvns[idcs[i]])) = {pmapi_out[]};
+EndFor
+
+// Environment
+idcs[] = {14}; // borehole2_pvns array indices
+Printf("Environment Physical Volumes = %g", #idcs[]);
+For i In {0 : #idcs[]-1}
+  Printf(borehole2_pvns[idcs[i]]);
+  pmapi_idx = idcs[i];
+  Call pmapi;
+  Physical Volume (Str(borehole2_pvns[idcs[i]])) = {pmapi_out[], hexahedron_vs[]};
+EndFor
 
 Coherence;
 
