@@ -100,11 +100,11 @@ For primitive_i In {0 : 11}
     Ellipse (primitive_ls[primitive_i]) = {
       primitive_ps[primitive_ps_to_ls[primitive_i*4]],
       primitive_ps[primitive_ps_to_ls[primitive_i*4+2]], 
-//      primitive_ps[primitive_ps_to_ls[primitive_i*4+3]], FIXME WORKAROUND FOR OPENCASCADE KERNEL
+      primitive_ps[primitive_ps_to_ls[primitive_i*4+3]],
       primitive_ps[primitive_ps_to_ls[primitive_i*4+1]]
     };
   ElseIf (primitive_t_5s[primitive_i] > 2)
-    /* Curve points
+    /* Curves points
       Arrays:
       primitive_t_5s_lcs_[line_index] - points Characteristic Lengths,
       primitive_t_5s_xs_[line_index] - points X coordinates,
@@ -112,83 +112,80 @@ For primitive_i In {0 : 11}
       primitive_t_5s_zs_[line_index] - points Z coordinates,
       must be declared.
     */
-    primitive_curve_points = {};
+    primitive_curves_points = {};
     For primitive_j In {0 : #primitive_t_5s_lcs~{primitive_i}[]-1}
-     primitive_curve_points[] += newp;
-     Point (primitive_curve_points[primitive_j]) = {
+     primitive_curves_points[primitive_j] = newp;
+     Point (primitive_curves_points[primitive_j]) = {
        primitive_t_5s_xs~{primitive_i}[primitive_j], 
        primitive_t_5s_ys~{primitive_i}[primitive_j], 
        primitive_t_5s_zs~{primitive_i}[primitive_j], 
        primitive_t_5s_lcs~{primitive_i}[primitive_j]
      };
     EndFor // primitive_j
-//    Printf(Sprintf("%g", #primitive_curve_points[]));
-//    For primitive_j In {0 : #primitive_curve_points[]-1}
-//      Printf(Sprintf("%g", primitive_curve_points[primitive_j]));
-//    EndFor
-
+    
     // Local Rotation and Translation
-    Rotate { {1, 0, 0}, {primitive_rox, primitive_roy, primitive_roz}, primitive_rax } { Point{ primitive_curve_points[] }; }
-    Rotate { {0, 1, 0}, {primitive_rox, primitive_roy, primitive_roz}, primitive_ray } { Point{ primitive_curve_points[] }; }
-    Rotate { {0, 0, 1}, {primitive_rox, primitive_roy, primitive_roz}, primitive_raz } { Point{ primitive_curve_points[] }; }
-    Translate {primitive_ox, primitive_oy, primitive_oz} { Point{ primitive_curve_points[] }; }
+    Rotate { {1, 0, 0}, {primitive_rox, primitive_roy, primitive_roz}, primitive_rax } { Point{ primitive_curves_points[] }; }
+    Rotate { {0, 1, 0}, {primitive_rox, primitive_roy, primitive_roz}, primitive_ray } { Point{ primitive_curves_points[] }; }
+    Rotate { {0, 0, 1}, {primitive_rox, primitive_roy, primitive_roz}, primitive_raz } { Point{ primitive_curves_points[] }; }
+    Translate {primitive_ox, primitive_oy, primitive_oz} { Point{ primitive_curves_points[] }; }
 
     // TODO Global Rotation and Translation
-
-    If (primitive_t_5s[primitive_i] == 3) // OpenCASCADE Max Bezier points = 26
+    
+    // TODO Bezier, BSpline, Spline needs additional points: ps[2] and ps[3] in {ps[2], ps0[], ps[1]}
+    If (primitive_t_5s[primitive_i] == 3)
       Bezier (primitive_ls[primitive_i]) = {
         primitive_ps[primitive_ps_to_ls[primitive_i*4]], 
-        primitive_curve_points[], 
+        primitive_curves_points[], 
         primitive_ps[primitive_ps_to_ls[primitive_i*4+1]]
       };
-    ElseIf (primitive_t_5s[primitive_i] == 4) // Only Built-in kernel
+    ElseIf (primitive_t_5s[primitive_i] == 4)
       BSpline (primitive_ls[primitive_i]) = {
         primitive_ps[primitive_ps_to_ls[primitive_i*4]], 
-        primitive_curve_points[], 
+        primitive_curves_points[], 
         primitive_ps[primitive_ps_to_ls[primitive_i*4+1]]
       };
     ElseIf (primitive_t_5s[primitive_i] > 4)
       Spline (primitive_ls[primitive_i]) = {
         primitive_ps[primitive_ps_to_ls[primitive_i*4]], 
-        primitive_curve_points[], 
+        primitive_curves_points[], 
         primitive_ps[primitive_ps_to_ls[primitive_i*4+1]]
       };
     EndIf
   EndIf
 EndFor // primitive_i
-/*If (primitive_t_1)*/
-/*  For primitive_i In {0 : 3}*/
-/*    If (primitive_t_1_1)*/
-/*      Transfinite Line primitive_ls[primitive_i] = primitive_t_1 Using Progression primitive_t_1_1;*/
-/*    ElseIf (primitive_t_1_2)*/
-/*      Transfinite Line primitive_ls[primitive_i] = primitive_t_1 Using Bump primitive_t_1_2;*/
-/*    Else*/
-/*      Transfinite Line primitive_ls[primitive_i] = primitive_t_1;*/
-/*    EndIf*/
-/*  EndFor // primitive_i*/
-/*EndIf*/
-/*If (primitive_t_2)*/
-/*  For primitive_i In {4 : 7}*/
-/*    If (primitive_t_2_1)*/
-/*      Transfinite Line primitive_ls[primitive_i] = primitive_t_2 Using Progression primitive_t_2_1;*/
-/*    ElseIf (primitive_t_2_2)*/
-/*      Transfinite Line primitive_ls[primitive_i] = primitive_t_2 Using Bump primitive_t_2_2;*/
-/*    Else*/
-/*      Transfinite Line primitive_ls[primitive_i] = primitive_t_2;*/
-/*    EndIf*/
-/*  EndFor // primitive_i*/
-/*EndIf*/
-/*If (primitive_t_3)*/
-/*  For primitive_i In {8 : 11}*/
-/*    If (primitive_t_3_1)*/
-/*      Transfinite Line primitive_ls[primitive_i] = primitive_t_3 Using Progression primitive_t_3_1;*/
-/*    ElseIf (primitive_t_3_2)*/
-/*      Transfinite Line primitive_ls[primitive_i] = primitive_t_3 Using Bump primitive_t_3_2;*/
-/*    Else*/
-/*      Transfinite Line primitive_ls[primitive_i] = primitive_t_3;*/
-/*    EndIf*/
-/*  EndFor // primitive_i*/
-/*EndIf*/
+If (primitive_t_1)
+  For primitive_i In {0 : 3}
+    If (primitive_t_1_1)
+      Transfinite Line primitive_ls[primitive_i] = primitive_t_1 Using Progression primitive_t_1_1;
+    ElseIf (primitive_t_1_2)
+      Transfinite Line primitive_ls[primitive_i] = primitive_t_1 Using Bump primitive_t_1_2;
+    Else
+      Transfinite Line primitive_ls[primitive_i] = primitive_t_1;
+    EndIf
+  EndFor // primitive_i
+EndIf
+If (primitive_t_2)
+  For primitive_i In {4 : 7}
+    If (primitive_t_2_1)
+      Transfinite Line primitive_ls[primitive_i] = primitive_t_2 Using Progression primitive_t_2_1;
+    ElseIf (primitive_t_2_2)
+      Transfinite Line primitive_ls[primitive_i] = primitive_t_2 Using Bump primitive_t_2_2;
+    Else
+      Transfinite Line primitive_ls[primitive_i] = primitive_t_2;
+    EndIf
+  EndFor // primitive_i
+EndIf
+If (primitive_t_3)
+  For primitive_i In {8 : 11}
+    If (primitive_t_3_1)
+      Transfinite Line primitive_ls[primitive_i] = primitive_t_3 Using Progression primitive_t_3_1;
+    ElseIf (primitive_t_3_2)
+      Transfinite Line primitive_ls[primitive_i] = primitive_t_3 Using Bump primitive_t_3_2;
+    Else
+      Transfinite Line primitive_ls[primitive_i] = primitive_t_3;
+    EndIf
+  EndFor // primitive_i
+EndIf
 
 // Line Loops
 primitive_lls = {};
@@ -204,7 +201,6 @@ primitive_lls[4] = newll; // NZ
 Line Loop (primitive_lls[4]) = {-primitive_ls[0], -primitive_ls[5], primitive_ls[3], primitive_ls[4]};
 primitive_lls[5] = newll; // Z
 Line Loop (primitive_lls[5]) = {primitive_ls[1], -primitive_ls[7], -primitive_ls[2], primitive_ls[6]};
-
 
 // Surfaces
 primitive_ss = {};
@@ -226,160 +222,6 @@ For primitive_i In {0 : #primitive_lls[]-1}
    primitive_is_surface_changed = 1;
   EndIf
 EndFor // primitive_i
-/*If (primitive_t_1 && primitive_t_2 && primitive_t_3 && !primitive_is_surface_changed)*/
-/*  If (primitive_t_6 == 0)*/
-/*    Transfinite Surface {primitive_ss[0]} = {primitive_ps[2], primitive_ps[1], primitive_ps[5], primitive_ps[6]} Right;*/
-/*    Transfinite Surface {primitive_ss[1]} = {primitive_ps[0], primitive_ps[3], primitive_ps[7], primitive_ps[4]};*/
-/*    Transfinite Surface {primitive_ss[2]} = {primitive_ps[3], primitive_ps[2], primitive_ps[6], primitive_ps[7]};*/
-/*    Transfinite Surface {primitive_ss[3]} = {primitive_ps[1], primitive_ps[0], primitive_ps[4], primitive_ps[5]} Right;*/
-/*    Transfinite Surface {primitive_ss[4]} = {primitive_ps[0], primitive_ps[1], primitive_ps[2], primitive_ps[3]};*/
-/*    Transfinite Surface {primitive_ss[5]} = {primitive_ps[5], primitive_ps[4], primitive_ps[7], primitive_ps[6]} Right;*/
-/*  ElseIf (primitive_t_6 == 1)*/
-/*    Transfinite Surface {primitive_ss[0]} = {primitive_ps[2], primitive_ps[1], primitive_ps[5], primitive_ps[6]} Right;*/
-/*    Transfinite Surface {primitive_ss[1]} = {primitive_ps[0], primitive_ps[3], primitive_ps[7], primitive_ps[4]};*/
-/*    Transfinite Surface {primitive_ss[2]} = {primitive_ps[3], primitive_ps[2], primitive_ps[6], primitive_ps[7]} Right;*/
-/*    Transfinite Surface {primitive_ss[3]} = {primitive_ps[1], primitive_ps[0], primitive_ps[4], primitive_ps[5]};*/
-/*    Transfinite Surface {primitive_ss[4]} = {primitive_ps[0], primitive_ps[1], primitive_ps[2], primitive_ps[3]} Right;*/
-/*    Transfinite Surface {primitive_ss[5]} = {primitive_ps[5], primitive_ps[4], primitive_ps[7], primitive_ps[6]};*/
-/*  ElseIf (primitive_t_6 == 2)*/
-/*    Transfinite Surface {primitive_ss[0]} = {primitive_ps[2], primitive_ps[1], primitive_ps[5], primitive_ps[6]};*/
-/*    Transfinite Surface {primitive_ss[1]} = {primitive_ps[0], primitive_ps[3], primitive_ps[7], primitive_ps[4]} Right;*/
-/*    Transfinite Surface {primitive_ss[2]} = {primitive_ps[3], primitive_ps[2], primitive_ps[6], primitive_ps[7]} Right;*/
-/*    Transfinite Surface {primitive_ss[3]} = {primitive_ps[1], primitive_ps[0], primitive_ps[4], primitive_ps[5]};*/
-/*    Transfinite Surface {primitive_ss[4]} = {primitive_ps[0], primitive_ps[1], primitive_ps[2], primitive_ps[3]};*/
-/*    Transfinite Surface {primitive_ss[5]} = {primitive_ps[5], primitive_ps[4], primitive_ps[7], primitive_ps[6]} Right;*/
-/*  Else*/
-/*    Transfinite Surface {primitive_ss[0]} = {primitive_ps[2], primitive_ps[1], primitive_ps[5], primitive_ps[6]};*/
-/*    Transfinite Surface {primitive_ss[1]} = {primitive_ps[0], primitive_ps[3], primitive_ps[7], primitive_ps[4]} Right;*/
-/*    Transfinite Surface {primitive_ss[2]} = {primitive_ps[3], primitive_ps[2], primitive_ps[6], primitive_ps[7]};*/
-/*    Transfinite Surface {primitive_ss[3]} = {primitive_ps[1], primitive_ps[0], primitive_ps[4], primitive_ps[5]} Right;*/
-/*    Transfinite Surface {primitive_ss[4]} = {primitive_ps[0], primitive_ps[1], primitive_ps[2], primitive_ps[3]} Right;*/
-/*    Transfinite Surface {primitive_ss[5]} = {primitive_ps[5], primitive_ps[4], primitive_ps[7], primitive_ps[6]};*/
-/*  EndIf*/
-/*EndIf*/
-
-// Surface Loops
-primitive_sls = {};
-primitive_sls[0] = newsl;
-Surface Loop (primitive_sls[0]) = {primitive_ss[]};
-If (#primitive_t_7s[])
-  primitive_sls[1] = newsl;
-  Surface Loop (primitive_sls[1]) = {primitive_t_7s[]};
-EndIf
-
-// Volumes
-primitive_vs = {};
-primitive_vs[0] += newv;
-If (!#primitive_t_7s[])
-  Volume (primitive_vs[0]) = {primitive_sls[0]};
-Else
-  Volume (primitive_vs[0]) = {primitive_sls[0], primitive_sls[1]};
-EndIf
-/*If (primitive_t_1 && primitive_t_2 && primitive_t_3 && !#primitive_t_7s[] && !primitive_is_surface_changed)*/
-/*  If (primitive_t_6 == 0)*/
-/*    Transfinite Volume {primitive_vs[0]} = {*/
-/*      primitive_ps[0], primitive_ps[1], primitive_ps[2], primitive_ps[3],*/
-/*      primitive_ps[4], primitive_ps[5], primitive_ps[6], primitive_ps[7]*/
-/*    };*/
-/*  ElseIf (primitive_t_6 == 1)*/
-/*    Transfinite Volume {primitive_vs[0]} = {*/
-/*      primitive_ps[1], primitive_ps[2], primitive_ps[3], primitive_ps[0], */
-/*      primitive_ps[5], primitive_ps[6], primitive_ps[7], primitive_ps[4]*/
-/*    };*/
-/*  ElseIf (primitive_t_6 == 2)*/
-/*    Transfinite Volume {primitive_vs[0]} = {*/
-/*      primitive_ps[2], primitive_ps[3], primitive_ps[0], primitive_ps[1],*/
-/*      primitive_ps[6], primitive_ps[7], primitive_ps[4], primitive_ps[5]*/
-/*    };*/
-/*  Else*/
-/*    Transfinite Volume {primitive_vs[0]} = {*/
-/*      primitive_ps[3], primitive_ps[0], primitive_ps[1], primitive_ps[2],*/
-/*      primitive_ps[7], primitive_ps[4], primitive_ps[5], primitive_ps[6]*/
-/*    };*/
-/*  EndIf*/
-/*  If (primitive_t_4) // TODO Algorithm doesn't work*/
-/*    TransfQuadTri {primitive_vs[0]};*/
-/*  EndIf*/
-/*EndIf*/
-
-
-// FIXME WORKAROUND OpenCASCADE bug (duplicate surfaces while volume ctreation)
-BooleanFragments{ Surface{primitive_ss[]}; Delete; }{ Volume{primitive_vs[]}; Delete; }
-/*primitive_ss[] = Unique(Abs(Boundary{ Volume{primitive_vs[0]}; }));*/
-//primitive_ps[] = Unique(Abs(Boundary{ Line{primitive_ls[]}; }));
-
-If (primitive_t_1 || primitive_t_2 || primitive_t_3)
-  primitive_ls[] = Unique(Abs(Boundary{ Surface{primitive_ss[]}; })); // New ls
-  // Sorting as built-in array
-  primitive_ls_1[] = {};
-  primitive_ls_2[] = {};
-  primitive_ls_3[] = {};
-  For primitive_i In {0 : #primitive_ls[]-1}
-  //  Printf(Sprintf("%g", primitive_ls[primitive_i]));
-    primitive_l_ps[] = Boundary{ Line{primitive_ls[primitive_i]}; };
-  //  Printf(Sprintf("%g, %g", primitive_l_ps[0], primitive_l_ps[1]));
-    If (
-      primitive_l_ps[0] == primitive_ps[0]+1 && primitive_l_ps[1] == primitive_ps[0] ||
-      primitive_l_ps[0] == primitive_ps[0]+2 && primitive_l_ps[1] == primitive_ps[0]+3 ||
-      primitive_l_ps[0] == primitive_ps[0]+5 && primitive_l_ps[1] == primitive_ps[0]+4 ||
-      primitive_l_ps[0] == primitive_ps[0]+6 && primitive_l_ps[1] == primitive_ps[0]+7
-      )
-      primitive_ls_1[] += primitive_ls[primitive_i];
-    ElseIf (
-      primitive_l_ps[0] == primitive_ps[0]+3 && primitive_l_ps[1] == primitive_ps[0] ||
-      primitive_l_ps[0] == primitive_ps[0]+2 && primitive_l_ps[1] == primitive_ps[0]+1 ||
-      primitive_l_ps[0] == primitive_ps[0]+6 && primitive_l_ps[1] == primitive_ps[0]+5 ||
-      primitive_l_ps[0] == primitive_ps[0]+7 && primitive_l_ps[1] == primitive_ps[0]+4
-      )
-      primitive_ls_2[] += primitive_ls[primitive_i];
-    Else
-      primitive_ls_3[] += primitive_ls[primitive_i];
-    EndIf
-  EndFor
-  primitive_ls[] = {};
-  primitive_ls[] += primitive_ls_1[];
-  primitive_ls[] += primitive_ls_2[];
-  primitive_ls[] += primitive_ls_3[];
-  //Printf("New");
-  For primitive_i In {0 : #primitive_ls[]-1}
-  //  Printf(Sprintf("%g", primitive_ls[primitive_i]));
-  EndFor
-
-  If (primitive_t_1)
-    For primitive_i In {0 : 3}
-      If (primitive_t_1_1)
-        Transfinite Line primitive_ls[primitive_i] = primitive_t_1 Using Progression primitive_t_1_1;
-      ElseIf (primitive_t_1_2)
-        Transfinite Line primitive_ls[primitive_i] = primitive_t_1 Using Bump primitive_t_1_2;
-      Else
-        Transfinite Line primitive_ls[primitive_i] = primitive_t_1;
-      EndIf
-    EndFor // primitive_i
-  EndIf
-  If (primitive_t_2)
-    For primitive_i In {4 : 7}
-      If (primitive_t_2_1)
-        Transfinite Line primitive_ls[primitive_i] = primitive_t_2 Using Progression primitive_t_2_1;
-      ElseIf (primitive_t_2_2)
-        Transfinite Line primitive_ls[primitive_i] = primitive_t_2 Using Bump primitive_t_2_2;
-      Else
-        Transfinite Line primitive_ls[primitive_i] = primitive_t_2;
-      EndIf
-    EndFor // primitive_i
-  EndIf
-  If (primitive_t_3)
-    For primitive_i In {8 : 11}
-      If (primitive_t_3_1)
-        Transfinite Line primitive_ls[primitive_i] = primitive_t_3 Using Progression primitive_t_3_1;
-      ElseIf (primitive_t_3_2)
-        Transfinite Line primitive_ls[primitive_i] = primitive_t_3 Using Bump primitive_t_3_2;
-      Else
-        Transfinite Line primitive_ls[primitive_i] = primitive_t_3;
-      EndIf
-    EndFor // primitive_i
-  EndIf
-EndIf
-
 If (primitive_t_1 && primitive_t_2 && primitive_t_3 && !primitive_is_surface_changed)
   If (primitive_t_6 == 0)
     Transfinite Surface {primitive_ss[0]} = {primitive_ps[2], primitive_ps[1], primitive_ps[5], primitive_ps[6]} Right;
@@ -412,6 +254,23 @@ If (primitive_t_1 && primitive_t_2 && primitive_t_3 && !primitive_is_surface_cha
   EndIf
 EndIf
 
+// Surface Loops
+primitive_sls = {};
+primitive_sls[0] = newsl;
+Surface Loop (primitive_sls[0]) = {primitive_ss[]};
+If (#primitive_t_7s[])
+  primitive_sls[1] = newsl;
+  Surface Loop (primitive_sls[1]) = {primitive_t_7s[]};
+EndIf
+
+// Volumes
+primitive_vs = {};
+primitive_vs[0] += newv;
+If (!#primitive_t_7s[])
+  Volume (primitive_vs[0]) = {primitive_sls[0]};
+Else
+  Volume (primitive_vs[0]) = {primitive_sls[0], primitive_sls[1]};
+EndIf
 If (primitive_t_1 && primitive_t_2 && primitive_t_3 && !#primitive_t_7s[] && !primitive_is_surface_changed)
   If (primitive_t_6 == 0)
     Transfinite Volume {primitive_vs[0]} = {
