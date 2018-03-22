@@ -1,7 +1,7 @@
 SetFactory("OpenCASCADE");
 
 Geometry.AutoCoherence = 0;
-Geometry.OCCParallel = 0;
+// Geometry.OCCParallel = 0;
 // Mesh.CharacteristicLengthExtendFromBoundary = 1;
 // Mesh.CharacteristicLengthFactor = 1;
 // Mesh.CharacteristicLengthMin = 0;
@@ -16,10 +16,11 @@ Include "macro_hexahedron.geo";
 vs[] = {};
 x_start = 0;
 
-Printf("ILW Boreholes");
+
 // ILW Boreholes
-dx = 23; nx = 1; // Interval 23, Number of x boreholes 14
-dy = 15; ny = 1; // Interval 15, Number of y boreholes 20
+Printf("ILW Boreholes");
+dx = 23; nx = 2; // Interval 23, Number of x boreholes 14
+dy = 15; ny = 2; // Interval 15, Number of y boreholes 20
 n_ilw = nx*ny;
 y_start = -dy*(ny-1)/2;
 borehole1occ_lcs[] = {0.3, 0.3, 0.3};
@@ -35,10 +36,11 @@ For k In {0 : nx-1}
 EndFor
 x_start += nx*dx;
 
-Printf("HLW Boreholes");
+
 // HLW
-dx = 26; nx = 1; // Interval 26, Number of x boreholes 14
-dy = 23; ny = 1; // Interval 23, Number of y boreholes 13
+Printf("HLW Boreholes");
+dx = 26; nx = 2; // Interval 26, Number of x boreholes 14
+dy = 23; ny = 2; // Interval 23, Number of y boreholes 13
 n_hlw = nx*ny;
 y_start = -dy*(ny-1)/2;
 borehole1occ_lcs = {0.3, 0.3, 0.3};
@@ -54,6 +56,7 @@ For k In {0 : nx-1}
 EndFor
 x_start += nx*dx-dx;
 y_rng = ny*dy-dy;
+
 
 // Sill
 Printf("Sill");
@@ -97,8 +100,8 @@ ps[] = PointsOf{ Volume{m_ilw_vs[]}; };
 Characteristic Length {ps[]} = borehole1occ_lcs[0];
 ps[] = PointsOf{ Volume{m_hlw_vs[]}; };
 Characteristic Length {ps[]} = borehole1occ_lcs[0];
-Physical Volume ("MatrixILW") = {m_ilw_vs[]};
-Physical Volume ("MatrixHLW") = {m_hlw_vs[]};
+Physical Volume ("ILWMatrix") = {m_ilw_vs[]};
+Physical Volume ("HLWMatrix") = {m_hlw_vs[]};
 Physical Volume ("Container") = {c_vs[]};
 Physical Volume ("Fill") = {f_vs[]};
 // Borehole points
@@ -152,4 +155,5 @@ Physical Surface ("NY") = {ss[#ss[]-4]};
 Physical Surface ("Y") = {ss[#ss[]-3]};
 Physical Surface ("NZ") = {ss[#ss[]-5]};
 Physical Surface ("Z") = {ss[#ss[]-2]};
+
 Printf("End");
