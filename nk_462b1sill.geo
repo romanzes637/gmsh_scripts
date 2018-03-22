@@ -1,6 +1,6 @@
 SetFactory("OpenCASCADE");
 
-Geometry.AutoCoherence = 0;
+// Geometry.AutoCoherence = 0;
 // Geometry.OCCParallel = 0;
 // Mesh.CharacteristicLengthExtendFromBoundary = 1;
 // Mesh.CharacteristicLengthFactor = 1;
@@ -104,6 +104,32 @@ Physical Volume ("ILWMatrix") = {m_ilw_vs[]};
 Physical Volume ("HLWMatrix") = {m_hlw_vs[]};
 Physical Volume ("Container") = {c_vs[]};
 Physical Volume ("Fill") = {f_vs[]};
+// Boundary Surfaces
+// ss[] = Boundary{ Volume{out[]}; };
+// bss[] = {};
+// add = 1;
+// For i In {0 : #ss[]-1}
+  // add = 1;
+  // For j In {0 : #ss[]-1}
+    // If (i != j)
+      // If (ss[i] == ss[j])
+        // add = 0;
+      // EndIf
+    // EndIf
+  // EndFor
+  // If (add == 1)
+    // bss[] += ss[i];
+  // EndIf
+// EndFor
+// Physical Surface ("BS") = {bss[]};
+// Printf("ss");
+// For i In {0 : #ss[]-1}
+  // Printf("%g", ss[i]);
+// EndFor
+// Printf("bss");
+// For i In {0 : #bss[]-1}
+  // Printf("%g", bss[i]);
+// EndFor
 // Borehole points
 // For i In {0 : #out[]-2}
   // Printf("v%g", out[i]);
@@ -146,6 +172,15 @@ hexahedron_t_6 = 0; // Type of hex to tet splitting
 hexahedron_t_7s[] = {}; // Inner Surfaces
 Call hexahedron;
 Printf("Rock Physical Volumes");
+// Old variant could not preserve tags from Built-in to OpenCASCADE so Waiting Fix...
+// Physical Surface ("NX") = {hexahedron_nxss[]};
+// Physical Surface ("X") = {hexahedron_xss[]};
+// Physical Surface ("NY") = {hexahedron_nyss[]};
+// Physical Surface ("Y") = {hexahedron_yss[]};
+// Physical Surface ("NZ") = {hexahedron_nzss[]};
+// Physical Surface ("Z") = {hexahedron_zss[]};
+// Physical Volume ("Rock") = {hexahedron_vs[]};
+// Boolean variant VEEERY SLOW...
 out2[] = BooleanFragments{ Volume{hexahedron_vs[], out[]}; Delete; } {};
 Physical Volume ("Rock") = {out2[#out2[]-1]};
 ss[] = Unique(Abs(Boundary{ Volume{out2[#out2[]-1]}; }));

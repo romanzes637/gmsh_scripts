@@ -213,7 +213,7 @@ EndIf
 
 
 // FIXME WORKAROUND OpenCASCADE bug (duplicate surfaces while volume ctreation)
-BooleanFragments{ Surface{primitive_ss[]}; Delete; }{ Volume{primitive_vs[]}; Delete; }
+BooleanFragments{ Surface{primitive_ss[], primitive_t_7s[]}; Delete; }{ Volume{primitive_vs[]}; Delete; }
 //primitive_ss[] = Unique(Abs(Boundary{ Volume{primitive_vs[]}; }));
 //primitive_ps[] = Unique(Abs(Boundary{ Line{primitive_ls[]}; }));
 //primitive_ls[] = Unique(Abs(Boundary{ Surface{primitive_ss[]}; }));
