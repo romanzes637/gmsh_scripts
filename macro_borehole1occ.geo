@@ -1,8 +1,6 @@
 Include "macro_primitive.geo";
 
 Macro borehole1occ
-borehole1occ_rs[] = {0.281, 0.603, 0.650};
-borehole1occ_hs[] = {73.800, 74.444, 74.538};
 borehole1occ_vs[] = {};
 For borehole1occ_i In {0 : #borehole1occ_rs[]-1}
   // X-Y-NZ point, NX-Y-NZ, NX-NY-NZ, X-NY-NZ, (X - X axis, NX - negative X axis, etc)
@@ -58,6 +56,10 @@ For borehole1occ_i In {0 : #borehole1occ_rs[]-1}
   Call primitive;
   borehole1occ_vs[] += primitive_vs[];
 EndFor
-borehole1occ_out[] = BooleanFragments{ Volume{borehole1occ_vs[]}; Delete; } {};
+If (#borehole1occ_rs[] > 1)
+  borehole1occ_out[] = BooleanFragments{ Volume{borehole1occ_vs[]}; Delete; } {};
+Else
+  borehole1occ_out[] = borehole1occ_vs[];
+EndIf
 
 Return

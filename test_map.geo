@@ -1,7 +1,7 @@
 Include "macro_pmap.geo";
 Include "macro_pmapi.geo";
 
-pmap_in = {
+pmap_in[] = {
   0, //5,
   //1, 0,
   //2, 1, 2, 
@@ -13,7 +13,7 @@ pmap_in = {
   //6, 15, 16, 17, 18, 19, 20
 };
 
-pmap_in = {
+pmap_in[] = {
   0, //5,
   //1, 0,
   //2, 1, 2, 
@@ -25,7 +25,7 @@ pmap_in = {
   //6, 15, 16, 17, 18, 19, 20
 };
 
-pmap_in = {
+pmap_in[] = {
   5,
   1, 0,
   2, 1, 2, 
@@ -37,7 +37,7 @@ pmap_in = {
   6, 15, 16, 17, 18, 19, 20
 };
 
-pmap_in = {
+pmap_in[] = {
   5,
   1, 0,
   2, 1, 2, 
@@ -49,7 +49,7 @@ pmap_in = {
   6, 15, 16, 17, 18, 19, 20
 };
 
-pmap_in = {
+pmap_in[] = {
   0, //5,
   //1, 0,
   //2, 1, 2, 
@@ -61,7 +61,7 @@ pmap_in = {
   6, 15, 16, 17, 18, 19, 20
 };
 
-pmap_in = {
+pmap_in[] = {
   5,
   1, 0,
   2, 1, 2, 
@@ -81,13 +81,13 @@ EndFor
 pmap_in_dim = 3;
 Printf("pmap_in_dim = %g", pmap_in_dim);
 
-pmap_map_dims = {3, 2};
+pmap_map_dims[] = {3, 2};
 Printf("pmap_map_dims length = %g", #pmap_map_dims[]);
 For i In {0 : #pmap_map_dims[]-1}
   Printf("%g", pmap_map_dims[i]);
 EndFor
 
-pmap_map = {
+pmap_map[] = {
   0, 1,
   1, 2,
   2, 3
@@ -111,14 +111,14 @@ pns[] = Str(
   "Three"
 );
 
-pmapi_in = pmap_out[];
-idcs = {0, 1, 2, 3};
+pmapi_in[] = pmap_out[];
+idcs[] = {0, 1, 2, 3};
 For i In {0 : #idcs[]-1}
   Printf(pns[idcs[i]]);
   pmapi_idx = idcs[i];
   Call pmapi;
   For j In {0 : #pmapi_out[]-1}
     Printf("%g", pmapi_out[j]);
-  EndFor // j
+  EndFor
 EndFor
 
