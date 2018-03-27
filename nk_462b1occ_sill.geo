@@ -275,6 +275,7 @@ Printf("Rock Boolean");
 // Boolean variant with modification SLOW...
 out2[] = hexahedron_vs[];
 For i In {0 : #vs[]-1}
+  Printf(StrCat(Sprintf("Volume %g/", i+1), Sprintf("%g ", #vs[])));
   out2[] = BooleanFragments{ Volume{out2[#out2[]-1], vs[i]}; Delete; } {};
 EndFor
 Printf("Rock Physical Volume");

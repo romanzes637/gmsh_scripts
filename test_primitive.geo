@@ -3,8 +3,10 @@ SetFactory("OpenCASCADE");
 Include "macro_primitive.geo";
 
 /*Geometry.AutoCoherence = 0;*/
-Mesh.CharacteristicLengthMin = 0.1;
-Mesh.CharacteristicLengthMax = 0.5;
+//Mesh.CharacteristicLengthFromCurvature = 1;
+//Mesh.CharacteristicLengthFromPoints = 0;
+//Mesh.CharacteristicLengthMin = 0.1;
+//Mesh.CharacteristicLengthMax = 0.5;
 
 
 // X-Y-NZ point, NX-Y-NZ, NX-NY-NZ, X-NY-NZ, (X - X axis, NX - negative X axis, etc)
