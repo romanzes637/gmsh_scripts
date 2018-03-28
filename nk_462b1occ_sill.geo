@@ -30,7 +30,7 @@ borehole1occ_pvns[] = Str("Borehole");
 // ILW Boreholes
 Printf("ILW Boreholes");
 dx = 23; nx = 14; // Interval 23, Number of x boreholes 14
-dy = 15; ny = 20; // Interval 15, Number of y boreholes 20
+dy = 15; ny = 1; // Interval 15, Number of y boreholes 20
 ilw_vs[] = {};
 n_ilw = nx*ny;
 y_start = -dy*(ny-1)/2;
@@ -51,7 +51,7 @@ x_start += nx*dx;
 Printf("HLW Boreholes");
 hlw_vs[] = {};
 dx = 26; nx = 14; // Interval 26, Number of x boreholes 14
-dy = 23; ny = 13; // Interval 23, Number of y boreholes 13
+dy = 23; ny = 1; // Interval 23, Number of y boreholes 13
 n_hlw = nx*ny;
 y_start = -dy*(ny-1)/2;
 For k In {0 : nx-1}
@@ -74,7 +74,7 @@ sill_lcs[] = {
   25, 25, 25, 25,
   25, 25, 25, 25
 };
-sill_kx = 500; sill_ky = 175; sill_kz = 25;
+sill_kx = 350; sill_ky = 175; sill_kz = 25;
 sill_ox = 0; sill_oy = 0; sill_oz = 0; // Origin: x, y, z
 Call sill;
 
