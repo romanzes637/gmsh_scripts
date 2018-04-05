@@ -2,6 +2,14 @@ import gmsh
 
 
 class Primitive:
+    surface_names = {
+        0: "NX",
+        1: "X",
+        2: "NY",
+        3: "Y",
+        4: "NZ",
+        5: "Z"
+    }
     curve_points = [
         [1, 0], [5, 4], [6, 7], [2, 3],
         [3, 0], [2, 1], [6, 5], [7, 4],
@@ -157,6 +165,9 @@ class Primitive:
         self.curves = []
         self.surfaces = []
         self.volumes = []
+        self.surfaces_physical_groups = [
+            None, None, None, None, None, None]  # NX, X, NY, Y, NZ, Z
+        self.volumes_physical_groups = [None]
 
     def recombine(self):
         for i in range(len(self.surfaces)):
@@ -253,109 +264,110 @@ class Primitive:
         tag = factory.addSurfaceLoop(self.surfaces)
         tag = factory.addVolume([tag])
         self.volumes.append(tag)
+        factory.synchronize()
 
 
-# Before using any functions in the Python API, Gmsh must be initialized.
-gmsh.initialize()
-
-gmsh.option.setNumber("Geometry.AutoCoherence", 0)
-
-# By default Gmsh will not print out any messages: in order to output messages
-# on the terminal, just set the standard Gmsh option "General.Terminal" (same
-# format and meaning as in .geo files) using gmshOptionSetNumber():
-gmsh.option.setNumber("General.Terminal", 1)
-
-# This creates a new model, named "t1". If gmshModelCreate() is not called, a
-# new default (unnamed) model will be created on the fly, if necessary.
-gmsh.model.add("primitive")
-
+# # Before using any functions in the Python API, Gmsh must be initialized.
+# gmsh.initialize()
+#
+# gmsh.option.setNumber("Geometry.AutoCoherence", 0)
+#
+# # By default Gmsh will not print out any messages: in order to output messages
+# # on the terminal, just set the standard Gmsh option "General.Terminal" (same
+# # format and meaning as in .geo files) using gmshOptionSetNumber():
+# gmsh.option.setNumber("General.Terminal", 1)
+#
+# # This creates a new model, named "t1". If gmshModelCreate() is not called, a
+# # new default (unnamed) model will be created on the fly, if necessary.
+# gmsh.model.add("primitive")
+#
 factory = gmsh.model.geo
-
-primitives = []
-for m in range(2):
-    primitives.append(Primitive(
-        [
-            5, 10, -15, 1,
-            -5, 10, -15, 1,
-            -5, -10, -15, 1,
-            5, -10, -15, 1,
-            5, 10, 15, 1,
-            -5, 10, 15, 1,
-            -5, -10, 15, 1,
-            5, -10, 15, 1,
-        ],
-        [m * 10, 0, 0, 0, 0, 0, 3.14 / 4, 3.14 / 6, 3.14 / 8],
-        # [4, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [
-            [
-                -2, 20, -20, 1,
-                -1, 20, -20, 1,
-                1, 20, -20, 1,
-                2, 20, -20, 1
-            ],
-            [],
-            [],
-            [],
-            [],
-            [],
-            [],
-            [0, 0, 0, 0],
-            [],
-            [],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            []
-        ],
-        [
-            [5, 0, 1],
-            [5, 0, 1],
-            [5, 0, 1],
-            [5, 0, 1],
-            [10, 0, 1],
-            [10, 0, 1],
-            [10, 0, 1],
-            [10, 0, 1],
-            [15, 0, 1],
-            [15, 0, 1],
-            [15, 0, 1],
-            [15, 0, 1]
-        ],
-        1
-    ))
-    primitives[m].create()
-
-factory.synchronize()
-
-# sfgs = []
+#
+# primitives = []
+# for m in range(2):
+#     primitives.append(Primitive(
+#         [
+#             5, 10, -15, 1,
+#             -5, 10, -15, 1,
+#             -5, -10, -15, 1,
+#             5, -10, -15, 1,
+#             5, 10, 15, 1,
+#             -5, 10, 15, 1,
+#             -5, -10, 15, 1,
+#             5, -10, 15, 1,
+#         ],
+#         [m * 10, 0, 0, 0, 0, 0, 3.14 / 4, 3.14 / 6, 3.14 / 8],
+#         # [4, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0],
+#         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#         [
+#             [
+#                 -2, 20, -20, 1,
+#                 -1, 20, -20, 1,
+#                 1, 20, -20, 1,
+#                 2, 20, -20, 1
+#             ],
+#             [],
+#             [],
+#             [],
+#             [],
+#             [],
+#             [],
+#             [0, 0, 0, 0],
+#             [],
+#             [],
+#             [0, 0, 0, 0, 0, 0, 0, 0],
+#             []
+#         ],
+#         [
+#             [5, 0, 1],
+#             [5, 0, 1],
+#             [5, 0, 1],
+#             [5, 0, 1],
+#             [10, 0, 1],
+#             [10, 0, 1],
+#             [10, 0, 1],
+#             [10, 0, 1],
+#             [15, 0, 1],
+#             [15, 0, 1],
+#             [15, 0, 1],
+#             [15, 0, 1]
+#         ],
+#         1
+#     ))
+#     primitives[m].create()
+#
+# factory.synchronize()
+#
+# # sfgs = []
+# # for primitive in primitives:
+# #     sfgs.append(gmsh.model.addPhysicalGroup(2, primitive.surfaces))
+# # for m in range(len(sfgs)):
+# #     gmsh.model.setPhysicalName(2, sfgs[m], "S%s" % m)
+#
+# vfgs = []
 # for primitive in primitives:
-#     sfgs.append(gmsh.model.addPhysicalGroup(2, primitive.surfaces))
-# for m in range(len(sfgs)):
-#     gmsh.model.setPhysicalName(2, sfgs[m], "S%s" % m)
-
-vfgs = []
-for primitive in primitives:
-    vfgs.append(gmsh.model.addPhysicalGroup(3, primitive.volumes))
-for m in range(len(vfgs)):
-    gmsh.model.setPhysicalName(3, vfgs[m], "V%s" % m)
-
-for primitive in primitives:
-    primitive.check_tags()
-    primitive.transfinite()
-    # primitive.recombine()
-    # primitive.smooth(50)
-
-factory.removeAllDuplicates()
-
-for primitive in primitives:
-    primitive.check_tags()
-
-# We can then generate a 2D mesh...
-gmsh.model.mesh.generate(3)
-
-gmsh.model.mesh.removeDuplicateNodes()
-
-# ... and save it to disk
-gmsh.write("primitive.msh")
-
-# This should be called at the end:
-gmsh.finalize()
+#     vfgs.append(gmsh.model.addPhysicalGroup(3, primitive.volumes))
+# for m in range(len(vfgs)):
+#     gmsh.model.setPhysicalName(3, vfgs[m], "V%s" % m)
+#
+# for primitive in primitives:
+#     primitive.check_tags()
+#     primitive.transfinite()
+#     # primitive.recombine()
+#     # primitive.smooth(50)
+#
+# factory.removeAllDuplicates()
+#
+# for primitive in primitives:
+#     primitive.check_tags()
+#
+# # We can then generate a 2D mesh...
+# gmsh.model.mesh.generate(3)
+#
+# gmsh.model.mesh.removeDuplicateNodes()
+#
+# # ... and save it to disk
+# gmsh.write("primitive.msh")
+#
+# # This should be called at the end:
+# gmsh.finalize()
