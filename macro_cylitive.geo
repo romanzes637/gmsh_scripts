@@ -11,7 +11,9 @@ cylitive_lss = {}; // 3D array
 cylitive_iss = {}; // 3D array
 cylitive_vs = {}; // 3D array
 cylitive_bss = {}; // 1D array
-
+cylitive_bnzss = {}; // 1D array
+cylitive_bzss = {}; // 1D array
+cylitive_blss = {}; // 1D array
 
 // BOTTOM SHERICAL SHELL
 If (cylitive_t5 == 1 || cylitive_t5 == 3)
@@ -80,8 +82,10 @@ If (cylitive_t5 == 1 || cylitive_t5 == 3)
   cylitive_vs += cylitive_vs_i[];
   If (#cylitive_rs[] > 1)
     cylitive_bss += sphereshell_lss[];
+    cylitive_blss += sphereshell_lss[];
   Else
     cylitive_bss += hemisphere_lss[];
+    cylitive_blss += hemisphere_lss[];
   EndIf
 EndIf
 
@@ -129,11 +133,13 @@ For cylitive_i In {0 : #cylitive_lvls[]-1}
     If (cylitive_i == 0)
       If (cylitive_t5 == 0 || cylitive_t5 == 2)
         cylitive_bss += cylinder_nzss[];
+        cylitive_bnzss += cylinder_nzss[];
       EndIf
     EndIf
     If (cylitive_i == #cylitive_lvls[]-1)
       If (cylitive_t5 == 0 || cylitive_t5 == 1)
         cylitive_bss += cylinder_zss[];
+        cylitive_bzss += cylinder_zss[];
       EndIf
     EndIf
   EndIf
@@ -166,11 +172,13 @@ For cylitive_i In {0 : #cylitive_lvls[]-1}
       If (cylitive_i == 0)
         If (cylitive_t5 == 0 || cylitive_t5 == 2)
           cylitive_bss += cylshell_nzss[];
+          cylitive_bnzss += cylshell_nzss[];
         EndIf
       EndIf
       If (cylitive_i == #cylitive_lvls[]-1)
         If (cylitive_t5 == 0 || cylitive_t5 == 1)
           cylitive_bss += cylshell_zss[];
+          cylitive_bzss += cylshell_zss[];
         EndIf
       EndIf
     EndIf
@@ -187,8 +195,10 @@ For cylitive_i In {0 : #cylitive_lvls[]-1}
   cylitive_vs += cylitive_vs_i[];
   If (#cylitive_rs[] > 1)
     cylitive_bss += cylshell_lss[];
+    cylitive_blss += cylshell_lss[];
   Else
     cylitive_bss += cylinder_lss[];
+    cylitive_blss += cylinder_lss[];
   EndIf
 EndFor
 
@@ -260,8 +270,10 @@ If (cylitive_t5 == 2 || cylitive_t5 == 3)
   cylitive_vs += cylitive_vs_i[];
   If (#cylitive_rs[] > 1)
     cylitive_bss += sphereshell_lss[];
+    cylitive_blss += sphereshell_lss[];
   Else
     cylitive_bss += hemisphere_lss[];
+    cylitive_blss += hemisphere_lss[];
   EndIf
 EndIf
 
