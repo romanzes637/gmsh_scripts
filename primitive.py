@@ -106,32 +106,32 @@ class Primitive:
         )
     }
     add_curve = {
-        0: lambda self, i: factory.addLine(
+        0: lambda self, i: self.factory.addLine(
             self.points[self.curve_points[i][0]],
             self.points[self.curve_points[i][1]]
         ),
-        1: lambda self, i: factory.addCircleArc(
+        1: lambda self, i: self.factory.addCircleArc(
             self.points[self.curve_points[i][0]],
             self.curves_points[i][0],
             self.points[self.curve_points[i][1]]
         ),
-        2: lambda self, i: factory.addEllipseArc(
+        2: lambda self, i: self.factory.addEllipseArc(
             self.points[self.curve_points[i][0]],
             self.curves_points[i][0],
             self.curves_points[i][1],
             self.points[self.curve_points[i][1]],
         ),
-        3: lambda self, i: factory.addSpline(
+        3: lambda self, i: self.factory.addSpline(
             [self.points[self.curve_points[i][0]]] +
             self.curves_points[i] +
             [self.points[self.curve_points[i][1]]]
         ),
-        4: lambda self, i: factory.addBSpline(
+        4: lambda self, i: self.factory.addBSpline(
             [self.points[self.curve_points[i][0]]] +
             self.curves_points[i] +
             [self.points[self.curve_points[i][1]]]
         ),
-        5: lambda self, i: factory.addBezier(
+        5: lambda self, i: self.factory.addBezier(
             [self.points[self.curve_points[i][0]]] +
             self.curves_points[i] +
             [self.points[self.curve_points[i][1]]]
@@ -139,7 +139,8 @@ class Primitive:
     }
 
     def __init__(self, data, transform, curve_types, curve_data,
-                 transfinite_curve_data=None, transfinite_type=None):
+                 transfinite_curve_data=None, transfinite_type=None,
+                 factory=gmsh.model.geo):
         self.data = data
         self.transform = transform
         self.curve_types = curve_types
@@ -168,6 +169,7 @@ class Primitive:
         self.surfaces_physical_groups = [
             None, None, None, None, None, None]  # NX, X, NY, Y, NZ, Z
         self.volumes_physical_groups = [None]
+        self.factory = factory
 
     def recombine(self):
         for i in range(len(self.surfaces)):
@@ -192,18 +194,25 @@ class Primitive:
         dim_tags = zip([0] * len(self.points), self.points)
         for curve_points in self.curves_points:
             dim_tags += zip([0] * len(curve_points), curve_points)
-        factory.translate(
+        self.factory.translate(
             dim_tags, self.transform[0], self.transform[1], self.transform[2]
         )
-        factory.rotate(dim_tags,
-                       self.transform[3], self.transform[4], self.transform[5],
-                       1, 0, 0, self.transform[6])
-        factory.rotate(dim_tags,
-                       self.transform[3], self.transform[4], self.transform[5],
-                       0, 1, 0, self.transform[7])
-        factory.rotate(dim_tags,
-                       self.transform[3], self.transform[4], self.transform[5],
-                       0, 0, 1, self.transform[8])
+        self.factory.rotate(dim_tags,
+                            self.transform[3], self.transform[4], self.transform[5],
+                            1, 0, 0, self.transform[6])
+        self.factory.rotate(dim_tags,
+                            self.transform[3], self.transform[4], self.transform[5],
+                            0, 1, 0, self.transform[7])
+        self.factory.rotate(dim_tags,
+                            self.transform[3], self.transform[4], self.transform[5],
+                            0, 0, 1, self.transform[8])
+
+    def get_surfaces(self, combined=False, oriented=False, recursive=False):
+        dim_tags = zip([3] * len(self.volumes), self.volumes)
+        surface_dim_tags = gmsh.model.getBoundary(
+            dim_tags, combined=combined, oriented=oriented, recursive=recursive
+        )
+        return surface_dim_tags
 
     def check_tags(self):
         dim_tags = zip([3] * len(self.volumes), self.volumes)
@@ -235,7 +244,7 @@ class Primitive:
 
     def create(self):
         for i in range(0, len(self.data), 4):
-            tag = factory.addPoint(
+            tag = self.factory.addPoint(
                 self.data[i],
                 self.data[i + 1],
                 self.data[i + 2],
@@ -244,7 +253,7 @@ class Primitive:
         for i in range(0, len(self.curve_data)):
             ps = []
             for j in range(0, len(self.curve_data[i]), 4):
-                tag = factory.addPoint(
+                tag = self.factory.addPoint(
                     self.curve_data[i][j],
                     self.curve_data[i][j + 1],
                     self.curve_data[i][j + 2],
@@ -256,118 +265,23 @@ class Primitive:
             tag = self.add_curve[self.curve_types[i]](self, i)
             self.curves.append(tag)
         for i in range(6):
-            tag = factory.addCurveLoop(
-                map(lambda x, y: y * self.curves[x],
-                    self.surface_curves[i], self.surface_curves_sign[i]))
-            tag = factory.addSurfaceFilling([tag])
+            if self.factory == gmsh.model.geo:
+                tag = self.factory.addCurveLoop(
+                    map(lambda x, y: y * self.curves[x],
+                        self.surface_curves[i],
+                        self.surface_curves_sign[i]))
+                tag = self.factory.addSurfaceFilling([tag])
+            else:
+                # tag = self.factory.addCurveLoop(
+                #     map(lambda x, y: y * self.curves[x],
+                #         self.surface_curves[i],
+                #         self.surface_curves_sign[i]))
+                tag = self.factory.addCurveLoop(
+                    map(lambda x: self.curves[x],
+                        self.surface_curves[i]))
+                tag = self.factory.addSurfaceFilling(tag)
             self.surfaces.append(tag)
-        tag = factory.addSurfaceLoop(self.surfaces)
-        tag = factory.addVolume([tag])
+        tag = self.factory.addSurfaceLoop(self.surfaces)
+        tag = self.factory.addVolume([tag])
         self.volumes.append(tag)
-        factory.synchronize()
-
-
-# # Before using any functions in the Python API, Gmsh must be initialized.
-# gmsh.initialize()
-#
-# gmsh.option.setNumber("Geometry.AutoCoherence", 0)
-#
-# # By default Gmsh will not print out any messages: in order to output messages
-# # on the terminal, just set the standard Gmsh option "General.Terminal" (same
-# # format and meaning as in .geo files) using gmshOptionSetNumber():
-# gmsh.option.setNumber("General.Terminal", 1)
-#
-# # This creates a new model, named "t1". If gmshModelCreate() is not called, a
-# # new default (unnamed) model will be created on the fly, if necessary.
-# gmsh.model.add("primitive")
-#
-factory = gmsh.model.geo
-#
-# primitives = []
-# for m in range(2):
-#     primitives.append(Primitive(
-#         [
-#             5, 10, -15, 1,
-#             -5, 10, -15, 1,
-#             -5, -10, -15, 1,
-#             5, -10, -15, 1,
-#             5, 10, 15, 1,
-#             -5, 10, 15, 1,
-#             -5, -10, 15, 1,
-#             5, -10, 15, 1,
-#         ],
-#         [m * 10, 0, 0, 0, 0, 0, 3.14 / 4, 3.14 / 6, 3.14 / 8],
-#         # [4, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0],
-#         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#         [
-#             [
-#                 -2, 20, -20, 1,
-#                 -1, 20, -20, 1,
-#                 1, 20, -20, 1,
-#                 2, 20, -20, 1
-#             ],
-#             [],
-#             [],
-#             [],
-#             [],
-#             [],
-#             [],
-#             [0, 0, 0, 0],
-#             [],
-#             [],
-#             [0, 0, 0, 0, 0, 0, 0, 0],
-#             []
-#         ],
-#         [
-#             [5, 0, 1],
-#             [5, 0, 1],
-#             [5, 0, 1],
-#             [5, 0, 1],
-#             [10, 0, 1],
-#             [10, 0, 1],
-#             [10, 0, 1],
-#             [10, 0, 1],
-#             [15, 0, 1],
-#             [15, 0, 1],
-#             [15, 0, 1],
-#             [15, 0, 1]
-#         ],
-#         1
-#     ))
-#     primitives[m].create()
-#
-# factory.synchronize()
-#
-# # sfgs = []
-# # for primitive in primitives:
-# #     sfgs.append(gmsh.model.addPhysicalGroup(2, primitive.surfaces))
-# # for m in range(len(sfgs)):
-# #     gmsh.model.setPhysicalName(2, sfgs[m], "S%s" % m)
-#
-# vfgs = []
-# for primitive in primitives:
-#     vfgs.append(gmsh.model.addPhysicalGroup(3, primitive.volumes))
-# for m in range(len(vfgs)):
-#     gmsh.model.setPhysicalName(3, vfgs[m], "V%s" % m)
-#
-# for primitive in primitives:
-#     primitive.check_tags()
-#     primitive.transfinite()
-#     # primitive.recombine()
-#     # primitive.smooth(50)
-#
-# factory.removeAllDuplicates()
-#
-# for primitive in primitives:
-#     primitive.check_tags()
-#
-# # We can then generate a 2D mesh...
-# gmsh.model.mesh.generate(3)
-#
-# gmsh.model.mesh.removeDuplicateNodes()
-#
-# # ... and save it to disk
-# gmsh.write("primitive.msh")
-#
-# # This should be called at the end:
-# gmsh.finalize()
+        self.factory.synchronize()
