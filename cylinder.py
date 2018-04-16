@@ -506,6 +506,7 @@ gmsh.option.setNumber("General.Terminal", 1)
 # new default (unnamed) model will be created on the fly, if necessary.
 gmsh.model.add("cylinder")
 
+#factory = gmsh.model.occ
 factory = gmsh.model.geo
 
 cylinder = Cylinder(
@@ -581,7 +582,7 @@ for key, value in surface_groups.items():
 
 cylinder.transfinite()
 
-# factory.removeAllDuplicates()
+factory.removeAllDuplicates()
 
 # We can then generate a 2D mesh...
 gmsh.model.mesh.generate(3)
