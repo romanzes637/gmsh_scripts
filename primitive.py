@@ -1,6 +1,8 @@
 import gmsh
 import sys
 
+import itertools
+
 
 class Primitive:
     surface_names = {
@@ -159,17 +161,17 @@ class Primitive:
             self.transfinite_surface_data = [0, 0, 1, 1, 0, 0]
             self.transfinite_volume_data = [3]
         else:
-            self.transfinite_surface_data = None
-            self.transfinite_volume_data = None
+            self.transfinite_surface_data = []
+            self.transfinite_volume_data = []
         self.points = []
         self.curves_points = []
         self.curves = []
         self.surfaces = []
         self.volumes = []
-        self.surfaces_physical_groups = [
-            None, None, None, None, None, None]  # NX, X, NY, Y, NZ, Z
+        self.surfaces_physical_groups = [None, None, None, None, None, None]  # NX, X, NY, Y, NZ, Z
         self.volumes_physical_groups = [None]
         self.factory = factory
+        self.bounding_box = []  # [x_min, y_min, z_min, x_max, y_max, z_max] Call self.evaluate_bounding_box() to init
 
     def recombine(self):
         for i in range(len(self.surfaces)):
@@ -190,29 +192,31 @@ class Primitive:
                     for i in range(len(self.volumes)):
                         self.transfinite_volume[self.transfinite_volume_data[i]](self, i)
 
-    def transform(self):
-        dim_tags = zip([0] * len(self.points), self.points)
-        for curve_points in self.curves_points:
-            dim_tags += zip([0] * len(curve_points), curve_points)
-        self.factory.translate(
-            dim_tags, self.transform_data[0], self.transform_data[1], self.transform_data[2]
-        )
-        self.factory.rotate(dim_tags,
-                            self.transform_data[3], self.transform_data[4], self.transform_data[5],
-                            1, 0, 0, self.transform_data[6])
-        self.factory.rotate(dim_tags,
-                            self.transform_data[3], self.transform_data[4], self.transform_data[5],
-                            0, 1, 0, self.transform_data[7])
-        self.factory.rotate(dim_tags,
-                            self.transform_data[3], self.transform_data[4], self.transform_data[5],
-                            0, 0, 1, self.transform_data[8])
-
     def get_actual_surfaces(self, combined=False, oriented=False, recursive=False):
         volumes_dim_tags = zip([3] * len(self.volumes), self.volumes)
         surfaces_dim_tags = gmsh.model.getBoundary(
             volumes_dim_tags, combined=combined, oriented=oriented, recursive=recursive
         )
         return surfaces_dim_tags
+
+    def evaluate_bounding_box(self):
+        x_mins = []
+        y_mins = []
+        z_mins = []
+        x_maxs = []
+        y_maxs = []
+        z_maxs = []
+        volumes_dim_tags = zip([3] * len(self.volumes), self.volumes)
+        for dim_tag in volumes_dim_tags:
+            x_min, y_min, z_min, x_max, y_max, z_max = gmsh.model.getBoundingBox(dim_tag[0], dim_tag[1])
+            x_mins.append(x_min)
+            y_mins.append(y_min)
+            z_mins.append(z_min)
+            x_maxs.append(x_max)
+            y_maxs.append(y_max)
+            z_maxs.append(z_max)
+        self.bounding_box = [min(x_mins), min(y_mins), min(z_mins), max(x_maxs), max(y_maxs), max(z_maxs)]
+        # print(self.bounding_box)
 
     def correct_after_occ(self):
         surfaces_dim_tags = self.get_actual_surfaces()
@@ -226,6 +230,7 @@ class Primitive:
         # print(self.surfaces)
         bad_surfaces_dim_tags = zip([2] * len(bad_surfaces), bad_surfaces)
         self.factory.remove(bad_surfaces_dim_tags, recursive=True)
+        self.factory.synchronize()
 
     def correct_to_transfinite(self):
         surfaces_dim_tags = self.get_actual_surfaces()
@@ -344,14 +349,14 @@ class Primitive:
             for i in range(len(self.volumes)):
                 volumes_dim_tags = (3, self.volumes[i])
                 points_dim_tags = gmsh.model.getBoundary(
-                    volumes_dim_tags, recursive=True
+                    volumes_dim_tags, combined=False, recursive=True
                 )
                 gmsh.model.mesh.setSize(points_dim_tags, size)
                 # print(points_dim_tags)
         else:
             volumes_dim_tags = (3, self.volumes[volume_idx])
             points_dim_tags = gmsh.model.getBoundary(
-                volumes_dim_tags, recursive=True
+                volumes_dim_tags, combined=False, recursive=True
             )
             gmsh.model.mesh.setSize(points_dim_tags, size)
             # print(points_dim_tags)
@@ -423,40 +428,137 @@ class Primitive:
         tag = self.factory.addVolume([tag])
         self.volumes.append(tag)
         self.factory.synchronize()
+        self.evaluate_bounding_box()
+
+    def transform(self):
+        dim_tags = zip([0] * len(self.points), self.points)
+        for curve_points in self.curves_points:
+            dim_tags += zip([0] * len(curve_points), curve_points)
+        self.factory.translate(
+            dim_tags, self.transform_data[0], self.transform_data[1], self.transform_data[2]
+        )
+        self.factory.rotate(dim_tags,
+                            self.transform_data[3], self.transform_data[4], self.transform_data[5],
+                            1, 0, 0, self.transform_data[6])
+        self.factory.rotate(dim_tags,
+                            self.transform_data[3], self.transform_data[4], self.transform_data[5],
+                            0, 1, 0, self.transform_data[7])
+        self.factory.rotate(dim_tags,
+                            self.transform_data[3], self.transform_data[4], self.transform_data[5],
+                            0, 0, 1, self.transform_data[8])
 
     @staticmethod
-    def boolean(factory, obj, tool, remove_tool=True):
-        obj_dim_tags = zip([3] * len(obj.volumes), obj.volumes)
-        tool_dim_tags = zip([3] * len(tool.volumes), tool.volumes)
-        # print(obj.volumes)
-        # print(tool.volumes)
-        out1, out2 = factory.fragment(
-            obj_dim_tags,
-            tool_dim_tags,
-            tag=-1,
-            removeObject=True,
-            removeTool=remove_tool
-        )
-        # print(out1)
-        # print(out2)
-        new_obj_volumes = []
-        for i in range(len(obj.volumes)):
-            new_dims_tags = out2[i]
-            for j in range(len(new_dims_tags)):
-                new_obj_volumes.append(new_dims_tags[j][1])
-        # print(new_obj_volumes)
-        new_tool_volumes = []
-        for i in range(len(obj.volumes), len(obj.volumes) + len(tool.volumes)):
-            new_dims_tags = out2[i]
-            for j in range(len(new_dims_tags)):
-                new_tool_volumes.append(new_dims_tags[j][1])
-        # print(new_tool_volumes)
-        common_vs = set(new_obj_volumes) & set(new_tool_volumes)
-        # print(common_vs)
-        for v in common_vs:
-            new_obj_volumes.remove(v)
-        # print(new_obj_volumes)
-        obj.volumes = new_obj_volumes
-        tool.volumes = new_tool_volumes
-        # print(obj.volumes)
-        # print(tool.volumes)
+    def boolean(factory, obj, tool):
+        # Check intersection of bounding boxes first (this operation less expensive than boolean)
+        # print(obj.bounding_box)
+        # print(tool.bounding_box)
+        is_intersection = True
+        if (obj.bounding_box[0] > tool.bounding_box[3]  # obj_x_min > tool_x_max
+            or obj.bounding_box[1] > tool.bounding_box[4]  # obj_y_min > tool_y_max
+            or obj.bounding_box[2] > tool.bounding_box[5]  # obj_z_min > tool_z_max
+            or obj.bounding_box[3] < tool.bounding_box[0]  # obj_x_max < tool_x_min
+            or obj.bounding_box[4] < tool.bounding_box[1]  # obj_y_max < tool_y_min
+            or obj.bounding_box[5] < tool.bounding_box[2]):  # obj_z_max < tool_z_min
+            is_intersection = False
+        print(is_intersection)
+        if is_intersection:
+            obj_dim_tags = zip([3] * len(obj.volumes), obj.volumes)
+            tool_dim_tags = zip([3] * len(tool.volumes), tool.volumes)
+            # print(obj.volumes)
+            # print(tool.volumes)
+            out_dim_tags, out_dim_tags_map = factory.fragment(
+                obj_dim_tags,
+                tool_dim_tags,
+                tag=-1,
+                removeObject=True,
+                removeTool=True
+            )
+            # print(out_dim_tags)
+            # print(out_dim_tags_map)
+            new_obj_volumes = []
+            for i in range(len(obj.volumes)):
+                new_dim_tags = out_dim_tags_map[i]
+                for j in range(len(new_dim_tags)):
+                    new_obj_volumes.append(new_dim_tags[j][1])
+                    # print(new_obj_volumes)
+            new_tool_volumes = []
+            for i in range(len(obj.volumes), len(obj.volumes) + len(tool.volumes)):
+                new_dim_tags = out_dim_tags_map[i]
+                for j in range(len(new_dim_tags)):
+                    new_tool_volumes.append(new_dim_tags[j][1])
+                    # print(new_tool_volumes)
+            common_vs = set(new_obj_volumes) & set(new_tool_volumes)
+            # print(common_vs)
+            for v in common_vs:
+                new_obj_volumes.remove(v)
+            # print(new_obj_volumes)
+            obj.volumes = new_obj_volumes
+            tool.volumes = new_tool_volumes
+            # print(obj.volumes)
+            # print(tool.volumes)
+            factory.synchronize()
+            obj.evaluate_bounding_box()
+            tool.evaluate_bounding_box()
+            # print(obj.bounding_box)
+            # print(tool.bounding_box)
+
+
+class Complex:
+    def __init__(self, factory, primitives, primitive_physical_groups):
+        self.factory = factory
+        self.primitives = primitives
+        self.primitive_physical_groups = primitive_physical_groups
+        assert len(primitives) == len(primitive_physical_groups)
+        for primitive in self.primitives:
+            if self.factory != primitive.factory:
+                raise ValueError("All primitives factories must be as Complex factory")
+
+    def inner_boolean(self):
+        combinations = list(itertools.combinations(range(len(self.primitives)), 2))
+        # print(combinations)
+        for combination in combinations:
+            print("Inner Boolean %s by %s" % combination)
+            Primitive.boolean(self.factory, self.primitives[combination[0]], self.primitives[combination[1]])
+
+    def set_size(self, size, primitive_idx=None, volume_idx=None):
+        if primitive_idx is None and volume_idx is None:
+            for primitive in self.primitives:
+                primitive.set_size(size)
+        elif primitive_idx is not None and volume_idx is None:
+            self.primitives[primitive_idx].set_size(size)
+        elif primitive_idx is not None and volume_idx is not None:
+            self.primitives[primitive_idx].set_size(size, volume_idx)
+        else:
+            raise ValueError("primitive_idx must be not None if volume_idx is not None")
+
+    def get_volumes_idxs_by_physical_group_tag(self, tag):
+        idxs = []
+        for idx, primitive in enumerate(self.primitives):
+            if self.primitive_physical_groups[idx] == tag:
+                idxs.extend(primitive.volumes)
+        return idxs
+
+    def transfinite(self):
+        for primitive in self.primitives:
+            result = primitive.correct_to_transfinite()
+            if result:
+                primitive.transfinite()
+
+    @staticmethod
+    def boolean(factory, obj, tool):
+        for obj_idx, primitive_obj in enumerate(obj.primitives):
+            for tool_idx, primitive_tool in enumerate(tool.primitives):
+                print("Boolean primitive_obj %s by primitive_tool %s" % (obj_idx, tool_idx))
+                Primitive.boolean(factory, primitive_obj, primitive_tool)
+
+
+def primitive_complex_boolean(factory, primitive_obj, complex_tool):
+    for idx, primitive_tool in enumerate(complex_tool.primitives):
+        print("Boolean primitive_obj by complex_tool's primitive %s" % idx)
+        Primitive.boolean(factory, primitive_obj, primitive_tool)
+
+
+def complex_primitive_boolean(factory, complex_obj, primitive_tool):
+    for idx, primitive_obj in enumerate(complex_obj.primitives):
+        print("Boolean complex_obj's primitive %s by primitive_tool" % idx)
+        Primitive.boolean(factory, primitive_obj, primitive_tool)
