@@ -1,89 +1,6 @@
 import gmsh
 import itertools
-
-
-class Environment:
-    def __init__(self, factory, lx, ly, lz, lc, transform_data, inner_surfaces):
-        self.factory = factory
-        self.lx = lx
-        self.ly = ly
-        self.lz = lz
-        self.lc = lc
-        self.transform_data = transform_data
-        self.inner_surfaces = inner_surfaces
-        # Points
-        self.points = []
-        self.points.append(factory.addPoint(lx / 2, ly / 2, -lz / 2, lc))
-        self.points.append(factory.addPoint(-lx / 2, ly / 2, -lz / 2, lc))
-        self.points.append(factory.addPoint(-lx / 2, -ly / 2, -lz / 2, lc))
-        self.points.append(factory.addPoint(lx / 2, -ly / 2, -lz / 2, lc))
-        self.points.append(factory.addPoint(lx / 2, ly / 2, lz / 2, lc))
-        self.points.append(factory.addPoint(-lx / 2, ly / 2, lz / 2, lc))
-        self.points.append(factory.addPoint(-lx / 2, -ly / 2, lz / 2, lc))
-        self.points.append(factory.addPoint(lx / 2, -ly / 2, lz / 2, lc))
-        # Transform
-        dim_tags = zip([0] * len(self.points), self.points)
-        factory.translate(dim_tags, transform_data[0], transform_data[1], transform_data[2])
-        factory.rotate(dim_tags, transform_data[3], transform_data[4], transform_data[5],
-                       1, 0, 0, transform_data[6])
-        factory.rotate(dim_tags, transform_data[3], transform_data[4], transform_data[5],
-                       0, 1, 0, transform_data[7])
-        factory.rotate(dim_tags, transform_data[3], transform_data[4], transform_data[5],
-                       0, 0, 1, transform_data[8])
-        # Curves
-        self.curves = []
-        for i in range(len(self.curves_points)):
-            curve_points = [self.points[x] for x in self.curves_points[i]]
-            self.curves.append(factory.addLine(curve_points[0], curve_points[1]))
-        # Surfaces
-        self.surfaces = []
-        for i in range(len(self.surfaces_curves)):
-            if factory == gmsh.model.geo:
-                cl_tag = factory.addCurveLoop(
-                    map(lambda x, y: y * self.curves[x], self.surfaces_curves[i], self.surfaces_curves_signs[i]))
-                self.surfaces.append(factory.addSurfaceFilling([cl_tag]))
-            else:
-                cl_tag = factory.addCurveLoop([self.curves[x] for x in self.surfaces_curves[i]])
-                self.surfaces.append(factory.addSurfaceFilling(cl_tag))
-        # Volumes
-        self.volumes = []
-        out_sl_tag = factory.addSurfaceLoop(self.surfaces)
-        in_sl_tag = factory.addSurfaceLoop(inner_surfaces)
-        self.volumes.append(factory.addVolume([out_sl_tag, in_sl_tag]))
-        factory.synchronize()
-
-    curves_points = [
-        [1, 0], [5, 4], [6, 7], [2, 3],
-        [3, 0], [2, 1], [6, 5], [7, 4],
-        [0, 4], [1, 5], [2, 6], [3, 7]
-    ]
-
-    surfaces_curves = [
-        [5, 9, 6, 10],
-        [4, 11, 7, 8],
-        [3, 10, 2, 11],
-        [0, 8, 1, 9],
-        [0, 5, 3, 4],
-        [1, 7, 2, 6]
-    ]
-
-    surfaces_curves_signs = [
-        [1, 1, -1, -1],
-        [-1, 1, 1, -1],
-        [-1, 1, 1, -1],
-        [1, 1, -1, -1],
-        [-1, -1, 1, 1],
-        [1, -1, -1, 1]
-    ]
-
-    surfaces_names = {
-        0: "NX",
-        1: "X",
-        2: "NY",
-        3: "Y",
-        4: "NZ",
-        5: "Z"
-    }
+import time
 
 
 class Primitive:
@@ -103,7 +20,6 @@ class Primitive:
         self.volumes = []
         self.bounding_box = []  # [x_min, y_min, z_min, x_max, y_max, z_max] Call self.evaluate_bounding_box() to init
         self.create()
-        self.correct_after_occ()
 
     def create(self):
         for i in range(0, len(self.data), 4):
@@ -214,179 +130,6 @@ class Primitive:
             y_maxs.append(y_max)
             z_maxs.append(z_max)
         self.bounding_box = [min(x_mins), min(y_mins), min(z_mins), max(x_maxs), max(y_maxs), max(z_maxs)]
-
-    def correction(self):
-        surfaces_dim_tags = map(lambda x: (2, x), self.surfaces)
-        # Surfaces points
-        surfaces_points = []
-        surfaces_curves = []
-        for dim_tag in surfaces_dim_tags:
-            points_dim_tags = gmsh.model.getBoundary(dim_tag, combined=False, recursive=True)
-            surfaces_points.append(map(lambda x: x[1], points_dim_tags))
-            curves_dim_tags = gmsh.model.getBoundary(dim_tag, combined=False)
-            surfaces_curves.append(map(lambda x: abs(x[1]), curves_dim_tags))
-        # Points
-        # [NX, X, NY, Y, NZ, Z]
-        points_map = [
-            {1, 4, 3},
-            {0, 4, 3},
-            {0, 4, 2},
-            {1, 4, 2},
-            {1, 5, 3},
-            {0, 5, 3},
-            {0, 5, 2},
-            {1, 5, 2}
-        ]
-        flatten_points = [item for sublist in surfaces_points for item in sublist]
-        fcs = list(set(flatten_points))
-        bs = []
-        for c in fcs:
-            b = []
-            for idx, s_curves in enumerate(surfaces_points):
-                if c in s_curves:
-                    b.append(idx)
-            bs.append(set(b))
-        self.points = map(lambda x: fcs[bs.index(x)], points_map)
-        # print(self.points)
-        # Curves
-        # [NX, X, NY, Y, NZ, Z]
-        curves_map = [
-            {4, 3},
-            {3, 5},
-            {5, 2},
-            {2, 4},
-            {1, 4},
-            {4, 0},
-            {0, 5},
-            {5, 1},
-            {1, 3},
-            {3, 0},
-            {0, 2},
-            {2, 1}
-        ]
-        flatten_curves = [item for sublist in surfaces_curves for item in sublist]
-        fcs = list(set(flatten_curves))
-        # print(fcs)
-        bs = []
-        for c in fcs:
-            b = []
-            for idx, s_curves in enumerate(surfaces_curves):
-                if c in s_curves:
-                    b.append(idx)
-            bs.append(set(b))
-        self.curves = map(lambda x: fcs[bs.index(x)], curves_map)
-        # print(self.curves)
-        # x_curves = []
-        # y_curves = []
-        # z_curves = []
-        # min_curve = sys.maxsize
-        # min_curve_idx = 0
-        # min_surface_idx = 0
-        # for i in range(len(surfaces_curves)):
-        #     for j in range(len(surfaces_curves[i])):
-        #         curve = surfaces_curves[i][j]
-        #         if curve < min_curve:
-        #             min_curve = curve
-        #             min_curve_idx = i
-        #             min_surface_idx = j
-        # # print(min_curve)
-        # # print(min_surface_idx)
-        # # print(min_curve_idx)
-        # x_curves.append(surfaces_curves[min_surface_idx][min_curve_idx])
-        # if min_curve_idx == 0:
-        #     x_curves.append(surfaces_curves[min_surface_idx][min_curve_idx + 2])
-        #     y_curves.append(surfaces_curves[min_surface_idx][min_curve_idx + 1])
-        #     y_curves.append(surfaces_curves[min_surface_idx][min_curve_idx + 3])
-        # elif min_curve_idx == 1:
-        #     x_curves.append(surfaces_curves[min_surface_idx][min_curve_idx + 2])
-        #     y_curves.append(surfaces_curves[min_surface_idx][min_curve_idx - 1])
-        #     y_curves.append(surfaces_curves[min_surface_idx][min_curve_idx + 1])
-        # elif min_curve_idx == 2:
-        #     x_curves.append(surfaces_curves[min_surface_idx][min_curve_idx - 2])
-        #     y_curves.append(surfaces_curves[min_surface_idx][min_curve_idx - 1])
-        #     y_curves.append(surfaces_curves[min_surface_idx][min_curve_idx + 1])
-        # elif min_curve_idx == 3:
-        #     x_curves.append(surfaces_curves[min_surface_idx][min_curve_idx - 2])
-        #     y_curves.append(surfaces_curves[min_surface_idx][min_curve_idx - 3])
-        #     y_curves.append(surfaces_curves[min_surface_idx][min_curve_idx - 1])
-        # for i in range(len(surfaces_curves)):
-        #     if i != min_surface_idx:
-        #         if x_curves[0] in surfaces_curves[i]:
-        #             idx = surfaces_curves[i].index(x_curves[0])
-        #             if idx == 0:
-        #                 x_curves.append(surfaces_curves[i][idx + 2])
-        #             elif idx == 1:
-        #                 x_curves.append(surfaces_curves[i][idx + 2])
-        #             elif idx == 2:
-        #                 x_curves.append(surfaces_curves[i][idx - 2])
-        #             elif idx == 3:
-        #                 x_curves.append(surfaces_curves[i][idx - 2])
-        #         elif x_curves[1] in surfaces_curves[i]:
-        #             idx = surfaces_curves[i].index(x_curves[1])
-        #             if idx == 0:
-        #                 x_curves.append(surfaces_curves[i][idx + 2])
-        #             elif idx == 1:
-        #                 x_curves.append(surfaces_curves[i][idx + 2])
-        #             elif idx == 2:
-        #                 x_curves.append(surfaces_curves[i][idx - 2])
-        #             elif idx == 3:
-        #                 x_curves.append(surfaces_curves[i][idx - 2])
-        #         elif y_curves[0] in surfaces_curves[i]:
-        #             idx = surfaces_curves[i].index(y_curves[0])
-        #             if idx == 0:
-        #                 y_curves.append(surfaces_curves[i][idx + 2])
-        #             elif idx == 1:
-        #                 y_curves.append(surfaces_curves[i][idx + 2])
-        #             elif idx == 2:
-        #                 y_curves.append(surfaces_curves[i][idx - 2])
-        #             elif idx == 3:
-        #                 y_curves.append(surfaces_curves[i][idx - 2])
-        #         elif y_curves[1] in surfaces_curves[i]:
-        #             idx = surfaces_curves[i].index(y_curves[1])
-        #             if idx == 0:
-        #                 y_curves.append(surfaces_curves[i][idx + 2])
-        #             elif idx == 1:
-        #                 y_curves.append(surfaces_curves[i][idx + 2])
-        #             elif idx == 2:
-        #                 y_curves.append(surfaces_curves[i][idx - 2])
-        #             elif idx == 3:
-        #                 y_curves.append(surfaces_curves[i][idx - 2])
-        # for i in range(len(surfaces_curves)):
-        #     for j in range(len(surfaces_curves[i])):
-        #         curve = surfaces_curves[i][j]
-        #         if curve not in x_curves and curve not in y_curves and curve not in z_curves:
-        #             z_curves.append(curve)
-        # print(x_curves)
-        # print(y_curves)
-        # print(z_curves)
-        # print(self.surfaces_curves)
-        # self.surfaces_curves = []
-        # # TODO ... How to restore original transfinite data
-        # self.surfaces_curves.extend(y_curves)
-        # self.surfaces_curves.extend(z_curves)
-        # self.surfaces_curves.extend(x_curves)
-        # print(self.surfaces_curves)
-
-    def correct_after_occ(self):
-        if self.factory == gmsh.model.occ:
-            volumes_dim_tags = map(lambda x: (3, x), self.volumes)
-            surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
-            surfaces_map = [2, 0, 1, 3, 4, 5]  # [NY, NX, X, Y, NZ, Z] to [NX, X, NY, Y, NZ, Z]
-            self.surfaces = map(lambda x: surfaces_dim_tags[x][1], surfaces_map)
-            self.correction()
-            # Delete excess surfaces
-            # new_surfaces = map(lambda x: x[1], surfaces_dim_tags)
-            # bad_surfaces = filter(lambda x: x not in new_surfaces, self.surfaces)
-            # bad_surfaces_dim_tags = map(lambda x: (2, x), bad_surfaces)
-            # self.factory.remove(bad_surfaces_dim_tags, recursive=True)
-            # self.factory.synchronize()
-
-    def correct_after_boolean(self, surfaces_map):
-        volumes_dim_tags = map(lambda x: (3, x), self.volumes)
-        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
-        if len(surfaces_dim_tags) == 6:
-            self.surfaces = map(lambda x: surfaces_dim_tags[x][1], surfaces_map)
-            self.correction()
 
     def check_to_transfinite(self):
         if self.factory != gmsh.model.occ:
@@ -563,24 +306,29 @@ class Primitive:
 
 
 class Complex:
-    def __init__(self, factory, primitives, primitive_physical_groups):
+    def __init__(self, factory, primitives, primitive_physical_groups, lcs=None):
+        assert len(primitives) == len(primitive_physical_groups)
+        assert len(primitives) == len(lcs) or lcs is None
         self.factory = factory
         self.primitives = primitives
+        self.lcs = lcs
         self.primitive_physical_groups = primitive_physical_groups
-        assert len(primitives) == len(primitive_physical_groups)
         for primitive in self.primitives:
             if self.factory != primitive.factory:
                 raise ValueError("All primitives factories must be as Complex factory")
 
-    def inner_boolean(self):
+    def in_boolean(self):
         combinations = list(itertools.combinations(range(len(self.primitives)), 2))
         # print(combinations)
         for combination in combinations:
             print("Inner Boolean %s by %s" % combination)
             primitive_boolean(self.factory, self.primitives[combination[0]], self.primitives[combination[1]])
 
-    def set_size(self, size, primitive_idx=None, volume_idx=None):
-        if primitive_idx is None and volume_idx is None:
+    def set_size(self, size=None, primitive_idx=None, volume_idx=None):
+        if size is None and self.lcs is not None:
+            for idx, primitive in enumerate(self.primitives):
+                primitive.set_size(self.lcs[idx])
+        elif primitive_idx is None and volume_idx is None:
             for primitive in self.primitives:
                 primitive.set_size(size)
         elif primitive_idx is not None and volume_idx is None:
@@ -605,45 +353,47 @@ class Complex:
                 primitive.transfinite(transfinite_surfaces)
 
 
-def primitive_boolean(factory, obj, tool):
+def primitive_boolean(factory, primitive_obj, primitive_tool):
+    start = time.time()
     # Check intersection of bounding boxes first (this operation less expensive than boolean)
     is_intersection = True
-    if (obj.bounding_box[0] > tool.bounding_box[3]  # obj_x_min > tool_x_max
-        or obj.bounding_box[1] > tool.bounding_box[4]  # obj_y_min > tool_y_max
-        or obj.bounding_box[2] > tool.bounding_box[5]  # obj_z_min > tool_z_max
-        or obj.bounding_box[3] < tool.bounding_box[0]  # obj_x_max < tool_x_min
-        or obj.bounding_box[4] < tool.bounding_box[1]  # obj_y_max < tool_y_min
-        or obj.bounding_box[5] < tool.bounding_box[2]):  # obj_z_max < tool_z_min
+    if (primitive_obj.bounding_box[0] > primitive_tool.bounding_box[3]  # obj_x_min > tool_x_max
+        or primitive_obj.bounding_box[1] > primitive_tool.bounding_box[4]  # obj_y_min > tool_y_max
+        or primitive_obj.bounding_box[2] > primitive_tool.bounding_box[5]  # obj_z_min > tool_z_max
+        or primitive_obj.bounding_box[3] < primitive_tool.bounding_box[0]  # obj_x_max < tool_x_min
+        or primitive_obj.bounding_box[4] < primitive_tool.bounding_box[1]  # obj_y_max < tool_y_min
+        or primitive_obj.bounding_box[5] < primitive_tool.bounding_box[2]):  # obj_z_max < tool_z_min
         is_intersection = False
     print(is_intersection)
     if is_intersection:
-        obj_dim_tags = map(lambda x: (3, x), obj.volumes)
-        tool_dim_tags = map(lambda x: (3, x), tool.volumes)
+        obj_dim_tags = map(lambda x: (3, x), primitive_obj.volumes)
+        tool_dim_tags = map(lambda x: (3, x), primitive_tool.volumes)
         out_dim_tags, out_dim_tags_map = factory.fragment(obj_dim_tags, tool_dim_tags)
-        factory.removeAllDuplicates()
+        # factory.removeAllDuplicates()
         factory.synchronize()
         new_obj_volumes = []
-        for i in range(len(obj.volumes)):
+        for i in range(len(primitive_obj.volumes)):
             new_dim_tags = out_dim_tags_map[i]
             for j in range(len(new_dim_tags)):
                 new_obj_volumes.append(new_dim_tags[j][1])
         new_tool_volumes = []
-        for i in range(len(obj.volumes), len(obj.volumes) + len(tool.volumes)):
+        for i in range(len(primitive_obj.volumes), len(primitive_obj.volumes) + len(primitive_tool.volumes)):
             new_dim_tags = out_dim_tags_map[i]
             for j in range(len(new_dim_tags)):
                 new_tool_volumes.append(new_dim_tags[j][1])
         common_vs = set(new_obj_volumes) & set(new_tool_volumes)
         for v in common_vs:
             new_obj_volumes.remove(v)
-        obj.volumes = new_obj_volumes
-        tool.volumes = new_tool_volumes
-        obj.evaluate_bounding_box()
-        tool.evaluate_bounding_box()
+        primitive_obj.volumes = new_obj_volumes
+        primitive_tool.volumes = new_tool_volumes
+        primitive_obj.evaluate_bounding_box()
+        primitive_tool.evaluate_bounding_box()
+    print('{:.3f}s'.format(time.time() - start))
 
 
-def complex_boolean(factory, obj, tool):
-    for obj_idx, primitive_obj in enumerate(obj.primitives):
-        for tool_idx, primitive_tool in enumerate(tool.primitives):
+def complex_boolean(factory, complex_obj, complex_tool):
+    for obj_idx, primitive_obj in enumerate(complex_obj.primitives):
+        for tool_idx, primitive_tool in enumerate(complex_tool.primitives):
             print("Boolean primitive_obj %s by primitive_tool %s" % (obj_idx, tool_idx))
             primitive_boolean(factory, primitive_obj, primitive_tool)
 
@@ -658,3 +408,87 @@ def complex_primitive_boolean(factory, complex_obj, primitive_tool):
     for idx, primitive_obj in enumerate(complex_obj.primitives):
         print("Boolean complex_obj's primitive %s by primitive_tool" % idx)
         primitive_boolean(factory, primitive_obj, primitive_tool)
+
+
+class Environment:
+    def __init__(self, factory, lx, ly, lz, lc, transform_data, inner_surfaces):
+        self.factory = factory
+        self.lx = lx
+        self.ly = ly
+        self.lz = lz
+        self.lc = lc
+        self.transform_data = transform_data
+        self.inner_surfaces = inner_surfaces
+        # Points
+        self.points = []
+        self.points.append(factory.addPoint(lx / 2, ly / 2, -lz / 2, lc))
+        self.points.append(factory.addPoint(-lx / 2, ly / 2, -lz / 2, lc))
+        self.points.append(factory.addPoint(-lx / 2, -ly / 2, -lz / 2, lc))
+        self.points.append(factory.addPoint(lx / 2, -ly / 2, -lz / 2, lc))
+        self.points.append(factory.addPoint(lx / 2, ly / 2, lz / 2, lc))
+        self.points.append(factory.addPoint(-lx / 2, ly / 2, lz / 2, lc))
+        self.points.append(factory.addPoint(-lx / 2, -ly / 2, lz / 2, lc))
+        self.points.append(factory.addPoint(lx / 2, -ly / 2, lz / 2, lc))
+        # Transform
+        dim_tags = zip([0] * len(self.points), self.points)
+        factory.translate(dim_tags, transform_data[0], transform_data[1], transform_data[2])
+        factory.rotate(dim_tags, transform_data[3], transform_data[4], transform_data[5],
+                       1, 0, 0, transform_data[6])
+        factory.rotate(dim_tags, transform_data[3], transform_data[4], transform_data[5],
+                       0, 1, 0, transform_data[7])
+        factory.rotate(dim_tags, transform_data[3], transform_data[4], transform_data[5],
+                       0, 0, 1, transform_data[8])
+        # Curves
+        self.curves = []
+        for i in range(len(self.curves_points)):
+            curve_points = [self.points[x] for x in self.curves_points[i]]
+            self.curves.append(factory.addLine(curve_points[0], curve_points[1]))
+        # Surfaces
+        self.surfaces = []
+        for i in range(len(self.surfaces_curves)):
+            if factory == gmsh.model.geo:
+                cl_tag = factory.addCurveLoop(
+                    map(lambda x, y: y * self.curves[x], self.surfaces_curves[i], self.surfaces_curves_signs[i]))
+                self.surfaces.append(factory.addSurfaceFilling([cl_tag]))
+            else:
+                cl_tag = factory.addCurveLoop([self.curves[x] for x in self.surfaces_curves[i]])
+                self.surfaces.append(factory.addSurfaceFilling(cl_tag))
+        # Volumes
+        self.volumes = []
+        out_sl_tag = factory.addSurfaceLoop(self.surfaces)
+        in_sl_tag = factory.addSurfaceLoop(inner_surfaces)
+        self.volumes.append(factory.addVolume([out_sl_tag, in_sl_tag]))
+        factory.synchronize()
+
+    curves_points = [
+        [1, 0], [5, 4], [6, 7], [2, 3],
+        [3, 0], [2, 1], [6, 5], [7, 4],
+        [0, 4], [1, 5], [2, 6], [3, 7]
+    ]
+
+    surfaces_curves = [
+        [5, 9, 6, 10],
+        [4, 11, 7, 8],
+        [3, 10, 2, 11],
+        [0, 8, 1, 9],
+        [0, 5, 3, 4],
+        [1, 7, 2, 6]
+    ]
+
+    surfaces_curves_signs = [
+        [1, 1, -1, -1],
+        [-1, 1, 1, -1],
+        [-1, 1, 1, -1],
+        [1, 1, -1, -1],
+        [-1, -1, 1, 1],
+        [1, -1, -1, 1]
+    ]
+
+    surfaces_names = {
+        0: "NX",
+        1: "X",
+        2: "NY",
+        3: "Y",
+        4: "NZ",
+        5: "Z"
+    }
