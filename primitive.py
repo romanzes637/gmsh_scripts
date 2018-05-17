@@ -19,6 +19,7 @@ class Primitive:
         self.surfaces = []
         self.volumes = []
         self.bounding_box = []  # [x_min, y_min, z_min, x_max, y_max, z_max] Call self.evaluate_bounding_box() to init
+        self.points_coordinates = []
         self.create()
 
     def create(self):
@@ -39,30 +40,7 @@ class Primitive:
                     self.curve_data[i][j + 3])
                 ps.append(tag)
             self.curves_points.append(ps)
-        self.transform()  # Transform is here because bugs when transform() called after curves creation
-        for i in range(12):
-            tag = self.add_curve[self.curve_types[i]](self, i)
-            self.curves.append(tag)
-        for i in range(6):
-            if self.factory == gmsh.model.geo:
-                tag = self.factory.addCurveLoop(
-                    map(lambda x, y: y * self.curves[x],
-                        self.surfaces_curves[i],
-                        self.surfaces_curves_signs[i]))
-                tag = self.factory.addSurfaceFilling([tag])
-            else:
-                tag = self.factory.addCurveLoop(
-                    map(lambda x: self.curves[x],
-                        self.surfaces_curves[i]))
-                tag = self.factory.addSurfaceFilling(tag)
-            self.surfaces.append(tag)
-        tag = self.factory.addSurfaceLoop(self.surfaces)
-        tag = self.factory.addVolume([tag])
-        self.volumes.append(tag)
-        self.factory.synchronize()
-        self.evaluate_bounding_box()
-
-    def transform(self):
+        # Transform
         dim_tags = map(lambda x: (0, x), self.points)
         for curve_points in self.curves_points:
             dim_tags += map(lambda x: (0, x), curve_points)
@@ -76,6 +54,30 @@ class Primitive:
         self.factory.rotate(dim_tags,
                             self.transform_data[3], self.transform_data[4], self.transform_data[5],
                             0, 0, 1, self.transform_data[8])
+        for i in range(12):
+            tag = self.add_curve[self.curve_types[i]](self, i)
+            self.curves.append(tag)
+        for i in range(6):
+            if self.factory == gmsh.model.geo:
+                tag = self.factory.addCurveLoop(
+                    map(lambda x, y: y * self.curves[x],
+                        self.surfaces_local_curves[i],
+                        self.surfaces_local_curves_signs[i]))
+                tag = self.factory.addSurfaceFilling([tag])
+            else:
+                tag = self.factory.addCurveLoop(
+                    map(lambda x: self.curves[x],
+                        self.surfaces_local_curves[i]))
+                tag = self.factory.addSurfaceFilling(tag)
+            self.surfaces.append(tag)
+        tag = self.factory.addSurfaceLoop(self.surfaces)
+        tag = self.factory.addVolume([tag])
+        self.volumes.append(tag)
+        self.factory.synchronize()
+        for point in self.points:
+            bb = gmsh.model.getBoundingBox(0, point)
+            self.points_coordinates.append([bb[0], bb[1], bb[2]])
+        self.evaluate_bounding_box()
 
     def recombine(self):
         for i in range(len(self.surfaces)):
@@ -86,62 +88,82 @@ class Primitive:
             gmsh.model.mesh.setSmoothing(2, self.surfaces[i], n)
 
     def transfinite(self, transfinite_surfaces):
-        if self.transfinite_type == 0:
-            transfinite_surface_data = [1, 1, 1, 1, 1, 1]
-            transfinite_volume_data = [0]
-        elif self.transfinite_type == 1:
-            transfinite_surface_data = [1, 1, 0, 0, 0, 0]
-            transfinite_volume_data = [1]
-        elif self.transfinite_type == 2:
-            transfinite_surface_data = [0, 0, 0, 0, 1, 1]
-            transfinite_volume_data = [2]
-        elif self.transfinite_type == 3:
-            transfinite_surface_data = [0, 0, 1, 1, 0, 0]
-            transfinite_volume_data = [3]
-        else:
-            transfinite_surface_data = None
-            transfinite_volume_data = None
-        if self.transfinite_curve_data is not None:
-            for i in range(len(self.curves)):
-                self.transfinite_curve[self.transfinite_curve_data[i][1]](self, i)
-            if transfinite_surface_data is not None:
-                for i in range(len(self.surfaces)):
-                    if self.surfaces[i] not in transfinite_surfaces:  # Workaround from double transfinite surfaces
-                        self.transfinite_surface[transfinite_surface_data[i]](self, i)
-                        transfinite_surfaces.add(self.surfaces[i])
-                if transfinite_volume_data is not None:
-                    for i in range(len(self.volumes)):
-                        self.transfinite_volume[transfinite_volume_data[i]](self, i)
+        """
+        Transfinite primitive
+        :param transfinite_surfaces: set() of already transfinite surfaces (workaround for double transfinite issue)
+        """
+        result = False
+        # Check
+        check = False
+        if len(self.volumes) == 1:  # First
+            volumes_dim_tags = map(lambda x: (3, x), self.volumes)
+            surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+            if len(surfaces_dim_tags) == 6:  # Second
+                points_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False, recursive=True)
+                if len(points_dim_tags) == 8:  # Third
+                    surfaces_points = []
+                    for dim_tag in surfaces_dim_tags:
+                        points_dim_tags = gmsh.model.getBoundary(
+                            (dim_tag[0], dim_tag[1]), combined=False, recursive=True)
+                        surfaces_points.append(map(lambda x: x[1], points_dim_tags))
+                    is_4 = True
+                    for surface_points in surfaces_points:
+                        if len(surface_points) != 4:  # Fourth
+                            is_4 = False
+                            break
+                    if is_4:
+                        check = True
+        # Transfinite
+        if check:
+            if self.transfinite_type == 0:
+                transfinite_surface_data = [1, 1, 1, 1, 1, 1]
+                transfinite_volume_data = [0]
+            elif self.transfinite_type == 1:
+                transfinite_surface_data = [1, 1, 0, 0, 0, 0]
+                transfinite_volume_data = [1]
+            elif self.transfinite_type == 2:
+                transfinite_surface_data = [0, 0, 0, 0, 1, 1]
+                transfinite_volume_data = [2]
+            elif self.transfinite_type == 3:
+                transfinite_surface_data = [0, 0, 1, 1, 0, 0]
+                transfinite_volume_data = [3]
+            else:
+                transfinite_surface_data = None
+                transfinite_volume_data = None
+            if self.transfinite_curve_data is not None:
+                for i in range(len(self.curves)):
+                    self.transfinite_curve[self.transfinite_curve_data[i][1]](self, i)
+                if transfinite_surface_data is not None:
+                    for i in range(len(self.surfaces)):
+                        if self.surfaces[i] not in transfinite_surfaces:
+                            self.transfinite_surface[transfinite_surface_data[i]](self, i)
+                            transfinite_surfaces.add(self.surfaces[i])
+                    if transfinite_volume_data is not None:
+                        for i in range(len(self.volumes)):
+                            self.transfinite_volume[transfinite_volume_data[i]](self, i)
+                result = True
+        return result
 
     def evaluate_bounding_box(self):
-        x_mins = []
-        y_mins = []
-        z_mins = []
-        x_maxs = []
-        y_maxs = []
-        z_maxs = []
-        volumes_dim_tags = map(lambda x: (3, x), self.volumes)
-        for dim_tag in volumes_dim_tags:
-            x_min, y_min, z_min, x_max, y_max, z_max = gmsh.model.getBoundingBox(dim_tag[0], dim_tag[1])
-            x_mins.append(x_min)
-            y_mins.append(y_min)
-            z_mins.append(z_min)
-            x_maxs.append(x_max)
-            y_maxs.append(y_max)
-            z_maxs.append(z_max)
-        self.bounding_box = [min(x_mins), min(y_mins), min(z_mins), max(x_maxs), max(y_maxs), max(z_maxs)]
-
-    def check_to_transfinite(self):
-        if self.factory != gmsh.model.occ:
-            return True
-        if len(self.volumes) != 1:
-            return False
-        volumes_dim_tags = map(lambda x: (3, x), self.volumes)
-        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags)
-        if len(surfaces_dim_tags) != 6:
-            return False
+        if len(self.volumes) > 0:
+            x_mins = []
+            y_mins = []
+            z_mins = []
+            x_maxs = []
+            y_maxs = []
+            z_maxs = []
+            volumes_dim_tags = map(lambda x: (3, x), self.volumes)
+            for dim_tag in volumes_dim_tags:
+                x_min, y_min, z_min, x_max, y_max, z_max = gmsh.model.getBoundingBox(dim_tag[0], dim_tag[1])
+                x_mins.append(x_min)
+                y_mins.append(y_min)
+                z_mins.append(z_min)
+                x_maxs.append(x_max)
+                y_maxs.append(y_max)
+                z_maxs.append(z_max)
+            self.bounding_box = [min(x_mins), min(y_mins), min(z_mins), max(x_maxs), max(y_maxs), max(z_maxs)]
         else:
-            return True
+            self.bounding_box = [0, 0, 0, 0, 0, 0]
 
     def set_size(self, size, volume_idx=None):
         if volume_idx is None:
@@ -169,22 +191,22 @@ class Primitive:
         5: "Z"
     }
 
-    curve_points = [
+    curves_local_points = [
         [1, 0], [5, 4], [6, 7], [2, 3],
         [3, 0], [2, 1], [6, 5], [7, 4],
         [0, 4], [1, 5], [2, 6], [3, 7]
     ]
 
-    surfaces_points = [
+    surfaces_local_points = [
         [2, 6, 5, 1],  # NX
         [3, 7, 4, 0],  # X
         [2, 6, 7, 3],  # NY
         [1, 5, 4, 0],  # Y
         [3, 2, 1, 0],  # NZ
-        [7, 6, 5, 4]  # Z
+        [7, 6, 5, 4],  # Z
     ]
 
-    surfaces_curves = [
+    surfaces_local_curves = [
         [5, 9, 6, 10],
         [4, 11, 7, 8],
         [3, 10, 2, 11],
@@ -193,7 +215,7 @@ class Primitive:
         [1, 7, 2, 6]
     ]
 
-    surfaces_curves_signs = [
+    surfaces_local_curves_signs = [
         [1, 1, -1, -1],
         [-1, 1, 1, -1],
         [-1, 1, 1, -1],
@@ -221,22 +243,22 @@ class Primitive:
         0: lambda self, i: gmsh.model.mesh.setTransfiniteSurface(
             self.surfaces[i],
             "Left",
-            [self.points[x] for x in self.surfaces_points[i]]
+            [self.points[x] for x in self.surfaces_local_points[i]]
         ),
         1: lambda self, i: gmsh.model.mesh.setTransfiniteSurface(
             self.surfaces[i],
             "Right",
-            [self.points[x] for x in self.surfaces_points[i]]
+            [self.points[x] for x in self.surfaces_local_points[i]]
         ),
         2: lambda self, i: gmsh.model.mesh.setTransfiniteSurface(
             self.surfaces[i],
             "AlternateLeft",
-            [self.points[x] for x in self.surfaces_points[i]]
+            [self.points[x] for x in self.surfaces_local_points[i]]
         ),
         3: lambda self, i: gmsh.model.mesh.setTransfiniteSurface(
             self.surfaces[i],
             "AlternateRight",
-            [self.points[x] for x in self.surfaces_points[i]]
+            [self.points[x] for x in self.surfaces_local_points[i]]
         )
     }
 
@@ -273,34 +295,34 @@ class Primitive:
 
     add_curve = {
         0: lambda self, i: self.factory.addLine(
-            self.points[self.curve_points[i][0]],
-            self.points[self.curve_points[i][1]]
+            self.points[self.curves_local_points[i][0]],
+            self.points[self.curves_local_points[i][1]]
         ),
         1: lambda self, i: self.factory.addCircleArc(
-            self.points[self.curve_points[i][0]],
+            self.points[self.curves_local_points[i][0]],
             self.curves_points[i][0],
-            self.points[self.curve_points[i][1]]
+            self.points[self.curves_local_points[i][1]]
         ),
         2: lambda self, i: self.factory.addEllipseArc(
-            self.points[self.curve_points[i][0]],
+            self.points[self.curves_local_points[i][0]],
             self.curves_points[i][0],
             self.curves_points[i][1],
-            self.points[self.curve_points[i][1]],
+            self.points[self.curves_local_points[i][1]],
         ),  # TODO implement occ ellipse
         3: lambda self, i: self.factory.addSpline(
-            [self.points[self.curve_points[i][0]]] +
+            [self.points[self.curves_local_points[i][0]]] +
             self.curves_points[i] +
-            [self.points[self.curve_points[i][1]]]
+            [self.points[self.curves_local_points[i][1]]]
         ),
         4: lambda self, i: self.factory.addBSpline(
-            [self.points[self.curve_points[i][0]]] +
+            [self.points[self.curves_local_points[i][0]]] +
             self.curves_points[i] +
-            [self.points[self.curve_points[i][1]]]
+            [self.points[self.curves_local_points[i][1]]]
         ),
         5: lambda self, i: self.factory.addBezier(
-            [self.points[self.curve_points[i][0]]] +
+            [self.points[self.curves_local_points[i][0]]] +
             self.curves_points[i] +
-            [self.points[self.curve_points[i][1]]]
+            [self.points[self.curves_local_points[i][1]]]
         )
     }
 
@@ -319,7 +341,6 @@ class Complex:
 
     def in_boolean(self):
         combinations = list(itertools.combinations(range(len(self.primitives)), 2))
-        # print(combinations)
         for combination in combinations:
             print("Inner Boolean %s by %s" % combination)
             primitive_boolean(self.factory, self.primitives[combination[0]], self.primitives[combination[1]])
@@ -338,7 +359,7 @@ class Complex:
         else:
             raise ValueError("primitive_idx must be not None if volume_idx is not None")
 
-    def get_volumes_idxs_by_physical_group_tag(self, tag):
+    def get_volumes_by_physical_group(self, tag):
         idxs = []
         for idx, primitive in enumerate(self.primitives):
             if self.primitive_physical_groups[idx] == tag:
@@ -347,22 +368,27 @@ class Complex:
 
     def transfinite(self, transfinite_surfaces):
         for primitive in self.primitives:
-            result = primitive.check_to_transfinite()
-            print(result)
-            if result:
-                primitive.transfinite(transfinite_surfaces)
+            primitive.transfinite(transfinite_surfaces)
 
 
 def primitive_boolean(factory, primitive_obj, primitive_tool):
     start = time.time()
     # Check intersection of bounding boxes first (this operation less expensive than boolean)
     is_intersection = True
-    if (primitive_obj.bounding_box[0] > primitive_tool.bounding_box[3]  # obj_x_min > tool_x_max
-        or primitive_obj.bounding_box[1] > primitive_tool.bounding_box[4]  # obj_y_min > tool_y_max
-        or primitive_obj.bounding_box[2] > primitive_tool.bounding_box[5]  # obj_z_min > tool_z_max
-        or primitive_obj.bounding_box[3] < primitive_tool.bounding_box[0]  # obj_x_max < tool_x_min
-        or primitive_obj.bounding_box[4] < primitive_tool.bounding_box[1]  # obj_y_max < tool_y_min
-        or primitive_obj.bounding_box[5] < primitive_tool.bounding_box[2]):  # obj_z_max < tool_z_min
+    if primitive_obj.bounding_box[0] > primitive_tool.bounding_box[3]:  # obj_x_min > tool_x_max
+        is_intersection = False
+    if primitive_obj.bounding_box[1] > primitive_tool.bounding_box[4]:  # obj_y_min > tool_y_max
+        is_intersection = False
+    if primitive_obj.bounding_box[2] > primitive_tool.bounding_box[5]:  # obj_z_min > tool_z_max
+        is_intersection = False
+    if primitive_obj.bounding_box[3] < primitive_tool.bounding_box[0]:  # obj_x_max < tool_x_min
+        is_intersection = False
+    if primitive_obj.bounding_box[4] < primitive_tool.bounding_box[1]:  # obj_y_max < tool_y_min
+        is_intersection = False
+    if primitive_obj.bounding_box[5] < primitive_tool.bounding_box[2]:  # obj_z_max < tool_z_min
+        is_intersection = False
+    # Check on empty primitive_obj:
+    if len(primitive_obj.volumes) <= 0:
         is_intersection = False
     print(is_intersection)
     if is_intersection:
