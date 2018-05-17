@@ -368,7 +368,21 @@ class Complex:
 
     def transfinite(self, transfinite_surfaces):
         for primitive in self.primitives:
-            primitive.transfinite(transfinite_surfaces)
+            result = primitive.transfinite(transfinite_surfaces)
+            print(result)
+
+    def get_union_volume(self):
+        obj_dim_tags = []
+        tool_dim_tags = []
+        for primitive in self.primitives:
+            obj_dim_tags += map(lambda x: (3, x), primitive.volumes)
+            tool_dim_tags += map(lambda x: (3, x), primitive.volumes)
+        print(obj_dim_tags[:1])
+        print(tool_dim_tags[1:])
+        out_dim_tags, out_dim_tags_map = self.factory.fuse(
+            obj_dim_tags[:1], tool_dim_tags[1:], tag=-1, removeObject=False, removeTool=False)
+        self.factory.synchronize()
+        return out_dim_tags
 
 
 def primitive_boolean(factory, primitive_obj, primitive_tool):
@@ -417,6 +431,53 @@ def primitive_boolean(factory, primitive_obj, primitive_tool):
     print('{:.3f}s'.format(time.time() - start))
 
 
+def primitive_cut_by_volumes_boolean(factory, primitive_obj, volumes):
+    start = time.time()
+    # Check intersection of bounding boxes first (this operation less expensive than boolean)
+    is_intersection = True
+    # if primitive_obj.bounding_box[0] > primitive_tool.bounding_box[3]:  # obj_x_min > tool_x_max
+    #     is_intersection = False
+    # if primitive_obj.bounding_box[1] > primitive_tool.bounding_box[4]:  # obj_y_min > tool_y_max
+    #     is_intersection = False
+    # if primitive_obj.bounding_box[2] > primitive_tool.bounding_box[5]:  # obj_z_min > tool_z_max
+    #     is_intersection = False
+    # if primitive_obj.bounding_box[3] < primitive_tool.bounding_box[0]:  # obj_x_max < tool_x_min
+    #     is_intersection = False
+    # if primitive_obj.bounding_box[4] < primitive_tool.bounding_box[1]:  # obj_y_max < tool_y_min
+    #     is_intersection = False
+    # if primitive_obj.bounding_box[5] < primitive_tool.bounding_box[2]:  # obj_z_max < tool_z_min
+    #     is_intersection = False
+    # Check on empty primitive_obj:
+    if len(primitive_obj.volumes) <= 0:
+        is_intersection = False
+    print(is_intersection)
+    if is_intersection:
+        obj_dim_tags = map(lambda x: (3, x), primitive_obj.volumes)
+        tool_dim_tags = map(lambda x: (3, x), volumes)
+        out_dim_tags, out_dim_tags_map = factory.fragment(obj_dim_tags, tool_dim_tags, removeTool=False)
+        new_obj_volumes = []
+        for i in range(len(primitive_obj.volumes)):
+            new_dim_tags = out_dim_tags_map[i]
+            for j in range(len(new_dim_tags)):
+                new_obj_volumes.append(new_dim_tags[j][1])
+        new_tool_volumes = []
+        for i in range(len(primitive_obj.volumes), len(primitive_obj.volumes) + len(volumes)):
+            new_dim_tags = out_dim_tags_map[i]
+            for j in range(len(new_dim_tags)):
+                new_tool_volumes.append(new_dim_tags[j][1])
+        common_vs = set(new_obj_volumes) & set(new_tool_volumes)
+        for v in common_vs:
+            new_obj_volumes.remove(v)
+        # Remove new_tool_volumes
+        dts = map(lambda x: (3, x), new_tool_volumes)
+        factory.remove(dts)
+        # factory.removeAllDuplicates()
+        factory.synchronize()
+        primitive_obj.volumes = new_obj_volumes
+        primitive_obj.evaluate_bounding_box()
+    print('{:.3f}s'.format(time.time() - start))
+
+
 def complex_boolean(factory, complex_obj, complex_tool):
     for obj_idx, primitive_obj in enumerate(complex_obj.primitives):
         for tool_idx, primitive_tool in enumerate(complex_tool.primitives):
@@ -431,9 +492,9 @@ def primitive_complex_boolean(factory, primitive_obj, complex_tool):
 
 
 def complex_primitive_boolean(factory, complex_obj, primitive_tool):
-    for idx, primitive_obj in enumerate(complex_obj.primitives):
-        print("Boolean complex_obj's primitive %s by primitive_tool" % idx)
-        primitive_boolean(factory, primitive_obj, primitive_tool)
+        for idx, primitive_obj in enumerate(complex_obj.primitives):
+            print("Boolean complex_obj's primitive %s by primitive_tool" % idx)
+            primitive_boolean(factory, primitive_obj, primitive_tool)
 
 
 class Environment:

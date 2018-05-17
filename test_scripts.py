@@ -8,7 +8,7 @@ import itertools
 
 import time
 
-from primitive import primitive_boolean
+from primitive import primitive_boolean, primitive_cut_by_volumes_boolean
 from primitive import complex_boolean
 from primitive import Primitive
 from primitive import Complex
@@ -1261,142 +1261,256 @@ class TestScripts(unittest.TestCase):
 
         print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
 
-        # def test_close_primitives(self):
-        #     gmsh.initialize()
-        #
-        #     gmsh.option.setNumber("Geometry.AutoCoherence", 0)
-        #     gmsh.option.setNumber("Mesh.Algorithm3D", 4)
-        #     gmsh.option.setNumber("General.Terminal", 1)
-        #
-        #     gmsh.model.add("test_close_primitives")
-        #
-        #     factory = gmsh.model.occ
-        #
-        #     environment = Primitive(
-        #         factory,
-        #         [
-        #             100, 100, -100, 50,
-        #             -100, 100, -100, 50,
-        #             -100, -100, -100, 50,
-        #             100, -100, -100, 50,
-        #             100, 100, 100, 50,
-        #             -100, 100, 100, 50,
-        #             -100, -100, 100, 50,
-        #             100, -100, 100, 50
-        #         ],
-        #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #         [[], [], [], [], [], [], [], [], [], [], [], []]
-        #     )
-        #     primitives = []
-        #     coordinates = [
-        #         [-10, -20, -30],
-        #         [0, -20, -30],
-        #         [10, -20, -30],
-        #         [-10, 0, -30],
-        #         [0, 0, -30],
-        #         [10, 0, -30],
-        #         [-10, 20, -30],
-        #         [0, 20, -30],
-        #         [10, 20, -30],
-        #         [-10, -20, 0],
-        #         [0, -20, 0],
-        #         [10, -20, 0],
-        #         [-10, 0, 0],
-        #         [0, 0, 0],
-        #         [10, 0, 0],
-        #         [-10, 20, 0],
-        #         [0, 20, 0],
-        #         [10, 20, 0],
-        #         [-10, -20, 30],
-        #         [0, -20, 30],
-        #         [10, -20, 30],
-        #         [-10, 0, 30],
-        #         [0, 0, 30],
-        #         [10, 0, 30],
-        #         [-10, 20, 30],
-        #         [0, 20, 30],
-        #         [10, 20, 30],
-        #     ]
-        #     for i in range(len(coordinates)):
-        #         primitives.append(Primitive(
-        #             factory,
-        #             [
-        #                 5, 10, -15, 5,
-        #                 -5, 10, -15, 5,
-        #                 -5, -10, -15, 5,
-        #                 5, -10, -15, 5,
-        #                 5, 10, 15, 5,
-        #                 -5, 10, 15, 5,
-        #                 -5, -10, 15, 5,
-        #                 5, -10, 15, 5,
-        #             ],
-        #             [coordinates[i][0], coordinates[i][1], coordinates[i][2], 0, 0, 0, 0, 0, 0],
-        #             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #             [[], [], [], [], [], [], [], [], [], [], [], []],
-        #             [
-        #                 [5, 0, 1],
-        #                 [5, 0, 1],
-        #                 [5, 0, 1],
-        #                 [5, 0, 1],
-        #                 [10, 0, 1],
-        #                 [10, 0, 1],
-        #                 [10, 0, 1],
-        #                 [10, 0, 1],
-        #                 [15, 0, 1],
-        #                 [15, 0, 1],
-        #                 [15, 0, 1],
-        #                 [15, 0, 1]
-        #             ],
-        #             0
-        #         ))
-        #     # different after each launch -
-        #     # different by primitives order in primitives[] -
-        #     #
-        #     # Primitive.boolean(factory, primitives[0], primitives[1])
-        #     primitive_boolean_tools(factory, environment, primitives)
-        #     # for primitive in primitives:
-        #     #     Primitive.boolean(factory, environment, primitive)
-        #
-        #     boolean_correction_types = range(1, len(coordinates) + 1)
-        #     for i, primitive in enumerate(primitives):
-        #         primitive.correct_after_boolean(boolean_correction_types[i])
-        #     # result = primitive.correct_to_transfinite()
-        #     #     if result:
-        #     #         primitive.transfinite()
-        #
-        #     print("Physical Volumes")
-        #     fgs = []
-        #     for idx, primitive in enumerate(primitives):
-        #         fgs.append(gmsh.model.addPhysicalGroup(3, primitive.volumes))
-        #         gmsh.model.setPhysicalName(3, fgs[idx], "V%s" % idx)
-        #         fsgs = []
-        #         for i in range(len(primitive.surfaces)):
-        #             fsgs.append(gmsh.model.addPhysicalGroup(2, [primitive.surfaces[i]]))
-        #             gmsh.model.setPhysicalName(2, fsgs[i], "%s%s" % (primitive.surfaces_names[i], idx))
-        #     # Environment
-        #     env_fg = gmsh.model.addPhysicalGroup(3, environment.volumes)
-        #     gmsh.model.setPhysicalName(3, env_fg, "Rock")
-        #
-        #     print("Physical Surfaces")
-        #     volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
-        #     surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
-        #     surfaces_names = ["X", "Z", "NY", "NZ", "Y", "NX"]
-        #     for i in range(6):
-        #         tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
-        #         gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
-        #         #     gmsh.model.setPhysicalName(2, tag, 'S%s' % i)
-        #
-        #     factory.removeAllDuplicates()
-        #
-        #     gmsh.model.mesh.generate(3)
-        #
-        #     gmsh.model.mesh.removeDuplicateNodes()
-        #
-        #     gmsh.write("test_close_primitives.msh")
-        #
-        #     gmsh.finalize()
+    def test_cylinder_boolean_by_primitive(self):
+        """
+        Test complex cylinder, primitive, environment by boolean
+        """
+        start_time = time.time()
 
+        gmsh.initialize()
+
+        gmsh.option.setNumber("General.Terminal", 1)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
+
+        gmsh.model.add("test_cylinder_boolean_by_primitive")
+
+        factory = gmsh.model.occ
+
+        print("Creation")
+        start = time.time()
+        environment = Primitive(
+            factory,
+            [
+                100, 100, -100, 50,
+                -100, 100, -100, 50,
+                -100, -100, -100, 50,
+                100, -100, -100, 50,
+                100, 100, 100, 50,
+                -100, 100, 100, 50,
+                -100, -100, 100, 50,
+                100, -100, 100, 50
+            ],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [[], [], [], [], [], [], [], [], [], [], [], []]
+        )
+        # cylinder = Cylinder(
+        #     factory,
+        #     [5],
+        #     [50],
+        #     [[5]],
+        #     [0, 0, -25, 0, 0, 0, 0, 0, 0],
+        #     [[0]],
+        #     [[3, 0, 1]],
+        #     [[4, 0, 1]],
+        #     [5, 0, 1]
+        # )
+        # cylinder = Cylinder(
+        #     factory,
+        #     [5, 10],
+        #     [10],
+        #     [[5, 6, 7]],
+        #     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #     [[0, 1]],
+        #     [[3, 0, 1], [4, 0, 1]],
+        #     [[4, 0, 1]],
+        #     [5, 0, 1]
+        # )
+        # cylinder = Cylinder(
+        #     factory,
+        #     [5],
+        #     [10, 15],
+        #     [[5], [6]],
+        #     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #     [[0], [0]],
+        #     [[3, 0, 1]],
+        #     [[4, 0, 1], [5, 0, 1]],
+        #     [5, 0, 1]
+        # )
+        # cylinder = Cylinder(
+        #     factory,
+        #     [10, 20],
+        #     [30, 40],
+        #     [[5, 6], [6, 7]],
+        #     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #     [[0, 1], [0, 1]],
+        #     [[3, 0, 1], [4, 0, 1]],
+        #     [[4, 0, 1], [5, 0, 1]],
+        #     [5, 0, 1]
+        # )
+        cylinder = Cylinder(
+            factory,
+            [5, 7, 9],
+            [25, 25, 25],
+            [[5, 6, 7], [6, 7, 8], [7, 8, 9]],
+            [0, 0, -25, 0, 0, 0, 0, 0, 0],
+            [[0, 1, 2], [0, 1, 2], [0, 1, 2]],
+            [[3, 0, 1.1], [4, 1, 1.2], [5, 0, 1.3]],
+            [[10, 1, 0.9], [10, 0, 0.8], [10, 1, 0.7]],
+            [5, 0, 1]
+        )
+        # cylinder = Cylinder(
+        #     factory,
+        #     [5],
+        #     [25, 25, 25],
+        #     [[5], [5], [5]],
+        #     [0, 0, -50, 0, 0, 0, 0, 0, 0],
+        #     [[0], [1], [2]],
+        #     [[3, 0, 1]],
+        #     [[25, 0, 1], [25, 0, 1], [25, 0, 1]],
+        #     [5, 0, 1]
+        # )
+        # cylinder = Cylinder(
+        #     factory,
+        #     [5],
+        #     [25, 25, 25, 25, 25],
+        #     [[5], [5], [5], [5], [5]],
+        #     [0, 0, -50, 0, 0, 0, 0, 0, 0],
+        #     [[0], [0], [0], [0], [0]],
+        #     [[3, 0, 1]],
+        #     [[4, 0, 1], [4, 0, 1], [4, 0, 1], [4, 0, 1], [4, 0, 1]],
+        #     [5, 0, 1]
+        # )
+        primitive = Primitive(
+            factory,
+            [
+                5, 10, -15, 1,
+                -5, 10, -15, 2,
+                -5, -10, -15, 3,
+                5, -10, -15, 4,
+                5, 10, 15, 5,
+                -5, 10, 15, 6,
+                -5, -10, 15, 7,
+                5, -10, 15, 8,
+            ],
+            [1, -3, 0, -2, 5, -1, math.pi / 3, -math.pi / 4, -math.pi / 6],
+            [5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+            [
+                [
+                    -2, 20, -20, 1,
+                    -1, 20, -20, 1,
+                    1, 20, -20, 1,
+                    2, 20, -20, 1
+                ],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [0, 0, 0, 0],
+                [],
+                [],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                []
+            ],
+            [
+                [5, 0, 1],
+                [5, 0, 1],
+                [5, 0, 1],
+                [5, 0, 1],
+                [10, 0, 1],
+                [10, 0, 1],
+                [10, 0, 1],
+                [10, 0, 1],
+                [15, 0, 1],
+                [15, 0, 1],
+                [15, 0, 1],
+                [15, 0, 1]
+            ],
+            0
+        )
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Cylinder Union")
+        print(gmsh.model.getEntities(3))
+        out = cylinder.get_union_volume()
+        print(gmsh.model.getEntities(3))
+
+        print("Primitive by Cylinder boolean")
+        start = time.time()
+        primitive_cut_by_volumes_boolean(factory, primitive, [out[0][1]])
+        print(gmsh.model.getEntities(3))
+        primitive_complex_boolean(factory, primitive, cylinder)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Environment by Cylinder boolean")
+        start = time.time()
+        primitive_complex_boolean(factory, environment, cylinder)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Environment by Primitive boolean")
+        start = time.time()
+        primitive_boolean(factory, environment, primitive)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Remove All Duplicates")
+        start = time.time()
+        factory.removeAllDuplicates()
+        factory.synchronize()
+        print(gmsh.model.getEntities(3))
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Correction")
+        start = time.time()
+        occ_ws.correct_complex(cylinder)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Set Sizes")
+        start = time.time()
+        primitive.set_size(3)
+        cylinder.set_size(1)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Transfinite")  # Works only after correct_complex_after_boolean()
+        start = time.time()
+        ss = set()  # already transfinite surfaces (workaround for double transfinite issue)
+        cylinder.transfinite(ss)
+        print('{:.3f}s'.format(time.time() - start))
+
+        # print("Physical")
+        # for idx, primitive in enumerate(cylinder.primitives):
+        #     tag = gmsh.model.addPhysicalGroup(3, primitive.volumes)
+        #     gmsh.model.setPhysicalName(3, tag, "V{}".format(idx))
+        #     for surface_idx, surface in enumerate(primitive.surfaces):
+        #         tag = gmsh.model.addPhysicalGroup(2, [surface])
+        #         gmsh.model.setPhysicalName(2, tag, "{}{}".format(primitive.surfaces_names[surface_idx], idx))
+
+        # tag = gmsh.model.addPhysicalGroup(3, [out[0][1]])
+        # gmsh.model.setPhysicalName(3, tag, "Union")
+
+        print("Primitive Physical")
+        tag = gmsh.model.addPhysicalGroup(3, primitive.volumes)
+        gmsh.model.setPhysicalName(3, tag, "Primitive")
+
+        print("Cylinder Physical")
+        physical_group_names = ["V0", "V1", "V2"]
+        for idx, name in enumerate(physical_group_names):
+            volumes_idxs = []
+            volumes_idxs.extend(cylinder.get_volumes_by_physical_group(idx))
+            tag = gmsh.model.addPhysicalGroup(3, volumes_idxs)
+            gmsh.model.setPhysicalName(3, tag, name)
+
+        print("Environment Physical ")
+        tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
+        gmsh.model.setPhysicalName(3, tag, "Environment")
+        volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
+        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        surfaces_names = ["X", "Z", "NY", "NZ", "Y", "NX"]
+        for i in range(6):
+            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
+            gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
+            #     gmsh.model.setPhysicalName(2, tag, 'S%s' % i)
+
+        gmsh.model.mesh.generate(3)
+
+        gmsh.model.mesh.removeDuplicateNodes()
+
+        gmsh.write("test_cylinder_boolean_by_primitive.msh")
+
+        gmsh.finalize()
+
+        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
 
 if __name__ == '__main__':
     unittest.main()

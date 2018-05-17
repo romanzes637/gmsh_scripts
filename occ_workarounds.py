@@ -82,7 +82,8 @@ def correct_primitive(primitive):
 # Complex
 def correct_complex(complex_obj):
     for primitive in complex_obj.primitives:
-        correct_primitive(primitive)
+        result = correct_primitive(primitive)
+        print(result)
 
 
 # Obsoleted
