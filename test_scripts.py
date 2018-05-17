@@ -8,7 +8,7 @@ import itertools
 
 import time
 
-from primitive import primitive_boolean, primitive_cut_by_volumes_boolean
+from primitive import primitive_boolean, primitive_cut_by_volume_boolean
 from primitive import complex_boolean
 from primitive import Primitive
 from primitive import Complex
@@ -1294,17 +1294,17 @@ class TestScripts(unittest.TestCase):
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [[], [], [], [], [], [], [], [], [], [], [], []]
         )
-        # cylinder = Cylinder(
-        #     factory,
-        #     [5],
-        #     [50],
-        #     [[5]],
-        #     [0, 0, -25, 0, 0, 0, 0, 0, 0],
-        #     [[0]],
-        #     [[3, 0, 1]],
-        #     [[4, 0, 1]],
-        #     [5, 0, 1]
-        # )
+        cylinder = Cylinder(
+            factory,
+            [5],
+            [50],
+            [[5]],
+            [0, 0, -25, 0, 0, 0, 0, 0, 0],
+            [[0]],
+            [[3, 0, 1]],
+            [[4, 0, 1]],
+            [5, 0, 1]
+        )
         # cylinder = Cylinder(
         #     factory,
         #     [5, 10],
@@ -1338,17 +1338,17 @@ class TestScripts(unittest.TestCase):
         #     [[4, 0, 1], [5, 0, 1]],
         #     [5, 0, 1]
         # )
-        cylinder = Cylinder(
-            factory,
-            [5, 7, 9],
-            [25, 25, 25],
-            [[5, 6, 7], [6, 7, 8], [7, 8, 9]],
-            [0, 0, -25, 0, 0, 0, 0, 0, 0],
-            [[0, 1, 2], [0, 1, 2], [0, 1, 2]],
-            [[3, 0, 1.1], [4, 1, 1.2], [5, 0, 1.3]],
-            [[10, 1, 0.9], [10, 0, 0.8], [10, 1, 0.7]],
-            [5, 0, 1]
-        )
+        # cylinder = Cylinder(
+        #     factory,
+        #     [5, 7, 9],
+        #     [25, 25, 25],
+        #     [[5, 6, 7], [6, 7, 8], [7, 8, 9]],
+        #     [0, 0, -25, 0, 0, 0, 0, 0, 0],
+        #     [[0, 1, 2], [0, 1, 2], [0, 1, 2]],
+        #     [[3, 0, 1.1], [4, 1, 1.2], [5, 0, 1.3]],
+        #     [[10, 1, 0.9], [10, 0, 0.8], [10, 1, 0.7]],
+        #     [5, 0, 1]
+        # )
         # cylinder = Cylinder(
         #     factory,
         #     [5],
@@ -1429,7 +1429,7 @@ class TestScripts(unittest.TestCase):
 
         print("Primitive by Cylinder boolean")
         start = time.time()
-        primitive_cut_by_volumes_boolean(factory, primitive, [out[0][1]])
+        primitive_cut_by_volume_boolean(factory, primitive, out[0][1])
         print(gmsh.model.getEntities(3))
         primitive_complex_boolean(factory, primitive, cylinder)
         print('{:.3f}s'.format(time.time() - start))

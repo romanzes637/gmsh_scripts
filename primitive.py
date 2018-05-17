@@ -372,15 +372,11 @@ class Complex:
             print(result)
 
     def get_union_volume(self):
-        obj_dim_tags = []
-        tool_dim_tags = []
+        dim_tags = []
         for primitive in self.primitives:
-            obj_dim_tags += map(lambda x: (3, x), primitive.volumes)
-            tool_dim_tags += map(lambda x: (3, x), primitive.volumes)
-        print(obj_dim_tags[:1])
-        print(tool_dim_tags[1:])
+            dim_tags += map(lambda x: (3, x), primitive.volumes)
         out_dim_tags, out_dim_tags_map = self.factory.fuse(
-            obj_dim_tags[:1], tool_dim_tags[1:], tag=-1, removeObject=False, removeTool=False)
+            dim_tags[:1], dim_tags[1:], tag=-1, removeObject=False, removeTool=False)
         self.factory.synchronize()
         return out_dim_tags
 
@@ -431,29 +427,30 @@ def primitive_boolean(factory, primitive_obj, primitive_tool):
     print('{:.3f}s'.format(time.time() - start))
 
 
-def primitive_cut_by_volumes_boolean(factory, primitive_obj, volumes):
+def primitive_cut_by_volume_boolean(factory, primitive_obj, volume):
     start = time.time()
     # Check intersection of bounding boxes first (this operation less expensive than boolean)
     is_intersection = True
-    # if primitive_obj.bounding_box[0] > primitive_tool.bounding_box[3]:  # obj_x_min > tool_x_max
-    #     is_intersection = False
-    # if primitive_obj.bounding_box[1] > primitive_tool.bounding_box[4]:  # obj_y_min > tool_y_max
-    #     is_intersection = False
-    # if primitive_obj.bounding_box[2] > primitive_tool.bounding_box[5]:  # obj_z_min > tool_z_max
-    #     is_intersection = False
-    # if primitive_obj.bounding_box[3] < primitive_tool.bounding_box[0]:  # obj_x_max < tool_x_min
-    #     is_intersection = False
-    # if primitive_obj.bounding_box[4] < primitive_tool.bounding_box[1]:  # obj_y_max < tool_y_min
-    #     is_intersection = False
-    # if primitive_obj.bounding_box[5] < primitive_tool.bounding_box[2]:  # obj_z_max < tool_z_min
-    #     is_intersection = False
+    x_min, y_min, z_min, x_max, y_max, z_max = gmsh.model.getBoundingBox(3, volume)
+    if primitive_obj.bounding_box[0] > x_max:  # obj_x_min > tool_x_max
+        is_intersection = False
+    if primitive_obj.bounding_box[1] > y_max:  # obj_y_min > tool_y_max
+        is_intersection = False
+    if primitive_obj.bounding_box[2] > z_max:  # obj_z_min > tool_z_max
+        is_intersection = False
+    if primitive_obj.bounding_box[3] < x_min:  # obj_x_max < tool_x_min
+        is_intersection = False
+    if primitive_obj.bounding_box[4] < y_min:  # obj_y_max < tool_y_min
+        is_intersection = False
+    if primitive_obj.bounding_box[5] < z_min:  # obj_z_max < tool_z_min
+        is_intersection = False
     # Check on empty primitive_obj:
     if len(primitive_obj.volumes) <= 0:
         is_intersection = False
     print(is_intersection)
     if is_intersection:
         obj_dim_tags = map(lambda x: (3, x), primitive_obj.volumes)
-        tool_dim_tags = map(lambda x: (3, x), volumes)
+        tool_dim_tags = [(3, volume)]
         out_dim_tags, out_dim_tags_map = factory.fragment(obj_dim_tags, tool_dim_tags, removeTool=False)
         new_obj_volumes = []
         for i in range(len(primitive_obj.volumes)):
@@ -461,7 +458,7 @@ def primitive_cut_by_volumes_boolean(factory, primitive_obj, volumes):
             for j in range(len(new_dim_tags)):
                 new_obj_volumes.append(new_dim_tags[j][1])
         new_tool_volumes = []
-        for i in range(len(primitive_obj.volumes), len(primitive_obj.volumes) + len(volumes)):
+        for i in range(len(primitive_obj.volumes), len(primitive_obj.volumes) + 1):
             new_dim_tags = out_dim_tags_map[i]
             for j in range(len(new_dim_tags)):
                 new_tool_volumes.append(new_dim_tags[j][1])
