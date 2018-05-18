@@ -4,23 +4,41 @@ import math
 
 
 class Cylinder(Complex):
-    def __init__(self, factory, radii, heights, lcs, transform_data, physical_data,
+    def __init__(self, factory, radii, heights, lcs, transform_data, layers_physical_data,
                  transfinite_r_data=None, transfinite_h_data=None, transfinite_phi_data=None):
-        self.radii = radii
-        self.heights = heights
+        """
+        Multilayer cylinder
+        Used for axisymmetric objects
+        Layers structure:
+        h - height
+        r - radius
+        hM_r1 hM_r2 ... hM_rN
+        ...   ...   ... ...
+        h2_r1 h2_r2 ... h2_rN
+        h1_r1 h1_r2 ... h1_rN
+        Bottom center of h1_r1 layer is an origin of the cylinder
+        :param factory: gmsh factory (currently: gmsh.model.geo or gmsh.model.occ)
+        :param radii: [r1, r2, ..., rN]
+        :param heights: [h1, h2, ..., hM]
+        :param lcs: characteristic lengths of layers [[h1_r1, h1_r2, ...], [h2_r1, h2_r2 ...], ...]
+        :param transform_data: [displacement x, y, z, rotation origin x, y, z, rotation angle x, y, z]
+        :param layers_physical_data: physical indices of layers [[h1_r1, h1_r2, ...], [h2_r1, h2_r2 ...], ...]
+        :param transfinite_r_data: [[r1 number of nodes, type (0 - Progression, 1 - Bump), coefficient], [r2 ...], ...]
+        :param transfinite_h_data: [[h1 number of nodes, type (0 - Progression, 1 - Bump), coefficient], [h2 ...], ...]
+        :param transfinite_phi_data: [circumferential number of nodes, type, coefficient]
+        """
         complex_lcs = []
         primitives = []
-        primitive_physical_groups = []
+        primitives_physical_data = []
         k = 1 / float(3)
         transfinite_types = [0, 0, 0, 1, 3]
         h_cnt = 0
         for i in range(len(heights)):
-            primitive_physical_groups.extend([physical_data[i][0]] * 5)
+            primitives_physical_data.extend([layers_physical_data[i][0]] * 5)
             r = radii[0] * math.sqrt(2)
             kr = k * radii[0] * math.sqrt(2)
             h = float(heights[i])
             h_cnt += h / 2
-            h2 = h / 2
             # Core center
             primitives.append(Primitive(
                 factory,
@@ -232,7 +250,7 @@ class Cylinder(Complex):
             complex_lcs.append(lcs[i][0])
             # Layers
             for j in range(1, len(radii)):
-                primitive_physical_groups.extend([physical_data[i][j]] * 4)
+                primitives_physical_data.extend([layers_physical_data[i][j]] * 4)
                 r1 = radii[j - 1] * math.sqrt(2)
                 r2 = radii[j] * math.sqrt(2)
                 # Layer X
@@ -408,4 +426,4 @@ class Cylinder(Complex):
                 ))
                 complex_lcs.append(lcs[i][j])
             h_cnt += h / 2
-            Complex.__init__(self, factory, primitives, primitive_physical_groups, complex_lcs)
+            Complex.__init__(self, factory, primitives, primitives_physical_data, complex_lcs)

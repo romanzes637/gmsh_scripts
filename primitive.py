@@ -4,10 +4,47 @@ import time
 
 
 class Primitive:
-    def __init__(self, factory, data, transform_data, curve_types, curve_data,
+    def __init__(self, factory, point_data, transform_data, curve_types, curve_data,
                  transfinite_curve_data=None, transfinite_type=None):
+        """
+        Base object with six quadrangular surfaces and eight points
+        The object (e.g. number of its volumes/surfaces) could be changed in process,
+        if not it may be meshed to structured mesh
+        Object structure:
+        Axes:
+        Y
+        Z X
+        Points:
+        Top Z:
+        P5 P4
+        P6 P7
+        Bottom Z:
+        P1 P0
+        P2 P3
+        Curves:
+        L0: P1 -> P0  L1: P5 -> P4  L2: P6  -> P7   L3: P2 -> P3 (X direction curves from P0 by right-hand rule)
+        L4: P3 -> P0  L5: P2 -> P1  L6: P6  -> P5   L7: P7 -> P4 (Y direction curves from P0 by right-hand rule)
+        L8: P0 -> P4  L9: P1 -> P5  L10: P2 -> P6  L11: P3 -> P7 (Z direction curves from P0 by right-hand rule)
+        Surfaces:
+        S0: L5  -> L9  -> -L6 -> -L10 (NX surface)
+        S1: -L4 -> L11 -> L7  -> -L8  (X surface)
+        S2: -L3 -> L10 -> L2  -> -L11 (NY surface)
+        S3: L0  -> L8  -> -L1 -> -L9  (Y surface)
+        S4: -L0 -> -L5 ->  L3 -> L4   (NZ surface)
+        S5: L1  -> -L7 -> -L2 -> L6   (Z surface)
+        :param factory: gmsh factory (currently: gmsh.model.geo or gmsh.model.occ)
+        :param point_data: [[point1_x, point1_y, point1_z, point1_lc], ..., [point8_x, point8_y, point8_z, point8_lc]]
+        :param transform_data: [displacement x, y, z, rotation origin x, y, z, rotation angle x, y, z]
+        :param curve_types: [line1_type, line2_type, ..., line12_type],
+        types: 0 - line, 1 - circle, 2 - ellipse (FIXME not implemented for occ factory),
+        3 - spline, 4 - bspline, 5 - bezier curve
+        :param curve_data: [[line1_point1, ..., l1_pointN], ..., [line12_p1, ..., l12_pointN]]
+        :param transfinite_curve_data: [[line1 number of nodes, type, coefficient], ..., [line12 ...]]
+        types: 0 - progression, 1 - bump
+        :param transfinite_type: 0, 1, 2 or 4 determines orientation of tetrahedra at structured volume and its surfaces
+        """
         self.factory = factory
-        self.data = data
+        self.point_data = point_data
         self.transform_data = transform_data
         self.curve_types = curve_types
         self.curve_data = curve_data
@@ -23,12 +60,12 @@ class Primitive:
         self.create()
 
     def create(self):
-        for i in range(0, len(self.data), 4):
+        for i in range(0, len(self.point_data), 4):
             tag = self.factory.addPoint(
-                self.data[i],
-                self.data[i + 1],
-                self.data[i + 2],
-                self.data[i + 3])
+                self.point_data[i],
+                self.point_data[i + 1],
+                self.point_data[i + 2],
+                self.point_data[i + 3])
             self.points.append(tag)
         for i in range(len(self.curve_data)):
             ps = []
@@ -308,7 +345,7 @@ class Primitive:
             self.curves_points[i][0],
             self.curves_points[i][1],
             self.points[self.curves_local_points[i][1]],
-        ),  # TODO implement occ ellipse
+        ),  # FIXME implement occ ellipse
         3: lambda self, i: self.factory.addSpline(
             [self.points[self.curves_local_points[i][0]]] +
             self.curves_points[i] +
@@ -328,16 +365,23 @@ class Primitive:
 
 
 class Complex:
-    def __init__(self, factory, primitives, primitive_physical_groups, lcs=None):
-        assert len(primitives) == len(primitive_physical_groups)
-        assert len(primitives) == len(lcs) or lcs is None
+    def __init__(self, factory, primitives, primitives_physical_data, lcs=None):
+        """
+        Object that's consisted of primitives
+        :param factory: gmsh factory (currently: gmsh.model.geo or gmsh.model.occ)
+        :param primitives: [primitive 1, 2, ..., N]
+        :param primitives_physical_data: [physical index of primitive 1, 2, ..., N]
+        :param lcs: [characteristic length of primitive 1, 2, ..., N]
+        """
+        for primitive in primitives:
+            assert factory == primitive.factory
+        assert len(primitives) == len(primitives_physical_data)
+        if lcs is not None:
+            assert len(primitives) == len(lcs)
         self.factory = factory
         self.primitives = primitives
+        self.primitives_physical_data = primitives_physical_data
         self.lcs = lcs
-        self.primitive_physical_groups = primitive_physical_groups
-        for primitive in self.primitives:
-            if self.factory != primitive.factory:
-                raise ValueError("All primitives factories must be as Complex factory")
 
     def in_boolean(self):
         combinations = list(itertools.combinations(range(len(self.primitives)), 2))
@@ -359,12 +403,12 @@ class Complex:
         else:
             raise ValueError("primitive_idx must be not None if volume_idx is not None")
 
-    def get_volumes_by_physical_group(self, tag):
-        idxs = []
-        for idx, primitive in enumerate(self.primitives):
-            if self.primitive_physical_groups[idx] == tag:
-                idxs.extend(primitive.volumes)
-        return idxs
+    def get_volumes_by_physical_index(self, idx):
+        vs = []
+        for primitive_idx, primitive in enumerate(self.primitives):
+            if self.primitives_physical_data[primitive_idx] == idx:
+                vs.extend(primitive.volumes)
+        return vs
 
     def transfinite(self, transfinite_surfaces):
         for primitive in self.primitives:
@@ -489,9 +533,9 @@ def primitive_complex_boolean(factory, primitive_obj, complex_tool):
 
 
 def complex_primitive_boolean(factory, complex_obj, primitive_tool):
-        for idx, primitive_obj in enumerate(complex_obj.primitives):
-            print("Boolean complex_obj's primitive %s by primitive_tool" % idx)
-            primitive_boolean(factory, primitive_obj, primitive_tool)
+    for idx, primitive_obj in enumerate(complex_obj.primitives):
+        print("Boolean complex_obj's primitive %s by primitive_tool" % idx)
+        primitive_boolean(factory, primitive_obj, primitive_tool)
 
 
 class Environment:

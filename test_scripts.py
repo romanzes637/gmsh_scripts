@@ -8,7 +8,7 @@ import itertools
 
 import time
 
-from primitive import primitive_boolean, primitive_cut_by_volume_boolean
+from primitive import primitive_boolean, primitive_cut_by_volume_boolean, Environment
 from primitive import complex_boolean
 from primitive import Primitive
 from primitive import Complex
@@ -17,341 +17,6 @@ from cylinder import Cylinder
 
 
 class TestScripts(unittest.TestCase):
-    # def test_primitive_env(self):
-    #     """
-    #     Primitive within Environment
-    #     """
-    #     gmsh.initialize()
-    #
-    #     gmsh.option.setNumber("Geometry.AutoCoherence", 0)
-    #     gmsh.option.setNumber("General.Terminal", 1)
-    #     gmsh.option.setNumber("Mesh.Algorithm3D", 4)
-    #
-    #     gmsh.model.add("test_primitive_env")
-    #
-    #     factory = gmsh.model.geo
-    #     # factory = gmsh.model.occ # TODO Doesn't work with occ because volume with holes is not created
-    #
-    #     print("Primitive")
-    #     primitive = Primitive(
-    #         factory,
-    #         [
-    #             5, 10, -15, 5,
-    #             -5, 10, -15, 5,
-    #             -5, -10, -15, 5,
-    #             5, -10, -15, 5,
-    #             5, 10, 15, 5,
-    #             -5, 10, 15, 5,
-    #             -5, -10, 15, 5,
-    #             5, -10, 15, 5,
-    #         ],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [[], [], [], [], [], [], [], [], [], [], [], []],
-    #         [
-    #             [5, 0, 1], [5, 0, 1], [5, 0, 1], [5, 0, 1],
-    #             [10, 0, 1], [10, 0, 1], [10, 0, 1], [10, 0, 1],
-    #             [15, 0, 1], [15, 0, 1], [15, 0, 1], [15, 0, 1]
-    #         ],
-    #         0
-    #     )
-    #
-    #     print("Environment")
-    #     environment = Environment(
-    #         factory, 50, 50, 50, 5, [0, 0, 0, 0, 0, 0, 0, 0, 0], primitive.surfaces)
-    #
-    #     print("Physical Groups")
-    #     primitive_fg = gmsh.model.addPhysicalGroup(3, primitive.volumes)
-    #     gmsh.model.setPhysicalName(3, primitive_fg, "Primitive")
-    #     env_fg = gmsh.model.addPhysicalGroup(3, environment.volumes)
-    #     gmsh.model.setPhysicalName(3, env_fg, "Environment")
-    #     s_fgs = []
-    #     for i in range(len(environment.surfaces)):
-    #         s_fgs.append(gmsh.model.addPhysicalGroup(2, [environment.surfaces[i]]))
-    #         gmsh.model.setPhysicalName(2, s_fgs[i], environment.surfaces_names[i])
-    #
-    #     print("Transfinite")
-    #     primitive.transfinite()
-    #
-    #     print("Remove All Duplicates")
-    #     factory.removeAllDuplicates()
-    #
-    #     print("Generate Mesh")
-    #     gmsh.model.mesh.generate(3)
-    #
-    #     print("Remove Mesh Duplicate Nodes")
-    #     gmsh.model.mesh.removeDuplicateNodes()
-    #
-    #     gmsh.write("test_primitive_env.msh")
-    #
-    #     gmsh.finalize()
-
-    def test_mix(self):
-        gmsh.initialize()
-
-        gmsh.option.setNumber("Geometry.AutoCoherence", 0)
-        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
-        gmsh.option.setNumber("General.Terminal", 1)
-
-        gmsh.model.add("test_mix")
-
-        factory = gmsh.model.occ
-
-        environment = Primitive(
-            factory,
-            [
-                50, 60, -70, 10,
-                -50, 60, -70, 10,
-                -50, -60, -70, 10,
-                50, -60, -70, 10,
-                50, 60, 70, 10,
-                -50, 60, 70, 10,
-                -50, -60, 70, 10,
-                50, -60, 70, 10,
-            ],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [[], [], [], [], [], [], [], [], [], [], [], []]
-        )
-        n_primitives = 2
-        primitives = []
-        for i in range(n_primitives):
-            primitives.append(Primitive(
-                factory,
-                [
-                    5, 10, -15, 1,
-                    -5, 10, -15, 1,
-                    -5, -10, -15, 1,
-                    5, -10, -15, 1,
-                    5, 10, 15, 1,
-                    -5, 10, 15, 1,
-                    -5, -10, 15, 1,
-                    5, -10, 15, 1,
-                ],
-                [i * 5, i * 5, i * 6, 0, 0, 0, 3.14 * i / 4, 3.14 * i / 6, 3.14 * i / 8],
-                [5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
-                [
-                    [
-                        -2, 20, -20, 1,
-                        -1, 20, -20, 1,
-                        1, 20, -20, 1,
-                        2, 20, -20, 1
-                    ],
-                    [],
-                    [],
-                    [],
-                    [],
-                    [],
-                    [],
-                    [0, 0, 0, 0],
-                    [],
-                    [],
-                    [0, 0, 0, 0, 0, 0, 0, 0],
-                    []
-                ],
-                [
-                    [5, 0, 1],
-                    [5, 0, 1],
-                    [5, 0, 1],
-                    [5, 0, 1],
-                    [10, 0, 1],
-                    [10, 0, 1],
-                    [10, 0, 1],
-                    [10, 0, 1],
-                    [15, 0, 1],
-                    [15, 0, 1],
-                    [15, 0, 1],
-                    [15, 0, 1]
-                ],
-                1
-            ))
-
-        combinations = list(itertools.combinations(range(n_primitives), 2))
-        print(combinations)
-        for combination in combinations:
-            print("Boolean primitive %s by primitive %s" % combination)
-            Primitive.boolean(factory, primitives[combination[0]], primitives[combination[1]])
-
-        for idx, primitive in enumerate(primitives):
-            print("Boolean environment by borehole %s" % idx)
-            Primitive.boolean(factory, environment, primitive)
-
-        environment.set_size(25)
-        for idx, primitive in enumerate(primitives):
-            primitive.set_size(10)
-
-        print("Physical Volumes")
-        v_fgs = []
-        for primitive in primitives:
-            v_fgs.append(gmsh.model.addPhysicalGroup(3, primitive.volumes))
-        for i in range(len(v_fgs)):
-            gmsh.model.setPhysicalName(3, v_fgs[i], "V%s" % i)
-
-        env_fg = gmsh.model.addPhysicalGroup(3, environment.volumes)
-        gmsh.model.setPhysicalName(3, env_fg, "Environment")
-
-        for primitive in primitives:
-            result = primitive.check_to_transfinite()
-            if result:
-                primitive.transfinite()
-
-        print("Physical Surfaces")
-        volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
-        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags)
-        s_fgs_names = ["X", "Y", "NZ", "NY", "Z", "NX"]
-        for i in range(len(surfaces_dim_tags) - 6, len(surfaces_dim_tags)):
-            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
-            # gmsh.model.setPhysicalName(2, s_fgs[i], s_fgs_names[i])
-            gmsh.model.setPhysicalName(2, tag, s_fgs_names[i - (len(surfaces_dim_tags) - 6)])
-
-        factory.removeAllDuplicates()
-
-        gmsh.model.mesh.generate(3)
-
-        gmsh.model.mesh.removeDuplicateNodes()
-
-        gmsh.write("test_mix.msh")
-
-        gmsh.finalize()
-
-    def test_primitive_boolean(self):
-        """
-        Test primitive and environment boolean
-        """
-        start_time = time.time()
-
-        gmsh.initialize()
-
-        gmsh.option.setNumber("General.Terminal", 1)
-        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
-
-        gmsh.model.add("test_primitive_boolean")
-
-        factory = gmsh.model.occ
-
-        print("Creation")
-        start = time.time()
-        environment = Primitive(
-            factory,
-            [
-                100, 100, -100, 50,
-                -100, 100, -100, 50,
-                -100, -100, -100, 50,
-                100, -100, -100, 50,
-                100, 100, 100, 50,
-                -100, 100, 100, 50,
-                -100, -100, 100, 50,
-                100, -100, 100, 50
-            ],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [[], [], [], [], [], [], [], [], [], [], [], []]
-        )
-        primitive = Primitive(
-            factory,
-            [
-                5, 10, -15, 1,
-                -5, 10, -15, 2,
-                -5, -10, -15, 3,
-                5, -10, -15, 4,
-                5, 10, 15, 5,
-                -5, 10, 15, 6,
-                -5, -10, 15, 7,
-                5, -10, 15, 8,
-            ],
-            [1, -3, 5, -2, 5, -1, math.pi / 3, -math.pi / 4, -math.pi / 6],
-            [5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
-            [
-                [
-                    -2, 20, -20, 1,
-                    -1, 20, -20, 1,
-                    1, 20, -20, 1,
-                    2, 20, -20, 1
-                ],
-                [],
-                [],
-                [],
-                [],
-                [],
-                [],
-                [0, 0, 0, 0],
-                [],
-                [],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                []
-            ],
-            [
-                [5, 0, 1],
-                [5, 0, 1],
-                [5, 0, 1],
-                [5, 0, 1],
-                [10, 0, 1],
-                [10, 0, 1],
-                [10, 0, 1],
-                [10, 0, 1],
-                [15, 0, 1],
-                [15, 0, 1],
-                [15, 0, 1],
-                [15, 0, 1]
-            ],
-            0
-        )
-        print('{:.3f}s'.format(time.time() - start))
-
-        print("Environment by Primitive boolean")
-        start = time.time()
-        primitive_boolean(factory, environment, primitive)
-        print('{:.3f}s'.format(time.time() - start))
-
-        print("Remove All Duplicates")
-        start = time.time()
-        factory.removeAllDuplicates()
-        factory.synchronize()
-        print('{:.3f}s'.format(time.time() - start))
-
-        print("Correction")
-        start = time.time()
-        result = occ_ws.correct_primitive(primitive)
-        print("Primitive {}".format(result))
-        result = occ_ws.correct_primitive(environment)
-        print("Environment {}".format(result))
-        print('{:.3f}s'.format(time.time() - start))
-
-        print("Transfinite")
-        start = time.time()
-        ss = set()
-        result = primitive.transfinite(ss)
-        print("Primitive {}".format(result))
-        result = environment.transfinite(ss)
-        print("Environment {}".format(result))
-        print('{:.3f}s'.format(time.time() - start))
-
-        print("Physical Volumes")
-        tag = gmsh.model.addPhysicalGroup(3, primitive.volumes)
-        gmsh.model.setPhysicalName(3, tag, "Primitive")
-        tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
-        gmsh.model.setPhysicalName(3, tag, "Environment")
-
-        print("Physical Surfaces")
-        # for idx, surface in enumerate(primitive.surfaces):
-        #     tag = gmsh.model.addPhysicalGroup(2, [surface])
-        #     gmsh.model.setPhysicalName(2, tag, "Primitive{}".format(primitive.surfaces_names[idx]))
-        volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
-        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
-        surfaces_names = ["X", "Z", "NY", "NZ", "Y", "NX"]
-        for i in range(6):
-            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
-            gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
-
-        gmsh.model.mesh.generate(3)
-
-        gmsh.model.mesh.removeDuplicateNodes()
-
-        gmsh.write("test_primitive_boolean.msh")
-
-        gmsh.finalize()
-
-        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
 
     def test_transfinite(self):
         start_time = time.time()
@@ -361,6 +26,7 @@ class TestScripts(unittest.TestCase):
         gmsh.option.setNumber("General.Terminal", 1)
         gmsh.model.add("test_transfinite")
 
+        # factory = gmsh.model.geo
         factory = gmsh.model.occ
 
         print("Creation")
@@ -551,6 +217,361 @@ class TestScripts(unittest.TestCase):
 
         print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
 
+    def test_primitive_environment(self):
+        """
+        Primitive in Environment
+        """
+        start_time = time.time()
+
+        gmsh.initialize()
+
+        gmsh.option.setNumber("Geometry.AutoCoherence", 0)
+        gmsh.option.setNumber("General.Terminal", 1)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
+
+        gmsh.model.add("test_primitive_environment")
+
+        factory = gmsh.model.geo
+        # factory = gmsh.model.occ  # TODO Doesn't work with occ because volume with holes is not created
+
+        print("Primitive")
+        primitive = Primitive(
+            factory,
+            [
+                5, 10, -15, 5,
+                -5, 10, -15, 5,
+                -5, -10, -15, 5,
+                5, -10, -15, 5,
+                5, 10, 15, 5,
+                -5, 10, 15, 5,
+                -5, -10, 15, 5,
+                5, -10, 15, 5,
+            ],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [[], [], [], [], [], [], [], [], [], [], [], []],
+            [
+                [5, 0, 1], [5, 0, 1], [5, 0, 1], [5, 0, 1],
+                [10, 0, 1], [10, 0, 1], [10, 0, 1], [10, 0, 1],
+                [15, 0, 1], [15, 0, 1], [15, 0, 1], [15, 0, 1]
+            ],
+            0
+        )
+
+        print("Environment")
+        environment = Environment(factory, 50, 50, 50, 5, [0, 0, 0, 0, 0, 0, 0, 0, 0], primitive.surfaces)
+
+        print("Remove All Duplicates")
+        factory.removeAllDuplicates()
+
+        print("Physical Groups")
+        tag = gmsh.model.addPhysicalGroup(3, primitive.volumes)
+        gmsh.model.setPhysicalName(3, tag, "Primitive")
+        tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
+        gmsh.model.setPhysicalName(3, tag, "Environment")
+        for i in range(len(environment.surfaces)):
+            tag = gmsh.model.addPhysicalGroup(2, [environment.surfaces[i]])
+            gmsh.model.setPhysicalName(2, tag, environment.surfaces_names[i])
+
+        print("Transfinite")
+        ss = set()
+        primitive.transfinite(ss)
+
+        gmsh.model.mesh.generate(3)
+
+        gmsh.model.mesh.removeDuplicateNodes()
+
+        gmsh.write("test_primitive_environment.msh")
+
+        gmsh.finalize()
+
+        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
+
+    def test_primitive_environment_boolean(self):
+        """
+        Test Primitive in Environment boolean
+        """
+        start_time = time.time()
+
+        gmsh.initialize()
+
+        gmsh.option.setNumber("General.Terminal", 1)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
+
+        gmsh.model.add("test_primitive_environment_boolean")
+
+        factory = gmsh.model.occ
+
+        print("Creation")
+        start = time.time()
+        environment = Primitive(
+            factory,
+            [
+                100, 100, -100, 50,
+                -100, 100, -100, 50,
+                -100, -100, -100, 50,
+                100, -100, -100, 50,
+                100, 100, 100, 50,
+                -100, 100, 100, 50,
+                -100, -100, 100, 50,
+                100, -100, 100, 50
+            ],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [[], [], [], [], [], [], [], [], [], [], [], []]
+        )
+        primitive = Primitive(
+            factory,
+            [
+                5, 10, -15, 1,
+                -5, 10, -15, 2,
+                -5, -10, -15, 3,
+                5, -10, -15, 4,
+                5, 10, 15, 5,
+                -5, 10, 15, 6,
+                -5, -10, 15, 7,
+                5, -10, 15, 8,
+            ],
+            [1, -3, 5, -2, 5, -1, math.pi / 3, -math.pi / 4, -math.pi / 6],
+            [5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+            [
+                [
+                    -2, 20, -20, 1,
+                    -1, 20, -20, 1,
+                    1, 20, -20, 1,
+                    2, 20, -20, 1
+                ],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [0, 0, 0, 0],
+                [],
+                [],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                []
+            ],
+            [
+                [5, 0, 1],
+                [5, 0, 1],
+                [5, 0, 1],
+                [5, 0, 1],
+                [10, 0, 1],
+                [10, 0, 1],
+                [10, 0, 1],
+                [10, 0, 1],
+                [15, 0, 1],
+                [15, 0, 1],
+                [15, 0, 1],
+                [15, 0, 1]
+            ],
+            0
+        )
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Environment by Primitive boolean")
+        start = time.time()
+        primitive_boolean(factory, environment, primitive)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Remove All Duplicates")
+        start = time.time()
+        factory.removeAllDuplicates()
+        factory.synchronize()
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Correction")
+        start = time.time()
+        result = occ_ws.correct_primitive(primitive)
+        print("Primitive {}".format(result))
+        result = occ_ws.correct_primitive(environment)
+        print("Environment {}".format(result))
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Transfinite")
+        start = time.time()
+        ss = set()
+        result = primitive.transfinite(ss)
+        print("Primitive {}".format(result))
+        result = environment.transfinite(ss)
+        print("Environment {}".format(result))
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Physical Volumes")
+        tag = gmsh.model.addPhysicalGroup(3, primitive.volumes)
+        gmsh.model.setPhysicalName(3, tag, "Primitive")
+        tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
+        gmsh.model.setPhysicalName(3, tag, "Environment")
+
+        print("Physical Surfaces")
+        # for idx, surface in enumerate(primitive.surfaces):
+        #     tag = gmsh.model.addPhysicalGroup(2, [surface])
+        #     gmsh.model.setPhysicalName(2, tag, "Primitive{}".format(primitive.surfaces_names[idx]))
+        volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
+        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        surfaces_names = ["X", "Z", "NY", "NZ", "Y", "NX"]
+        for i in range(6):
+            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
+            gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
+
+        gmsh.model.mesh.generate(3)
+
+        gmsh.model.mesh.removeDuplicateNodes()
+
+        gmsh.write("test_primitive_environment_boolean.msh")
+
+        gmsh.finalize()
+
+        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
+
+    def test_mix(self):
+        start_time = time.time()
+
+        gmsh.initialize()
+
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
+        gmsh.option.setNumber("General.Terminal", 1)
+
+        gmsh.model.add("test_mix")
+
+        factory = gmsh.model.occ
+
+        environment = Primitive(
+            factory,
+            [
+                50, 60, -70, 10,
+                -50, 60, -70, 10,
+                -50, -60, -70, 10,
+                50, -60, -70, 10,
+                50, 60, 70, 10,
+                -50, 60, 70, 10,
+                -50, -60, 70, 10,
+                50, -60, 70, 10,
+            ],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [[], [], [], [], [], [], [], [], [], [], [], []]
+        )
+        n_primitives = 2
+        primitives = []
+        for i in range(n_primitives):
+            primitives.append(Primitive(
+                factory,
+                [
+                    5, 10, -15, 1,
+                    -5, 10, -15, 1,
+                    -5, -10, -15, 1,
+                    5, -10, -15, 1,
+                    5, 10, 15, 1,
+                    -5, 10, 15, 1,
+                    -5, -10, 15, 1,
+                    5, -10, 15, 1,
+                ],
+                [i * 5, i * 5, i * 6, 0, 0, 0, 3.14 * i / 4, 3.14 * i / 6, 3.14 * i / 8],
+                [5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+                [
+                    [
+                        -2, 20, -20, 1,
+                        -1, 20, -20, 1,
+                        1, 20, -20, 1,
+                        2, 20, -20, 1
+                    ],
+                    [],
+                    [],
+                    [],
+                    [],
+                    [],
+                    [],
+                    [0, 0, 0, 0],
+                    [],
+                    [],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    []
+                ],
+                [
+                    [5, 0, 1],
+                    [5, 0, 1],
+                    [5, 0, 1],
+                    [5, 0, 1],
+                    [10, 0, 1],
+                    [10, 0, 1],
+                    [10, 0, 1],
+                    [10, 0, 1],
+                    [15, 0, 1],
+                    [15, 0, 1],
+                    [15, 0, 1],
+                    [15, 0, 1]
+                ],
+                1
+            ))
+
+        print("Boolean")
+        start = time.time()
+        combinations = list(itertools.combinations(range(n_primitives), 2))
+        print(combinations)
+        for combination in combinations:
+            print("Boolean primitive %s by primitive %s" % combination)
+            primitive_boolean(factory, primitives[combination[0]], primitives[combination[1]])
+
+        for idx, primitive in enumerate(primitives):
+            print("Boolean environment by borehole %s" % idx)
+            primitive_boolean(factory, environment, primitive)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Remove All Duplicates")
+        start = time.time()
+        factory.removeAllDuplicates()
+        factory.synchronize()
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Correction")
+        start = time.time()
+        for primitive in primitives:
+            occ_ws.correct_primitive(primitive)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Set Sizes")
+        start = time.time()
+        environment.set_size(25)
+        for primitive in primitives:
+            primitive.set_size(5)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Transfinite")  # Works only after correct_complex_after_boolean()
+        start = time.time()
+        ss = set()  # already transfinite surfaces (workaround for double transfinite issue)
+        for primitive in primitives:
+            primitive.transfinite(ss)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Primitives Physical")
+        for idx, primitive in enumerate(primitives):
+            tag = gmsh.model.addPhysicalGroup(3, primitive.volumes)
+            gmsh.model.setPhysicalName(3, tag, "V{}".format(idx))
+
+        print("Environment Physical")
+        tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
+        gmsh.model.setPhysicalName(3, tag, "Environment")
+        volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
+        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        surfaces_names = ["X", "Z", "NY", "NZ", "Y", "NX"]
+        for i in range(6):
+            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
+            gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
+            #     gmsh.model.setPhysicalName(2, tag, 'S%s' % i)
+
+        gmsh.model.mesh.generate(3)
+
+        gmsh.model.mesh.removeDuplicateNodes()
+
+        gmsh.write("test_mix.msh")
+
+        gmsh.finalize()
+
+        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
+
     def test_primitive_mix(self):
         """
         Three primitive boreholes and three primitive rock intrusions.
@@ -558,9 +579,10 @@ class TestScripts(unittest.TestCase):
         i.e. one borehole and one intrusion aren't intersected.
         All boreholes and intrusions are included in rock environment.
         """
+        start_time = time.time()
+
         gmsh.initialize()
 
-        gmsh.option.setNumber("Geometry.AutoCoherence", 0)
         gmsh.option.setNumber("General.Terminal", 1)
         gmsh.option.setNumber("Mesh.Algorithm3D", 4)
 
@@ -568,6 +590,8 @@ class TestScripts(unittest.TestCase):
 
         factory = gmsh.model.occ
 
+        print("Creation")
+        start = time.time()
         environment = Primitive(
             factory,
             [
@@ -734,6 +758,10 @@ class TestScripts(unittest.TestCase):
                     ],
                     1
                 ))
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Boolean")
+        start = time.time()
         combinations = list(itertools.combinations(range(n_intrusions), 2))
         print(combinations)
         for combination in combinations:
@@ -749,25 +777,51 @@ class TestScripts(unittest.TestCase):
         for idx, intrusion in enumerate(intrusions):
             print("Boolean environment by primitive %s" % idx)
             primitive_boolean(factory, environment, intrusion)
+        print('{:.3f}s'.format(time.time() - start))
 
+        print("Remove All Duplicates")
+        start = time.time()
+        factory.removeAllDuplicates()
+        factory.synchronize()
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Correction")
+        start = time.time()
+        for borehole in boreholes:
+            occ_ws.correct_primitive(borehole)
+        for intrusion in intrusions:
+            occ_ws.correct_primitive(intrusion)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Set Sizes")
+        start = time.time()
         environment.set_size(50)
-        # FIXME bug then primitive mesh size != borehole mesh size (Not always...)
-        for idx, primitive in enumerate(intrusions):
-            primitive.set_size(10)
-        for idx, borehole in enumerate(boreholes):
+        for borehole in boreholes:
             borehole.set_size(10)
+        for intrusion in intrusions:
+            intrusion.set_size(10)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Transfinite")  # Works only after correct_complex_after_boolean()
+        start = time.time()
+        ss = set()  # already transfinite surfaces (workaround for double transfinite issue)
+        for borehole in boreholes:
+            borehole.transfinite(ss)
+        for intrusion in intrusions:
+            intrusion.transfinite(ss)
+        print('{:.3f}s'.format(time.time() - start))
 
         print("Physical Volumes")
         intrusion_fgs = []
         for primitive in intrusions:
             intrusion_fgs.append(gmsh.model.addPhysicalGroup(3, primitive.volumes))
         for i in range(len(intrusion_fgs)):
-            gmsh.model.setPhysicalName(3, intrusion_fgs[i], "Intrusion%s" % i)
+            gmsh.model.setPhysicalName(3, intrusion_fgs[i], "Intrusion{}".format(i))
         borehole_fgs = []
         for borehole in boreholes:
             borehole_fgs.append(gmsh.model.addPhysicalGroup(3, borehole.volumes))
         for i in range(len(borehole_fgs)):
-            gmsh.model.setPhysicalName(3, borehole_fgs[i], "Borehole%s" % i)
+            gmsh.model.setPhysicalName(3, borehole_fgs[i], "Borehole{}".format(i))
         env_fg = gmsh.model.addPhysicalGroup(3, environment.volumes)
         gmsh.model.setPhysicalName(3, env_fg, "Environment")
 
@@ -778,38 +832,25 @@ class TestScripts(unittest.TestCase):
         for i in range(6):
             tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
             gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
-        # gmsh.model.setPhysicalName(2, tag, 'S%s' % i)
 
-        print("Transfinite")
-        for borehole in boreholes:
-            result = borehole.check_to_transfinite()
-            if result:
-                borehole.transfinite()
-        for primitive in intrusions:
-            result = primitive.check_to_transfinite()
-            if result:
-                primitive.transfinite()
-
-        print("Remove All Duplicates")
-        factory.removeAllDuplicates()
-
-        print("Mesh Generate")
         gmsh.model.mesh.generate(3)
 
-        print("Remove Mesh Duplicate Nodes")
         gmsh.model.mesh.removeDuplicateNodes()
 
         gmsh.write("test_primitive_mix.msh")
 
         gmsh.finalize()
 
+        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
+
     def test_complex_mix(self):
         """
         Test complex boreholes and complex intrusions inscribed in environment.
         """
+        start_time = time.time()
+
         gmsh.initialize()
 
-        gmsh.option.setNumber("Geometry.AutoCoherence", 0)
         gmsh.option.setNumber("General.Terminal", 1)
         gmsh.option.setNumber("Mesh.Algorithm3D", 4)
 
@@ -817,6 +858,8 @@ class TestScripts(unittest.TestCase):
 
         factory = gmsh.model.occ
 
+        print("Creation")
+        start = time.time()
         # Environment
         environment = Primitive(
             factory,
@@ -992,8 +1035,10 @@ class TestScripts(unittest.TestCase):
                     1
                 ))
         complex_intrusions = Complex(factory, intrusions, intrusions_pgs)
+        print('{:.3f}s'.format(time.time() - start))
 
         print("Booleans")
+        start = time.time()
         print("Intrusions Inner Boolean")
         complex_intrusions.in_boolean()
         print("Intrusions by Boreholes Boolean")
@@ -1002,19 +1047,40 @@ class TestScripts(unittest.TestCase):
         primitive_complex_boolean(factory, environment, complex_intrusions)
         print("Environment by Boreholes Boolean")
         primitive_complex_boolean(factory, environment, complex_boreholes)
+        print('{:.3f}s'.format(time.time() - start))
 
-        print("Set Mesh Sizes")
+        print("Remove All Duplicates")
+        start = time.time()
+        factory.removeAllDuplicates()
+        factory.synchronize()
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Correction")
+        start = time.time()
+        occ_ws.correct_complex(complex_boreholes)
+        occ_ws.correct_complex(complex_intrusions)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Set Sizes")
+        start = time.time()
         environment.set_size(50)
-        # FIXME bug then complex_boreholes mesh size != complex_intrusions mesh size (Not always...)
-        complex_boreholes.set_size(10)
-        complex_intrusions.set_size(10)
+        complex_boreholes.set_size(3)
+        complex_intrusions.set_size(1)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Transfinite")  # Works only after correct_complex_after_boolean()
+        start = time.time()
+        ss = set()  # already transfinite surfaces (workaround for double transfinite issue)
+        complex_boreholes.transfinite(ss)
+        complex_intrusions.transfinite(ss)
+        print('{:.3f}s'.format(time.time() - start))
 
         print("Physical Volumes")
         v_fgs_names = ["Borehole", "Intrusion"]
         for idx, name in enumerate(v_fgs_names):
             volumes_idxs = []
-            volumes_idxs.extend(complex_boreholes.get_volumes_by_physical_group(idx))
-            volumes_idxs.extend(complex_intrusions.get_volumes_by_physical_group(idx))
+            volumes_idxs.extend(complex_boreholes.get_volumes_by_physical_index(idx))
+            volumes_idxs.extend(complex_intrusions.get_volumes_by_physical_index(idx))
             tag = gmsh.model.addPhysicalGroup(3, volumes_idxs)
             gmsh.model.setPhysicalName(3, tag, name)
         env_fg = gmsh.model.addPhysicalGroup(3, environment.volumes)
@@ -1027,29 +1093,23 @@ class TestScripts(unittest.TestCase):
         for i in range(6):
             tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
             gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
-            #     gmsh.model.setPhysicalName(2, tag, 'S%s' % i)
 
-        print("Transfinite")
-        complex_boreholes.transfinite()
-        complex_intrusions.transfinite()
-
-        print("Remove All Duplicates")
-        factory.removeAllDuplicates()
-
-        print("Mesh Generate")
         gmsh.model.mesh.generate(3)
 
-        print("Remove Mesh Duplicate Nodes")
         gmsh.model.mesh.removeDuplicateNodes()
 
         gmsh.write("test_complex_mix.msh")
 
         gmsh.finalize()
 
+        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
+
     def test_cylinder(self):
         """
         Test complex cylinder
         """
+        start_time = time.time()
+
         gmsh.initialize()
 
         gmsh.option.setNumber("General.Terminal", 1)
@@ -1071,46 +1131,34 @@ class TestScripts(unittest.TestCase):
             [5, 0, 1]
         )
 
-        # cylinder = Cylinder(
-        #     factory,
-        #     [20],
-        #     [10],
-        #     [[5]],
-        #     [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [[0]],
-        #     [[3, 0, 1]],
-        #     [[4, 0, 1]],
-        #     [5, 0, 1]
-        # )
-
-        print("Transfinite")
-        cylinder.transfinite()
-
-        print("Physical Groups")
-        v_fgs_names = ["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8"]
-        for idx, name in enumerate(v_fgs_names):
-            volumes_idxs = []
-            volumes_idxs.extend(cylinder.get_volumes_by_physical_group(idx))
-            tag = gmsh.model.addPhysicalGroup(3, volumes_idxs)
-            gmsh.model.setPhysicalName(3, tag, name)
-        # for idx, primitive in enumerate(cylinder.primitives):
-        #     fsgs = []
-        #     for i in range(len(primitive.surfaces)):
-        #         fsgs.append(gmsh.model.addPhysicalGroup(2, [primitive.surfaces[i]]))
-        #         gmsh.model.setPhysicalName(2, fsgs[i], "%s%s" % (primitive.surfaces_names[i], idx))
-
         print("Remove All Duplicates")
         factory.removeAllDuplicates()
+        factory.synchronize()
 
-        print("Generate Mesh")
+        print("Correction")
+        occ_ws.correct_complex(cylinder)
+
+        print("Transfinite")
+        ss = set()
+        cylinder.transfinite(ss)
+
+        print("Physical")
+        vs_names = ["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8"]
+        for idx, name in enumerate(vs_names):
+            volumes_idxs = []
+            volumes_idxs.extend(cylinder.get_volumes_by_physical_index(idx))
+            tag = gmsh.model.addPhysicalGroup(3, volumes_idxs)
+            gmsh.model.setPhysicalName(3, tag, name)
+
         gmsh.model.mesh.generate(3)
 
-        print("Remove Mesh Duplicate Nodes")
         gmsh.model.mesh.removeDuplicateNodes()
 
         gmsh.write("test_cylinder.msh")
 
         gmsh.finalize()
+
+        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
 
     def test_cylinder_boolean(self):
         """
@@ -1236,7 +1284,7 @@ class TestScripts(unittest.TestCase):
         v_fgs_names = ["V0", "V1", "V2"]
         for idx, name in enumerate(v_fgs_names):
             volumes_idxs = []
-            volumes_idxs.extend(cylinder.get_volumes_by_physical_group(idx))
+            volumes_idxs.extend(cylinder.get_volumes_by_physical_index(idx))
             tag = gmsh.model.addPhysicalGroup(3, volumes_idxs)
             gmsh.model.setPhysicalName(3, tag, name)
 
@@ -1487,11 +1535,11 @@ class TestScripts(unittest.TestCase):
         physical_group_names = ["V0", "V1", "V2"]
         for idx, name in enumerate(physical_group_names):
             volumes_idxs = []
-            volumes_idxs.extend(cylinder.get_volumes_by_physical_group(idx))
+            volumes_idxs.extend(cylinder.get_volumes_by_physical_index(idx))
             tag = gmsh.model.addPhysicalGroup(3, volumes_idxs)
             gmsh.model.setPhysicalName(3, tag, name)
 
-        print("Environment Physical ")
+        print("Environment Physical")
         tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
         gmsh.model.setPhysicalName(3, tag, "Environment")
         volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
@@ -1511,6 +1559,7 @@ class TestScripts(unittest.TestCase):
         gmsh.finalize()
 
         print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
+
 
 if __name__ == '__main__':
     unittest.main()
