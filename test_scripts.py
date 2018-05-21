@@ -8,7 +8,8 @@ import itertools
 
 import time
 
-from primitive import primitive_boolean, primitive_cut_by_volume_boolean, Environment
+from borehole import Borehole
+from primitive import primitive_boolean, primitive_cut_by_volume_boolean, Environment, read_complex
 from primitive import complex_boolean
 from primitive import Primitive
 from primitive import Complex
@@ -17,7 +18,6 @@ from cylinder import Cylinder
 
 
 class TestScripts(unittest.TestCase):
-
     def test_transfinite(self):
         start_time = time.time()
 
@@ -36,23 +36,23 @@ class TestScripts(unittest.TestCase):
             primitives.append(Primitive(
                 factory,
                 [
-                    5, 10, -15, 1,
-                    -5, 10, -15, 1,
-                    -5, -10, -15, 1,
-                    5, -10, -15, 1,
-                    5, 10, 15, 1,
-                    -5, 10, 15, 1,
-                    -5, -10, 15, 1,
-                    5, -10, 15, 1,
+                    [5, 10, -15, 1],
+                    [-5, 10, -15, 1],
+                    [-5, -10, -15, 1],
+                    [5, -10, -15, 1],
+                    [5, 10, 15, 1],
+                    [-5, 10, 15, 1],
+                    [-5, -10, 15, 1],
+                    [5, -10, 15, 1],
                 ],
                 [30 + i * 15, 0, 0, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 [
                     [
-                        -2, 20, -20, 1,
-                        -1, 20, -20, 1,
-                        1, 20, -20, 1,
-                        2, 20, -20, 1
+                        [-2, 20, -20, 1],
+                        [-1, 20, -20, 1],
+                        [1, 20, -20, 1],
+                        [2, 20, -20, 1]
                     ],
                     [],
                     [],
@@ -60,10 +60,10 @@ class TestScripts(unittest.TestCase):
                     [],
                     [],
                     [],
-                    [0, 0, 0, 0],
+                    [[0, 0, 0, 0]],
                     [],
                     [],
-                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [[0, 0, 0, 0], [0, 0, 0, 0]],
                     []
                 ],
                 [
@@ -86,23 +86,23 @@ class TestScripts(unittest.TestCase):
             primitives.append(Primitive(
                 factory,
                 [
-                    10, 5, -15, 1,
-                    -10, 5, -15, 1,
-                    -10, -5, -15, 1,
-                    10, -5, -15, 1,
-                    10, 5, 15, 1,
-                    -10, 5, 15, 1,
-                    -10, -5, 15, 1,
-                    10, -5, 15, 1,
+                    [10, 5, -15, 1],
+                    [-10, 5, -15, 1],
+                    [-10, -5, -15, 1],
+                    [10, -5, -15, 1],
+                    [10, 5, 15, 1],
+                    [-10, 5, 15, 1],
+                    [-10, -5, 15, 1],
+                    [10, -5, 15, 1],
                 ],
                 [0, 30 + i * 15, 0, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 [
                     [
-                        -2, 20, -20, 1,
-                        -1, 20, -20, 1,
-                        1, 20, -20, 1,
-                        2, 20, -20, 1
+                        [-2, 20, -20, 1],
+                        [-1, 20, -20, 1],
+                        [1, 20, -20, 1],
+                        [2, 20, -20, 1]
                     ],
                     [],
                     [],
@@ -110,10 +110,10 @@ class TestScripts(unittest.TestCase):
                     [],
                     [],
                     [],
-                    [0, 0, 0, 0],
+                    [[0, 0, 0, 0]],
                     [],
                     [],
-                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [[0, 0, 0, 0], [0, 0, 0, 0]],
                     []
                 ],
                 [
@@ -136,23 +136,23 @@ class TestScripts(unittest.TestCase):
             primitives.append(Primitive(
                 factory,
                 [
-                    15, 10, -5, 1,
-                    -15, 10, -5, 1,
-                    -15, -10, -5, 1,
-                    15, -10, -5, 1,
-                    15, 10, 5, 1,
-                    -15, 10, 5, 1,
-                    -15, -10, 5, 1,
-                    15, -10, 5, 1,
+                    [15, 10, -5, 1],
+                    [-15, 10, -5, 1],
+                    [-15, -10, -5, 1],
+                    [15, -10, -5, 1],
+                    [15, 10, 5, 1],
+                    [-15, 10, 5, 1],
+                    [-15, -10, 5, 1],
+                    [15, -10, 5, 1],
                 ],
                 [0, 0, 30 + i * 15, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 [
                     [
-                        -2, 20, -20, 1,
-                        -1, 20, -20, 1,
-                        1, 20, -20, 1,
-                        2, 20, -20, 1
+                        [-2, 20, -20, 1],
+                        [-1, 20, -20, 1],
+                        [1, 20, -20, 1],
+                        [2, 20, -20, 1]
                     ],
                     [],
                     [],
@@ -160,10 +160,10 @@ class TestScripts(unittest.TestCase):
                     [],
                     [],
                     [],
-                    [0, 0, 0, 0],
+                    [[0, 0, 0, 0]],
                     [],
                     [],
-                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [[0, 0, 0, 0], [0, 0, 0, 0]],
                     []
                 ],
                 [
@@ -238,14 +238,14 @@ class TestScripts(unittest.TestCase):
         primitive = Primitive(
             factory,
             [
-                5, 10, -15, 5,
-                -5, 10, -15, 5,
-                -5, -10, -15, 5,
-                5, -10, -15, 5,
-                5, 10, 15, 5,
-                -5, 10, 15, 5,
-                -5, -10, 15, 5,
-                5, -10, 15, 5,
+                [5, 10, -15, 5],
+                [-5, 10, -15, 5],
+                [-5, -10, -15, 5],
+                [5, -10, -15, 5],
+                [5, 10, 15, 5],
+                [-5, 10, 15, 5],
+                [-5, -10, 15, 5],
+                [5, -10, 15, 5],
             ],
             [0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -307,14 +307,14 @@ class TestScripts(unittest.TestCase):
         environment = Primitive(
             factory,
             [
-                100, 100, -100, 50,
-                -100, 100, -100, 50,
-                -100, -100, -100, 50,
-                100, -100, -100, 50,
-                100, 100, 100, 50,
-                -100, 100, 100, 50,
-                -100, -100, 100, 50,
-                100, -100, 100, 50
+                [100, 100, -100, 50],
+                [-100, 100, -100, 50],
+                [-100, -100, -100, 50],
+                [100, -100, -100, 50],
+                [100, 100, 100, 50],
+                [-100, 100, 100, 50],
+                [-100, -100, 100, 50],
+                [100, -100, 100, 50]
             ],
             [0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -323,23 +323,23 @@ class TestScripts(unittest.TestCase):
         primitive = Primitive(
             factory,
             [
-                5, 10, -15, 1,
-                -5, 10, -15, 2,
-                -5, -10, -15, 3,
-                5, -10, -15, 4,
-                5, 10, 15, 5,
-                -5, 10, 15, 6,
-                -5, -10, 15, 7,
-                5, -10, 15, 8,
+                [5, 10, -15, 1],
+                [-5, 10, -15, 2],
+                [-5, -10, -15, 3],
+                [5, -10, -15, 4],
+                [5, 10, 15, 5],
+                [-5, 10, 15, 6],
+                [-5, -10, 15, 7],
+                [5, -10, 15, 8],
             ],
             [1, -3, 5, -2, 5, -1, math.pi / 3, -math.pi / 4, -math.pi / 6],
             [5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
             [
                 [
-                    -2, 20, -20, 1,
-                    -1, 20, -20, 1,
-                    1, 20, -20, 1,
-                    2, 20, -20, 1
+                    [-2, 20, -20, 1],
+                    [-1, 20, -20, 1],
+                    [1, 20, -20, 1],
+                    [2, 20, -20, 1]
                 ],
                 [],
                 [],
@@ -347,10 +347,10 @@ class TestScripts(unittest.TestCase):
                 [],
                 [],
                 [],
-                [0, 0, 0, 0],
+                [[0, 0, 0, 0]],
                 [],
                 [],
-                [0, 0, 0, 0, 0, 0, 0, 0],
+                [[0, 0, 0, 0], [0, 0, 0, 0]],
                 []
             ],
             [
@@ -441,14 +441,14 @@ class TestScripts(unittest.TestCase):
         environment = Primitive(
             factory,
             [
-                50, 60, -70, 10,
-                -50, 60, -70, 10,
-                -50, -60, -70, 10,
-                50, -60, -70, 10,
-                50, 60, 70, 10,
-                -50, 60, 70, 10,
-                -50, -60, 70, 10,
-                50, -60, 70, 10,
+                [50, 60, -70, 10],
+                [-50, 60, -70, 10],
+                [-50, -60, -70, 10],
+                [50, -60, -70, 10],
+                [50, 60, 70, 10],
+                [-50, 60, 70, 10],
+                [-50, -60, 70, 10],
+                [50, -60, 70, 10],
             ],
             [0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -460,23 +460,23 @@ class TestScripts(unittest.TestCase):
             primitives.append(Primitive(
                 factory,
                 [
-                    5, 10, -15, 1,
-                    -5, 10, -15, 1,
-                    -5, -10, -15, 1,
-                    5, -10, -15, 1,
-                    5, 10, 15, 1,
-                    -5, 10, 15, 1,
-                    -5, -10, 15, 1,
-                    5, -10, 15, 1,
+                    [5, 10, -15, 1],
+                    [-5, 10, -15, 1],
+                    [-5, -10, -15, 1],
+                    [5, -10, -15, 1],
+                    [5, 10, 15, 1],
+                    [-5, 10, 15, 1],
+                    [-5, -10, 15, 1],
+                    [5, -10, 15, 1],
                 ],
                 [i * 5, i * 5, i * 6, 0, 0, 0, 3.14 * i / 4, 3.14 * i / 6, 3.14 * i / 8],
                 [5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
                 [
                     [
-                        -2, 20, -20, 1,
-                        -1, 20, -20, 1,
-                        1, 20, -20, 1,
-                        2, 20, -20, 1
+                        [-2, 20, -20, 1],
+                        [-1, 20, -20, 1],
+                        [1, 20, -20, 1],
+                        [2, 20, -20, 1]
                     ],
                     [],
                     [],
@@ -484,10 +484,10 @@ class TestScripts(unittest.TestCase):
                     [],
                     [],
                     [],
-                    [0, 0, 0, 0],
+                    [[0, 0, 0, 0]],
                     [],
                     [],
-                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [[0, 0, 0, 0], [0, 0, 0, 0]],
                     []
                 ],
                 [
@@ -595,14 +595,14 @@ class TestScripts(unittest.TestCase):
         environment = Primitive(
             factory,
             [
-                100, 100, -100, 100,
-                -100, 100, -100, 100,
-                -100, -100, -100, 100,
-                100, -100, -100, 100,
-                100, 100, 100, 100,
-                -100, 100, 100, 100,
-                -100, -100, 100, 100,
-                100, -100, 100, 100
+                [100, 100, -100, 100],
+                [-100, 100, -100, 100],
+                [-100, -100, -100, 100],
+                [100, -100, -100, 100],
+                [100, 100, 100, 100],
+                [-100, 100, 100, 100],
+                [-100, -100, 100, 100],
+                [100, -100, 100, 100]
             ],
             [0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -614,26 +614,26 @@ class TestScripts(unittest.TestCase):
             boreholes.append(Primitive(
                 factory,
                 [
-                    5, 5, -30, 1,
-                    -5, 5, -30, 1,
-                    -5, -5, -30, 1,
-                    5, -5, -30, 1,
-                    5, 5, 30, 1,
-                    -5, 5, 30, 1,
-                    -5, -5, 30, 1,
-                    5, -5, 30, 1
+                    [5, 5, -30, 1],
+                    [-5, 5, -30, 1],
+                    [-5, -5, -30, 1],
+                    [5, -5, -30, 1],
+                    [5, 5, 30, 1],
+                    [-5, 5, 30, 1],
+                    [-5, -5, 30, 1],
+                    [5, -5, 30, 1]
                 ],
                 [25 * i, 0, 0, 0, 0, 0, 0, 0, 0],
                 [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
                 [
-                    [0, 0, -30, 0],
-                    [0, 0, 30, 0],
-                    [0, 0, 30, 0],
-                    [0, 0, -30, 0],
-                    [0, 0, -30, 0],
-                    [0, 0, -30, 0],
-                    [0, 0, 30, 0],
-                    [0, 0, 30, 0],
+                    [[0, 0, -30, 0]],
+                    [[0, 0, 30, 0]],
+                    [[0, 0, 30, 0]],
+                    [[0, 0, -30, 0]],
+                    [[0, 0, -30, 0]],
+                    [[0, 0, -30, 0]],
+                    [[0, 0, 30, 0]],
+                    [[0, 0, 30, 0]],
                     [],
                     [],
                     [],
@@ -662,23 +662,23 @@ class TestScripts(unittest.TestCase):
                 intrusions.append(Primitive(
                     factory,
                     [
-                        5, 10, -15, 1,
-                        -5, 10, -15, 1,
-                        -5, -10, -15, 1,
-                        5, -10, -15, 1,
-                        5, 10, 15, 1,
-                        -5, 10, 15, 1,
-                        -5, -10, 15, 1,
-                        5, -10, 15, 1
+                        [5, 10, -15, 1],
+                        [-5, 10, -15, 1],
+                        [-5, -10, -15, 1],
+                        [5, -10, -15, 1],
+                        [5, 10, 15, 1],
+                        [-5, 10, 15, 1],
+                        [-5, -10, 15, 1],
+                        [5, -10, 15, 1]
                     ],
                     [25, 40, -50, 0, 0, 0, 3.14 / 8, 3.14 / 6, 3.14 / 4],
                     [4, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
                     [
                         [
-                            -2, 20, -20, 1,
-                            -1, 20, -20, 1,
-                            1, 20, -20, 1,
-                            2, 20, -20, 1
+                            [-2, 20, -20, 1],
+                            [-1, 20, -20, 1],
+                            [1, 20, -20, 1],
+                            [2, 20, -20, 1]
                         ],
                         [],
                         [],
@@ -686,10 +686,10 @@ class TestScripts(unittest.TestCase):
                         [],
                         [],
                         [],
-                        [0, 0, 0, 0],
+                        [[0, 0, 0, 0]],
                         [],
                         [],
-                        [0, 0, 0, 0, 0, 0, 0, 0],
+                        [[0, 0, 0, 0], [0, 0, 0, 0]],
                         []
                     ],
                     [
@@ -712,23 +712,23 @@ class TestScripts(unittest.TestCase):
                 intrusions.append(Primitive(
                     factory,
                     [
-                        5, 10, -15, 1,
-                        -5, 10, -15, 1,
-                        -5, -10, -15, 1,
-                        5, -10, -15, 1,
-                        5, 10, 15, 1,
-                        -5, 10, 15, 1,
-                        -5, -10, 15, 1,
-                        5, -10, 15, 1
+                        [5, 10, -15, 1],
+                        [-5, 10, -15, 1],
+                        [-5, -10, -15, 1],
+                        [5, -10, -15, 1],
+                        [5, 10, 15, 1],
+                        [-5, 10, 15, 1],
+                        [-5, -10, 15, 1],
+                        [5, -10, 15, 1]
                     ],
                     [3 * i, 3 * i, 3 * i, 0, 0, 0, 3.14 * i / 4, 3.14 * i / 6, 3.14 * i / 8],
                     [5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
                     [
                         [
-                            -2, 20, -20, 1,
-                            -1, 20, -20, 1,
-                            1, 20, -20, 1,
-                            2, 20, -20, 1
+                            [-2, 20, -20, 1],
+                            [-1, 20, -20, 1],
+                            [1, 20, -20, 1],
+                            [2, 20, -20, 1]
                         ],
                         [],
                         [],
@@ -736,10 +736,10 @@ class TestScripts(unittest.TestCase):
                         [],
                         [],
                         [],
-                        [0, 0, 0, 0],
+                        [[0, 0, 0, 0]],
                         [],
                         [],
-                        [0, 0, 0, 0, 0, 0, 0, 0],
+                        [[0, 0, 0, 0], [0, 0, 0, 0]],
                         []
                     ],
                     [
@@ -864,14 +864,14 @@ class TestScripts(unittest.TestCase):
         environment = Primitive(
             factory,
             [
-                100, 100, -100, 10,
-                -100, 100, -100, 10,
-                -100, -100, -100, 10,
-                100, -100, -100, 10,
-                100, 100, 100, 10,
-                -100, 100, 100, 10,
-                -100, -100, 100, 10,
-                100, -100, 100, 10
+                [100, 100, -100, 10],
+                [-100, 100, -100, 10],
+                [-100, -100, -100, 10],
+                [100, -100, -100, 10],
+                [100, 100, 100, 10],
+                [-100, 100, 100, 10],
+                [-100, -100, 100, 10],
+                [100, -100, 100, 10]
             ],
             [0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -886,26 +886,26 @@ class TestScripts(unittest.TestCase):
             boreholes.append(Primitive(
                 factory,
                 [
-                    5, 5, -30, 1,
-                    -5, 5, -30, 1,
-                    -5, -5, -30, 1,
-                    5, -5, -30, 1,
-                    5, 5, 30, 1,
-                    -5, 5, 30, 1,
-                    -5, -5, 30, 1,
-                    5, -5, 30, 1
+                    [5, 5, -30, 1],
+                    [-5, 5, -30, 1],
+                    [-5, -5, -30, 1],
+                    [5, -5, -30, 1],
+                    [5, 5, 30, 1],
+                    [-5, 5, 30, 1],
+                    [-5, -5, 30, 1],
+                    [5, -5, 30, 1]
                 ],
                 [25 * i, 0, 0, 0, 0, 0, 0, 0, 0],
                 [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
                 [
-                    [0, 0, -30, 0],
-                    [0, 0, 30, 0],
-                    [0, 0, 30, 0],
-                    [0, 0, -30, 0],
-                    [0, 0, -30, 0],
-                    [0, 0, -30, 0],
-                    [0, 0, 30, 0],
-                    [0, 0, 30, 0],
+                    [[0, 0, -30, 0]],
+                    [[0, 0, 30, 0]],
+                    [[0, 0, 30, 0]],
+                    [[0, 0, -30, 0]],
+                    [[0, 0, -30, 0]],
+                    [[0, 0, -30, 0]],
+                    [[0, 0, 30, 0]],
+                    [[0, 0, 30, 0]],
                     [],
                     [],
                     [],
@@ -938,23 +938,23 @@ class TestScripts(unittest.TestCase):
                 intrusions.append(Primitive(
                     factory,
                     [
-                        5, 10, -15, 1,
-                        -5, 10, -15, 1,
-                        -5, -10, -15, 1,
-                        5, -10, -15, 1,
-                        5, 10, 15, 1,
-                        -5, 10, 15, 1,
-                        -5, -10, 15, 1,
-                        5, -10, 15, 1
+                        [5, 10, -15, 1],
+                        [-5, 10, -15, 1],
+                        [-5, -10, -15, 1],
+                        [5, -10, -15, 1],
+                        [5, 10, 15, 1],
+                        [-5, 10, 15, 1],
+                        [-5, -10, 15, 1],
+                        [5, -10, 15, 1]
                     ],
                     [25, 40, -50, 0, 0, 0, 3.14 / 8, 3.14 / 6, 3.14 / 4],
                     [4, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
                     [
                         [
-                            -2, 20, -20, 1,
-                            -1, 20, -20, 1,
-                            1, 20, -20, 1,
-                            2, 20, -20, 1
+                            [-2, 20, -20, 1],
+                            [-1, 20, -20, 1],
+                            [1, 20, -20, 1],
+                            [2, 20, -20, 1]
                         ],
                         [],
                         [],
@@ -962,10 +962,10 @@ class TestScripts(unittest.TestCase):
                         [],
                         [],
                         [],
-                        [0, 0, 0, 0],
+                        [[0, 0, 0, 0]],
                         [],
                         [],
-                        [0, 0, 0, 0, 0, 0, 0, 0],
+                        [[0, 0, 0, 0], [0, 0, 0, 0]],
                         []
                     ],
                     [
@@ -988,23 +988,23 @@ class TestScripts(unittest.TestCase):
                 intrusions.append(Primitive(
                     factory,
                     [
-                        5, 10, -15, 1,
-                        -5, 10, -15, 1,
-                        -5, -10, -15, 1,
-                        5, -10, -15, 1,
-                        5, 10, 15, 1,
-                        -5, 10, 15, 1,
-                        -5, -10, 15, 1,
-                        5, -10, 15, 1
+                        [5, 10, -15, 1],
+                        [-5, 10, -15, 1],
+                        [-5, -10, -15, 1],
+                        [5, -10, -15, 1],
+                        [5, 10, 15, 1],
+                        [-5, 10, 15, 1],
+                        [-5, -10, 15, 1],
+                        [5, -10, 15, 1]
                     ],
                     [3 * i, 3 * i, 3 * i, 0, 0, 0, 3.14 * i / 4, 3.14 * i / 6, 3.14 * i / 8],
                     [5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
                     [
                         [
-                            -2, 20, -20, 1,
-                            -1, 20, -20, 1,
-                            1, 20, -20, 1,
-                            2, 20, -20, 1
+                            [-2, 20, -20, 1],
+                            [-1, 20, -20, 1],
+                            [1, 20, -20, 1],
+                            [2, 20, -20, 1]
                         ],
                         [],
                         [],
@@ -1012,10 +1012,10 @@ class TestScripts(unittest.TestCase):
                         [],
                         [],
                         [],
-                        [0, 0, 0, 0],
+                        [[0, 0, 0, 0]],
                         [],
                         [],
-                        [0, 0, 0, 0, 0, 0, 0, 0],
+                        [[0, 0, 0, 0], [0, 0, 0, 0]],
                         []
                     ],
                     [
@@ -1040,7 +1040,7 @@ class TestScripts(unittest.TestCase):
         print("Booleans")
         start = time.time()
         print("Intrusions Inner Boolean")
-        complex_intrusions.in_boolean()
+        complex_intrusions.inner_boolean()
         print("Intrusions by Boreholes Boolean")
         complex_boolean(factory, complex_intrusions, complex_boreholes)
         print("Environment by Intrusions Boolean")
@@ -1180,14 +1180,14 @@ class TestScripts(unittest.TestCase):
         environment = Primitive(
             factory,
             [
-                100, 100, -100, 50,
-                -100, 100, -100, 50,
-                -100, -100, -100, 50,
-                100, -100, -100, 50,
-                100, 100, 100, 50,
-                -100, 100, 100, 50,
-                -100, -100, 100, 50,
-                100, -100, 100, 50
+                [100, 100, -100, 50],
+                [-100, 100, -100, 50],
+                [-100, -100, -100, 50],
+                [100, -100, -100, 50],
+                [100, 100, 100, 50],
+                [-100, 100, 100, 50],
+                [-100, -100, 100, 50],
+                [100, -100, 100, 50]
             ],
             [0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -1329,14 +1329,14 @@ class TestScripts(unittest.TestCase):
         environment = Primitive(
             factory,
             [
-                100, 100, -100, 50,
-                -100, 100, -100, 50,
-                -100, -100, -100, 50,
-                100, -100, -100, 50,
-                100, 100, 100, 50,
-                -100, 100, 100, 50,
-                -100, -100, 100, 50,
-                100, -100, 100, 50
+                [100, 100, -100, 50],
+                [-100, 100, -100, 50],
+                [-100, -100, -100, 50],
+                [100, -100, -100, 50],
+                [100, 100, 100, 50],
+                [-100, 100, 100, 50],
+                [-100, -100, 100, 50],
+                [100, -100, 100, 50]
             ],
             [0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -1422,23 +1422,23 @@ class TestScripts(unittest.TestCase):
         primitive = Primitive(
             factory,
             [
-                5, 10, -15, 1,
-                -5, 10, -15, 2,
-                -5, -10, -15, 3,
-                5, -10, -15, 4,
-                5, 10, 15, 5,
-                -5, 10, 15, 6,
-                -5, -10, 15, 7,
-                5, -10, 15, 8,
+                [5, 10, -15, 1],
+                [-5, 10, -15, 2],
+                [-5, -10, -15, 3],
+                [5, -10, -15, 4],
+                [5, 10, 15, 5],
+                [-5, 10, 15, 6],
+                [-5, -10, 15, 7],
+                [5, -10, 15, 8],
             ],
             [1, -3, 0, -2, 5, -1, math.pi / 3, -math.pi / 4, -math.pi / 6],
             [5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
             [
                 [
-                    -2, 20, -20, 1,
-                    -1, 20, -20, 1,
-                    1, 20, -20, 1,
-                    2, 20, -20, 1
+                    [-2, 20, -20, 1],
+                    [-1, 20, -20, 1],
+                    [1, 20, -20, 1],
+                    [2, 20, -20, 1]
                 ],
                 [],
                 [],
@@ -1446,10 +1446,10 @@ class TestScripts(unittest.TestCase):
                 [],
                 [],
                 [],
-                [0, 0, 0, 0],
+                [[0, 0, 0, 0]],
                 [],
                 [],
-                [0, 0, 0, 0, 0, 0, 0, 0],
+                [[0, 0, 0, 0], [0, 0, 0, 0]],
                 []
             ],
             [
@@ -1555,6 +1555,317 @@ class TestScripts(unittest.TestCase):
         gmsh.model.mesh.removeDuplicateNodes()
 
         gmsh.write("test_cylinder_boolean_by_primitive.msh")
+
+        gmsh.finalize()
+
+        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
+
+    def test_borehole(self):
+        """
+        Test borehole
+        """
+        start_time = time.time()
+
+        gmsh.initialize()
+
+        gmsh.option.setNumber("General.Terminal", 1)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
+        tol = gmsh.option.getNumber("Geometry.Tolerance")
+        print(tol)
+
+        gmsh.model.add("test_borehole")
+
+        factory = gmsh.model.occ
+
+        print("Creation")
+        start = time.time()
+        rep_center_depth = 487.5  # repository center depth
+        rep_length_x = 500
+        rep_length_y = 500
+        rep_lc = 100
+        environment = Primitive(
+            factory,
+            [
+                [rep_length_x / 2, rep_length_y / 2, -rep_center_depth, rep_lc],
+                [-rep_length_x / 2, rep_length_y / 2, -rep_center_depth, rep_lc],
+                [-rep_length_x / 2, -rep_length_y / 2, -rep_center_depth, rep_lc],
+                [rep_length_x / 2, -rep_length_y / 2, -rep_center_depth, rep_lc],
+                [rep_length_x / 2, rep_length_y / 2, rep_center_depth, rep_lc],
+                [-rep_length_x / 2, rep_length_y / 2, rep_center_depth, rep_lc],
+                [-rep_length_x / 2, -rep_length_y / 2, rep_center_depth, rep_lc],
+                [rep_length_x / 2, -rep_length_y / 2, rep_center_depth, rep_lc]
+            ],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [[], [], [], [], [], [], [], [], [], [], [], []]
+        )
+        borehole = Borehole(
+            factory,
+            [[5, 10, 15], [5, 10, 15], [5, 10, 15]],
+            [0, 0, -37.5, 0, 0, 0, 0, 0, 0],
+            [[3, 0, 1], [3, 0, 1], [3, 0, 1]],
+            [[10, 0, 1], [10, 0, 1], [10, 0, 1]],
+            [3, 0, 1]
+        )
+        # cylinder = Cylinder(
+        #     factory,
+        #     [0.2835, 0.600, 0.650],
+        #     [0.600, 73.800, 0.600],
+        #     [[5, 10, 15], [5, 10, 15], [5, 10, 15]],
+        #     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #     [[0, 1, 2], [0, 1, 2], [0, 1, 2]],
+        #     [[3, 0, 1], [3, 0, 1], [3, 0, 1]],
+        #     [[10, 0, 1], [10, 0, 1], [10, 0, 1]],
+        #     [3, 0, 1]
+        # )
+        # cylinder = Cylinder(
+        #     factory,
+        #     [0.2835],
+        #     [0.600],
+        #     [[5], [5]],
+        #     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #     [[0], [1]],
+        #     [[3, 0, 1]],
+        #     [[10, 0, 1]],
+        #     [3, 0, 1]
+        # )
+
+        # primitive = Primitive(
+        #     factory,
+        #     [
+        #         5, 10, -15, 1,
+        #         -5, 10, -15, 2,
+        #         -5, -10, -15, 3,
+        #         5, -10, -15, 4,
+        #         5, 10, 15, 5,
+        #         -5, 10, 15, 6,
+        #         -5, -10, 15, 7,
+        #         5, -10, 15, 8,
+        #     ],
+        #     [1, -3, 0, -2, 5, -1, math.pi / 3, -math.pi / 4, -math.pi / 6],
+        #     [5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+        #     [
+        #         [
+        #             -2, 20, -20, 1,
+        #             -1, 20, -20, 1,
+        #             1, 20, -20, 1,
+        #             2, 20, -20, 1
+        #         ],
+        #         [],
+        #         [],
+        #         [],
+        #         [],
+        #         [],
+        #         [],
+        #         [0, 0, 0, 0],
+        #         [],
+        #         [],
+        #         [0, 0, 0, 0, 0, 0, 0, 0],
+        #         []
+        #     ],
+        #     [
+        #         [5, 0, 1],
+        #         [5, 0, 1],
+        #         [5, 0, 1],
+        #         [5, 0, 1],
+        #         [10, 0, 1],
+        #         [10, 0, 1],
+        #         [10, 0, 1],
+        #         [10, 0, 1],
+        #         [15, 0, 1],
+        #         [15, 0, 1],
+        #         [15, 0, 1],
+        #         [15, 0, 1]
+        #     ],
+        #     0
+        # )
+        print('{:.3f}s'.format(time.time() - start))
+
+        # print("Cylinder Union")
+        # print(gmsh.model.getEntities(3))
+        # out = cylinder.get_union_volume()
+        # print(gmsh.model.getEntities(3))
+
+        # print("Primitive by Cylinder boolean")
+        # start = time.time()
+        # primitive_cut_by_volume_boolean(factory, primitive, out[0][1])
+        # print(gmsh.model.getEntities(3))
+        # primitive_complex_boolean(factory, primitive, cylinder)
+        # print('{:.3f}s'.format(time.time() - start))
+
+        print("Environment by Borehole boolean")
+        start = time.time()
+        primitive_complex_boolean(factory, environment, borehole)
+        print('{:.3f}s'.format(time.time() - start))
+
+        # print("Environment by Primitive boolean")
+        # start = time.time()
+        # primitive_boolean(factory, environment, primitive)
+        # print('{:.3f}s'.format(time.time() - start))
+
+        print("Remove All Duplicates")
+        start = time.time()
+        factory.removeAllDuplicates()
+        factory.synchronize()
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Correction")
+        start = time.time()
+        occ_ws.correct_complex(borehole)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Set Sizes")
+        start = time.time()
+        # borehole.set_size()
+        environment.set_size(rep_lc)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Transfinite")  # Works only after correct_complex_after_boolean()
+        start = time.time()
+        ss = set()  # already transfinite surfaces (workaround for double transfinite issue)
+        borehole.transfinite(ss)
+        print('{:.3f}s'.format(time.time() - start))
+
+        # print("Physical")
+        # for idx, primitive in enumerate(cylinder.primitives):
+        #     tag = gmsh.model.addPhysicalGroup(3, primitive.volumes)
+        #     gmsh.model.setPhysicalName(3, tag, "V{}".format(idx))
+        #     # for surface_idx, surface in enumerate(primitive.surfaces):
+        #     tag = gmsh.model.addPhysicalGroup(2, [surface])
+        #     gmsh.model.setPhysicalName(2, tag, "{}{}".format(primitive.surfaces_names[surface_idx], idx))
+
+        # tag = gmsh.model.addPhysicalGroup(3, [out[0][1]])
+        # gmsh.model.setPhysicalName(3, tag, "Union")
+
+        # print("Primitive Physical")
+        # tag = gmsh.model.addPhysicalGroup(3, primitive.volumes)
+        # gmsh.model.setPhysicalName(3, tag, "Primitive")
+
+        print("Borehole Physical")
+        for idx, name in enumerate(borehole.physical_names):
+            volumes_idxs = []
+            volumes_idxs.extend(borehole.get_volumes_by_physical_index(idx))
+            tag = gmsh.model.addPhysicalGroup(3, volumes_idxs)
+            gmsh.model.setPhysicalName(3, tag, name)
+
+        print("Environment Physical")
+        tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
+        gmsh.model.setPhysicalName(3, tag, "Environment")
+        volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
+        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        surfaces_names = ["X", "Z", "NY", "NZ", "Y", "NX"]
+        for i in range(len(surfaces_names)):
+            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
+            gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
+            #     gmsh.model.setPhysicalName(2, tag, 'S%s' % i)
+
+        gmsh.model.mesh.generate(3)
+
+        gmsh.model.mesh.removeDuplicateNodes()
+
+        gmsh.write("test_borehole.msh")
+
+        gmsh.finalize()
+
+        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
+
+    def test_read_complex(self):
+        """
+        Test read Complex
+        """
+        start_time = time.time()
+
+        gmsh.initialize()
+
+        gmsh.option.setNumber("General.Terminal", 1)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
+
+        gmsh.model.add("test_read_complex")
+
+        factory = gmsh.model.occ
+
+        print("Reading")
+        start = time.time()
+        intrusion = read_complex(factory, "intrusion", [0, 0, 0, 0, 0, 0, 0, 0, 0], 5, [5, 10, 15], 0, 1)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Creation")
+        start = time.time()
+        environment = Primitive(
+            factory,
+            [
+                [100, 100, -100, 50],
+                [-100, 100, -100, 50],
+                [-100, -100, -100, 50],
+                [100, -100, -100, 50],
+                [100, 100, 100, 50],
+                [-100, 100, 100, 50],
+                [-100, -100, 100, 50],
+                [100, -100, 100, 50]
+            ],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [[], [], [], [], [], [], [], [], [], [], [], []]
+        )
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Inner Intrusion boolean")
+        start = time.time()
+        intrusion.inner_boolean()
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Environment by Intrusion boolean")
+        start = time.time()
+        primitive_complex_boolean(factory, environment, intrusion)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Remove All Duplicates")
+        start = time.time()
+        factory.removeAllDuplicates()
+        factory.synchronize()
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Correction")
+        start = time.time()
+        occ_ws.correct_complex(intrusion)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Set Sizes")
+        start = time.time()
+        environment.set_size(50)
+        intrusion.set_size(3)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Transfinite")  # Works only after correct_complex_after_boolean()
+        start = time.time()
+        ss = set()  # already transfinite surfaces (workaround for double transfinite issue)
+        intrusion.transfinite(ss)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Physical Volumes")
+        v_fgs_names = ["Intrusion"]
+        for idx, name in enumerate(v_fgs_names):
+            volumes_idxs = []
+            volumes_idxs.extend(intrusion.get_volumes_by_physical_index(idx))
+            tag = gmsh.model.addPhysicalGroup(3, volumes_idxs)
+            gmsh.model.setPhysicalName(3, tag, name)
+
+        print("Environment Physical")
+        tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
+        gmsh.model.setPhysicalName(3, tag, "Environment")
+        volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
+        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        surfaces_names = ["X", "Z", "NY", "NZ", "Y", "NX"]
+        for i in range(len(surfaces_names)):
+            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
+            gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
+            #     gmsh.model.setPhysicalName(2, tag, 'S%s' % i)
+
+        gmsh.model.mesh.generate(3)
+
+        gmsh.model.mesh.removeDuplicateNodes()
+
+        gmsh.write("test_read_complex.msh")
 
         gmsh.finalize()
 

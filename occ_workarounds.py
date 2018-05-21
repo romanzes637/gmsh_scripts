@@ -20,11 +20,19 @@ def correct_primitive(primitive):
                 # Create map from old to new points indices and correct primitive.points
                 map_old_new_points = []
                 for old_cs in primitive.points_coordinates:
-                    for new_idx, new_cs in enumerate(points_coordinates):
-                        if old_cs[0] == new_cs[0]:
-                            if old_cs[1] == new_cs[1]:
-                                if old_cs[2] == new_cs[2]:
-                                    map_old_new_points.append(new_idx)
+                    tol = gmsh.option.getNumber("Geometry.Tolerance")
+                    tol /= 10
+                    found = False
+                    while not found:
+                        tol *= 10
+                        for new_idx, new_cs in enumerate(points_coordinates):
+                            # print(abs(old_cs[0] - new_cs[0]), abs(old_cs[1] - new_cs[1]), abs(old_cs[2] - new_cs[2]))
+                            if abs(old_cs[0] - new_cs[0]) < tol:
+                                if abs(old_cs[1] - new_cs[1]) < tol:
+                                    if abs(old_cs[2] - new_cs[2]) < tol:
+                                        map_old_new_points.append(new_idx)
+                                        found = True
+                assert len(map_old_new_points) == 8
                 primitive.points = map(lambda x: points_dim_tags[x][1], map_old_new_points)
                 # Correct surfaces
                 surfaces_points = []
@@ -84,7 +92,6 @@ def correct_complex(complex_obj):
     for primitive in complex_obj.primitives:
         result = correct_primitive(primitive)
         print(result)
-
 
 # Obsoleted
 # def correct_primitive(primitive, surfaces_map):
@@ -432,10 +439,3 @@ def correct_complex(complex_obj):
 #     16: [3, 2, 4, 1, 0, 5],
 #     17: [1, 4, 2, 3, 0, 5],
 # }
-
-
-
-
-
-
-
