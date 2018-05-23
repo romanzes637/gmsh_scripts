@@ -21,7 +21,10 @@ class Cylinder(Complex):
         :param radii: [r1, r2, ..., rN]
         :param heights: [h1, h2, ..., hM]
         :param lcs: characteristic lengths of layers [[h1_r1, h1_r2, ...], [h2_r1, h2_r2 ...], ...]
-        :param transform_data: [displacement x, y, z, rotation origin x, y, z, rotation angle x, y, z]
+        :param transform_data: [displacement x, y, z] or
+        [displacement x, y, z, rotation origin x, y, z, rotation angle x, y, z] or
+        [displacement x, y, z, rotation vector x, y, z, rotation angle] or
+        [displacement x, y, z, rotation angle x, y, z]
         :param layers_physical_data: physical indices of layers [[h1_r1, h1_r2, ...], [h2_r1, h2_r2 ...], ...]
         :param transfinite_r_data: [[r1 number of nodes, type (0 - Progression, 1 - Bump), coefficient], [r2 ...], ...]
         :param transfinite_h_data: [[h1 number of nodes, type (0 - Progression, 1 - Bump), coefficient], [h2 ...], ...]

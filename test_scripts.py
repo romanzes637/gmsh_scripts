@@ -10,7 +10,7 @@ import time
 
 from borehole import Borehole
 from primitive import primitive_boolean, primitive_cut_by_volume_boolean, Environment, read_complex_type_1, \
-    read_complex_type_2
+    read_complex_type_2, divide_primitive
 from primitive import complex_boolean
 from primitive import Primitive
 from primitive import Complex
@@ -1571,8 +1571,6 @@ class TestScripts(unittest.TestCase):
 
         gmsh.option.setNumber("General.Terminal", 1)
         gmsh.option.setNumber("Mesh.Algorithm3D", 4)
-        tol = gmsh.option.getNumber("Geometry.Tolerance")
-        print(tol)
 
         gmsh.model.add("test_borehole")
 
@@ -1580,21 +1578,21 @@ class TestScripts(unittest.TestCase):
 
         print("Creation")
         start = time.time()
-        rep_center_depth = 487.5  # repository center depth
-        rep_length_x = 500
-        rep_length_y = 500
-        rep_lc = 100
+        repo_center_depth = 487.5  # repository center depth
+        env_length_x = 500
+        env_length_y = 500
+        repo_lc = 100
         environment = Primitive(
             factory,
             [
-                [rep_length_x / 2, rep_length_y / 2, -rep_center_depth, rep_lc],
-                [-rep_length_x / 2, rep_length_y / 2, -rep_center_depth, rep_lc],
-                [-rep_length_x / 2, -rep_length_y / 2, -rep_center_depth, rep_lc],
-                [rep_length_x / 2, -rep_length_y / 2, -rep_center_depth, rep_lc],
-                [rep_length_x / 2, rep_length_y / 2, rep_center_depth, rep_lc],
-                [-rep_length_x / 2, rep_length_y / 2, rep_center_depth, rep_lc],
-                [-rep_length_x / 2, -rep_length_y / 2, rep_center_depth, rep_lc],
-                [rep_length_x / 2, -rep_length_y / 2, rep_center_depth, rep_lc]
+                [env_length_x / 2, env_length_y / 2, -repo_center_depth, repo_lc],
+                [-env_length_x / 2, env_length_y / 2, -repo_center_depth, repo_lc],
+                [-env_length_x / 2, -env_length_y / 2, -repo_center_depth, repo_lc],
+                [env_length_x / 2, -env_length_y / 2, -repo_center_depth, repo_lc],
+                [env_length_x / 2, env_length_y / 2, repo_center_depth, repo_lc],
+                [-env_length_x / 2, env_length_y / 2, repo_center_depth, repo_lc],
+                [-env_length_x / 2, -env_length_y / 2, repo_center_depth, repo_lc],
+                [env_length_x / 2, -env_length_y / 2, repo_center_depth, repo_lc]
             ],
             [0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -1602,107 +1600,19 @@ class TestScripts(unittest.TestCase):
         )
         borehole = Borehole(
             factory,
-            [[5, 10, 15], [5, 10, 15], [5, 10, 15]],
+            [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
             [0, 0, -37.5, 0, 0, 0, 0, 0, 0],
             [[3, 0, 1], [3, 0, 1], [3, 0, 1]],
             [[10, 0, 1], [10, 0, 1], [10, 0, 1]],
-            [3, 0, 1]
+            [3, 0, 1],
+            2
         )
-        # cylinder = Cylinder(
-        #     factory,
-        #     [0.2835, 0.600, 0.650],
-        #     [0.600, 73.800, 0.600],
-        #     [[5, 10, 15], [5, 10, 15], [5, 10, 15]],
-        #     [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [[0, 1, 2], [0, 1, 2], [0, 1, 2]],
-        #     [[3, 0, 1], [3, 0, 1], [3, 0, 1]],
-        #     [[10, 0, 1], [10, 0, 1], [10, 0, 1]],
-        #     [3, 0, 1]
-        # )
-        # cylinder = Cylinder(
-        #     factory,
-        #     [0.2835],
-        #     [0.600],
-        #     [[5], [5]],
-        #     [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [[0], [1]],
-        #     [[3, 0, 1]],
-        #     [[10, 0, 1]],
-        #     [3, 0, 1]
-        # )
-
-        # primitive = Primitive(
-        #     factory,
-        #     [
-        #         5, 10, -15, 1,
-        #         -5, 10, -15, 2,
-        #         -5, -10, -15, 3,
-        #         5, -10, -15, 4,
-        #         5, 10, 15, 5,
-        #         -5, 10, 15, 6,
-        #         -5, -10, 15, 7,
-        #         5, -10, 15, 8,
-        #     ],
-        #     [1, -3, 0, -2, 5, -1, math.pi / 3, -math.pi / 4, -math.pi / 6],
-        #     [5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
-        #     [
-        #         [
-        #             -2, 20, -20, 1,
-        #             -1, 20, -20, 1,
-        #             1, 20, -20, 1,
-        #             2, 20, -20, 1
-        #         ],
-        #         [],
-        #         [],
-        #         [],
-        #         [],
-        #         [],
-        #         [],
-        #         [0, 0, 0, 0],
-        #         [],
-        #         [],
-        #         [0, 0, 0, 0, 0, 0, 0, 0],
-        #         []
-        #     ],
-        #     [
-        #         [5, 0, 1],
-        #         [5, 0, 1],
-        #         [5, 0, 1],
-        #         [5, 0, 1],
-        #         [10, 0, 1],
-        #         [10, 0, 1],
-        #         [10, 0, 1],
-        #         [10, 0, 1],
-        #         [15, 0, 1],
-        #         [15, 0, 1],
-        #         [15, 0, 1],
-        #         [15, 0, 1]
-        #     ],
-        #     0
-        # )
         print('{:.3f}s'.format(time.time() - start))
-
-        # print("Cylinder Union")
-        # print(gmsh.model.getEntities(3))
-        # out = cylinder.get_union_volume()
-        # print(gmsh.model.getEntities(3))
-
-        # print("Primitive by Cylinder boolean")
-        # start = time.time()
-        # primitive_cut_by_volume_boolean(factory, primitive, out[0][1])
-        # print(gmsh.model.getEntities(3))
-        # primitive_complex_boolean(factory, primitive, cylinder)
-        # print('{:.3f}s'.format(time.time() - start))
 
         print("Environment by Borehole boolean")
         start = time.time()
         primitive_complex_boolean(factory, environment, borehole)
         print('{:.3f}s'.format(time.time() - start))
-
-        # print("Environment by Primitive boolean")
-        # start = time.time()
-        # primitive_boolean(factory, environment, primitive)
-        # print('{:.3f}s'.format(time.time() - start))
 
         print("Remove All Duplicates")
         start = time.time()
@@ -1710,37 +1620,25 @@ class TestScripts(unittest.TestCase):
         factory.synchronize()
         print('{:.3f}s'.format(time.time() - start))
 
-        print("Correction")
+        print("Correction and Transfinite")
         start = time.time()
-        occ_ws.correct_complex(borehole)
+        correction_rs = occ_ws.correct_complex(borehole)
+        print(correction_rs)
+        ss = set()  # already transfinite surfaces (workaround for double transfinite issue)
+        transfinite_rs = []
+        for idx, primitive in enumerate(borehole.primitives):
+            if correction_rs[idx]:
+                result = primitive.transfinite(ss)
+                transfinite_rs.append(result)
+            else:
+                transfinite_rs.append(None)
+        print(transfinite_rs)
         print('{:.3f}s'.format(time.time() - start))
 
         print("Set Sizes")
         start = time.time()
-        # borehole.set_size()
-        environment.set_size(rep_lc)
+        environment.set_size(repo_lc)
         print('{:.3f}s'.format(time.time() - start))
-
-        print("Transfinite")  # Works only after correct_complex_after_boolean()
-        start = time.time()
-        ss = set()  # already transfinite surfaces (workaround for double transfinite issue)
-        borehole.transfinite(ss)
-        print('{:.3f}s'.format(time.time() - start))
-
-        # print("Physical")
-        # for idx, primitive in enumerate(cylinder.primitives):
-        #     tag = gmsh.model.addPhysicalGroup(3, primitive.volumes)
-        #     gmsh.model.setPhysicalName(3, tag, "V{}".format(idx))
-        #     # for surface_idx, surface in enumerate(primitive.surfaces):
-        #     tag = gmsh.model.addPhysicalGroup(2, [surface])
-        #     gmsh.model.setPhysicalName(2, tag, "{}{}".format(primitive.surfaces_names[surface_idx], idx))
-
-        # tag = gmsh.model.addPhysicalGroup(3, [out[0][1]])
-        # gmsh.model.setPhysicalName(3, tag, "Union")
-
-        # print("Primitive Physical")
-        # tag = gmsh.model.addPhysicalGroup(3, primitive.volumes)
-        # gmsh.model.setPhysicalName(3, tag, "Primitive")
 
         print("Borehole Physical")
         for idx, name in enumerate(borehole.physical_names):
@@ -1765,6 +1663,159 @@ class TestScripts(unittest.TestCase):
         gmsh.model.mesh.removeDuplicateNodes()
 
         gmsh.write("test_borehole.msh")
+
+        gmsh.finalize()
+
+        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
+
+    def test_borehole_with_intersection(self):
+        """
+        Test borehole with intersection
+        """
+        start_time = time.time()
+
+        gmsh.initialize()
+
+        gmsh.option.setNumber("General.Terminal", 1)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
+
+        gmsh.model.add("test_borehole_with_intersection")
+
+        factory = gmsh.model.occ
+
+        print("Creation")
+        start = time.time()
+        repo_center_depth = 487.5  # repository center depth
+        env_length_x = 500
+        env_length_y = 500
+        repo_lc = 100
+        environment = Primitive(
+            factory,
+            [
+                [env_length_x / 2, env_length_y / 2, -repo_center_depth, repo_lc],
+                [-env_length_x / 2, env_length_y / 2, -repo_center_depth, repo_lc],
+                [-env_length_x / 2, -env_length_y / 2, -repo_center_depth, repo_lc],
+                [env_length_x / 2, -env_length_y / 2, -repo_center_depth, repo_lc],
+                [env_length_x / 2, env_length_y / 2, repo_center_depth, repo_lc],
+                [-env_length_x / 2, env_length_y / 2, repo_center_depth, repo_lc],
+                [-env_length_x / 2, -env_length_y / 2, repo_center_depth, repo_lc],
+                [env_length_x / 2, -env_length_y / 2, repo_center_depth, repo_lc]
+            ]
+        )
+        borehole = Borehole(
+            factory,
+            [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+            [0, 0, -37.5, 0, 0, 0, 0, 0, 0],
+            [[3, 0, 1], [3, 0, 1], [3, 0, 1]],
+            [[10, 0, 1], [10, 0, 1], [10, 0, 1]],
+            [3, 0, 1],
+            1
+        )
+        int_length = 20
+        int_width = 20
+        int_thickness = 1
+        int_lc = 5
+        int_center_x = 0
+        int_center_y = 0
+        int_center_z = 0
+        int_rotation_x = 0  # math.pi / 4
+        int_rotation_y = 0  # -math.pi / 4
+        int_rotation_z = 0
+        int_dz = 0  # 10
+        int_dy = 0  # 20
+        intrusion = Primitive(
+            factory,
+            [
+                [int_length / 2, int_width / 2 + int_dy, -int_thickness / 2 - int_dz, int_lc],
+                [-int_length / 2, int_width / 2, -int_thickness / 2, int_lc],
+                [-int_length / 2, -int_width / 2, -int_thickness / 2, int_lc],
+                [int_length / 2, -int_width / 2 - int_dy / 2, -int_thickness / 2 - int_dz / 2, int_lc],
+                [int_length / 2, int_width / 2, int_thickness / 2 - int_dz / 3, int_lc],
+                [-int_length / 2, int_width / 2, int_thickness / 2, int_lc],
+                [-int_length / 2, -int_width / 2, int_thickness / 2, int_lc],
+                [int_length / 2, -int_width / 2, int_thickness / 2, int_lc],
+            ],
+            [int_center_x, int_center_y, int_center_z, int_rotation_x, int_rotation_y, int_rotation_z],
+        )
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Cylinder Union")
+        # out = borehole.get_union_volume()
+
+        print("Intrusion by Borehole boolean")
+        start = time.time()
+        # primitive_cut_by_volume_boolean(factory, intrusion, out[0][1])
+        primitive_complex_boolean(factory, intrusion, borehole)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Environment by Borehole boolean")
+        start = time.time()
+        primitive_complex_boolean(factory, environment, borehole)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Environment by Intrusion boolean")
+        start = time.time()
+        primitive_boolean(factory, environment, intrusion)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Remove All Duplicates")
+        start = time.time()
+        factory.removeAllDuplicates()
+        factory.synchronize()
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Correction and Transfinite")
+        start = time.time()
+        # correction_rs = occ_ws.correct_complex(borehole)
+        # r = occ_ws.correct_primitive(intrusion)
+        # print(correction_rs)
+        # ss = set()  # already transfinite surfaces (workaround for double transfinite issue)
+        # transfinite_rs = []
+        # for idx, intrusion in enumerate(borehole.primitives):
+        #     if correction_rs[idx]:
+        #         result = intrusion.transfinite(ss)
+        #         transfinite_rs.append(result)
+        #     else:
+        #         transfinite_rs.append(None)
+        # print(transfinite_rs)
+        # if r:
+        #     intrusion.transfinite(ss)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Set Sizes")
+        start = time.time()
+        environment.set_size(100)
+        intrusion.set_size(20)
+        borehole.set_size(20)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Intrusion Physical")
+        tag = gmsh.model.addPhysicalGroup(3, intrusion.volumes)
+        gmsh.model.setPhysicalName(3, tag, "Intrusion")
+
+        print("Borehole Physical")
+        for idx, name in enumerate(borehole.physical_names):
+            volumes_idxs = []
+            volumes_idxs.extend(borehole.get_volumes_by_physical_index(idx))
+            tag = gmsh.model.addPhysicalGroup(3, volumes_idxs)
+            gmsh.model.setPhysicalName(3, tag, name)
+
+        print("Environment Physical")
+        tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
+        gmsh.model.setPhysicalName(3, tag, "Environment")
+        volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
+        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        surfaces_names = ["X", "Z", "NY", "NZ", "Y", "NX"]
+        for i in range(len(surfaces_names)):
+            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
+            gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
+            #     gmsh.model.setPhysicalName(2, tag, 'S%s' % i)
+
+        gmsh.model.mesh.generate(3)
+
+        gmsh.model.mesh.removeDuplicateNodes()
+
+        gmsh.write("test_borehole_with_intersection.msh")
 
         gmsh.finalize()
 
@@ -1871,6 +1922,41 @@ class TestScripts(unittest.TestCase):
         gmsh.model.mesh.removeDuplicateNodes()
 
         gmsh.write("test_read_complex.msh")
+
+        gmsh.finalize()
+
+        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
+
+    def test_divide_primitive(self):
+        """
+        Divide Primitive to Complex
+        """
+        start_time = time.time()
+
+        gmsh.initialize()
+
+        gmsh.option.setNumber("General.Terminal", 1)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
+
+        gmsh.model.add("test_divide_primitive")
+
+        factory = gmsh.model.occ
+
+        print("Reading")
+        start = time.time()
+        c = read_complex_type_1(factory, "import_divide", [0, 0, 0], 3, [5, 10, 15], 0, 1)
+        print('{:.3f}s'.format(time.time() - start))
+
+        cs = c.primitives[0].points_coordinates
+        curve_cs = c.primitives[0].curves_points_coordinates
+
+        divide_primitive([2, 2, 2], cs, curve_cs)
+
+        gmsh.model.mesh.generate(3)
+
+        gmsh.model.mesh.removeDuplicateNodes()
+
+        gmsh.write("test_divide_primitive.msh")
 
         gmsh.finalize()
 

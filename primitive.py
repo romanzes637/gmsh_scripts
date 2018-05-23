@@ -1,12 +1,11 @@
 import gmsh
 import itertools
 import time
-
 import math
 
 
 class Primitive:
-    def __init__(self, factory, point_data, transform_data, curve_types=None, curve_data=None,
+    def __init__(self, factory, point_data, transform_data=None, curve_types=None, curve_data=None,
                  transfinite_curve_data=None, transfinite_type=None):
         """
         Base object with six quadrangular surfaces and eight points
@@ -38,7 +37,8 @@ class Primitive:
         :param point_data: [[point1_x, point1_y, point1_z, point1_lc], ..., [point8_x, point8_y, point8_z, point8_lc]]
         :param transform_data: [displacement x, y, z] or
         [displacement x, y, z, rotation origin x, y, z, rotation angle x, y, z] or
-        [displacement x, y, z, rotation vector x, y, z, rotation angle]
+        [displacement x, y, z, rotation vector x, y, z, rotation angle] or
+        [displacement x, y, z, rotation angle x, y, z]
         :param curve_types: [line1_type, line2_type, ..., line12_type],
         types: 0 - line, 1 - circle, 2 - ellipse (FIXME not implemented for occ factory),
         3 - spline, 4 - bspline (number of curve points > 1), 5 - bezier curve
@@ -47,11 +47,11 @@ class Primitive:
         types: 0 - progression, 1 - bump
         :param transfinite_type: 0, 1, 2 or 4 determines orientation of tetrahedra at structured volume and its surfaces
         """
+        self.factory = factory
         if curve_types is None:
             curve_types = [0] * 12
         if curve_data is None:
             curve_data = [[]] * 12
-        self.factory = factory
         self.transfinite_curve_data = transfinite_curve_data
         self.transfinite_type = transfinite_type
         self.points = []
@@ -59,7 +59,7 @@ class Primitive:
         self.curves = []
         self.surfaces = []
         self.volumes = []
-        self.points_coordinates = []
+        # Points
         for i in range(len(point_data)):
             tag = self.factory.addPoint(
                 point_data[i][0],
@@ -80,28 +80,41 @@ class Primitive:
                 ps.append(tag)
             self.curves_points.append(ps)
         # Transform
-        dim_tags = map(lambda x: (0, x), self.points)
-        for curve_points in self.curves_points:
-            dim_tags += map(lambda x: (0, x), curve_points)
-        self.factory.translate(dim_tags, transform_data[0], transform_data[1], transform_data[2])
-        if len(transform_data) == 7:
-            self.factory.rotate(dim_tags,
-                                transform_data[0], transform_data[1], transform_data[2],
-                                transform_data[3], transform_data[4], transform_data[5],
-                                transform_data[6])
-        elif len(transform_data) == 9:
-            self.factory.rotate(dim_tags,
-                                transform_data[3], transform_data[4], transform_data[5],
-                                1, 0, 0, transform_data[6])
-            self.factory.rotate(dim_tags,
-                                transform_data[3], transform_data[4], transform_data[5],
-                                0, 1, 0, transform_data[7])
-            self.factory.rotate(dim_tags,
-                                transform_data[3], transform_data[4], transform_data[5],
-                                0, 0, 1, transform_data[8])
+        if transform_data is not None:
+            dim_tags = map(lambda x: (0, x), self.points)
+            for curve_points in self.curves_points:
+                dim_tags += map(lambda x: (0, x), curve_points)
+            self.factory.translate(dim_tags, transform_data[0], transform_data[1], transform_data[2])
+            if len(transform_data) == 6:
+                self.factory.rotate(dim_tags,
+                                    transform_data[0], transform_data[1], transform_data[2],
+                                    1, 0, 0, transform_data[3])
+                self.factory.rotate(dim_tags,
+                                    transform_data[0], transform_data[1], transform_data[2],
+                                    0, 1, 0, transform_data[4])
+                self.factory.rotate(dim_tags,
+                                    transform_data[0], transform_data[1], transform_data[2],
+                                    0, 0, 1, transform_data[5])
+            elif len(transform_data) == 7:
+                self.factory.rotate(dim_tags,
+                                    transform_data[0], transform_data[1], transform_data[2],
+                                    transform_data[3], transform_data[4], transform_data[5],
+                                    transform_data[6])
+            elif len(transform_data) == 9:
+                self.factory.rotate(dim_tags,
+                                    transform_data[3], transform_data[4], transform_data[5],
+                                    1, 0, 0, transform_data[6])
+                self.factory.rotate(dim_tags,
+                                    transform_data[3], transform_data[4], transform_data[5],
+                                    0, 1, 0, transform_data[7])
+                self.factory.rotate(dim_tags,
+                                    transform_data[3], transform_data[4], transform_data[5],
+                                    0, 0, 1, transform_data[8])
+        # Curves
         for i in range(12):
             tag = self.add_curve[curve_types[i]](self, i)
             self.curves.append(tag)
+        # Surfaces
         for i in range(6):
             if self.factory == gmsh.model.geo:
                 tag = self.factory.addCurveLoop(
@@ -115,13 +128,23 @@ class Primitive:
                         self.surfaces_local_curves[i]))
                 tag = self.factory.addSurfaceFilling(tag)
             self.surfaces.append(tag)
+        # Volume
         tag = self.factory.addSurfaceLoop(self.surfaces)
         tag = self.factory.addVolume([tag])
         self.volumes.append(tag)
         self.factory.synchronize()
+        # Other
+        self.points_coordinates = []
+        self.curves_points_coordinates = []
         for point in self.points:
             bb = gmsh.model.getBoundingBox(0, point)
             self.points_coordinates.append([bb[0], bb[1], bb[2]])
+        for curve_points in self.curves_points:
+            cs = []
+            for point in curve_points:
+                bb = gmsh.model.getBoundingBox(0, point)
+                cs.append([bb[0], bb[1], bb[2]])
+            self.curves_points_coordinates.append(cs)
         self.bounding_box = []  # [x_min, y_min, z_min, x_max, y_max, z_max] Call self.evaluate_bounding_box() to init
         self.evaluate_bounding_box()
 
@@ -740,79 +763,75 @@ def read_complex_type_2(factory, path, transform_data, transfinite_data, physica
     return Complex(factory, primitives, physical_data, lcs)
 
 
-def divide_primitive(divide_data, base_points, curves_points=None):
+def divide_primitive(divide_data, base_points, curves_points):
+    lines_points = []
+    for i in range(12):
+        if len(curves_points[i]) > 0:
+            ps = []
+            ps.append(base_points[Primitive.curves_local_points[i][0]])
+            ps.extend(curves_points[i])
+            ps.append(base_points[Primitive.curves_local_points[i][1]])
+            lines_points.append(ps)
+        else:
+            lines_points.append([
+                base_points[Primitive.curves_local_points[i][0]],
+                base_points[Primitive.curves_local_points[i][1]]
+            ])
+    new_lines_points = []
     nx = divide_data[0]
     ny = divide_data[1]
     nz = divide_data[2]
-    points = []
-    if curves_points is None:
-        curves_points = [[]] * 12
-    for i in range(12):
-        if len(curves_points[i]) > 0:
-            points.append([
-                base_points[Primitive.curves_local_points[i][0]],
-                curves_points[i],
-                base_points[Primitive.curves_local_points[i][1]]
-            ])
-        else:
-            points.append([
-                base_points[Primitive.curves_local_points[i][0]],
-                base_points[Primitive.curves_local_points[i][1]]
-            ])
-    curves_lengths = []
-    for i in range(len(points)):
-        length = 0
-        for j in range(1, len(points[i])):
-            p0 = points[i][j - 1]
-            p1 = points[i][j]
-            r = [p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]]
-            length += math.sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2])
-        curves_lengths.append(length)
-    curves_delta_lengths = []
     for i in range(4):
-        curves_delta_lengths.append(curves_lengths[i] / nx)
+        new_lines_points.append(divide_line(lines_points[i], nx))
     for i in range(4, 8):
-        curves_delta_lengths.append(curves_lengths[i] / ny)
+        new_lines_points.append(divide_line(lines_points[i], ny))
     for i in range(8, 12):
-        curves_delta_lengths.append(curves_lengths[i] / nz)
+        new_lines_points.append(divide_line(lines_points[i], nz))
     new_points = []
-    for i in range(12):
-        dl = curves_delta_lengths[i]
-        dl_cnt = dl
-        new_curve_points = []
-        new_curve_parts = []
-        for j in range(1, len(points[i])):
-            p0 = points[i][j - 1]
-            p1 = points[i][j]
-            new_curve_points.append(p0)
-            new = False
-            while not new:
-                r = [p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]]
-                mag = math.sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2])
-                norm = [r[0] / mag, r[1] / mag, r[2] / mag]
-                if mag > dl_cnt:
-                    new_p = [
-                        p0[0] + norm[0] * dl_cnt,
-                        p0[1] + norm[1] * dl_cnt,
-                        p0[2] + norm[2] * dl_cnt,
-                        p0[3]
-                    ]
-                    p0 = new_p
-                    new_curve_points.append(new_p)
-                    new_curve_parts.append(new_curve_points)
-                    new_curve_points = [new_p]
-                    dl_cnt = dl
-                else:
-                    new_curve_points.append(p1)
-                    new = True
-                    dl_cnt -= mag
-        new_curve_parts.append(new_curve_points)
-        new_points.append(new_curve_parts)
-    for i in range(nx):
-        for j in range(ny):
-            for k in range(nz):
-                print("a")
     return new_points
+
+
+def divide_line(ps, n):
+    new_ps = []
+    line_length = 0
+    for i in range(1, len(ps)):
+        p0 = ps[i - 1]
+        p1 = ps[i]
+        r = [p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]]
+        line_length += math.sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2])
+    part_length = line_length / n
+    part_ps = []
+    cnt = part_length
+    for i in range(1, len(ps)):
+        p0 = ps[i - 1]
+        p1 = ps[i]
+        part_ps.append(p0)
+        next_point = False
+        if cnt == 0:
+            new_ps.append(part_ps)
+            part_ps = [p0]
+            cnt = part_length
+        while not next_point:
+            r = [p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]]
+            mag = math.sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2])
+            norm = [r[0] / mag, r[1] / mag, r[2] / mag]
+            if mag > cnt:
+                new_p = [
+                    p0[0] + norm[0] * cnt,
+                    p0[1] + norm[1] * cnt,
+                    p0[2] + norm[2] * cnt
+                ]
+                p0 = new_p
+                part_ps.append(p0)
+                new_ps.append(part_ps)
+                part_ps = [p0]
+                cnt = part_length
+            else:
+                next_point = True
+                cnt -= mag
+    part_ps.append(ps[len(ps) - 1])
+    new_ps.append(part_ps)
+    return new_ps
 
 
 class Environment:
