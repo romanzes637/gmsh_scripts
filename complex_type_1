@@ -1,8 +1,8 @@
 # Type 1 data format for Complex import
-# x y z - global coordinates of local coordinate system origin
-# ax ay az - local coordinate system rotation angles by right-hand rule or rx ry rz a - rotation vector components and angle
+# x y z - global coordinates of a local coordinate system origin
+# ax ay az - local coordinate system rotation angles by right-hand rule or rx ry rz a - rotation vector and angle
 # x0 y0 z0 ... xN yN zN - points of line L0: P1 -> P0 (1st line of X direction curves from P0 by right-hand rule)
-# ... points of line L1:  P5 -> P4 (2nd line of X direction curves from P0 by right-hand rule)
+# ... points of line L1:  P5 -> P4 (2nd line of X direction curves)
 # ... points of line L2:  P6 -> P7 (3rd line of X direction curves)
 # ... points of line L3:  P2 -> P3 (4th line of X direction curves)
 # ... points of line L4:  P3 -> P0 (1st line of Y direction curves from P0 by right-hand rule)
@@ -13,6 +13,8 @@
 # ... points of line L9:  P1 -> P5 (2nd line of Z direction curves)
 # ... points of line L10: P2 -> P6 (3rd line of Z direction curves)
 # ... points of line L11: P3 -> P7 (4th line of Z direction curves)
+
+# First Primitive
 0 0 0
 0 0 1 0.785
 -5 10 -15 5 10 -15
@@ -27,6 +29,7 @@
 -5 10 -15 -5 10 15
 -5 -10 -15 -5 -10 15
 5 -10 -15 5 -10 15
+# Second Primitive
 10 0 27
 0 0.785 0
 -5 10 -15 5 10 -15
@@ -41,6 +44,7 @@
 -5 10 -15 -5 10 15
 -5 -10 -15 -5 -10 15
 5 -10 -15 5 -10 15
+# Third Primitive
 -10 0 27
 0 -0.785 0
 -5 10 -15 5 10 -15
@@ -56,6 +60,7 @@
 -5 -10 -15 -5 -10 15
 5 -10 -15 5 -10 15
 -15 -2 56
+# Fourth Primitive
 0.785 0 0
 -5 10 -15 5 10 -15
 -5 10 15 5 10 15
