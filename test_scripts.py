@@ -9,7 +9,8 @@ import itertools
 import time
 
 from borehole import Borehole
-from primitive import primitive_boolean, primitive_cut_by_volume_boolean, Environment, read_complex
+from primitive import primitive_boolean, primitive_cut_by_volume_boolean, Environment, read_complex_type_1, \
+    read_complex_type_2
 from primitive import complex_boolean
 from primitive import Primitive
 from primitive import Complex
@@ -576,7 +577,7 @@ class TestScripts(unittest.TestCase):
         """
         Three primitive boreholes and three primitive rock intrusions.
         Two intrusions intersect each over and two boreholes,
-        i.e. one borehole and one intrusion aren't intersected.
+        i.e. one borehole and one complex_type_1 aren't intersected.
         All boreholes and intrusions are included in rock environment.
         """
         start_time = time.time()
@@ -1786,7 +1787,7 @@ class TestScripts(unittest.TestCase):
 
         print("Reading")
         start = time.time()
-        intrusion = read_complex(factory, "intrusion", [0, 0, 0, 0, 0, 0, 0, 0, 0], 5, [5, 10, 15], 0, 1)
+        intrusion = read_complex_type_2(factory, "complex_type_2", [0, 0, 0], [5, 10, 15], 0, 1)
         print('{:.3f}s'.format(time.time() - start))
 
         print("Creation")
@@ -1825,21 +1826,25 @@ class TestScripts(unittest.TestCase):
         factory.synchronize()
         print('{:.3f}s'.format(time.time() - start))
 
-        print("Correction")
+        print("Correction and Transfinite")
         start = time.time()
-        occ_ws.correct_complex(intrusion)
+        c_rs = occ_ws.correct_complex(intrusion)
+        print(c_rs)
+        ss = set()  # already transfinite surfaces (workaround for double transfinite issue)
+        t_rs = []
+        for idx, primitive in enumerate(intrusion.primitives):
+            if c_rs[idx]:
+                result = primitive.transfinite(ss)
+                t_rs.append(result)
+            else:
+                t_rs.append(None)
+        print(t_rs)
         print('{:.3f}s'.format(time.time() - start))
 
         print("Set Sizes")
         start = time.time()
         environment.set_size(50)
         intrusion.set_size(3)
-        print('{:.3f}s'.format(time.time() - start))
-
-        print("Transfinite")  # Works only after correct_complex_after_boolean()
-        start = time.time()
-        ss = set()  # already transfinite surfaces (workaround for double transfinite issue)
-        intrusion.transfinite(ss)
         print('{:.3f}s'.format(time.time() - start))
 
         print("Physical Volumes")

@@ -32,7 +32,9 @@ def correct_primitive(primitive):
                                     if abs(old_cs[2] - new_cs[2]) < tol:
                                         map_old_new_points.append(new_idx)
                                         found = True
-                assert len(map_old_new_points) == 8
+                # assert len(map_old_new_points) == 8
+                if len(map_old_new_points) != 8:
+                    return False
                 primitive.points = map(lambda x: points_dim_tags[x][1], map_old_new_points)
                 # Correct surfaces
                 surfaces_points = []
@@ -89,9 +91,11 @@ def correct_primitive(primitive):
 
 # Complex
 def correct_complex(complex_obj):
+    results = []
     for primitive in complex_obj.primitives:
         result = correct_primitive(primitive)
-        print(result)
+        results.append(result)
+    return results
 
 # Obsoleted
 # def correct_primitive(primitive, surfaces_map):

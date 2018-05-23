@@ -2,9 +2,11 @@ import gmsh
 import itertools
 import time
 
+import math
+
 
 class Primitive:
-    def __init__(self, factory, point_data, transform_data, curve_types, curve_data,
+    def __init__(self, factory, point_data, transform_data, curve_types=None, curve_data=None,
                  transfinite_curve_data=None, transfinite_type=None):
         """
         Base object with six quadrangular surfaces and eight points
@@ -34,7 +36,9 @@ class Primitive:
         S5: L1  -> -L7 -> -L2 -> L6   (Z surface)
         :param factory: gmsh factory (currently: gmsh.model.geo or gmsh.model.occ)
         :param point_data: [[point1_x, point1_y, point1_z, point1_lc], ..., [point8_x, point8_y, point8_z, point8_lc]]
-        :param transform_data: [displacement x, y, z, rotation origin x, y, z, rotation angle x, y, z]
+        :param transform_data: [displacement x, y, z] or
+        [displacement x, y, z, rotation origin x, y, z, rotation angle x, y, z] or
+        [displacement x, y, z, rotation vector x, y, z, rotation angle]
         :param curve_types: [line1_type, line2_type, ..., line12_type],
         types: 0 - line, 1 - circle, 2 - ellipse (FIXME not implemented for occ factory),
         3 - spline, 4 - bspline (number of curve points > 1), 5 - bezier curve
@@ -43,6 +47,10 @@ class Primitive:
         types: 0 - progression, 1 - bump
         :param transfinite_type: 0, 1, 2 or 4 determines orientation of tetrahedra at structured volume and its surfaces
         """
+        if curve_types is None:
+            curve_types = [0] * 12
+        if curve_data is None:
+            curve_data = [[]] * 12
         self.factory = factory
         self.transfinite_curve_data = transfinite_curve_data
         self.transfinite_type = transfinite_type
@@ -76,15 +84,21 @@ class Primitive:
         for curve_points in self.curves_points:
             dim_tags += map(lambda x: (0, x), curve_points)
         self.factory.translate(dim_tags, transform_data[0], transform_data[1], transform_data[2])
-        self.factory.rotate(dim_tags,
-                            transform_data[3], transform_data[4], transform_data[5],
-                            1, 0, 0, transform_data[6])
-        self.factory.rotate(dim_tags,
-                            transform_data[3], transform_data[4], transform_data[5],
-                            0, 1, 0, transform_data[7])
-        self.factory.rotate(dim_tags,
-                            transform_data[3], transform_data[4], transform_data[5],
-                            0, 0, 1, transform_data[8])
+        if len(transform_data) == 7:
+            self.factory.rotate(dim_tags,
+                                transform_data[0], transform_data[1], transform_data[2],
+                                transform_data[3], transform_data[4], transform_data[5],
+                                transform_data[6])
+        elif len(transform_data) == 9:
+            self.factory.rotate(dim_tags,
+                                transform_data[3], transform_data[4], transform_data[5],
+                                1, 0, 0, transform_data[6])
+            self.factory.rotate(dim_tags,
+                                transform_data[3], transform_data[4], transform_data[5],
+                                0, 1, 0, transform_data[7])
+            self.factory.rotate(dim_tags,
+                                transform_data[3], transform_data[4], transform_data[5],
+                                0, 0, 1, transform_data[8])
         for i in range(12):
             tag = self.add_curve[curve_types[i]](self, i)
             self.curves.append(tag)
@@ -406,9 +420,11 @@ class Complex:
         return vs
 
     def transfinite(self, transfinite_surfaces):
+        results = []
         for primitive in self.primitives:
             result = primitive.transfinite(transfinite_surfaces)
-            print(result)
+            results.append(result)
+        return results
 
     def get_union_volume(self):
         dim_tags = []
@@ -533,9 +549,10 @@ def complex_primitive_boolean(factory, complex_obj, primitive_tool):
         primitive_boolean(factory, primitive_obj, primitive_tool)
 
 
-def read_complex(factory, path, transform_data, curve_type, transfinite_data, physical_tag, lc):
+def read_complex_type_1(factory, path, transform_data, curve_type, transfinite_data, physical_tag, lc):
     primitives_curves = []
     origins = []
+    rotations = []
     curves = []
     cnt = 0
     with open(path) as f:
@@ -547,6 +564,8 @@ def read_complex(factory, path, transform_data, curve_type, transfinite_data, ph
                     cnt += 1
                     if cnt == 1:
                         origins.append(map(lambda x: float(x), tokens))
+                    elif cnt == 2:
+                        rotations.append(map(lambda x: float(x), tokens))
                     else:
                         curve = []
                         cs = map(lambda x: float(x), tokens)
@@ -560,7 +579,7 @@ def read_complex(factory, path, transform_data, curve_type, transfinite_data, ph
                                 curve.append(point_cs)
                                 point_cs = []
                         curves.append(curve)
-                    if cnt == 13:
+                    if cnt == 14:
                         cnt = 0
                         primitives_curves.append(curves)
                         curves = []
@@ -584,50 +603,216 @@ def read_complex(factory, path, transform_data, curve_type, transfinite_data, ph
         p5.append(float(lc))
         p6.append(float(lc))
         p7.append(float(lc))
-        curves_points = []
-        curves_types = []
+        point_data = [p0, p1, p2, p3, p4, p5, p6, p7]
+        curve_data = []
+        curve_types = []
         for j in range(len(primitives_curves[i])):
-            ps = []
+            points = []
             n_points = len(primitives_curves[i][j])
             if n_points > 2:
                 for k in range(1, n_points - 1):
                     point_with_lc = list(primitives_curves[i][j][k])
                     point_with_lc.append(float(lc))
-                    ps.append(point_with_lc)
-                curves_points.append(ps)
-                curves_types.append(curve_type)
+                    points.append(point_with_lc)
+                curve_data.append(points)
+                curve_types.append(curve_type)
             else:
-                curves_points.append([])
-                curves_types.append(0)
+                curve_data.append([])
+                curve_types.append(0)
+        t_form_data = []
+        t_form_data.append(origins[i][0] + transform_data[0])
+        t_form_data.append(origins[i][1] + transform_data[1])
+        t_form_data.append(origins[i][2] + transform_data[2])
+        if len(rotations[i]) == 3:
+            t_form_data.append(t_form_data[0])
+            t_form_data.append(t_form_data[1])
+            t_form_data.append(t_form_data[2])
+            t_form_data.append(rotations[i][0])
+            t_form_data.append(rotations[i][1])
+            t_form_data.append(rotations[i][2])
+        elif len(rotations[i]) == 4:
+            t_form_data.append(rotations[i][0])
+            t_form_data.append(rotations[i][1])
+            t_form_data.append(rotations[i][2])
+            t_form_data.append(rotations[i][3])
+        t_finite_data = [
+            [transfinite_data[0], 0, 1],
+            [transfinite_data[0], 0, 1],
+            [transfinite_data[0], 0, 1],
+            [transfinite_data[0], 0, 1],
+            [transfinite_data[1], 0, 1],
+            [transfinite_data[1], 0, 1],
+            [transfinite_data[1], 0, 1],
+            [transfinite_data[1], 0, 1],
+            [transfinite_data[2], 0, 1],
+            [transfinite_data[2], 0, 1],
+            [transfinite_data[2], 0, 1],
+            [transfinite_data[2], 0, 1],
+        ]
+        t_finite_type = 0
         primitives.append(Primitive(
             factory,
-            [p0, p1, p2, p3, p4, p5, p6, p7],
-            [
-                transform_data[0] + origins[i][0], transform_data[1] + origins[i][1], transform_data[2] + origins[i][2],
-                transform_data[3], transform_data[4], transform_data[5],
-                transform_data[6], transform_data[7], transform_data[8]
-            ],
-            curves_types,
-            curves_points,
-            [
-                [transfinite_data[0], 0, 1],
-                [transfinite_data[0], 0, 1],
-                [transfinite_data[0], 0, 1],
-                [transfinite_data[0], 0, 1],
-                [transfinite_data[1], 0, 1],
-                [transfinite_data[1], 0, 1],
-                [transfinite_data[1], 0, 1],
-                [transfinite_data[1], 0, 1],
-                [transfinite_data[2], 0, 1],
-                [transfinite_data[2], 0, 1],
-                [transfinite_data[2], 0, 1],
-                [transfinite_data[2], 0, 1]
-            ],
-            0
+            point_data,
+            t_form_data,
+            curve_types,
+            curve_data,
+            t_finite_data,
+            t_finite_type
         ))
         physical_data.append(physical_tag)
         lcs.append(lc)
     return Complex(factory, primitives, physical_data, lcs)
+
+
+def read_complex_type_2(factory, path, transform_data, transfinite_data, physical_tag, lc):
+    origins = []
+    rotations = []
+    coordinates = []
+    primitives_cs = []
+    cnt = 0
+    with open(path) as f:
+        for line in f:
+            if not line.startswith("#"):
+                tokens = line.split()
+                # print(tokens)
+                if len(tokens) > 0:
+                    cnt += 1
+                    if cnt == 1:
+                        origins.append(map(lambda x: float(x), tokens))
+                    elif cnt == 2:
+                        rotations.append(map(lambda x: float(x), tokens))
+                    else:
+                        coordinates.append(map(lambda x: float(x), tokens))
+                    if cnt == 10:
+                        cnt = 0
+                        primitives_cs.append(coordinates)
+                        coordinates = []
+    primitives = []
+    physical_data = []
+    lcs = []
+    for i in range(len(origins)):
+        point_data = []
+        for j in range(len(primitives_cs[i])):
+            point_with_lc = list(primitives_cs[i][j])
+            point_with_lc.append(float(lc))
+            point_data.append(point_with_lc)
+        t_form_data = [
+            origins[i][0] + transform_data[0],
+            origins[i][1] + transform_data[1],
+            origins[i][2] + transform_data[2]
+        ]
+        if len(rotations[i]) == 3:
+            t_form_data.append(t_form_data[0])
+            t_form_data.append(t_form_data[1])
+            t_form_data.append(t_form_data[2])
+            t_form_data.append(rotations[i][0])
+            t_form_data.append(rotations[i][1])
+            t_form_data.append(rotations[i][2])
+        elif len(rotations[i]) == 4:
+            t_form_data.append(rotations[i][0])
+            t_form_data.append(rotations[i][1])
+            t_form_data.append(rotations[i][2])
+            t_form_data.append(rotations[i][3])
+        t_finite_data = [
+            [transfinite_data[0], 0, 1],
+            [transfinite_data[0], 0, 1],
+            [transfinite_data[0], 0, 1],
+            [transfinite_data[0], 0, 1],
+            [transfinite_data[1], 0, 1],
+            [transfinite_data[1], 0, 1],
+            [transfinite_data[1], 0, 1],
+            [transfinite_data[1], 0, 1],
+            [transfinite_data[2], 0, 1],
+            [transfinite_data[2], 0, 1],
+            [transfinite_data[2], 0, 1],
+            [transfinite_data[2], 0, 1],
+        ]  # TODO do n_points of smaller edge length smaller and so on
+        t_finite_type = 0
+        primitives.append(Primitive(
+            factory,
+            point_data,
+            t_form_data,
+            transfinite_curve_data=t_finite_data,
+            transfinite_type=t_finite_type
+        ))
+        physical_data.append(physical_tag)
+        lcs.append(lc)
+    return Complex(factory, primitives, physical_data, lcs)
+
+
+def divide_primitive(divide_data, base_points, curves_points=None):
+    nx = divide_data[0]
+    ny = divide_data[1]
+    nz = divide_data[2]
+    points = []
+    if curves_points is None:
+        curves_points = [[]] * 12
+    for i in range(12):
+        if len(curves_points[i]) > 0:
+            points.append([
+                base_points[Primitive.curves_local_points[i][0]],
+                curves_points[i],
+                base_points[Primitive.curves_local_points[i][1]]
+            ])
+        else:
+            points.append([
+                base_points[Primitive.curves_local_points[i][0]],
+                base_points[Primitive.curves_local_points[i][1]]
+            ])
+    curves_lengths = []
+    for i in range(len(points)):
+        length = 0
+        for j in range(1, len(points[i])):
+            p0 = points[i][j - 1]
+            p1 = points[i][j]
+            r = [p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]]
+            length += math.sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2])
+        curves_lengths.append(length)
+    curves_delta_lengths = []
+    for i in range(4):
+        curves_delta_lengths.append(curves_lengths[i] / nx)
+    for i in range(4, 8):
+        curves_delta_lengths.append(curves_lengths[i] / ny)
+    for i in range(8, 12):
+        curves_delta_lengths.append(curves_lengths[i] / nz)
+    new_points = []
+    for i in range(12):
+        dl = curves_delta_lengths[i]
+        dl_cnt = dl
+        new_curve_points = []
+        new_curve_parts = []
+        for j in range(1, len(points[i])):
+            p0 = points[i][j - 1]
+            p1 = points[i][j]
+            new_curve_points.append(p0)
+            new = False
+            while not new:
+                r = [p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]]
+                mag = math.sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2])
+                norm = [r[0] / mag, r[1] / mag, r[2] / mag]
+                if mag > dl_cnt:
+                    new_p = [
+                        p0[0] + norm[0] * dl_cnt,
+                        p0[1] + norm[1] * dl_cnt,
+                        p0[2] + norm[2] * dl_cnt,
+                        p0[3]
+                    ]
+                    p0 = new_p
+                    new_curve_points.append(new_p)
+                    new_curve_parts.append(new_curve_points)
+                    new_curve_points = [new_p]
+                    dl_cnt = dl
+                else:
+                    new_curve_points.append(p1)
+                    new = True
+                    dl_cnt -= mag
+        new_curve_parts.append(new_curve_points)
+        new_points.append(new_curve_parts)
+    for i in range(nx):
+        for j in range(ny):
+            for k in range(nz):
+                print("a")
+    return new_points
 
 
 class Environment:
