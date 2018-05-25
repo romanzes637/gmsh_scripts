@@ -10,7 +10,8 @@ import time
 
 from borehole import Borehole
 from primitive import primitive_boolean, primitive_cut_by_volume_boolean, Environment, read_complex_type_1, \
-    read_complex_type_2, divide_primitive
+    read_complex_type_2
+from complex_primitive import ComplexPrimitive
 from primitive import complex_boolean
 from primitive import Primitive
 from primitive import Complex
@@ -1709,22 +1710,25 @@ class TestScripts(unittest.TestCase):
             [[3, 0, 1], [3, 0, 1], [3, 0, 1]],
             [[10, 0, 1], [10, 0, 1], [10, 0, 1]],
             [3, 0, 1],
-            1
+            5
         )
         int_length = 20
         int_width = 20
         int_thickness = 1
-        int_lc = 5
+        int_lc = 1
         int_center_x = 0
         int_center_y = 0
         int_center_z = 0
-        int_rotation_x = 0  # math.pi / 4
-        int_rotation_y = 0  # -math.pi / 4
+        int_rotation_x = math.pi / 4  # math.pi / 4
+        int_rotation_y = -math.pi / 4  # -math.pi / 4
         int_rotation_z = 0
-        int_dz = 0  # 10
+        int_dz = 10  # 10
         int_dy = 0  # 20
-        intrusion = Primitive(
+        int_physical_tag = 0
+        int_name = "Intrusion"
+        intrusion = ComplexPrimitive(
             factory,
+            [3, 3, 1],
             [
                 [int_length / 2, int_width / 2 + int_dy, -int_thickness / 2 - int_dz, int_lc],
                 [-int_length / 2, int_width / 2, -int_thickness / 2, int_lc],
@@ -1735,7 +1739,10 @@ class TestScripts(unittest.TestCase):
                 [-int_length / 2, -int_width / 2, int_thickness / 2, int_lc],
                 [int_length / 2, -int_width / 2, int_thickness / 2, int_lc],
             ],
+            int_physical_tag,
+            int_lc,
             [int_center_x, int_center_y, int_center_z, int_rotation_x, int_rotation_y, int_rotation_z],
+            transfinite_data=[[5, 0, 1], [5, 0, 1], [5, 0, 1]]
         )
         print('{:.3f}s'.format(time.time() - start))
 
@@ -1745,7 +1752,8 @@ class TestScripts(unittest.TestCase):
         print("Intrusion by Borehole boolean")
         start = time.time()
         # primitive_cut_by_volume_boolean(factory, intrusion, out[0][1])
-        primitive_complex_boolean(factory, intrusion, borehole)
+        # primitive_complex_boolean(factory, intrusion, borehole)
+        complex_boolean(factory, intrusion, borehole)
         print('{:.3f}s'.format(time.time() - start))
 
         print("Environment by Borehole boolean")
@@ -1755,7 +1763,7 @@ class TestScripts(unittest.TestCase):
 
         print("Environment by Intrusion boolean")
         start = time.time()
-        primitive_boolean(factory, environment, intrusion)
+        primitive_complex_boolean(factory, environment, intrusion)
         print('{:.3f}s'.format(time.time() - start))
 
         print("Remove All Duplicates")
@@ -1766,32 +1774,42 @@ class TestScripts(unittest.TestCase):
 
         print("Correction and Transfinite")
         start = time.time()
-        # correction_rs = occ_ws.correct_complex(borehole)
-        # r = occ_ws.correct_primitive(intrusion)
-        # print(correction_rs)
-        # ss = set()  # already transfinite surfaces (workaround for double transfinite issue)
-        # transfinite_rs = []
-        # for idx, intrusion in enumerate(borehole.primitives):
-        #     if correction_rs[idx]:
-        #         result = intrusion.transfinite(ss)
-        #         transfinite_rs.append(result)
-        #     else:
-        #         transfinite_rs.append(None)
-        # print(transfinite_rs)
-        # if r:
-        #     intrusion.transfinite(ss)
+        correction_rs = occ_ws.correct_complex(borehole)
+        print(correction_rs)
+        ss = set()  # already transfinite surfaces (workaround for double transfinite issue)
+        transfinite_rs = []
+        for idx, p in enumerate(borehole.primitives):
+            if correction_rs[idx]:
+                result = p.transfinite(ss)
+                transfinite_rs.append(result)
+            else:
+                transfinite_rs.append(None)
+        print(transfinite_rs)
+
+        correction_rs = occ_ws.correct_complex(intrusion)
+        print(correction_rs)
+        ss = set()  # already transfinite surfaces (workaround for double transfinite issue)
+        transfinite_rs = []
+        for idx, p in enumerate(intrusion.primitives):
+            if correction_rs[idx]:
+                result = p.transfinite(ss)
+                transfinite_rs.append(result)
+            else:
+                transfinite_rs.append(None)
+        print(transfinite_rs)
         print('{:.3f}s'.format(time.time() - start))
 
         print("Set Sizes")
         start = time.time()
         environment.set_size(100)
-        intrusion.set_size(20)
-        borehole.set_size(20)
+        intrusion.set_size(int_lc)
+        borehole.set_size(1)
         print('{:.3f}s'.format(time.time() - start))
 
         print("Intrusion Physical")
-        tag = gmsh.model.addPhysicalGroup(3, intrusion.volumes)
-        gmsh.model.setPhysicalName(3, tag, "Intrusion")
+        vs = intrusion.get_volumes_by_physical_index(int_physical_tag)
+        tag = gmsh.model.addPhysicalGroup(3, vs)
+        gmsh.model.setPhysicalName(3, tag, int_name)
 
         print("Borehole Physical")
         for idx, name in enumerate(borehole.physical_names):
@@ -1927,9 +1945,9 @@ class TestScripts(unittest.TestCase):
 
         print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
 
-    def test_divide_primitive(self):
+    def test_complex_primitive(self):
         """
-        Divide Primitive to Complex
+        Test ComplexPrimitive
         """
         start_time = time.time()
 
@@ -1938,25 +1956,77 @@ class TestScripts(unittest.TestCase):
         gmsh.option.setNumber("General.Terminal", 1)
         gmsh.option.setNumber("Mesh.Algorithm3D", 4)
 
-        gmsh.model.add("test_divide_primitive")
+        gmsh.model.add("test_complex_primitive")
 
         factory = gmsh.model.occ
 
-        print("Reading")
+        print("Creating")
         start = time.time()
-        c = read_complex_type_1(factory, "import_divide", [0, 0, 0], 3, [5, 10, 15], 0, 1)
+        int_length = 20
+        int_width = 20
+        int_thickness = 1
+        int_lc = 1
+        int_center_x = 0
+        int_center_y = 0
+        int_center_z = 0
+        int_rotation_x = math.pi / 4  # math.pi / 4
+        int_rotation_y = -math.pi / 4  # -math.pi / 4
+        int_rotation_z = 0
+        int_dz = 10  # 10
+        int_dy = 0  # 20
+        int_physical_tag = 100
+        int_name = "ComplexPrimitive"
+        cp = ComplexPrimitive(
+            factory,
+            [3, 3, 1],
+            [
+                [int_length / 2, int_width / 2 + int_dy, -int_thickness / 2 - int_dz, int_lc],
+                [-int_length / 2, int_width / 2, -int_thickness / 2, int_lc],
+                [-int_length / 2, -int_width / 2, -int_thickness / 2, int_lc],
+                [int_length / 2, -int_width / 2 - int_dy / 2, -int_thickness / 2 - int_dz / 2, int_lc],
+                [int_length / 2, int_width / 2, int_thickness / 2 - int_dz / 3, int_lc],
+                [-int_length / 2, int_width / 2, int_thickness / 2, int_lc],
+                [-int_length / 2, -int_width / 2, int_thickness / 2, int_lc],
+                [int_length / 2, -int_width / 2, int_thickness / 2, int_lc],
+            ],
+            int_physical_tag,
+            int_lc,
+            [int_center_x, int_center_y, int_center_z, int_rotation_x, int_rotation_y, int_rotation_z],
+            transfinite_data=[[5, 0, 1], [5, 0, 1], [5, 0, 1]]
+        )
         print('{:.3f}s'.format(time.time() - start))
 
-        cs = c.primitives[0].points_coordinates
-        curve_cs = c.primitives[0].curves_points_coordinates
+        print("Remove All Duplicates")
+        start = time.time()
+        factory.removeAllDuplicates()
+        factory.synchronize()
+        print('{:.3f}s'.format(time.time() - start))
 
-        divide_primitive([2, 2, 2], cs, curve_cs)
+        print("Correction and Transfinite")
+        start = time.time()
+        correction_rs = occ_ws.correct_complex(cp)
+        print(correction_rs)
+        ss = set()  # already transfinite surfaces (workaround for double transfinite issue)
+        transfinite_rs = []
+        for idx, intrusion in enumerate(cp.primitives):
+            if correction_rs[idx]:
+                result = intrusion.transfinite(ss)
+                transfinite_rs.append(result)
+            else:
+                transfinite_rs.append(None)
+        print(transfinite_rs)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Physical")
+        vs = cp.get_volumes_by_physical_index(int_physical_tag)
+        tag = gmsh.model.addPhysicalGroup(3, vs)
+        gmsh.model.setPhysicalName(3, tag, int_name)
 
         gmsh.model.mesh.generate(3)
 
         gmsh.model.mesh.removeDuplicateNodes()
 
-        gmsh.write("test_divide_primitive.msh")
+        gmsh.write("test_complex_primitive.msh")
 
         gmsh.finalize()
 

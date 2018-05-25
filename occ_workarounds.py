@@ -32,8 +32,8 @@ def correct_primitive(primitive):
                                     if abs(old_cs[2] - new_cs[2]) < tol:
                                         map_old_new_points.append(new_idx)
                                         found = True
-                # assert len(map_old_new_points) == 8
-                if len(map_old_new_points) != 8:
+                if len(map_old_new_points) != 8:  # FIXME there is a problem if it happened...
+                    print("WARNING: len(map_old_new_points) != 8")
                     return False
                 primitive.points = map(lambda x: points_dim_tags[x][1], map_old_new_points)
                 # Correct surfaces

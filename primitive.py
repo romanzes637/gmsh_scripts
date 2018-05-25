@@ -1,7 +1,6 @@
-import gmsh
 import itertools
 import time
-import math
+import gmsh
 
 
 class Primitive:
@@ -500,9 +499,28 @@ def primitive_boolean(factory, primitive_obj, primitive_tool):
             new_obj_volumes.remove(v)
         primitive_obj.volumes = new_obj_volumes
         primitive_tool.volumes = new_tool_volumes
-        primitive_obj.evaluate_bounding_box()
-        primitive_tool.evaluate_bounding_box()
+        # primitive_obj.evaluate_bounding_box() # FIXME bad bb after boolean
+        # primitive_tool.evaluate_bounding_box()
     print('{:.3f}s'.format(time.time() - start))
+
+
+def complex_boolean(factory, complex_obj, complex_tool):
+    for obj_idx, primitive_obj in enumerate(complex_obj.primitives):
+        for tool_idx, primitive_tool in enumerate(complex_tool.primitives):
+            print("Boolean primitive_obj {} by primitive_tool {}".format(obj_idx, tool_idx))
+            primitive_boolean(factory, primitive_obj, primitive_tool)
+
+
+def primitive_complex_boolean(factory, primitive_obj, complex_tool):
+    for idx, primitive_tool in enumerate(complex_tool.primitives):
+        print("Boolean primitive_obj by complex_tool's primitive {}".format(idx))
+        primitive_boolean(factory, primitive_obj, primitive_tool)
+
+
+def complex_primitive_boolean(factory, complex_obj, primitive_tool):
+    for idx, primitive_obj in enumerate(complex_obj.primitives):
+        print("Boolean complex_obj's primitive {} by primitive_tool".format(idx))
+        primitive_boolean(factory, primitive_obj, primitive_tool)
 
 
 def primitive_cut_by_volume_boolean(factory, primitive_obj, volume):
@@ -552,26 +570,6 @@ def primitive_cut_by_volume_boolean(factory, primitive_obj, volume):
         primitive_obj.evaluate_bounding_box()
     print('{:.3f}s'.format(time.time() - start))
 
-
-def complex_boolean(factory, complex_obj, complex_tool):
-    for obj_idx, primitive_obj in enumerate(complex_obj.primitives):
-        for tool_idx, primitive_tool in enumerate(complex_tool.primitives):
-            print("Boolean primitive_obj %s by primitive_tool %s" % (obj_idx, tool_idx))
-            primitive_boolean(factory, primitive_obj, primitive_tool)
-
-
-def primitive_complex_boolean(factory, primitive_obj, complex_tool):
-    for idx, primitive_tool in enumerate(complex_tool.primitives):
-        print("Boolean primitive_obj by complex_tool's primitive %s" % idx)
-        primitive_boolean(factory, primitive_obj, primitive_tool)
-
-
-def complex_primitive_boolean(factory, complex_obj, primitive_tool):
-    for idx, primitive_obj in enumerate(complex_obj.primitives):
-        print("Boolean complex_obj's primitive %s by primitive_tool" % idx)
-        primitive_boolean(factory, primitive_obj, primitive_tool)
-
-
 def read_complex_type_1(factory, path, transform_data, curve_type, transfinite_data, physical_tag, lc):
     primitives_curves = []
     origins = []
@@ -580,7 +578,7 @@ def read_complex_type_1(factory, path, transform_data, curve_type, transfinite_d
     cnt = 0
     with open(path) as f:
         for line in f:
-            if not line.startswith("#"):
+            if not line.startswith("#" or "//"):
                 tokens = line.split()
                 # print(tokens)
                 if len(tokens) > 0:
@@ -695,7 +693,7 @@ def read_complex_type_2(factory, path, transform_data, transfinite_data, physica
     cnt = 0
     with open(path) as f:
         for line in f:
-            if not line.startswith("#"):
+            if not line.startswith("#" or "//"):
                 tokens = line.split()
                 # print(tokens)
                 if len(tokens) > 0:
@@ -761,77 +759,6 @@ def read_complex_type_2(factory, path, transform_data, transfinite_data, physica
         physical_data.append(physical_tag)
         lcs.append(lc)
     return Complex(factory, primitives, physical_data, lcs)
-
-
-def divide_primitive(divide_data, base_points, curves_points):
-    lines_points = []
-    for i in range(12):
-        if len(curves_points[i]) > 0:
-            ps = []
-            ps.append(base_points[Primitive.curves_local_points[i][0]])
-            ps.extend(curves_points[i])
-            ps.append(base_points[Primitive.curves_local_points[i][1]])
-            lines_points.append(ps)
-        else:
-            lines_points.append([
-                base_points[Primitive.curves_local_points[i][0]],
-                base_points[Primitive.curves_local_points[i][1]]
-            ])
-    new_lines_points = []
-    nx = divide_data[0]
-    ny = divide_data[1]
-    nz = divide_data[2]
-    for i in range(4):
-        new_lines_points.append(divide_line(lines_points[i], nx))
-    for i in range(4, 8):
-        new_lines_points.append(divide_line(lines_points[i], ny))
-    for i in range(8, 12):
-        new_lines_points.append(divide_line(lines_points[i], nz))
-    new_points = []
-    return new_points
-
-
-def divide_line(ps, n):
-    new_ps = []
-    line_length = 0
-    for i in range(1, len(ps)):
-        p0 = ps[i - 1]
-        p1 = ps[i]
-        r = [p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]]
-        line_length += math.sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2])
-    part_length = line_length / n
-    part_ps = []
-    cnt = part_length
-    for i in range(1, len(ps)):
-        p0 = ps[i - 1]
-        p1 = ps[i]
-        part_ps.append(p0)
-        next_point = False
-        if cnt == 0:
-            new_ps.append(part_ps)
-            part_ps = [p0]
-            cnt = part_length
-        while not next_point:
-            r = [p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]]
-            mag = math.sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2])
-            norm = [r[0] / mag, r[1] / mag, r[2] / mag]
-            if mag > cnt:
-                new_p = [
-                    p0[0] + norm[0] * cnt,
-                    p0[1] + norm[1] * cnt,
-                    p0[2] + norm[2] * cnt
-                ]
-                p0 = new_p
-                part_ps.append(p0)
-                new_ps.append(part_ps)
-                part_ps = [p0]
-                cnt = part_length
-            else:
-                next_point = True
-                cnt -= mag
-    part_ps.append(ps[len(ps) - 1])
-    new_ps.append(part_ps)
-    return new_ps
 
 
 class Environment:
