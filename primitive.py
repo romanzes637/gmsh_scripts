@@ -241,14 +241,12 @@ class Primitive:
                     volumes_dim_tags, combined=False, recursive=True
                 )
                 gmsh.model.mesh.setSize(points_dim_tags, size)
-                # print(points_dim_tags)
         else:
             volumes_dim_tags = (3, self.volumes[volume_idx])
             points_dim_tags = gmsh.model.getBoundary(
                 volumes_dim_tags, combined=False, recursive=True
             )
             gmsh.model.mesh.setSize(points_dim_tags, size)
-            # print(points_dim_tags)
 
     surfaces_names = {
         0: "NX",
@@ -477,6 +475,11 @@ def primitive_boolean(factory, primitive_obj, primitive_tool):
     # Check on empty primitive_obj:
     if len(primitive_obj.volumes) <= 0:
         is_intersection = False
+        print("Zero object!")
+    # Check on empty primitive_tool:
+    if len(primitive_tool.volumes) <= 0:
+        is_intersection = False
+        print("Zero tool!")
     print(is_intersection)
     if is_intersection:
         obj_dim_tags = map(lambda x: (3, x), primitive_obj.volumes)
@@ -499,7 +502,7 @@ def primitive_boolean(factory, primitive_obj, primitive_tool):
             new_obj_volumes.remove(v)
         primitive_obj.volumes = new_obj_volumes
         primitive_tool.volumes = new_tool_volumes
-        # primitive_obj.evaluate_bounding_box() # FIXME bad bb after boolean
+        # primitive_obj.evaluate_bounding_box()  # FIXME bad bb after boolean
         # primitive_tool.evaluate_bounding_box()
     print('{:.3f}s'.format(time.time() - start))
 
@@ -564,11 +567,17 @@ def primitive_cut_by_volume_boolean(factory, primitive_obj, volume):
         # Remove new_tool_volumes
         dts = map(lambda x: (3, x), new_tool_volumes)
         factory.remove(dts)
-        # factory.removeAllDuplicates()
         factory.synchronize()
         primitive_obj.volumes = new_obj_volumes
-        primitive_obj.evaluate_bounding_box()
+        # primitive_obj.evaluate_bounding_box()
     print('{:.3f}s'.format(time.time() - start))
+
+
+def complex_cut_by_volume_boolean(factory, complex_obj, volume):
+    for idx, primitive_obj in enumerate(complex_obj.primitives):
+        print("Cut boolean complex_obj's primitive {} by volume".format(idx))
+        primitive_cut_by_volume_boolean(factory, primitive_obj, volume)
+
 
 def read_complex_type_1(factory, path, transform_data, curve_type, transfinite_data, physical_tag, lc):
     primitives_curves = []

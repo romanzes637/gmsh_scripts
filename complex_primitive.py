@@ -249,7 +249,7 @@ def divide_primitive(divide_data, base_points, curves_points):
     ny_y_lines = get_lines_between_two_surfaces(ny_x_lines, y_x_lines, ny)
     nz_z_lines = get_lines_between_two_surfaces(nz_x_lines, z_x_lines, nz)
 
-    # TODO Volume lines Correction
+    # Volume lines correction
     correct_volume_lines(nx_x_lines, ny_y_lines, nz_z_lines)
 
     # Sum
