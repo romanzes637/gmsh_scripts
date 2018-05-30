@@ -9,8 +9,8 @@ import itertools
 import time
 
 from borehole import Borehole
-from primitive import primitive_boolean, primitive_cut_by_volume_boolean, Environment, read_complex_type_1, \
-    read_complex_type_2, complex_cut_by_volume_boolean
+from primitive import primitive_boolean, primitive_cut_by_volume_boolean, Environment, complex_cut_by_volume_boolean
+from import_text import read_complex_type_1, read_complex_type_2, read_complex_type_2_to_complex_primitives
 from complex_primitive import ComplexPrimitive
 from primitive import complex_boolean
 from primitive import Primitive
@@ -1718,9 +1718,9 @@ class TestScripts(unittest.TestCase):
             [3, 0, 1],
             10
         )
-        int_length = 20  # 650
-        int_width = 20  # 200
-        int_thickness = 1
+        int_length = 650  # 650
+        int_width = 200  # 200
+        int_thickness = 5
         int_lc = 5  # 5
         int_center_x = 0
         int_center_y = 0
@@ -1734,7 +1734,7 @@ class TestScripts(unittest.TestCase):
         int_name = "Intrusion"
         intrusion = ComplexPrimitive(
             factory,
-            [3, 3, 3],
+            [15, 5, 1],
             [
                 [int_length / 2, int_width / 2 + int_dy, -int_thickness / 2 - int_dz, int_lc],
                 [-int_length / 2, int_width / 2, -int_thickness / 2, int_lc],
@@ -1843,7 +1843,7 @@ class TestScripts(unittest.TestCase):
 
         gmsh.model.mesh.removeDuplicateNodes()
 
-        gmsh.write("test_borehole_with_intersection_test_10b_0.1_env.msh")
+        gmsh.write("test_borehole_with_intersection_test_10b_15x5x1i_0.1_env.msh")
 
         gmsh.finalize()
 
@@ -2037,6 +2037,127 @@ class TestScripts(unittest.TestCase):
         gmsh.model.mesh.removeDuplicateNodes()
 
         gmsh.write("test_complex_primitive.msh")
+
+        gmsh.finalize()
+
+        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
+
+    def test_read_complex_primitives(self):
+        """
+        Test read ComplexPrimitives
+        """
+        start_time = time.time()
+
+        gmsh.initialize()
+
+        gmsh.option.setNumber("General.Terminal", 1)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
+
+        gmsh.model.add("test_read_complex_primitives")
+
+        factory = gmsh.model.occ
+
+        int_name = "Intrusion"
+        int_physical_tag = 0
+        int_lc = 5
+        int_center_x = 0
+        int_center_y = 0
+        int_center_z = 0
+        int_n_x = 2
+        int_n_y = 1
+        int_n_z = 1
+        int_tr_x = [5, 0, 1]
+        int_tr_y = [5, 0, 1]
+        int_tr_z = [5, 0, 1]
+        int_rotation_x = math.pi / 4  # math.pi / 4
+        int_rotation_y = -math.pi / 3  # -math.pi / 4
+        int_rotation_z = 0
+        print("Reading")
+        start = time.time()
+        complex_primitives = read_complex_type_2_to_complex_primitives(
+            factory, "complex_type_2",
+            [int_n_x, int_n_y, int_n_z],
+            int_physical_tag, int_lc,
+            [int_center_x, int_center_y, int_center_z],
+            [int_tr_x, int_tr_y, int_tr_z])
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Creation")
+        start = time.time()
+        environment = Primitive(
+            factory,
+            [
+                [100, 100, -100, 50],
+                [-100, 100, -100, 50],
+                [-100, -100, -100, 50],
+                [100, -100, -100, 50],
+                [100, 100, 100, 50],
+                [-100, 100, 100, 50],
+                [-100, -100, 100, 50],
+                [100, -100, 100, 50]
+            ],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [[], [], [], [], [], [], [], [], [], [], [], []]
+        )
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("ComplexPrimitives boolean")
+        start = time.time()
+        combinations = list(itertools.combinations(range(len(complex_primitives)), 2))
+        for combination in combinations:
+            print("Boolean %s by %s" % combination)
+            complex_boolean(factory, complex_primitives[combination[0]], complex_primitives[combination[1]])
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Environment by Intrusion boolean")
+        start = time.time()
+        for cp in complex_primitives:
+            primitive_complex_boolean(factory, environment, cp)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Remove All Duplicates")
+        start = time.time()
+        factory.removeAllDuplicates()
+        factory.synchronize()
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Correction and Transfinite")
+        start = time.time()
+        ss = set()
+        for cp in complex_primitives:
+            occ_ws.correct_and_transfinite_complex(cp, ss)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Set Sizes")
+        start = time.time()
+        for cp in complex_primitives:
+            cp.set_size()
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Physical Volumes")
+        vs = []
+        for cp in complex_primitives:
+            vs += cp.get_volumes_by_physical_index(int_physical_tag)
+        tag = gmsh.model.addPhysicalGroup(3, vs)
+        gmsh.model.setPhysicalName(3, tag, int_name)
+
+        print("Environment Physical")
+        tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
+        gmsh.model.setPhysicalName(3, tag, "Environment")
+        volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
+        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        surfaces_names = ["X", "Z", "NY", "NZ", "Y", "NX"]
+        for i in range(len(surfaces_names)):
+            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
+            gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
+            #     gmsh.model.setPhysicalName(2, tag, 'S%s' % i)
+
+        gmsh.model.mesh.generate(3)
+
+        gmsh.model.mesh.removeDuplicateNodes()
+
+        gmsh.write("test_read_complex_primitives.msh")
 
         gmsh.finalize()
 

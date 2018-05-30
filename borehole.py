@@ -2,13 +2,13 @@ from cylinder import Cylinder
 
 
 class Borehole(Cylinder):
-    def __init__(self, factory, lcs, transform_data,
+    def __init__(self, factory, primitives_lcs, transform_data,
                  transfinite_r_data, transfinite_h_data, transfinite_phi_data, n_h_layers=1):
         """
         Type 1 borehole. Simple borehole with 3 layers:
         Radioactive Waste (RW), Engineering barrier system (EBS), Grout and two Plugs
         :param factory: gmsh factory (currently: gmsh.model.geo or gmsh.model.occ)
-        :param lcs: characteristic lengths of layers [[h1_r1, h1_r2, ...], [h2_r1, h2_r2 ...], ...]
+        :param primitives_lcs: characteristic lengths of layers [[h1_r1, h1_r2, ...], [h2_r1, h2_r2 ...], ...]
         :param transform_data: [displacement x, y, z] or
         [displacement x, y, z, rotation origin x, y, z, rotation angle x, y, z] or
         [displacement x, y, z, rotation vector x, y, z, rotation angle] or
@@ -31,23 +31,23 @@ class Borehole(Cylinder):
             new_layers_physical_data = []
             new_layers_physical_data.append(layers_physical_data[0])
             new_lcs = []
-            new_lcs.append(lcs[0])
+            new_lcs.append(primitives_lcs[0])
             new_transfinite_h_data = []
             new_transfinite_h_data.append(transfinite_h_data[0])
             for i in range(n_h_layers):
                 new_heights.append(dh)
                 new_layers_physical_data.append(layers_physical_data[1])
-                new_lcs.append(lcs[1])
+                new_lcs.append(primitives_lcs[1])
                 new_transfinite_h_data.append(transfinite_h_data[1])
             new_heights.append(heights[2])
             new_layers_physical_data.append(layers_physical_data[2])
-            new_lcs.append(lcs[2])
+            new_lcs.append(primitives_lcs[2])
             new_transfinite_h_data.append(transfinite_h_data[2])
             heights = new_heights
             layers_physical_data = new_layers_physical_data
-            lcs = new_lcs
+            primitives_lcs = new_lcs
             transfinite_h_data = new_transfinite_h_data
-        Cylinder.__init__(self, factory, radii, heights, lcs, transform_data, layers_physical_data,
+        Cylinder.__init__(self, factory, radii, heights, primitives_lcs, transform_data, layers_physical_data,
                           transfinite_r_data, transfinite_h_data, transfinite_phi_data)
 
     physical_names = ["RW", "EBS", "Grout", "Plug"]

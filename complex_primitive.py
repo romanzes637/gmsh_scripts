@@ -3,19 +3,19 @@ from primitive import Primitive, Complex
 
 
 class ComplexPrimitive(Complex):
-    def __init__(self, factory, divide_data, point_data, physical_data, complex_lc, transform_data=None,
-                 curve_types=None, curve_data=None, transfinite_data=None, transfinite_type=None, ):
+    def __init__(self, factory, divide_data, point_data, complex_physical_tag, complex_lc,
+                 transform_data=None, curve_types=None, curve_data=None, transfinite_data=None, transfinite_type=None):
         """
         Primitive object divided into parts for boolean accuracy.
         :param factory:
         :param divide_data: [n_parts_x, n_parts_y, n_parts_z]
         :param point_data:
-        :param physical_data:
+        :param complex_physical_tag:
         :param complex_lc:
         :param transform_data:
         :param curve_types:
         :param curve_data:
-        :param transfinite_data: [n_points_x, n_points_y, n_points_z]
+        :param transfinite_data: [[x number of nodes, type, coefficient], [y ...], [z ...]]
         :param transfinite_type:
         """
         if transform_data is None:
@@ -52,7 +52,7 @@ class ComplexPrimitive(Complex):
                 curves_with_lc.append([x + [complex_lc] for x in ps_curves_points[i][j]])
             primitives.append(Primitive(factory, base_with_lc, transform_data, curve_types,
                                         curves_with_lc, transfinite_curve_data, transfinite_type))
-            primitives_physical_data.append(physical_data)
+            primitives_physical_data.append(complex_physical_tag)
             complex_lcs.append(complex_lc)
         Complex.__init__(self, factory, primitives, primitives_physical_data, complex_lcs)
 

@@ -4,7 +4,7 @@ import math
 
 
 class Cylinder(Complex):
-    def __init__(self, factory, radii, heights, lcs, transform_data, layers_physical_data,
+    def __init__(self, factory, radii, heights, primitives_lcs, transform_data, layers_physical_data,
                  transfinite_r_data, transfinite_h_data, transfinite_phi_data):
         """
         Multilayer cylinder
@@ -20,7 +20,7 @@ class Cylinder(Complex):
         :param factory: gmsh factory (currently: gmsh.model.geo or gmsh.model.occ)
         :param radii: [r1, r2, ..., rN]
         :param heights: [h1, h2, ..., hM]
-        :param lcs: characteristic lengths of layers [[h1_r1, h1_r2, ...], [h2_r1, h2_r2 ...], ...]
+        :param primitives_lcs: characteristic lengths of layers [[h1_r1, h1_r2, ...], [h2_r1, h2_r2 ...], ...]
         :param transform_data: [displacement x, y, z] or
         [displacement x, y, z, rotation origin x, y, z, rotation angle x, y, z] or
         [displacement x, y, z, rotation vector x, y, z, rotation angle] or
@@ -46,14 +46,14 @@ class Cylinder(Complex):
             primitives.append(Primitive(
                 factory,
                 [
-                    [kr, kr, -h / 2, lcs[i][0]],
-                    [-kr, kr, -h / 2, lcs[i][0]],
-                    [-kr, -kr, -h / 2, lcs[i][0]],
-                    [kr, -kr, -h / 2, lcs[i][0]],
-                    [kr, kr, h / 2, lcs[i][0]],
-                    [-kr, kr, h / 2, lcs[i][0]],
-                    [-kr, -kr, h / 2, lcs[i][0]],
-                    [kr, -kr, h / 2, lcs[i][0]]
+                    [kr, kr, -h / 2, primitives_lcs[i][0]],
+                    [-kr, kr, -h / 2, primitives_lcs[i][0]],
+                    [-kr, -kr, -h / 2, primitives_lcs[i][0]],
+                    [kr, -kr, -h / 2, primitives_lcs[i][0]],
+                    [kr, kr, h / 2, primitives_lcs[i][0]],
+                    [-kr, kr, h / 2, primitives_lcs[i][0]],
+                    [-kr, -kr, h / 2, primitives_lcs[i][0]],
+                    [kr, -kr, h / 2, primitives_lcs[i][0]]
                 ],
                 [
                     transform_data[0], transform_data[1], transform_data[2] + h_cnt,
@@ -78,19 +78,19 @@ class Cylinder(Complex):
                 ],
                 transfinite_types[0]
             ))
-            complex_lcs.append(lcs[i][0])
+            complex_lcs.append(primitives_lcs[i][0])
             # Core X
             primitives.append(Primitive(
                 factory,
                 [
-                    [r, r, -h / 2, lcs[i][0]],
-                    [kr, kr, -h / 2, lcs[i][0]],
-                    [kr, -kr, -h / 2, lcs[i][0]],
-                    [r, -r, -h / 2, lcs[i][0]],
-                    [r, r, h / 2, lcs[i][0]],
-                    [kr, kr, h / 2, lcs[i][0]],
-                    [kr, -kr, h / 2, lcs[i][0]],
-                    [r, -r, h / 2, lcs[i][0]]
+                    [r, r, -h / 2, primitives_lcs[i][0]],
+                    [kr, kr, -h / 2, primitives_lcs[i][0]],
+                    [kr, -kr, -h / 2, primitives_lcs[i][0]],
+                    [r, -r, -h / 2, primitives_lcs[i][0]],
+                    [r, r, h / 2, primitives_lcs[i][0]],
+                    [kr, kr, h / 2, primitives_lcs[i][0]],
+                    [kr, -kr, h / 2, primitives_lcs[i][0]],
+                    [r, -r, h / 2, primitives_lcs[i][0]]
                 ],
                 [
                     transform_data[0], transform_data[1], transform_data[2] + h_cnt,
@@ -119,19 +119,19 @@ class Cylinder(Complex):
                 ],
                 transfinite_types[1]
             ))
-            complex_lcs.append(lcs[i][0])
+            complex_lcs.append(primitives_lcs[i][0])
             # Core Y
             primitives.append(Primitive(
                 factory,
                 [
-                    [r, r, -h / 2, lcs[i][0]],
-                    [-r, r, -h / 2, lcs[i][0]],
-                    [-kr, kr, -h / 2, lcs[i][0]],
-                    [kr, kr, -h / 2, lcs[i][0]],
-                    [r, r, h / 2, lcs[i][0]],
-                    [-r, r, h / 2, lcs[i][0]],
-                    [-kr, kr, h / 2, lcs[i][0]],
-                    [kr, kr, h / 2, lcs[i][0]]
+                    [r, r, -h / 2, primitives_lcs[i][0]],
+                    [-r, r, -h / 2, primitives_lcs[i][0]],
+                    [-kr, kr, -h / 2, primitives_lcs[i][0]],
+                    [kr, kr, -h / 2, primitives_lcs[i][0]],
+                    [r, r, h / 2, primitives_lcs[i][0]],
+                    [-r, r, h / 2, primitives_lcs[i][0]],
+                    [-kr, kr, h / 2, primitives_lcs[i][0]],
+                    [kr, kr, h / 2, primitives_lcs[i][0]]
                 ],
                 [
                     transform_data[0], transform_data[1], transform_data[2] + h_cnt,
@@ -160,7 +160,7 @@ class Cylinder(Complex):
                 ],
                 transfinite_types[2]
             ))
-            complex_lcs.append(lcs[i][0])
+            complex_lcs.append(primitives_lcs[i][0])
             # Core NX
             if transfinite_r_data[0][1] == 0:  # If Progression type => reverse
                 kt = 1 / transfinite_r_data[0][2]
@@ -169,14 +169,14 @@ class Cylinder(Complex):
             primitives.append(Primitive(
                 factory,
                 [
-                    [-kr, kr, -h / 2, lcs[i][0]],
-                    [-r, r, -h / 2, lcs[i][0]],
-                    [-r, -r, -h / 2, lcs[i][0]],
-                    [-kr, -kr, -h / 2, lcs[i][0]],
-                    [-kr, kr, h / 2, lcs[i][0]],
-                    [-r, r, h / 2, lcs[i][0]],
-                    [-r, -r, h / 2, lcs[i][0]],
-                    [-kr, -kr, h / 2, lcs[i][0]]
+                    [-kr, kr, -h / 2, primitives_lcs[i][0]],
+                    [-r, r, -h / 2, primitives_lcs[i][0]],
+                    [-r, -r, -h / 2, primitives_lcs[i][0]],
+                    [-kr, -kr, -h / 2, primitives_lcs[i][0]],
+                    [-kr, kr, h / 2, primitives_lcs[i][0]],
+                    [-r, r, h / 2, primitives_lcs[i][0]],
+                    [-r, -r, h / 2, primitives_lcs[i][0]],
+                    [-kr, -kr, h / 2, primitives_lcs[i][0]]
                 ],
                 [
                     transform_data[0], transform_data[1], transform_data[2] + h_cnt,
@@ -205,7 +205,7 @@ class Cylinder(Complex):
                 ],
                 transfinite_types[3]
             ))
-            complex_lcs.append(lcs[i][0])
+            complex_lcs.append(primitives_lcs[i][0])
             # Core NY
             if transfinite_r_data[0][1] == 0:  # If Progression type => reverse
                 kt = 1 / transfinite_r_data[0][2]
@@ -214,14 +214,14 @@ class Cylinder(Complex):
             primitives.append(Primitive(
                 factory,
                 [
-                    [kr, -kr, -h / 2, lcs[i][0]],
-                    [-kr, -kr, -h / 2, lcs[i][0]],
-                    [-r, -r, -h / 2, lcs[i][0]],
-                    [r, -r, -h / 2, lcs[i][0]],
-                    [kr, -kr, h / 2, lcs[i][0]],
-                    [-kr, -kr, h / 2, lcs[i][0]],
-                    [-r, -r, h / 2, lcs[i][0]],
-                    [r, -r, h / 2, lcs[i][0]]
+                    [kr, -kr, -h / 2, primitives_lcs[i][0]],
+                    [-kr, -kr, -h / 2, primitives_lcs[i][0]],
+                    [-r, -r, -h / 2, primitives_lcs[i][0]],
+                    [r, -r, -h / 2, primitives_lcs[i][0]],
+                    [kr, -kr, h / 2, primitives_lcs[i][0]],
+                    [-kr, -kr, h / 2, primitives_lcs[i][0]],
+                    [-r, -r, h / 2, primitives_lcs[i][0]],
+                    [r, -r, h / 2, primitives_lcs[i][0]]
                 ],
                 [
                     transform_data[0], transform_data[1], transform_data[2] + h_cnt,
@@ -250,7 +250,7 @@ class Cylinder(Complex):
                 ],
                 transfinite_types[4]
             ))
-            complex_lcs.append(lcs[i][0])
+            complex_lcs.append(primitives_lcs[i][0])
             # Layers
             for j in range(1, len(radii)):
                 primitives_physical_data.extend([layers_physical_data[i][j]] * 4)
@@ -260,14 +260,14 @@ class Cylinder(Complex):
                 primitives.append(Primitive(
                     factory,
                     [
-                        [r2, r2, -h / 2, lcs[i][j]],
-                        [r1, r1, -h / 2, lcs[i][j]],
-                        [r1, -r1, -h / 2, lcs[i][j]],
-                        [r2, -r2, -h / 2, lcs[i][j]],
-                        [r2, r2, h / 2, lcs[i][j]],
-                        [r1, r1, h / 2, lcs[i][j]],
-                        [r1, -r1, h / 2, lcs[i][j]],
-                        [r2, -r2, h / 2, lcs[i][j]]
+                        [r2, r2, -h / 2, primitives_lcs[i][j]],
+                        [r1, r1, -h / 2, primitives_lcs[i][j]],
+                        [r1, -r1, -h / 2, primitives_lcs[i][j]],
+                        [r2, -r2, -h / 2, primitives_lcs[i][j]],
+                        [r2, r2, h / 2, primitives_lcs[i][j]],
+                        [r1, r1, h / 2, primitives_lcs[i][j]],
+                        [r1, -r1, h / 2, primitives_lcs[i][j]],
+                        [r2, -r2, h / 2, primitives_lcs[i][j]]
                     ],
                     [
                         transform_data[0], transform_data[1], transform_data[2] + h_cnt,
@@ -296,19 +296,19 @@ class Cylinder(Complex):
                     ],
                     transfinite_types[1]
                 ))
-                complex_lcs.append(lcs[i][j])
+                complex_lcs.append(primitives_lcs[i][j])
                 # Layer Y
                 primitives.append(Primitive(
                     factory,
                     [
-                        [r2, r2, -h / 2, lcs[i][j]],
-                        [-r2, r2, -h / 2, lcs[i][j]],
-                        [-r1, r1, -h / 2, lcs[i][j]],
-                        [r1, r1, -h / 2, lcs[i][j]],
-                        [r2, r2, h / 2, lcs[i][j]],
-                        [-r2, r2, h / 2, lcs[i][j]],
-                        [-r1, r1, h / 2, lcs[i][j]],
-                        [r1, r1, h / 2, lcs[i][j]]
+                        [r2, r2, -h / 2, primitives_lcs[i][j]],
+                        [-r2, r2, -h / 2, primitives_lcs[i][j]],
+                        [-r1, r1, -h / 2, primitives_lcs[i][j]],
+                        [r1, r1, -h / 2, primitives_lcs[i][j]],
+                        [r2, r2, h / 2, primitives_lcs[i][j]],
+                        [-r2, r2, h / 2, primitives_lcs[i][j]],
+                        [-r1, r1, h / 2, primitives_lcs[i][j]],
+                        [r1, r1, h / 2, primitives_lcs[i][j]]
                     ],
                     [
                         transform_data[0], transform_data[1], transform_data[2] + h_cnt,
@@ -337,7 +337,7 @@ class Cylinder(Complex):
                     ],
                     transfinite_types[2]
                 ))
-                complex_lcs.append(lcs[i][j])
+                complex_lcs.append(primitives_lcs[i][j])
                 # Layer NX
                 if transfinite_r_data[j][1] == 0:  # If Progression type => reverse
                     kt = 1 / transfinite_r_data[j][2]
@@ -346,14 +346,14 @@ class Cylinder(Complex):
                 primitives.append(Primitive(
                     factory,
                     [
-                        [-r1, r1, -h / 2, lcs[i][j]],
-                        [-r2, r2, -h / 2, lcs[i][j]],
-                        [-r2, -r2, -h / 2, lcs[i][j]],
-                        [-r1, -r1, -h / 2, lcs[i][j]],
-                        [-r1, r1, h / 2, lcs[i][j]],
-                        [-r2, r2, h / 2, lcs[i][j]],
-                        [-r2, -r2, h / 2, lcs[i][j]],
-                        [-r1, -r1, h / 2, lcs[i][j]]
+                        [-r1, r1, -h / 2, primitives_lcs[i][j]],
+                        [-r2, r2, -h / 2, primitives_lcs[i][j]],
+                        [-r2, -r2, -h / 2, primitives_lcs[i][j]],
+                        [-r1, -r1, -h / 2, primitives_lcs[i][j]],
+                        [-r1, r1, h / 2, primitives_lcs[i][j]],
+                        [-r2, r2, h / 2, primitives_lcs[i][j]],
+                        [-r2, -r2, h / 2, primitives_lcs[i][j]],
+                        [-r1, -r1, h / 2, primitives_lcs[i][j]]
                     ],
                     [
                         transform_data[0], transform_data[1], transform_data[2] + h_cnt,
@@ -382,7 +382,7 @@ class Cylinder(Complex):
                     ],
                     transfinite_types[3]
                 ))
-                complex_lcs.append(lcs[i][j])
+                complex_lcs.append(primitives_lcs[i][j])
                 # Layer NY
                 if transfinite_r_data[j][1] == 0:  # If Progression type => reverse
                     kt = 1 / transfinite_r_data[j][2]
@@ -391,14 +391,14 @@ class Cylinder(Complex):
                 primitives.append(Primitive(
                     factory,
                     [
-                        [r1, -r1, -h / 2, lcs[i][j]],
-                        [-r1, -r1, -h / 2, lcs[i][j]],
-                        [-r2, -r2, -h / 2, lcs[i][j]],
-                        [r2, -r2, -h / 2, lcs[i][j]],
-                        [r1, -r1, h / 2, lcs[i][j]],
-                        [-r1, -r1, h / 2, lcs[i][j]],
-                        [-r2, -r2, h / 2, lcs[i][j]],
-                        [r2, -r2, h / 2, lcs[i][j]]
+                        [r1, -r1, -h / 2, primitives_lcs[i][j]],
+                        [-r1, -r1, -h / 2, primitives_lcs[i][j]],
+                        [-r2, -r2, -h / 2, primitives_lcs[i][j]],
+                        [r2, -r2, -h / 2, primitives_lcs[i][j]],
+                        [r1, -r1, h / 2, primitives_lcs[i][j]],
+                        [-r1, -r1, h / 2, primitives_lcs[i][j]],
+                        [-r2, -r2, h / 2, primitives_lcs[i][j]],
+                        [r2, -r2, h / 2, primitives_lcs[i][j]]
                     ],
                     [
                         transform_data[0], transform_data[1], transform_data[2] + h_cnt,
@@ -427,6 +427,6 @@ class Cylinder(Complex):
                     ],
                     transfinite_types[4]
                 ))
-                complex_lcs.append(lcs[i][j])
+                complex_lcs.append(primitives_lcs[i][j])
             h_cnt += h / 2
             Complex.__init__(self, factory, primitives, primitives_physical_data, complex_lcs)
