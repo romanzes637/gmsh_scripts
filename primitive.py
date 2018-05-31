@@ -1,6 +1,5 @@
 import itertools
 import time
-
 import gmsh
 
 
@@ -234,19 +233,9 @@ class Primitive:
         else:
             self.bounding_box = [0, 0, 0, 0, 0, 0]
 
-    def set_size(self, size, volume_idx=None):
-        if volume_idx is None:
-            for i in range(len(self.volumes)):
-                volumes_dim_tags = (3, self.volumes[i])
-                points_dim_tags = gmsh.model.getBoundary(
-                    volumes_dim_tags, combined=False, recursive=True
-                )
-                gmsh.model.mesh.setSize(points_dim_tags, size)
-        else:
-            volumes_dim_tags = (3, self.volumes[volume_idx])
-            points_dim_tags = gmsh.model.getBoundary(
-                volumes_dim_tags, combined=False, recursive=True
-            )
+    def set_size(self, size):
+        for v in self.volumes:
+            points_dim_tags = gmsh.model.getBoundary([(3, v)], combined=False, recursive=True)
             gmsh.model.mesh.setSize(points_dim_tags, size)
 
     surfaces_names = {
@@ -419,19 +408,15 @@ class Complex:
             print("Inner Boolean %s by %s" % combination)
             primitive_boolean(self.factory, self.primitives[combination[0]], self.primitives[combination[1]])
 
-    def set_size(self, size=None, primitive_idx=None, volume_idx=None):
+    def set_size(self, size=None, primitive_idx=None):
         if size is None and self.lcs is not None:
             for idx, primitive in enumerate(self.primitives):
                 primitive.set_size(self.lcs[idx])
-        elif primitive_idx is None and volume_idx is None:
+        elif size is not None and primitive_idx is None:
             for primitive in self.primitives:
                 primitive.set_size(size)
-        elif primitive_idx is not None and volume_idx is None:
-            self.primitives[primitive_idx].set_size(size)
-        elif primitive_idx is not None and volume_idx is not None:
-            self.primitives[primitive_idx].set_size(size, volume_idx)
         else:
-            raise ValueError("primitive_idx must be not None if volume_idx is not None")
+            self.primitives[primitive_idx].set_size(size)
 
     def get_volumes_by_physical_index(self, idx):
         vs = []

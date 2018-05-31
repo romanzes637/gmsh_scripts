@@ -98,6 +98,21 @@ def correct_complex(complex_obj):
     return results
 
 
+def correct_and_transfinite_primitive(primitive_obj, ss):
+    """
+        Correct Primitive, if Primitive corrected => transfinite it
+        :param primitive_obj: Primitive object
+        :param ss: set() - already transfinited surfaces
+        """
+    result = correct_primitive(primitive_obj)
+    print(result)
+    if result:
+        result = primitive_obj.transfinite(ss)
+    else:
+        result = None
+    print(result)
+
+
 def correct_and_transfinite_complex(complex_obj, ss):
     """
     Correct Complex's Primitives then if Primitive corrected => transfinite it

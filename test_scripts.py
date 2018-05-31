@@ -17,6 +17,7 @@ from primitive import Primitive
 from primitive import Complex
 from primitive import primitive_complex_boolean
 from cylinder import Cylinder
+from support import auto_primitive_points_sizes_min_curve, auto_complex_points_sizes_min_curve
 
 
 class TestScripts(unittest.TestCase):
@@ -2163,6 +2164,796 @@ class TestScripts(unittest.TestCase):
 
         print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
 
+    def test_boreholes_and_intrusion(self):
+        """
+        Test borehole and intrusion
+        Note.
+        There is a relation of characteristic length parameters on result of mesh building.
+        Shortly: high lc parameter at small volume can lead to mesh construction issues.
+        As example: setting borehole lcs: [[1, 1, 1], [1, 1, 1], [1, 1, 1]] leads to zero volume 169,
+        but if lcs is changed to [[1, 1, 1], [1, 0.5, 1], [1, 1, 1]] then mesh generation will perform well.
+        Update: points auto size
+        """
+        start_time = time.time()
+
+        gmsh.initialize()
+
+        gmsh.option.setNumber("General.Terminal", 1)
+        # (1=Delaunay, 2=New Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
+
+        gmsh.model.add("test_boreholes_and_intrusion")
+
+        factory = gmsh.model.occ
+
+        print("Creation")
+        start = time.time()
+        print("Environment")
+        env_start_time = time.time()
+        repo_center_depth = 487.5  # repository center depth
+        env_length_x = 1000
+        env_length_y = 1000
+        env_lc = 100
+        environment = Primitive(
+            factory,
+            [
+                [env_length_x / 2, env_length_y / 2, -repo_center_depth, env_lc],
+                [-env_length_x / 2, env_length_y / 2, -repo_center_depth, env_lc],
+                [-env_length_x / 2, -env_length_y / 2, -repo_center_depth, env_lc],
+                [env_length_x / 2, -env_length_y / 2, -repo_center_depth, env_lc],
+                [env_length_x / 2, env_length_y / 2, repo_center_depth, env_lc],
+                [-env_length_x / 2, env_length_y / 2, repo_center_depth, env_lc],
+                [-env_length_x / 2, -env_length_y / 2, repo_center_depth, env_lc],
+                [env_length_x / 2, -env_length_y / 2, repo_center_depth, env_lc]
+            ]
+        )
+        print('Environment spent time: {:.3f}s'.format(time.time() - env_start_time))
+        print("Boreholes")
+        boreholes = []
+        bor_dx = 23
+        bor_nx = 2
+        bor_dy = 15
+        bor_ny = 2
+        n = bor_nx * bor_ny
+        est_time = 0
+        times = []
+        time_spent = 0
+        for i in range(bor_nx):
+            for j in range(bor_ny):
+                start_time = time.time()
+                cnt = i * bor_ny + j + 1
+                rem = n - cnt + 1
+                rem_time = rem * est_time
+                print('Borehole: {}/{}(X: {}/{}, Y: {}/{}) Spent time: {:.3f}s Remaining time: {:.3f}s'.format(
+                    cnt, n, i + 1, bor_nx, j + 1, bor_ny, time_spent, rem_time))
+                boreholes.append(Borehole(
+                    factory,
+                    [[0.6, 0.3, 0.1], [0.6, 0.3, 0.1], [0.6, 0.3, 0.1]],
+                    [bor_dx * i, bor_dy * j, -37.5, 0, 0, 0, 0, 0, 0],
+                    [[3, 0, 1], [3, 0, 1], [3, 0, 1]],
+                    [[10, 0, 1], [10, 0, 1], [10, 0, 1]],
+                    [3, 0, 1],
+                    10  # 10
+                ))
+                times.append(time.time() - start_time)
+                print('{:.3f}s'.format(times[-1]))
+                time_spent += times[-1]
+                est_time = sum(times) / cnt
+        print('Boreholes spent time: {:.3f}s'.format(time_spent))
+        print("Intrusion")
+        int_start_time = time.time()
+        int_length = 650  # 650
+        int_width = 200  # 200
+        int_thickness = 5
+        int_lc = 1  # 5
+        int_center_x = 0
+        int_center_y = 0
+        int_center_z = 0  # 35
+        int_rotation_x = math.pi / 4  # math.pi / 4
+        int_rotation_y = -math.pi / 3  # -math.pi / 4
+        int_rotation_z = 0
+        int_dz = 10  # 10
+        int_dy = 0  # 20
+        int_physical_tag = 0
+        int_name = "Intrusion"
+        intrusion = ComplexPrimitive(
+            factory,
+            [15, 5, 1],  # [15, 5, 1]
+            [
+                [int_length / 2, int_width / 2 + int_dy, -int_thickness / 2 - int_dz, int_lc],
+                [-int_length / 2, int_width / 2, -int_thickness / 2, int_lc],
+                [-int_length / 2, -int_width / 2, -int_thickness / 2, int_lc],
+                [int_length / 2, -int_width / 2 - int_dy / 2, -int_thickness / 2 - int_dz / 2, int_lc],
+                [int_length / 2, int_width / 2, int_thickness / 2 - int_dz / 3, int_lc],
+                [-int_length / 2, int_width / 2, int_thickness / 2, int_lc],
+                [-int_length / 2, -int_width / 2, int_thickness / 2, int_lc],
+                [int_length / 2, -int_width / 2, int_thickness / 2, int_lc],
+            ],
+            int_physical_tag,
+            int_lc,
+            [int_center_x, int_center_y, int_center_z, int_rotation_x, int_rotation_y, int_rotation_z],
+            transfinite_data=[[5, 0, 1], [5, 0, 1], [5, 0, 1]]
+        )
+        print('Intrusion spent time: {:.3f}s'.format(time.time() - int_start_time))
+        print('Creation spent time: {:.3f}s'.format(time.time() - start))
+
+        print("Boreholes unions")
+        start = time.time()
+        us = []
+        times = []
+        est_time = 0
+        time_spent = 0
+        n = len(boreholes)
+        for i, b in enumerate(boreholes):
+            start_time = time.time()
+            cnt = i + 1
+            rem = n - cnt + 1
+            rem_time = rem * est_time
+            print('Borehole: {}/{} Spent time: {:.3f}s Remaining time: {:.3f}s'.format(cnt, n, time_spent, rem_time))
+            us.append(b.get_union_volume())
+            times.append(time.time() - start_time)
+            print('{:.3f}s'.format(times[-1]))
+            time_spent += times[-1]
+            est_time = sum(times) / cnt
+        print('Boreholes Union spent time: {:.3f}s'.format(time.time() - start))
+
+        print("Intrusion by Borehole boolean")
+        start = time.time()
+        for i, b in enumerate(boreholes):
+            complex_cut_by_volume_boolean(factory, intrusion, us[i][0][1])
+            complex_boolean(factory, intrusion, b)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Environment by Borehole boolean")
+        start = time.time()
+        for i, b in enumerate(boreholes):
+            primitive_complex_boolean(factory, environment, b)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Environment by Intrusion boolean")
+        start = time.time()
+        primitive_complex_boolean(factory, environment, intrusion)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Remove All Duplicates")
+        start = time.time()
+        factory.removeAllDuplicates()
+        factory.synchronize()
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Correct and Transfinite")
+        start = time.time()
+        ss = set()
+        for b in boreholes:
+            occ_ws.correct_and_transfinite_complex(b, ss)
+        occ_ws.correct_and_transfinite_complex(intrusion, ss)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Set Sizes")
+        start = time.time()
+        environment.set_size(env_lc)
+        points_sizes = dict()
+        auto_complex_points_sizes_min_curve(intrusion, points_sizes)
+        for b in boreholes:
+            auto_complex_points_sizes_min_curve(b, points_sizes)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Intrusion Physical")
+        vs = intrusion.get_volumes_by_physical_index(int_physical_tag)
+        tag = gmsh.model.addPhysicalGroup(3, vs)
+        gmsh.model.setPhysicalName(3, tag, int_name)
+        # print("Debug Intrusion Physical")
+        # for idx, primitive in enumerate(intrusion.primitives):
+        #     tag = gmsh.model.addPhysicalGroup(3, primitive.volumes)
+        #     gmsh.model.setPhysicalName(3, tag, "V_I{}".format(idx))
+        #     for surface_idx, surface in enumerate(primitive.surfaces):
+        #         tag = gmsh.model.addPhysicalGroup(2, [surface])
+        #         gmsh.model.setPhysicalName(2, tag, "S_I_{}{}".format(primitive.surfaces_names[surface_idx], idx))
+
+        print("Boreholes Physical")
+        for i, name in enumerate(Borehole.physical_names):
+            vs = []
+            for b in boreholes:
+                vs.extend(b.get_volumes_by_physical_index(i))
+            tag = gmsh.model.addPhysicalGroup(3, vs)
+            gmsh.model.setPhysicalName(3, tag, name)
+        # print("Debug Borehole Physical")
+        # for idx, primitive in enumerate(borehole.primitives):
+        #     tag = gmsh.model.addPhysicalGroup(3, primitive.volumes)
+        #     gmsh.model.setPhysicalName(3, tag, "V_B{}".format(idx))
+        #     for surface_idx, surface in enumerate(primitive.surfaces):
+        #         tag = gmsh.model.addPhysicalGroup(2, [surface])
+        #         gmsh.model.setPhysicalName(2, tag, "S_B_{}{}".format(primitive.surfaces_names[surface_idx], idx))
+
+        print("Environment Physical")
+        tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
+        gmsh.model.setPhysicalName(3, tag, "Environment")
+        volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
+        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        surfaces_names = ["X", "Z", "NY", "NZ", "Y", "NX"]
+        for i in range(len(surfaces_names)):
+            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
+            gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
+            #     gmsh.model.setPhysicalName(2, tag, 'S%s' % i)
+
+        gmsh.model.mesh.generate(3)
+
+        gmsh.model.mesh.removeDuplicateNodes()
+
+        gmsh.write("test_boreholes_and_intrusion_auto.msh")
+
+        gmsh.finalize()
+
+        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
+
+    def test_volume_points_curves_data(self):
+        """
+        Test
+        """
+        start_time = time.time()
+
+        gmsh.initialize()
+
+        gmsh.option.setNumber("General.Terminal", 1)
+        # 1=Delaunay, 2=New Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
+
+        gmsh.model.add("test_volume_points_curves_data")
+
+        factory = gmsh.model.occ
+
+        print("Creation")
+        print("Environment")
+        env_start_time = time.time()
+        repo_center_depth = 487.5  # repository center depth
+        env_length_x = 1200
+        env_length_y = 1000
+        env_lc = 100
+        environment = Primitive(
+            factory,
+            [
+                [env_length_x / 2, env_length_y / 2, -repo_center_depth, env_lc],
+                [-env_length_x / 2, env_length_y / 2, -repo_center_depth, env_lc],
+                [-env_length_x / 2, -env_length_y / 2, -repo_center_depth, env_lc],
+                [env_length_x / 2, -env_length_y / 2, -repo_center_depth, env_lc],
+                [env_length_x / 2, env_length_y / 2, repo_center_depth, env_lc],
+                [-env_length_x / 2, env_length_y / 2, repo_center_depth, env_lc],
+                [-env_length_x / 2, -env_length_y / 2, repo_center_depth, env_lc],
+                [env_length_x / 2, -env_length_y / 2, repo_center_depth, env_lc]
+            ]
+        )
+        print('Environment spent time: {:.3f}s'.format(time.time() - env_start_time))
+
+        points_sizes = dict()
+        auto_primitive_points_sizes_min_curve(environment, points_sizes)
+
+        gmsh.model.mesh.generate(3)
+
+        gmsh.model.mesh.removeDuplicateNodes()
+
+        gmsh.write("test_volume_points_curves_data.msh")
+
+        gmsh.finalize()
+
+        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
+
+    def test_primitive_mix_auto_sizes(self):
+        """
+        Three primitive boreholes and three primitive rock intrusions.
+        Two intrusions intersect each over and two boreholes,
+        i.e. one borehole and one complex_type_1 aren't intersected.
+        All boreholes and intrusions are included in rock environment.
+        Points' sizes are evaluated by points' curves min lengths.
+        """
+        start_time = time.time()
+
+        gmsh.initialize()
+
+        gmsh.option.setNumber("General.Terminal", 1)
+        # 1=Delaunay, 2=New Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
+
+        gmsh.model.add("test_primitive_mix_auto_sizes")
+
+        factory = gmsh.model.occ
+
+        print("Creation")
+        start = time.time()
+        environment = Primitive(
+            factory,
+            [
+                [100, 100, -100, 100],
+                [-100, 100, -100, 100],
+                [-100, -100, -100, 100],
+                [100, -100, -100, 100],
+                [100, 100, 100, 100],
+                [-100, 100, 100, 100],
+                [-100, -100, 100, 100],
+                [100, -100, 100, 100]
+            ]
+        )
+        n_boreholes = 3
+        boreholes = []
+        for i in range(n_boreholes):
+            boreholes.append(Primitive(
+                factory,
+                [
+                    [5, 5, -30, 1],
+                    [-5, 5, -30, 1],
+                    [-5, -5, -30, 1],
+                    [5, -5, -30, 1],
+                    [5, 5, 30, 1],
+                    [-5, 5, 30, 1],
+                    [-5, -5, 30, 1],
+                    [5, -5, 30, 1]
+                ],
+                [25 * i, 0, 0, 0, 0, 0, 0, 0, 0],
+                [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+                [
+                    [[0, 0, -30, 0]],
+                    [[0, 0, 30, 0]],
+                    [[0, 0, 30, 0]],
+                    [[0, 0, -30, 0]],
+                    [[0, 0, -30, 0]],
+                    [[0, 0, -30, 0]],
+                    [[0, 0, 30, 0]],
+                    [[0, 0, 30, 0]],
+                    [],
+                    [],
+                    [],
+                    []
+                ],
+                [
+                    [5, 0, 1],
+                    [5, 0, 1],
+                    [5, 0, 1],
+                    [5, 0, 1],
+                    [5, 0, 1],
+                    [5, 0, 1],
+                    [5, 0, 1],
+                    [5, 0, 1],
+                    [15, 0, 1],
+                    [15, 0, 1],
+                    [15, 0, 1],
+                    [15, 0, 1]
+                ],
+                1
+            ))
+        n_intrusions = 3
+        intrusions = []
+        for i in range(n_intrusions):
+            if i == 0:
+                intrusions.append(Primitive(
+                    factory,
+                    [
+                        [5, 10, -15, 1],
+                        [-5, 10, -15, 1],
+                        [-5, -10, -15, 1],
+                        [5, -10, -15, 1],
+                        [5, 10, 15, 1],
+                        [-5, 10, 15, 1],
+                        [-5, -10, 15, 1],
+                        [5, -10, 15, 1]
+                    ],
+                    [25, 40, -50, 0, 0, 0, 3.14 / 8, 3.14 / 6, 3.14 / 4],
+                    [4, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+                    [
+                        [
+                            [-2, 20, -20, 1],
+                            [-1, 20, -20, 1],
+                            [1, 20, -20, 1],
+                            [2, 20, -20, 1]
+                        ],
+                        [],
+                        [],
+                        [],
+                        [],
+                        [],
+                        [],
+                        [[0, 0, 0, 0]],
+                        [],
+                        [],
+                        [[0, 0, 0, 0], [0, 0, 0, 0]],
+                        []
+                    ],
+                    [
+                        [5, 0, 1],
+                        [5, 0, 1],
+                        [5, 0, 1],
+                        [5, 0, 1],
+                        [10, 0, 1],
+                        [10, 0, 1],
+                        [10, 0, 1],
+                        [10, 0, 1],
+                        [15, 0, 1],
+                        [15, 0, 1],
+                        [15, 0, 1],
+                        [15, 0, 1]
+                    ],
+                    1
+                ))
+            else:
+                intrusions.append(Primitive(
+                    factory,
+                    [
+                        [5, 10, -15, 1],
+                        [-5, 10, -15, 1],
+                        [-5, -10, -15, 1],
+                        [5, -10, -15, 1],
+                        [5, 10, 15, 1],
+                        [-5, 10, 15, 1],
+                        [-5, -10, 15, 1],
+                        [5, -10, 15, 1]
+                    ],
+                    [3 * i, 3 * i, 3 * i, 0, 0, 0, 3.14 * i / 4, 3.14 * i / 6, 3.14 * i / 8],
+                    [5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+                    [
+                        [
+                            [-2, 20, -20, 1],
+                            [-1, 20, -20, 1],
+                            [1, 20, -20, 1],
+                            [2, 20, -20, 1]
+                        ],
+                        [],
+                        [],
+                        [],
+                        [],
+                        [],
+                        [],
+                        [[0, 0, 0, 0]],
+                        [],
+                        [],
+                        [[0, 0, 0, 0], [0, 0, 0, 0]],
+                        []
+                    ],
+                    [
+                        [5, 0, 1],
+                        [5, 0, 1],
+                        [5, 0, 1],
+                        [5, 0, 1],
+                        [10, 0, 1],
+                        [10, 0, 1],
+                        [10, 0, 1],
+                        [10, 0, 1],
+                        [15, 0, 1],
+                        [15, 0, 1],
+                        [15, 0, 1],
+                        [15, 0, 1]
+                    ],
+                    1
+                ))
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Boolean")
+        start = time.time()
+        combinations = list(itertools.combinations(range(n_intrusions), 2))
+        print(combinations)
+        for combination in combinations:
+            print("Boolean primitive %s by primitive %s" % combination)
+            primitive_boolean(factory, intrusions[combination[0]], intrusions[combination[1]])
+        for idx, borehole in enumerate(boreholes):
+            for idx2, primitive in enumerate(intrusions):
+                print("Boolean primitive %s by borehole %s" % (idx2, idx))
+                primitive_boolean(factory, primitive, borehole)
+        for idx, borehole in enumerate(boreholes):
+            print("Boolean environment by borehole %s" % idx)
+            primitive_boolean(factory, environment, borehole)
+        for idx, intrusion in enumerate(intrusions):
+            print("Boolean environment by primitive %s" % idx)
+            primitive_boolean(factory, environment, intrusion)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Remove All Duplicates")
+        start = time.time()
+        factory.removeAllDuplicates()
+        factory.synchronize()
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Correct and Transfinite")
+        start = time.time()
+        ss = set()
+        for borehole in boreholes:
+            occ_ws.correct_and_transfinite_primitive(borehole, ss)
+        for intrusion in intrusions:
+            occ_ws.correct_and_transfinite_primitive(intrusion, ss)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Set Sizes")
+        start = time.time()
+        environment.set_size(50)
+        points_sizes = dict()
+        for borehole in boreholes:
+            auto_primitive_points_sizes_min_curve(borehole, points_sizes)
+        for intrusion in intrusions:
+            auto_primitive_points_sizes_min_curve(intrusion, points_sizes)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Physical Volumes")
+        intrusion_fgs = []
+        for primitive in intrusions:
+            intrusion_fgs.append(gmsh.model.addPhysicalGroup(3, primitive.volumes))
+        for i in range(len(intrusion_fgs)):
+            gmsh.model.setPhysicalName(3, intrusion_fgs[i], "Intrusion{}".format(i))
+        borehole_fgs = []
+        for borehole in boreholes:
+            borehole_fgs.append(gmsh.model.addPhysicalGroup(3, borehole.volumes))
+        for i in range(len(borehole_fgs)):
+            gmsh.model.setPhysicalName(3, borehole_fgs[i], "Borehole{}".format(i))
+        env_fg = gmsh.model.addPhysicalGroup(3, environment.volumes)
+        gmsh.model.setPhysicalName(3, env_fg, "Environment")
+
+        print("Physical Surfaces")
+        volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
+        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        surfaces_names = ["X", "Z", "NY", "NZ", "Y", "NX"]
+        for i in range(6):
+            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
+            gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
+
+        gmsh.model.mesh.generate(3)
+
+        gmsh.model.mesh.removeDuplicateNodes()
+
+        gmsh.write("test_primitive_mix_auto_sizes.msh")
+
+        gmsh.finalize()
+
+        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
+
+    def test_complex_mix_auto_sizes(self):
+        """
+        Test complex boreholes and complex intrusions inscribed in environment.
+        Points' sizes are evaluated by points' curves min lengths.
+        """
+        start_time = time.time()
+
+        gmsh.initialize()
+
+        gmsh.option.setNumber("General.Terminal", 1)
+        # 1=Delaunay, 2=New Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
+
+        gmsh.model.add("test_complex_mix_auto_sizes")
+
+        factory = gmsh.model.occ
+
+        print("Creation")
+        start = time.time()
+        # Environment
+        environment = Primitive(
+            factory,
+            [
+                [100, 100, -100, 10],
+                [-100, 100, -100, 10],
+                [-100, -100, -100, 10],
+                [100, -100, -100, 10],
+                [100, 100, 100, 10],
+                [-100, 100, 100, 10],
+                [-100, -100, 100, 10],
+                [100, -100, 100, 10]
+            ]
+        )
+        # Boreholes
+        n_boreholes = 3
+        boreholes = []
+        boreholes_pgs = []
+        for i in range(n_boreholes):
+            boreholes_pgs.append(0)
+            boreholes.append(Primitive(
+                factory,
+                [
+                    [5, 5, -30, 1],
+                    [-5, 5, -30, 1],
+                    [-5, -5, -30, 1],
+                    [5, -5, -30, 1],
+                    [5, 5, 30, 1],
+                    [-5, 5, 30, 1],
+                    [-5, -5, 30, 1],
+                    [5, -5, 30, 1]
+                ],
+                [25 * i, 0, 0, 0, 0, 0, 0, 0, 0],
+                [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+                [
+                    [[0, 0, -30, 0]],
+                    [[0, 0, 30, 0]],
+                    [[0, 0, 30, 0]],
+                    [[0, 0, -30, 0]],
+                    [[0, 0, -30, 0]],
+                    [[0, 0, -30, 0]],
+                    [[0, 0, 30, 0]],
+                    [[0, 0, 30, 0]],
+                    [],
+                    [],
+                    [],
+                    []
+                ],
+                [
+                    [5, 0, 1],
+                    [5, 0, 1],
+                    [5, 0, 1],
+                    [5, 0, 1],
+                    [5, 0, 1],
+                    [5, 0, 1],
+                    [5, 0, 1],
+                    [5, 0, 1],
+                    [15, 0, 1],
+                    [15, 0, 1],
+                    [15, 0, 1],
+                    [15, 0, 1]
+                ],
+                1
+            ))
+        complex_boreholes = Complex(factory, boreholes, boreholes_pgs)
+        # Intrusions
+        n_intrusions = 3
+        intrusions = []
+        intrusions_pgs = []
+        for i in range(n_intrusions):
+            intrusions_pgs.append(1)
+            if i == 0:
+                intrusions.append(Primitive(
+                    factory,
+                    [
+                        [5, 10, -15, 1],
+                        [-5, 10, -15, 1],
+                        [-5, -10, -15, 1],
+                        [5, -10, -15, 1],
+                        [5, 10, 15, 1],
+                        [-5, 10, 15, 1],
+                        [-5, -10, 15, 1],
+                        [5, -10, 15, 1]
+                    ],
+                    [25, 40, -50, 0, 0, 0, 3.14 / 8, 3.14 / 6, 3.14 / 4],
+                    [4, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+                    [
+                        [
+                            [-2, 20, -20, 1],
+                            [-1, 20, -20, 1],
+                            [1, 20, -20, 1],
+                            [2, 20, -20, 1]
+                        ],
+                        [],
+                        [],
+                        [],
+                        [],
+                        [],
+                        [],
+                        [[0, 0, 0, 0]],
+                        [],
+                        [],
+                        [[0, 0, 0, 0], [0, 0, 0, 0]],
+                        []
+                    ],
+                    [
+                        [5, 0, 1],
+                        [5, 0, 1],
+                        [5, 0, 1],
+                        [5, 0, 1],
+                        [10, 0, 1],
+                        [10, 0, 1],
+                        [10, 0, 1],
+                        [10, 0, 1],
+                        [15, 0, 1],
+                        [15, 0, 1],
+                        [15, 0, 1],
+                        [15, 0, 1]
+                    ],
+                    1
+                ))
+            else:
+                intrusions.append(Primitive(
+                    factory,
+                    [
+                        [5, 10, -15, 1],
+                        [-5, 10, -15, 1],
+                        [-5, -10, -15, 1],
+                        [5, -10, -15, 1],
+                        [5, 10, 15, 1],
+                        [-5, 10, 15, 1],
+                        [-5, -10, 15, 1],
+                        [5, -10, 15, 1]
+                    ],
+                    [3 * i, 3 * i, 3 * i, 0, 0, 0, 3.14 * i / 4, 3.14 * i / 6, 3.14 * i / 8],
+                    [5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+                    [
+                        [
+                            [-2, 20, -20, 1],
+                            [-1, 20, -20, 1],
+                            [1, 20, -20, 1],
+                            [2, 20, -20, 1]
+                        ],
+                        [],
+                        [],
+                        [],
+                        [],
+                        [],
+                        [],
+                        [[0, 0, 0, 0]],
+                        [],
+                        [],
+                        [[0, 0, 0, 0], [0, 0, 0, 0]],
+                        []
+                    ],
+                    [
+                        [5, 0, 1],
+                        [5, 0, 1],
+                        [5, 0, 1],
+                        [5, 0, 1],
+                        [10, 0, 1],
+                        [10, 0, 1],
+                        [10, 0, 1],
+                        [10, 0, 1],
+                        [15, 0, 1],
+                        [15, 0, 1],
+                        [15, 0, 1],
+                        [15, 0, 1]
+                    ],
+                    1
+                ))
+        complex_intrusions = Complex(factory, intrusions, intrusions_pgs)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Booleans")
+        start = time.time()
+        print("Intrusions Inner Boolean")
+        complex_intrusions.inner_boolean()
+        print("Intrusions by Boreholes Boolean")
+        complex_boolean(factory, complex_intrusions, complex_boreholes)
+        print("Environment by Intrusions Boolean")
+        primitive_complex_boolean(factory, environment, complex_intrusions)
+        print("Environment by Boreholes Boolean")
+        primitive_complex_boolean(factory, environment, complex_boreholes)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Remove All Duplicates")
+        start = time.time()
+        factory.removeAllDuplicates()
+        factory.synchronize()
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Correct and Transfinite")
+        start = time.time()
+        ss = set()
+        occ_ws.correct_and_transfinite_complex(complex_boreholes, ss)
+        occ_ws.correct_and_transfinite_complex(complex_intrusions, ss)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Set Sizes")
+        start = time.time()
+        environment.set_size(50)
+        points_sizes = dict()
+        auto_complex_points_sizes_min_curve(complex_boreholes, points_sizes)
+        auto_complex_points_sizes_min_curve(complex_intrusions, points_sizes)
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Physical Volumes")
+        volumes_names = ["Borehole", "Intrusion"]
+        for idx, name in enumerate(volumes_names):
+            volumes_idxs = []
+            volumes_idxs.extend(complex_boreholes.get_volumes_by_physical_index(idx))
+            volumes_idxs.extend(complex_intrusions.get_volumes_by_physical_index(idx))
+            tag = gmsh.model.addPhysicalGroup(3, volumes_idxs)
+            gmsh.model.setPhysicalName(3, tag, name)
+        vs = gmsh.model.addPhysicalGroup(3, environment.volumes)
+        gmsh.model.setPhysicalName(3, vs, "Rock")
+
+        print("Physical Surfaces")
+        volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
+        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        surfaces_names = ["X", "Z", "NY", "NZ", "Y", "NX"]
+        for i in range(6):
+            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
+            gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
+
+        gmsh.model.mesh.generate(3)
+
+        gmsh.model.mesh.removeDuplicateNodes()
+
+        gmsh.write("test_complex_mix_auto_sizes.msh")
+
+        gmsh.finalize()
+
+        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
 
 if __name__ == '__main__':
     unittest.main()
