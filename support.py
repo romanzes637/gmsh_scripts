@@ -1,5 +1,6 @@
 import gmsh
 import math
+import numpy as np
 
 
 def get_volume_points_curves_data(volume):
@@ -53,22 +54,50 @@ def get_volume_points_curves_data(volume):
     return points_curves_data
 
 
-def auto_primitive_points_sizes_min_curve(primitive_obj, points_sizes_dict):
+def auto_primitive_points_sizes_min_curve(primitive_obj, points_sizes_dict, k=1.0):
     for v in primitive_obj.volumes:
         ps_cs_data = get_volume_points_curves_data(v)
         for pd in ps_cs_data:
             p = pd[0]
-            size = pd[2]  # min curve length
+            size = k * pd[2]  # k * min curve length
             old_size = points_sizes_dict.get(p)
             if old_size is not None:
                 if size < old_size:
                     points_sizes_dict.update({p: size})
-                    gmsh.model.mesh.setSize([(0, p)], size)
+                    dim_tags = np.array([[0, p]], dtype=np.int32)
+                    gmsh.model.mesh.setSize(dim_tags, size)
             else:
                 points_sizes_dict.update({p: size})
-                gmsh.model.mesh.setSize([(0, p)], size)
+                dim_tags = np.array([[0, p]], dtype=np.int32)
+                gmsh.model.mesh.setSize(dim_tags, size)
 
 
-def auto_complex_points_sizes_min_curve(complex_obj, points_sizes_dict):
+def auto_primitive_points_sizes_min_curve_in_volume(primitive_obj, points_sizes_dict, k=1.0):
+    for v in primitive_obj.volumes:
+        ps_cs_data = get_volume_points_curves_data(v)
+        v_curves_sizes = []
+        for pd in ps_cs_data:
+            v_curves_sizes.append(k * pd[2])  # k * min curve length
+        size = min(v_curves_sizes)
+        for pd in ps_cs_data:
+            p = pd[0]
+            old_size = points_sizes_dict.get(p)
+            if old_size is not None:
+                if size < old_size:
+                    points_sizes_dict.update({p: size})
+                    dim_tags = np.array([[0, p]], dtype=np.int32)
+                    gmsh.model.mesh.setSize(dim_tags, size)
+            else:
+                points_sizes_dict.update({p: size})
+                dim_tags = np.array([[0, p]], dtype=np.int32)
+                gmsh.model.mesh.setSize(dim_tags, size)
+
+
+def auto_complex_points_sizes_min_curve(complex_obj, points_sizes_dict, k=1.0):
     for p in complex_obj.primitives:
-        auto_primitive_points_sizes_min_curve(p, points_sizes_dict)
+        auto_primitive_points_sizes_min_curve(p, points_sizes_dict, k)
+
+
+def auto_complex_points_sizes_min_curve_in_volume(complex_obj, points_sizes_dict, k=1.0):
+    for p in complex_obj.primitives:
+        auto_primitive_points_sizes_min_curve_in_volume(p, points_sizes_dict, k)

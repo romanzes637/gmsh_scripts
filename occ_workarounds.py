@@ -105,12 +105,11 @@ def correct_and_transfinite_primitive(primitive_obj, ss):
         :param ss: set() - already transfinited surfaces
         """
     result = correct_primitive(primitive_obj)
-    print(result)
     if result:
         result = primitive_obj.transfinite(ss)
     else:
         result = None
-    print(result)
+    return result
 
 
 def correct_and_transfinite_complex(complex_obj, ss):
@@ -120,7 +119,6 @@ def correct_and_transfinite_complex(complex_obj, ss):
     :param ss: set() - already transfinited surfaces
     """
     correction_rs = correct_complex(complex_obj)
-    print(correction_rs)
     transfinite_rs = []
     for idx, p in enumerate(complex_obj.primitives):
         if correction_rs[idx]:
@@ -128,7 +126,7 @@ def correct_and_transfinite_complex(complex_obj, ss):
             transfinite_rs.append(result)
         else:
             transfinite_rs.append(None)
-    print(transfinite_rs)
+    return transfinite_rs
 
 # Obsoleted
 # def correct_primitive(primitive, surfaces_map):
