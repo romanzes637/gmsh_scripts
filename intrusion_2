@@ -1,0 +1,30 @@
+# Type 2 data format for Complex import
+# x y z - global coordinates of a local coordinate system origin
+# ax ay az - local coordinate system rotation angles by right-hand rule or rx ry rz a - rotation vector and angle
+# x1 y1 z1 - 1st point coordinates
+# x2 y2 z2 - 2nd point coordinates
+# ...
+# x8 y8 z8 - 8th point coordinates
+
+# First Primitive
+0 0 0
+1 0 0 -1.0
+800 200 0
+0 200 0
+0 -200 0
+800 -200 0
+800 200 10
+0 200 10
+0 -200 10
+800 -200 10
+# Second Primitive
+# 40 0 0
+# 0 0 1 0.785
+# 40 10 0
+# 0 10 0
+# 0 -10 0
+# 40 -10 0
+# 40 10 1
+# 0 10 1
+# 0 -10 1
+# 40 -10 1

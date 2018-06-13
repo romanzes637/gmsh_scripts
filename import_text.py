@@ -202,7 +202,7 @@ def read_complex_type_2_to_complex_primitives(factory, path, divide_data, comple
     cnt = 0
     with open(path) as f:
         for line in f:
-            if not line.startswith("#" or "//"):
+            if not line.startswith("#"):
                 tokens = line.split()
                 # print(tokens)
                 if len(tokens) > 0:

@@ -2178,11 +2178,9 @@ class TestScripts(unittest.TestCase):
         start_time = time.time()
 
         gmsh.initialize()
-
         gmsh.option.setNumber("General.Terminal", 1)
         # (1=Delaunay, 2=New Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree)
         gmsh.option.setNumber("Mesh.Algorithm3D", 4)
-
         gmsh.model.add("test_boreholes_with_intrusion")
 
         factory = gmsh.model.occ
@@ -2276,7 +2274,8 @@ class TestScripts(unittest.TestCase):
             transfinite_data=[[5, 0, 1], [5, 0, 1], [5, 0, 1]]
         )
         print('Intrusion spent time: {:.3f}s'.format(time.time() - int_start_time))
-        print('Creation spent time: {:.3f}s'.format(time.time() - start))
+        spent_time_creation = time.time() - start
+        print('Creation spent time: {:.3f}s'.format(spent_time_creation))
 
         print("Boreholes unions")
         start = time.time()
@@ -2296,31 +2295,36 @@ class TestScripts(unittest.TestCase):
             print('{:.3f}s'.format(times[-1]))
             time_spent += times[-1]
             est_time = sum(times) / cnt
-        print('Boreholes Union spent time: {:.3f}s'.format(time.time() - start))
+        spent_time_union = time.time() - start
+        print('Boreholes Union spent time: {:.3f}s'.format(spent_time_union))
 
         print("Intrusion by Borehole boolean")
         start = time.time()
         for i, b in enumerate(boreholes):
             complex_cut_by_volume_boolean(factory, intrusion, us[i][0][1])
             complex_boolean(factory, intrusion, b)
-        print('{:.3f}s'.format(time.time() - start))
+        spent_time_boolean_b_i = time.time() - start
+        print('{:.3f}s'.format(spent_time_boolean_b_i))
 
         print("Environment by Borehole boolean")
         start = time.time()
         for i, b in enumerate(boreholes):
             primitive_complex_boolean(factory, environment, b)
-        print('{:.3f}s'.format(time.time() - start))
+        spent_time_boolean_e_b = time.time() - start
+        print('{:.3f}s'.format(spent_time_boolean_e_b))
 
         print("Environment by Intrusion boolean")
         start = time.time()
         primitive_complex_boolean(factory, environment, intrusion)
-        print('{:.3f}s'.format(time.time() - start))
+        spent_time_boolean_e_i = time.time() - start
+        print('{:.3f}s'.format(spent_time_boolean_e_i))
 
         print("Remove All Duplicates")
         start = time.time()
         factory.removeAllDuplicates()
         factory.synchronize()
-        print('{:.3f}s'.format(time.time() - start))
+        spent_time_remove_duplicates = time.time() - start
+        print('{:.3f}s'.format(spent_time_remove_duplicates))
 
         print("Correct and Transfinite")
         start = time.time()
@@ -2328,7 +2332,8 @@ class TestScripts(unittest.TestCase):
         for b in boreholes:
             occ_ws.correct_and_transfinite_complex(b, ss)
         occ_ws.correct_and_transfinite_complex(intrusion, ss)
-        print('{:.3f}s'.format(time.time() - start))
+        spent_time_c_and_t = time.time() - start
+        print('{:.3f}s'.format(spent_time_c_and_t))
 
         print("Set Sizes")
         start = time.time()
@@ -2336,10 +2341,17 @@ class TestScripts(unittest.TestCase):
         points_sizes = dict()
         auto_complex_points_sizes_min_curve_in_volume(intrusion, points_sizes)
         for b in boreholes:
-            auto_complex_points_sizes_min_curve_in_volume(b, points_sizes)
+            auto_complex_points_sizes_min_curve_in_volume(b, points_sizes, k=2.0)
         print(points_sizes)
-        print('{:.3f}s'.format(time.time() - start))
+        max_size_key = max(points_sizes.keys(), key=(lambda k: points_sizes[k]))
+        min_size_key = min(points_sizes.keys(), key=(lambda k: points_sizes[k]))
+        print('Maximum Point, Value: {0}, {1}'.format(max_size_key, points_sizes[max_size_key]))
+        print('Minimum Point, Value: {0}, {1}'.format(min_size_key, points_sizes[min_size_key]))
+        spent_time_sizes = time.time() - start
+        print('{:.3f}s'.format(spent_time_sizes))
 
+        print("Physical")
+        start = time.time()
         print("Intrusion Physical")
         vs = intrusion.get_volumes_by_physical_index(int_physical_tag)
         tag = gmsh.model.addPhysicalGroup(3, vs)
@@ -2366,7 +2378,6 @@ class TestScripts(unittest.TestCase):
         #     for surface_idx, surface in enumerate(primitive.surfaces):
         #         tag = gmsh.model.addPhysicalGroup(2, [surface])
         #         gmsh.model.setPhysicalName(2, tag, "S_B_{}{}".format(primitive.surfaces_names[surface_idx], idx))
-
         print("Environment Physical")
         tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
         gmsh.model.setPhysicalName(3, tag, "Environment")
@@ -2377,16 +2388,25 @@ class TestScripts(unittest.TestCase):
             tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
             gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
             #     gmsh.model.setPhysicalName(2, tag, 'S%s' % i)
+        spent_time_physical = time.time() - start
+        print('{:.3f}s'.format(spent_time_physical))
 
         gmsh.model.mesh.generate(3)
-
         gmsh.model.mesh.removeDuplicateNodes()
-
         gmsh.write("test_boreholes_with_intrusion_auto.msh")
-
         gmsh.finalize()
 
-        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
+        print('\nSpent times')
+        print('Creation:\t{:.3f}s'.format(spent_time_creation))
+        print('Union:\t{:.3f}s'.format(spent_time_union))
+        print('Boolean boreholes by intrusions:\t{:.3f}s'.format(spent_time_boolean_b_i))
+        print('Boolean environment by boreholes:\t{:.3f}s'.format(spent_time_boolean_e_b))
+        print('Boolean environment by intrusions:\t{:.3f}s'.format(spent_time_boolean_e_i))
+        print('Remove duplicates:\t{:.3f}s'.format(spent_time_remove_duplicates))
+        print('Correct and transfinite:\t{:.3f}s'.format(spent_time_c_and_t))
+        print('Set sizes:\t{:.3f}s'.format(spent_time_sizes))
+        print('Physical:\t{:.3f}s'.format(spent_time_physical))
+        print('Total:\t{:.3f}s'.format(time.time() - start_time))
 
     def test_volume_points_curves_data(self):
         """
@@ -3125,6 +3145,257 @@ class TestScripts(unittest.TestCase):
         gmsh.finalize()
 
         print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
+
+    def test_boreholes_with_import_intrusions(self):
+        """
+        Test Boreholes with ComplexPrimitive intrusions imported from file (complex_type_2)
+        """
+        start_time_global = time.time()
+
+        gmsh.initialize()
+        gmsh.option.setNumber("General.Terminal", 1)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
+        gmsh.model.add("test_boreholes_with_import_intrusions")
+        factory = gmsh.model.occ
+
+        print("Creation")
+        start = time.time()
+        print("Environment")
+        repo_center_depth = 487.5  # repository center depth
+        env_length_x = 1000
+        env_length_y = 1000
+        env_lc = 100
+        environment = Primitive(
+            factory,
+            [
+                [env_length_x / 2, env_length_y / 2, -repo_center_depth, env_lc],
+                [-env_length_x / 2, env_length_y / 2, -repo_center_depth, env_lc],
+                [-env_length_x / 2, -env_length_y / 2, -repo_center_depth, env_lc],
+                [env_length_x / 2, -env_length_y / 2, -repo_center_depth, env_lc],
+                [env_length_x / 2, env_length_y / 2, repo_center_depth, env_lc],
+                [-env_length_x / 2, env_length_y / 2, repo_center_depth, env_lc],
+                [-env_length_x / 2, -env_length_y / 2, repo_center_depth, env_lc],
+                [env_length_x / 2, -env_length_y / 2, repo_center_depth, env_lc]
+            ]
+        )
+        print("Intrusions")
+        filenames = ["intrusion_1", "intrusion_2"]
+        int_physical_names = ["IntOne", "IntTwo"]
+        int_physical_tags = [0, 1]
+        int_lcs = [1, 1]  # No effect due to auto points' sizes algorithm
+        int_ns = [
+            [16, 12, 1],  # [16, 12, 1]
+            [16, 8, 1],  # [16, 8, 1]
+        ]
+        int_transforms = [
+            [-325, 0, 300],
+            [-400, -30, 0],
+        ]
+        int_transfinites = [
+            [[5, 0, 1], [5, 0, 1], [5, 0, 1]],
+            [[5, 0, 1], [5, 0, 1], [5, 0, 1]],
+        ]
+        intrusions = []  # Array of ComplexPrimitives arrays
+        for i, fn in enumerate(filenames):
+            intrusions.append(read_complex_type_2_to_complex_primitives(
+                factory, fn,
+                int_ns[i],
+                int_physical_tags[i],
+                int_lcs[i],
+                int_transforms[i],
+                int_transfinites[i]
+            ))
+        print("Boreholes")
+        boreholes = []
+        bor_dx = 23
+        bor_nx = 2
+        bor_dy = 15
+        bor_ny = 2
+        bor_n = bor_nx * bor_ny
+        est_time = 0
+        times = []
+        time_spent = 0
+        for i in range(bor_nx):
+            for j in range(bor_ny):
+                start_time = time.time()
+                cnt = i * bor_ny + j + 1
+                rem = bor_n - cnt + 1
+                rem_time = rem * est_time
+                print('Borehole: {}/{} X: {}/{}, Y: {}/{} Spent time: {:.3f}s Remaining time: {:.3f}s'.format(
+                    cnt, bor_n, i + 1, bor_nx, j + 1, bor_ny, time_spent, rem_time))
+                boreholes.append(Borehole(
+                    factory,
+                    [[1, 1, 1], [1, 1, 1], [1, 1, 1]],  # No effect due to auto points' sizes algorithm
+                    [bor_dx * i, bor_dy * j, -37.5, 0, 0, 0, 0, 0, 0],
+                    [[3, 0, 1], [3, 0, 1], [3, 0, 1]],
+                    [[5, 0, 1], [5, 0, 1], [5, 0, 1]],  # [[10, 0, 1], [10, 0, 1], [10, 0, 1]]
+                    [5, 0, 1],  # [5, 0, 1]
+                    20  # 10
+                ))
+                times.append(time.time() - start_time)
+                print('{:.3f}s'.format(times[-1]))
+                time_spent += times[-1]
+                est_time = sum(times) / cnt
+        spent_time_creation = time.time() - start
+        print('{:.3f}s'.format(spent_time_creation))
+
+        print("Intrusions inner boolean")
+        start = time.time()
+        for intrusion in intrusions:
+            combinations = list(itertools.combinations(range(len(intrusion)), 2))
+            for combination in combinations:
+                print("Boolean %s by %s" % combination)
+                complex_boolean(factory, intrusion[combination[0]], intrusion[combination[1]])
+        spent_time_boolean_i = time.time() - start
+        print('{:.3f}s'.format(spent_time_boolean_i))
+
+        print("Intrusions by intrusions boolean")
+        start = time.time()
+        combinations = list(itertools.combinations(range(len(intrusions)), 2))
+        for combination in combinations:
+            print("Boolean %s by %s" % combination)
+            for c0 in intrusions[combination[0]]:
+                for c1 in intrusions[combination[1]]:
+                    complex_boolean(factory, c0, c1)
+        spent_time_boolean_i_i = time.time() - start
+        print('{:.3f}s'.format(spent_time_boolean_i_i))
+
+        print("Boreholes unions")
+        start = time.time()
+        us = []
+        times = []
+        est_time = 0
+        time_spent = 0
+        n = len(boreholes)
+        for i, b in enumerate(boreholes):
+            start_time = time.time()
+            cnt = i + 1
+            rem = n - cnt + 1
+            rem_time = rem * est_time
+            print('Borehole: {}/{} Spent time: {:.3f}s Remaining time: {:.3f}s'.format(cnt, n, time_spent, rem_time))
+            us.append(b.get_union_volume())
+            times.append(time.time() - start_time)
+            print('{:.3f}s'.format(times[-1]))
+            time_spent += times[-1]
+            est_time = sum(times) / cnt
+        spent_time_union = time.time() - start
+        print('Boreholes Union spent time: {:.3f}s'.format(spent_time_union))
+
+        print("Intrusion by Boreholes boolean")
+        start = time.time()
+        for i, b in enumerate(boreholes):
+            for intrusion in intrusions:
+                for c in intrusion:
+                    complex_cut_by_volume_boolean(factory, c, us[i][0][1])
+                    complex_boolean(factory, c, b)
+        spent_time_boolean_b_i = time.time() - start
+        print('{:.3f}s'.format(spent_time_boolean_b_i))
+
+        print("Environment by Boreholes boolean")
+        start = time.time()
+        for b in boreholes:
+            primitive_complex_boolean(factory, environment, b)
+        spent_time_boolean_e_b = time.time() - start
+        print('{:.3f}s'.format(spent_time_boolean_e_b))
+
+        print("Environment by Intrusions boolean")
+        start = time.time()
+        for intrusion in intrusions:
+            for c in intrusion:
+                primitive_complex_boolean(factory, environment, c)
+        spent_time_boolean_e_i = time.time() - start
+        print('{:.3f}s'.format(spent_time_boolean_e_i))
+
+        print("Remove All Duplicates")
+        start = time.time()
+        factory.removeAllDuplicates()
+        factory.synchronize()
+        spent_time_remove_duplicates = time.time() - start
+        print('{:.3f}s'.format(spent_time_remove_duplicates))
+
+        print("Correct and Transfinite")
+        start = time.time()
+        ss = set()
+        for b in boreholes:
+            occ_ws.correct_and_transfinite_complex(b, ss)
+        for intrusion in intrusions:
+            for c in intrusion:
+                occ_ws.correct_and_transfinite_complex(c, ss)
+        spent_time_c_and_t = time.time() - start
+        print('{:.3f}s'.format(spent_time_c_and_t))
+
+        print("Set Sizes")
+        start = time.time()
+        environment.set_size(env_lc)
+        points_sizes = dict()
+        for intrusion in intrusions:
+            for c in intrusion:
+                auto_complex_points_sizes_min_curve_in_volume(c, points_sizes)
+        for b in boreholes:
+            auto_complex_points_sizes_min_curve_in_volume(b, points_sizes)
+        print(points_sizes)
+        max_size_key = max(points_sizes.keys(), key=(lambda k: points_sizes[k]))
+        min_size_key = min(points_sizes.keys(), key=(lambda k: points_sizes[k]))
+        print('Maximum Point, Value: {0}, {1}'.format(max_size_key, points_sizes[max_size_key]))
+        print('Minimum Point, Value: {0}, {1}'.format(min_size_key, points_sizes[min_size_key]))
+        spent_time_sizes = time.time() - start
+        print('{:.3f}s'.format(spent_time_sizes))
+
+        print("Physical")
+        start = time.time()
+        print("Intrusions Physical")
+        for i, name in enumerate(int_physical_names):
+            vs = []
+            for intrusion in intrusions:
+                for c in intrusion:
+                    vs.extend(c.get_volumes_by_physical_index(i))
+            tag = gmsh.model.addPhysicalGroup(3, vs)
+            gmsh.model.setPhysicalName(3, tag, name)
+        print("Boreholes Physical")
+        for i, name in enumerate(Borehole.physical_names):
+            vs = []
+            for b in boreholes:
+                vs.extend(b.get_volumes_by_physical_index(i))
+            tag = gmsh.model.addPhysicalGroup(3, vs)
+            gmsh.model.setPhysicalName(3, tag, name)
+        print("Environment Physical")
+        tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
+        gmsh.model.setPhysicalName(3, tag, "Environment")
+        volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
+        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        surfaces_names = ["X", "Z", "NY", "NZ", "Y", "NX"]
+        for i in range(len(surfaces_names)):
+            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
+            gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
+            #     gmsh.model.setPhysicalName(2, tag, 'S%s' % i)
+        spent_time_physical = time.time() - start
+        print('{:.3f}s'.format(spent_time_physical))
+
+        print("Mesh")
+        start = time.time()
+        gmsh.model.mesh.generate(3)
+        gmsh.model.mesh.removeDuplicateNodes()
+        spent_time_mesh = time.time() - start
+        print('{:.3f}s'.format(spent_time_mesh))
+
+        gmsh.write("test_boreholes_with_import_intrusions_20.msh")
+        gmsh.finalize()
+
+        print('\nSpent times')
+        print('Creation:\t{:.3f}s'.format(spent_time_creation))
+        print('Inner is:\t{:.3f}s'.format(spent_time_boolean_i))
+        print('Is by is:\t{:.3f}s'.format(spent_time_boolean_i_i))
+        print('Union:\t\t{:.3f}s'.format(spent_time_union))
+        print('Bs by is:\t{:.3f}s'.format(spent_time_boolean_b_i))
+        print('E by bs:\t{:.3f}s'.format(spent_time_boolean_e_b))
+        print('E by is:\t{:.3f}s'.format(spent_time_boolean_e_i))
+        print('Remove ds:\t{:.3f}s'.format(spent_time_remove_duplicates))
+        print('C and T:\t{:.3f}s'.format(spent_time_c_and_t))
+        print('Sizes:\t\t{:.3f}s'.format(spent_time_sizes))
+        print('Physical:\t{:.3f}s'.format(spent_time_physical))
+        print('Mesh:\t\t{:.3f}s'.format(spent_time_mesh))
+        print('Total:\t\t{:.3f}s'.format(time.time() - start_time_global))
+
 
 if __name__ == '__main__':
     unittest.main()
