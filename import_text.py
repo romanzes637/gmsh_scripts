@@ -193,8 +193,9 @@ def read_complex_type_2(factory, path, transform_data, transfinite_data, physica
     return Complex(factory, primitives, physical_data, lcs)
 
 
-def read_complex_type_2_to_complex_primitives(factory, path, divide_data, complex_physical_tag, complex_lc,
-                                              transform_data=None, transfinite_data=None):
+def read_complex_type_2_to_complex_primitives(
+        factory, path, divide_data, lc,
+        transform_data=None, transfinite_data=None, volume_name=None):
     origins = []
     rotations = []
     coordinates = []
@@ -222,7 +223,7 @@ def read_complex_type_2_to_complex_primitives(factory, path, divide_data, comple
         point_data = []
         for j in range(len(primitives_cs[i])):
             point_with_lc = list(primitives_cs[i][j])
-            point_with_lc.append(float(complex_lc))
+            point_with_lc.append(float(lc))
             point_data.append(point_with_lc)
         new_transform_data = []
         if transform_data is not None:
@@ -250,7 +251,7 @@ def read_complex_type_2_to_complex_primitives(factory, path, divide_data, comple
                     new_transform_data.append(rotations[i][1])
                     new_transform_data.append(rotations[i][2])
                     new_transform_data.append(rotations[i][3])
-                if len(transform_data) == 7:  # TODO I don't know how it will be rotated:)
+                if len(transform_data) == 7:  # TODO Don't know how it will be rotated;)
                     new_transform_data.append(rotations[i][0] + transform_data[3])
                     new_transform_data.append(rotations[i][1] + transform_data[4])
                     new_transform_data.append(rotations[i][2] + transform_data[5])
@@ -275,10 +276,9 @@ def read_complex_type_2_to_complex_primitives(factory, path, divide_data, comple
             factory,
             divide_data,
             point_data,
-            complex_physical_tag,
-            complex_lc,
+            lc,
             new_transform_data,
             transfinite_data=transfinite_data,
-            transfinite_type=0
+            volume_name=volume_name
         ))
     return complex_primitives

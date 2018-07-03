@@ -4,7 +4,7 @@ import math
 
 
 class Cylinder(Complex):
-    def __init__(self, factory, radii, heights, primitives_lcs, transform_data, layers_physical_data,
+    def __init__(self, factory, radii, heights, primitives_lcs, transform_data, layers_physical_names,
                  transfinite_r_data, transfinite_h_data, transfinite_phi_data):
         """
         Multilayer cylinder
@@ -25,19 +25,16 @@ class Cylinder(Complex):
         [displacement x, y, z, rotation origin x, y, z, rotation angle x, y, z] or
         [displacement x, y, z, rotation vector x, y, z, rotation angle] or
         [displacement x, y, z, rotation angle x, y, z]
-        :param layers_physical_data: physical indices of layers [[h1_r1, h1_r2, ...], [h2_r1, h2_r2 ...], ...]
+        :param layers_physical_names: physical indices of layers [[h1_r1, h1_r2, ...], [h2_r1, h2_r2 ...], ...]
         :param transfinite_r_data: [[r1 number of nodes, type (0 - Progression, 1 - Bump), coefficient], [r2 ...], ...]
         :param transfinite_h_data: [[h1 number of nodes, type (0 - Progression, 1 - Bump), coefficient], [h2 ...], ...]
         :param transfinite_phi_data: [circumferential number of nodes, type, coefficient]
         """
-        complex_lcs = []
         primitives = []
-        primitives_physical_data = []
         k = 1 / float(3)
         transfinite_types = [0, 0, 0, 1, 3]
         h_cnt = 0
         for i in range(len(heights)):
-            primitives_physical_data.extend([layers_physical_data[i][0]] * 5)
             r = radii[0] * math.sqrt(2)
             kr = k * radii[0] * math.sqrt(2)
             h = float(heights[i])
@@ -76,9 +73,9 @@ class Cylinder(Complex):
                     transfinite_h_data[i],
                     transfinite_h_data[i]
                 ],
-                transfinite_types[0]
+                transfinite_types[0],
+                layers_physical_names[i][0]
             ))
-            complex_lcs.append(primitives_lcs[i][0])
             # Core X
             primitives.append(Primitive(
                 factory,
@@ -117,9 +114,9 @@ class Cylinder(Complex):
                     transfinite_h_data[i],
                     transfinite_h_data[i]
                 ],
-                transfinite_types[1]
+                transfinite_types[1],
+                layers_physical_names[i][0]
             ))
-            complex_lcs.append(primitives_lcs[i][0])
             # Core Y
             primitives.append(Primitive(
                 factory,
@@ -158,9 +155,9 @@ class Cylinder(Complex):
                     transfinite_h_data[i],
                     transfinite_h_data[i]
                 ],
-                transfinite_types[2]
+                transfinite_types[2],
+                layers_physical_names[i][0]
             ))
-            complex_lcs.append(primitives_lcs[i][0])
             # Core NX
             if transfinite_r_data[0][1] == 0:  # If Progression type => reverse
                 kt = 1 / transfinite_r_data[0][2]
@@ -203,9 +200,9 @@ class Cylinder(Complex):
                     transfinite_h_data[i],
                     transfinite_h_data[i]
                 ],
-                transfinite_types[3]
+                transfinite_types[3],
+                layers_physical_names[i][0]
             ))
-            complex_lcs.append(primitives_lcs[i][0])
             # Core NY
             if transfinite_r_data[0][1] == 0:  # If Progression type => reverse
                 kt = 1 / transfinite_r_data[0][2]
@@ -248,12 +245,11 @@ class Cylinder(Complex):
                     transfinite_h_data[i],
                     transfinite_h_data[i]
                 ],
-                transfinite_types[4]
+                transfinite_types[4],
+                layers_physical_names[i][0]
             ))
-            complex_lcs.append(primitives_lcs[i][0])
             # Layers
             for j in range(1, len(radii)):
-                primitives_physical_data.extend([layers_physical_data[i][j]] * 4)
                 r1 = radii[j - 1] * math.sqrt(2)
                 r2 = radii[j] * math.sqrt(2)
                 # Layer X
@@ -294,9 +290,9 @@ class Cylinder(Complex):
                         transfinite_h_data[i],
                         transfinite_h_data[i]
                     ],
-                    transfinite_types[1]
+                    transfinite_types[1],
+                    layers_physical_names[i][j]
                 ))
-                complex_lcs.append(primitives_lcs[i][j])
                 # Layer Y
                 primitives.append(Primitive(
                     factory,
@@ -335,9 +331,9 @@ class Cylinder(Complex):
                         transfinite_h_data[i],
                         transfinite_h_data[i]
                     ],
-                    transfinite_types[2]
+                    transfinite_types[2],
+                    layers_physical_names[i][j]
                 ))
-                complex_lcs.append(primitives_lcs[i][j])
                 # Layer NX
                 if transfinite_r_data[j][1] == 0:  # If Progression type => reverse
                     kt = 1 / transfinite_r_data[j][2]
@@ -380,9 +376,9 @@ class Cylinder(Complex):
                         transfinite_h_data[i],
                         transfinite_h_data[i]
                     ],
-                    transfinite_types[3]
+                    transfinite_types[3],
+                    layers_physical_names[i][j]
                 ))
-                complex_lcs.append(primitives_lcs[i][j])
                 # Layer NY
                 if transfinite_r_data[j][1] == 0:  # If Progression type => reverse
                     kt = 1 / transfinite_r_data[j][2]
@@ -425,8 +421,8 @@ class Cylinder(Complex):
                         transfinite_h_data[i],
                         transfinite_h_data[i]
                     ],
-                    transfinite_types[4]
+                    transfinite_types[4],
+                    layers_physical_names[i][j]
                 ))
-                complex_lcs.append(primitives_lcs[i][j])
             h_cnt += h / 2
-            Complex.__init__(self, factory, primitives, primitives_physical_data, complex_lcs)
+            Complex.__init__(self, factory, primitives)

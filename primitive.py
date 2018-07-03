@@ -5,7 +5,7 @@ import gmsh
 
 class Primitive:
     def __init__(self, factory, point_data, transform_data=None, curve_types=None, curve_data=None,
-                 transfinite_curve_data=None, transfinite_type=None):
+                 transfinite_curve_data=None, transfinite_type=None, volume_name="Default"):
         """
         Base object with six quadrangular surfaces and eight points
         The object (e.g. number of its volumes/surfaces) could be changed in process,
@@ -45,6 +45,7 @@ class Primitive:
         :param transfinite_curve_data: [[line1 number of nodes, type, coefficient], ..., [line12 ...]]
         types: 0 - progression, 1 - bump
         :param transfinite_type: 0, 1, 2 or 4 determines orientation of tetrahedra at structured volume and its surfaces
+        :param volume_name: primitive's physical volume name
         """
         self.factory = factory
         if curve_types is None:
@@ -53,6 +54,7 @@ class Primitive:
             curve_data = [[]] * 12
         self.transfinite_curve_data = transfinite_curve_data
         self.transfinite_type = transfinite_type
+        self.volume_name = volume_name
         self.points = []
         self.curves_points = []
         self.curves = []
@@ -384,46 +386,38 @@ class Primitive:
 
 
 class Complex:
-    def __init__(self, factory, primitives, primitives_physical_data, primitives_lcs=None):
+    def __init__(self, factory, primitives):
         """
-        Object that's consisted of primitives
+        Object consisting of primitives
         :param factory: gmsh factory (currently: gmsh.model.geo or gmsh.model.occ)
-        :param primitives: [primitive 1, 2, ..., N]
-        :param primitives_physical_data: [physical index of primitive 1, 2, ..., N]
-        :param primitives_lcs: [characteristic length of primitive 1, 2, ..., N]
+        :param primitives: [primitive 1, primitive 2, ..., primitive N]
         """
         for primitive in primitives:
             assert factory == primitive.factory
-        assert len(primitives) == len(primitives_physical_data)
-        if primitives_lcs is not None:
-            assert len(primitives) == len(primitives_lcs)
         self.factory = factory
         self.primitives = primitives
-        self.primitives_physical_data = primitives_physical_data
-        self.lcs = primitives_lcs
+        self.volumes_names_dict = {}
+        for i, primitive in enumerate(self.primitives):
+            key = primitive.volume_name
+            if key in self.volumes_names_dict:
+                self.volumes_names_dict[key].append(i)
+            else:
+                self.volumes_names_dict[key] = [i]
 
     def inner_boolean(self):
         combinations = list(itertools.combinations(range(len(self.primitives)), 2))
         for combination in combinations:
-            print("Inner Boolean %s by %s" % combination)
+            print("Boolean primitive_obj {} {} by primitive_tool {} {}".format(
+                combination[0], self.primitives[combination[0]].volume_name,
+                combination[1], self.primitives[combination[1]].volume_name))
             primitive_boolean(self.factory, self.primitives[combination[0]], self.primitives[combination[1]])
 
-    def set_size(self, size=None, primitive_idx=None):
-        if size is None and self.lcs is not None:
-            for idx, primitive in enumerate(self.primitives):
-                primitive.set_size(self.lcs[idx])
-        elif size is not None and primitive_idx is None:
+    def set_size(self, size, primitive_idx=None):
+        if primitive_idx is not None:
+            self.primitives[primitive_idx].set_size(size)
+        else:
             for primitive in self.primitives:
                 primitive.set_size(size)
-        else:
-            self.primitives[primitive_idx].set_size(size)
-
-    def get_volumes_by_physical_index(self, idx):
-        vs = []
-        for primitive_idx, primitive in enumerate(self.primitives):
-            if self.primitives_physical_data[primitive_idx] == idx:
-                vs.extend(primitive.volumes)
-        return vs
 
     def transfinite(self, transfinite_surfaces):
         results = []
@@ -440,6 +434,14 @@ class Complex:
             dim_tags[:1], dim_tags[1:], tag=-1, removeObject=False, removeTool=False)
         self.factory.synchronize()
         return out_dim_tags
+
+    def get_volumes_by_name(self, name):
+        vs = []
+        primitive_idxs = self.volumes_names_dict.get(name)
+        if primitive_idxs is not None:
+            for i in primitive_idxs:
+                vs.extend(self.primitives[i].volumes)
+        return vs
 
 
 def primitive_boolean(factory, primitive_obj, primitive_tool):
@@ -488,7 +490,7 @@ def primitive_boolean(factory, primitive_obj, primitive_tool):
             new_obj_volumes.remove(v)
         primitive_obj.volumes = new_obj_volumes
         primitive_tool.volumes = new_tool_volumes
-        # primitive_obj.evaluate_bounding_box()  # FIXME bad bb after boolean
+        # primitive_obj.evaluate_bounding_box()  # FIXME bad bounding box after boolean
         # primitive_tool.evaluate_bounding_box()
     print('{:.3f}s'.format(time.time() - start))
 
@@ -496,19 +498,25 @@ def primitive_boolean(factory, primitive_obj, primitive_tool):
 def complex_boolean(factory, complex_obj, complex_tool):
     for obj_idx, primitive_obj in enumerate(complex_obj.primitives):
         for tool_idx, primitive_tool in enumerate(complex_tool.primitives):
-            print("Boolean primitive_obj {} by primitive_tool {}".format(obj_idx, tool_idx))
+            print("Boolean primitive_obj {}/{} {} by primitive_tool {}/{} {}".format(
+                obj_idx + 1, len(complex_obj.primitives), primitive_obj.volume_name,
+                tool_idx + 1, len(complex_tool.primitives), primitive_tool.volume_name))
             primitive_boolean(factory, primitive_obj, primitive_tool)
 
 
 def primitive_complex_boolean(factory, primitive_obj, complex_tool):
     for idx, primitive_tool in enumerate(complex_tool.primitives):
-        print("Boolean primitive_obj by complex_tool's primitive {}".format(idx))
+        print("Boolean primitive_obj {} by complex_tool's primitive {}/{} {}".format(
+            primitive_obj.volume_name,
+            idx + 1, len(complex_tool.primitives), primitive_tool.volume_name))
         primitive_boolean(factory, primitive_obj, primitive_tool)
 
 
 def complex_primitive_boolean(factory, complex_obj, primitive_tool):
     for idx, primitive_obj in enumerate(complex_obj.primitives):
-        print("Boolean complex_obj's primitive {} by primitive_tool".format(idx))
+        print("Boolean complex_obj's primitive {}/{} {} by primitive_tool {}".format(
+            idx + 1, len(complex_obj.primitives), primitive_obj.volume_name,
+            primitive_tool.volume_name))
         primitive_boolean(factory, primitive_obj, primitive_tool)
 
 
@@ -563,7 +571,8 @@ def primitive_cut_by_volume_boolean(factory, primitive_obj, volume):
 
 def complex_cut_by_volume_boolean(factory, complex_obj, volume):
     for idx, primitive_obj in enumerate(complex_obj.primitives):
-        print("Cut boolean complex_obj's primitive {} by volume".format(idx))
+        print("Cut boolean complex_obj's primitive {}/{} {} by volume {}".format(
+            idx + 1, len(complex_obj.primitives), primitive_obj.volume_name, volume))
         primitive_cut_by_volume_boolean(factory, primitive_obj, volume)
 
 

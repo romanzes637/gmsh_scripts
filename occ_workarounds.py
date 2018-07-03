@@ -100,10 +100,10 @@ def correct_complex(complex_obj):
 
 def correct_and_transfinite_primitive(primitive_obj, ss):
     """
-        Correct Primitive, if Primitive corrected => transfinite it
-        :param primitive_obj: Primitive object
-        :param ss: set() - already transfinited surfaces
-        """
+    Correct Primitive, if Primitive corrected => transfinite it
+    :param primitive_obj: Primitive object
+    :param ss: set() - already transfinited surfaces
+    """
     result = correct_primitive(primitive_obj)
     if result:
         result = primitive_obj.transfinite(ss)
