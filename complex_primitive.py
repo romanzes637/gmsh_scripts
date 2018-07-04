@@ -12,7 +12,7 @@ class ComplexPrimitive(Complex):
         :param divide_data: [n_parts_x, n_parts_y, n_parts_z]
         :param point_data:
         :param primitive_lc:
-        :param transform_data:
+        :param transform_data: see Primitive transform_data
         :param curve_types:
         :param curve_data:
         :param transfinite_data: [[x number of nodes, type, coefficient], [y ...], [z ...]]

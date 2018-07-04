@@ -2475,7 +2475,7 @@ class TestScripts(unittest.TestCase):
         factory = gmsh.model.occ
 
         model = gmsh.model
-        model_name = "test_nk_env"
+        model_name = "test_nk_3"
         model.add(model_name)
 
         gmsh.option.setNumber("General.Terminal", 1)
@@ -2485,16 +2485,16 @@ class TestScripts(unittest.TestCase):
         print("NK")
         start = time.time()
         nk = NK(
-            factory, model,
+            factory,
             [0, 0, 0], "HostRock", 1000, 1000, 487.5, 100,
-            ["intrusion_1"],
+            ["intrusion_1"],  # [],  # ["intrusion_1"],
             [
-                [-325, 0, 300]
+                [0, 0, 0]  # [-325, 0, 300]
             ],
             ["IntOne"],
-            [1, 1],
+            [1],
             [
-                [16, 12, 1]
+                [1, 1, 1]  # [16, 12, 1]
             ],
             [
                 [[3, 0, 1], [3, 0, 1], [3, 0, 1]]
@@ -2503,13 +2503,15 @@ class TestScripts(unittest.TestCase):
             [[3, 0, 1], [3, 0, 1], [3, 0, 1]],
             [[3, 0, 1], [3, 0, 1], [3, 0, 1]],
             [3, 0, 1],
-            15,
-            [0, 0, 0], "ILW", 1, 1, 23, 15,
-            [0, 0, 0], "HLW", 0, 0, 26, 23
+            1,
+            [0, 0, -37.5], "ILW", 1, 1, 23, 15,
+            [23, 0, -37.5], "HLW", 0, 0, 26, 23
         )
         nk.boolean()
+        nk.correct_and_transfinite()
+        nk.set_sizes()
         nk.physical()
-        print(nk.spent_times)
+        # nk.smooth(2, 10)
         spent_time_nk = time.time() - start
         print('{:.3f}s'.format(spent_time_nk))
 
@@ -2528,6 +2530,7 @@ class TestScripts(unittest.TestCase):
 
         gmsh.finalize()
 
+        print(nk.spent_times)
         print('Total:{:.3f}s'.format(time.time() - start_time))
 
         if __name__ == '__main__':

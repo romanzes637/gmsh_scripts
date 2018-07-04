@@ -153,9 +153,26 @@ class Primitive:
         for i in range(len(self.surfaces)):
             gmsh.model.mesh.setRecombine(2, self.surfaces[i])
 
-    def smooth(self, n):
-        for i in range(len(self.surfaces)):
-            gmsh.model.mesh.setSmoothing(2, self.surfaces[i], n)
+    def smooth(self, dim, n):
+        """
+        Smooth mesh. Currently works only with dim == 2
+        :param dim: Dimension
+        :param n: Number of smooth iterations
+        """
+        if dim == 1:
+            volumes_dim_tags = map(lambda x: (3, x), self.volumes)
+            surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+            curves_dim_tags = gmsh.model.getBoundary(surfaces_dim_tags, combined=False)
+            for dt in curves_dim_tags:
+                gmsh.model.mesh.setSmoothing(dim, dt[1], n)
+        elif dim == 2:
+            volumes_dim_tags = map(lambda x: (3, x), self.volumes)
+            surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+            for dt in surfaces_dim_tags:
+                gmsh.model.mesh.setSmoothing(dim, dt[1], n)
+        elif dim == 3:
+            for v in self.volumes:
+                gmsh.model.mesh.setSmoothing(dim, v, n)
 
     def transfinite(self, transfinite_surfaces):
         """
@@ -442,6 +459,10 @@ class Complex:
             for i in primitive_idxs:
                 vs.extend(self.primitives[i].volumes)
         return vs
+
+    def smooth(self, dim, n):
+        for primitive in self.primitives:
+            primitive.smooth(dim, n)
 
 
 def primitive_boolean(factory, primitive_obj, primitive_tool):

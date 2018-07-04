@@ -11,22 +11,19 @@ class Cylinder(Complex):
         Used for axisymmetric objects
         Layers structure:
         h - height
-        r - radius
+        c - radius
         hM_r1 hM_r2 ... hM_rN
         ...   ...   ... ...
         h2_r1 h2_r2 ... h2_rN
         h1_r1 h1_r2 ... h1_rN
         Bottom center of h1_r1 layer is an origin of the cylinder
         :param factory: gmsh factory (currently: gmsh.model.geo or gmsh.model.occ)
-        :param radii: [r1, r2, ..., rN]
+        :param radii: [c1, c2, ..., rN]
         :param heights: [h1, h2, ..., hM]
         :param primitives_lcs: characteristic lengths of layers [[h1_r1, h1_r2, ...], [h2_r1, h2_r2 ...], ...]
-        :param transform_data: [displacement x, y, z] or
-        [displacement x, y, z, rotation origin x, y, z, rotation angle x, y, z] or
-        [displacement x, y, z, rotation vector x, y, z, rotation angle] or
-        [displacement x, y, z, rotation angle x, y, z]
+        :param transform_data: relative to Cylinder bottom (see Primitive transform_data)
         :param layers_physical_names: physical indices of layers [[h1_r1, h1_r2, ...], [h2_r1, h2_r2 ...], ...]
-        :param transfinite_r_data: [[r1 number of nodes, type (0 - Progression, 1 - Bump), coefficient], [r2 ...], ...]
+        :param transfinite_r_data: [[c1 number of nodes, type (0 - Progression, 1 - Bump), coefficient], [c2 ...], ...]
         :param transfinite_h_data: [[h1 number of nodes, type (0 - Progression, 1 - Bump), coefficient], [h2 ...], ...]
         :param transfinite_phi_data: [circumferential number of nodes, type, coefficient]
         """
@@ -35,28 +32,24 @@ class Cylinder(Complex):
         transfinite_types = [0, 0, 0, 1, 3]
         h_cnt = 0
         for i in range(len(heights)):
-            r = radii[0] * math.sqrt(2)
-            kr = k * radii[0] * math.sqrt(2)
+            c = radii[0] / math.sqrt(2)
+            kc = k * radii[0] / math.sqrt(2)
             h = float(heights[i])
             h_cnt += h / 2
             # Core center
             primitives.append(Primitive(
                 factory,
                 [
-                    [kr, kr, -h / 2, primitives_lcs[i][0]],
-                    [-kr, kr, -h / 2, primitives_lcs[i][0]],
-                    [-kr, -kr, -h / 2, primitives_lcs[i][0]],
-                    [kr, -kr, -h / 2, primitives_lcs[i][0]],
-                    [kr, kr, h / 2, primitives_lcs[i][0]],
-                    [-kr, kr, h / 2, primitives_lcs[i][0]],
-                    [-kr, -kr, h / 2, primitives_lcs[i][0]],
-                    [kr, -kr, h / 2, primitives_lcs[i][0]]
+                    [kc, kc, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [-kc, kc, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [-kc, -kc, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [kc, -kc, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [kc, kc, h_cnt + h / 2, primitives_lcs[i][0]],
+                    [-kc, kc, h_cnt + h / 2, primitives_lcs[i][0]],
+                    [-kc, -kc, h_cnt + h / 2, primitives_lcs[i][0]],
+                    [kc, -kc, h_cnt + h / 2, primitives_lcs[i][0]]
                 ],
-                [
-                    transform_data[0], transform_data[1], transform_data[2] + h_cnt,
-                    transform_data[3], transform_data[4], transform_data[5],
-                    transform_data[6], transform_data[7], transform_data[8]
-                ],
+                transform_data,
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 [[], [], [], [], [], [], [], [], [], [], [], []],
                 [
@@ -80,24 +73,20 @@ class Cylinder(Complex):
             primitives.append(Primitive(
                 factory,
                 [
-                    [r, r, -h / 2, primitives_lcs[i][0]],
-                    [kr, kr, -h / 2, primitives_lcs[i][0]],
-                    [kr, -kr, -h / 2, primitives_lcs[i][0]],
-                    [r, -r, -h / 2, primitives_lcs[i][0]],
-                    [r, r, h / 2, primitives_lcs[i][0]],
-                    [kr, kr, h / 2, primitives_lcs[i][0]],
-                    [kr, -kr, h / 2, primitives_lcs[i][0]],
-                    [r, -r, h / 2, primitives_lcs[i][0]]
+                    [c, c, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [kc, kc, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [kc, -kc, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [c, -c, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [c, c, h_cnt + h / 2, primitives_lcs[i][0]],
+                    [kc, kc, h_cnt + h / 2, primitives_lcs[i][0]],
+                    [kc, -kc, h_cnt + h / 2, primitives_lcs[i][0]],
+                    [c, -c, h_cnt + h / 2, primitives_lcs[i][0]]
                 ],
-                [
-                    transform_data[0], transform_data[1], transform_data[2] + h_cnt,
-                    transform_data[3], transform_data[4], transform_data[5],
-                    transform_data[6], transform_data[7], transform_data[8],
-                ],
+                transform_data,
                 [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
                 [
                     [], [], [], [],
-                    [[0, 0, -h / 2, 1]], [], [], [[0, 0, h / 2, 1]],
+                    [[0, 0, h_cnt - h / 2, 1]], [], [], [[0, 0, h_cnt + h / 2, 1]],
                     [], [], [], []
                 ],
                 [
@@ -121,23 +110,19 @@ class Cylinder(Complex):
             primitives.append(Primitive(
                 factory,
                 [
-                    [r, r, -h / 2, primitives_lcs[i][0]],
-                    [-r, r, -h / 2, primitives_lcs[i][0]],
-                    [-kr, kr, -h / 2, primitives_lcs[i][0]],
-                    [kr, kr, -h / 2, primitives_lcs[i][0]],
-                    [r, r, h / 2, primitives_lcs[i][0]],
-                    [-r, r, h / 2, primitives_lcs[i][0]],
-                    [-kr, kr, h / 2, primitives_lcs[i][0]],
-                    [kr, kr, h / 2, primitives_lcs[i][0]]
+                    [c, c, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [-c, c, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [-kc, kc, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [kc, kc, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [c, c, h_cnt + h / 2, primitives_lcs[i][0]],
+                    [-c, c, h_cnt + h / 2, primitives_lcs[i][0]],
+                    [-kc, kc, h_cnt + h / 2, primitives_lcs[i][0]],
+                    [kc, kc, h_cnt + h / 2, primitives_lcs[i][0]]
                 ],
-                [
-                    transform_data[0], transform_data[1], transform_data[2] + h_cnt,
-                    transform_data[3], transform_data[4], transform_data[5],
-                    transform_data[6], transform_data[7], transform_data[8],
-                ],
+                transform_data,
                 [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 [
-                    [[0, 0, -h / 2, 1]], [[0, 0, h / 2, 1]], [], [],
+                    [[0, 0, h_cnt - h / 2, 1]], [[0, 0, h_cnt + h / 2, 1]], [], [],
                     [], [], [], [],
                     [], [], [], []
                 ],
@@ -166,24 +151,20 @@ class Cylinder(Complex):
             primitives.append(Primitive(
                 factory,
                 [
-                    [-kr, kr, -h / 2, primitives_lcs[i][0]],
-                    [-r, r, -h / 2, primitives_lcs[i][0]],
-                    [-r, -r, -h / 2, primitives_lcs[i][0]],
-                    [-kr, -kr, -h / 2, primitives_lcs[i][0]],
-                    [-kr, kr, h / 2, primitives_lcs[i][0]],
-                    [-r, r, h / 2, primitives_lcs[i][0]],
-                    [-r, -r, h / 2, primitives_lcs[i][0]],
-                    [-kr, -kr, h / 2, primitives_lcs[i][0]]
+                    [-kc, kc, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [-c, c, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [-c, -c, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [-kc, -kc, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [-kc, kc, h_cnt + h / 2, primitives_lcs[i][0]],
+                    [-c, c, h_cnt + h / 2, primitives_lcs[i][0]],
+                    [-c, -c, h_cnt + h / 2, primitives_lcs[i][0]],
+                    [-kc, -kc, h_cnt + h / 2, primitives_lcs[i][0]]
                 ],
-                [
-                    transform_data[0], transform_data[1], transform_data[2] + h_cnt,
-                    transform_data[3], transform_data[4], transform_data[5],
-                    transform_data[6], transform_data[7], transform_data[8]
-                ],
+                transform_data,
                 [0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
                 [
                     [], [], [], [],
-                    [], [[0, 0, -h / 2, 1]], [[0, 0, h / 2, 1]], [],
+                    [], [[0, 0, h_cnt - h / 2, 1]], [[0, 0, h_cnt + h / 2, 1]], [],
                     [], [], [], []
                 ],
                 [
@@ -211,23 +192,19 @@ class Cylinder(Complex):
             primitives.append(Primitive(
                 factory,
                 [
-                    [kr, -kr, -h / 2, primitives_lcs[i][0]],
-                    [-kr, -kr, -h / 2, primitives_lcs[i][0]],
-                    [-r, -r, -h / 2, primitives_lcs[i][0]],
-                    [r, -r, -h / 2, primitives_lcs[i][0]],
-                    [kr, -kr, h / 2, primitives_lcs[i][0]],
-                    [-kr, -kr, h / 2, primitives_lcs[i][0]],
-                    [-r, -r, h / 2, primitives_lcs[i][0]],
-                    [r, -r, h / 2, primitives_lcs[i][0]]
+                    [kc, -kc, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [-kc, -kc, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [-c, -c, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [c, -c, h_cnt - h / 2, primitives_lcs[i][0]],
+                    [kc, -kc, h_cnt + h / 2, primitives_lcs[i][0]],
+                    [-kc, -kc, h_cnt + h / 2, primitives_lcs[i][0]],
+                    [-c, -c, h_cnt + h / 2, primitives_lcs[i][0]],
+                    [c, -c, h_cnt + h / 2, primitives_lcs[i][0]]
                 ],
-                [
-                    transform_data[0], transform_data[1], transform_data[2] + h_cnt,
-                    transform_data[3], transform_data[4], transform_data[5],
-                    transform_data[6], transform_data[7], transform_data[8]
-                ],
+                transform_data,
                 [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
                 [
-                    [], [], [[0, 0, h / 2, 1]], [[0, 0, -h / 2, 1]],
+                    [], [], [[0, 0, h_cnt + h / 2, 1]], [[0, 0, h_cnt - h / 2, 1]],
                     [], [], [], [],
                     [], [], [], []
                 ],
@@ -250,30 +227,29 @@ class Cylinder(Complex):
             ))
             # Layers
             for j in range(1, len(radii)):
-                r1 = radii[j - 1] * math.sqrt(2)
-                r2 = radii[j] * math.sqrt(2)
+                c1 = radii[j - 1] / math.sqrt(2)
+                c2 = radii[j] / math.sqrt(2)
                 # Layer X
                 primitives.append(Primitive(
                     factory,
                     [
-                        [r2, r2, -h / 2, primitives_lcs[i][j]],
-                        [r1, r1, -h / 2, primitives_lcs[i][j]],
-                        [r1, -r1, -h / 2, primitives_lcs[i][j]],
-                        [r2, -r2, -h / 2, primitives_lcs[i][j]],
-                        [r2, r2, h / 2, primitives_lcs[i][j]],
-                        [r1, r1, h / 2, primitives_lcs[i][j]],
-                        [r1, -r1, h / 2, primitives_lcs[i][j]],
-                        [r2, -r2, h / 2, primitives_lcs[i][j]]
+                        [c2, c2, h_cnt - h / 2, primitives_lcs[i][j]],
+                        [c1, c1, h_cnt - h / 2, primitives_lcs[i][j]],
+                        [c1, -c1, h_cnt - h / 2, primitives_lcs[i][j]],
+                        [c2, -c2, h_cnt - h / 2, primitives_lcs[i][j]],
+                        [c2, c2, h_cnt + h / 2, primitives_lcs[i][j]],
+                        [c1, c1, h_cnt + h / 2, primitives_lcs[i][j]],
+                        [c1, -c1, h_cnt + h / 2, primitives_lcs[i][j]],
+                        [c2, -c2, h_cnt + h / 2, primitives_lcs[i][j]]
                     ],
-                    [
-                        transform_data[0], transform_data[1], transform_data[2] + h_cnt,
-                        transform_data[3], transform_data[4], transform_data[5],
-                        transform_data[6], transform_data[7], transform_data[8]
-                    ],
+                    transform_data,
                     [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
                     [
                         [], [], [], [],
-                        [[0, 0, -h / 2, 1]], [[0, 0, -h / 2, 1]], [[0, 0, h / 2, 1]], [[0, 0, h / 2, 1]],
+                        [[0, 0, h_cnt - h / 2, 1]],
+                        [[0, 0, h_cnt - h / 2, 1]],
+                        [[0, 0, h_cnt + h / 2, 1]],
+                        [[0, 0, h_cnt + h / 2, 1]],
                         [], [], [], []
                     ],
                     [
@@ -297,23 +273,22 @@ class Cylinder(Complex):
                 primitives.append(Primitive(
                     factory,
                     [
-                        [r2, r2, -h / 2, primitives_lcs[i][j]],
-                        [-r2, r2, -h / 2, primitives_lcs[i][j]],
-                        [-r1, r1, -h / 2, primitives_lcs[i][j]],
-                        [r1, r1, -h / 2, primitives_lcs[i][j]],
-                        [r2, r2, h / 2, primitives_lcs[i][j]],
-                        [-r2, r2, h / 2, primitives_lcs[i][j]],
-                        [-r1, r1, h / 2, primitives_lcs[i][j]],
-                        [r1, r1, h / 2, primitives_lcs[i][j]]
+                        [c2, c2, h_cnt - h / 2, primitives_lcs[i][j]],
+                        [-c2, c2, h_cnt - h / 2, primitives_lcs[i][j]],
+                        [-c1, c1, h_cnt - h / 2, primitives_lcs[i][j]],
+                        [c1, c1, h_cnt - h / 2, primitives_lcs[i][j]],
+                        [c2, c2, h_cnt + h / 2, primitives_lcs[i][j]],
+                        [-c2, c2, h_cnt + h / 2, primitives_lcs[i][j]],
+                        [-c1, c1, h_cnt + h / 2, primitives_lcs[i][j]],
+                        [c1, c1, h_cnt + h / 2, primitives_lcs[i][j]]
                     ],
-                    [
-                        transform_data[0], transform_data[1], transform_data[2] + h_cnt,
-                        transform_data[3], transform_data[4], transform_data[5],
-                        transform_data[6], transform_data[7], transform_data[8]
-                    ],
+                    transform_data,
                     [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
                     [
-                        [[0, 0, -h / 2, 1]], [[0, 0, h / 2, 1]], [[0, 0, h / 2, 1]], [[0, 0, -h / 2, 1]],
+                        [[0, 0, h_cnt - h / 2, 1]],
+                        [[0, 0, h_cnt + h / 2, 1]],
+                        [[0, 0, h_cnt + h / 2, 1]],
+                        [[0, 0, h_cnt - h / 2, 1]],
                         [], [], [], [],
                         [], [], [], []
                     ],
@@ -342,24 +317,23 @@ class Cylinder(Complex):
                 primitives.append(Primitive(
                     factory,
                     [
-                        [-r1, r1, -h / 2, primitives_lcs[i][j]],
-                        [-r2, r2, -h / 2, primitives_lcs[i][j]],
-                        [-r2, -r2, -h / 2, primitives_lcs[i][j]],
-                        [-r1, -r1, -h / 2, primitives_lcs[i][j]],
-                        [-r1, r1, h / 2, primitives_lcs[i][j]],
-                        [-r2, r2, h / 2, primitives_lcs[i][j]],
-                        [-r2, -r2, h / 2, primitives_lcs[i][j]],
-                        [-r1, -r1, h / 2, primitives_lcs[i][j]]
+                        [-c1, c1, h_cnt - h / 2, primitives_lcs[i][j]],
+                        [-c2, c2, h_cnt - h / 2, primitives_lcs[i][j]],
+                        [-c2, -c2, h_cnt - h / 2, primitives_lcs[i][j]],
+                        [-c1, -c1, h_cnt - h / 2, primitives_lcs[i][j]],
+                        [-c1, c1, h_cnt + h / 2, primitives_lcs[i][j]],
+                        [-c2, c2, h_cnt + h / 2, primitives_lcs[i][j]],
+                        [-c2, -c2, h_cnt + h / 2, primitives_lcs[i][j]],
+                        [-c1, -c1, h_cnt + h / 2, primitives_lcs[i][j]]
                     ],
-                    [
-                        transform_data[0], transform_data[1], transform_data[2] + h_cnt,
-                        transform_data[3], transform_data[4], transform_data[5],
-                        transform_data[6], transform_data[7], transform_data[8]
-                    ],
+                    transform_data,
                     [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
                     [
                         [], [], [], [],
-                        [[0, 0, -h / 2, 1]], [[0, 0, -h / 2, 1]], [[0, 0, h / 2, 1]], [[0, 0, h / 2, 1]],
+                        [[0, 0, h_cnt - h / 2, 1]],
+                        [[0, 0, h_cnt - h / 2, 1]],
+                        [[0, 0, h_cnt + h / 2, 1]],
+                        [[0, 0, h_cnt + h / 2, 1]],
                         [], [], [], []
                     ],
                     [
@@ -387,23 +361,22 @@ class Cylinder(Complex):
                 primitives.append(Primitive(
                     factory,
                     [
-                        [r1, -r1, -h / 2, primitives_lcs[i][j]],
-                        [-r1, -r1, -h / 2, primitives_lcs[i][j]],
-                        [-r2, -r2, -h / 2, primitives_lcs[i][j]],
-                        [r2, -r2, -h / 2, primitives_lcs[i][j]],
-                        [r1, -r1, h / 2, primitives_lcs[i][j]],
-                        [-r1, -r1, h / 2, primitives_lcs[i][j]],
-                        [-r2, -r2, h / 2, primitives_lcs[i][j]],
-                        [r2, -r2, h / 2, primitives_lcs[i][j]]
+                        [c1, -c1, h_cnt - h / 2, primitives_lcs[i][j]],
+                        [-c1, -c1, h_cnt - h / 2, primitives_lcs[i][j]],
+                        [-c2, -c2, h_cnt - h / 2, primitives_lcs[i][j]],
+                        [c2, -c2, h_cnt - h / 2, primitives_lcs[i][j]],
+                        [c1, -c1, h_cnt + h / 2, primitives_lcs[i][j]],
+                        [-c1, -c1, h_cnt + h / 2, primitives_lcs[i][j]],
+                        [-c2, -c2, h_cnt + h / 2, primitives_lcs[i][j]],
+                        [c2, -c2, h_cnt + h / 2, primitives_lcs[i][j]]
                     ],
-                    [
-                        transform_data[0], transform_data[1], transform_data[2] + h_cnt,
-                        transform_data[3], transform_data[4], transform_data[5],
-                        transform_data[6], transform_data[7], transform_data[8]
-                    ],
+                    transform_data,
                     [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
                     [
-                        [[0, 0, -h / 2, 1]], [[0, 0, h / 2, 1]], [[0, 0, h / 2, 1]], [[0, 0, -h / 2, 1]],
+                        [[0, 0, h_cnt - h / 2, 1]],
+                        [[0, 0, h_cnt + h / 2, 1]],
+                        [[0, 0, h_cnt + h / 2, 1]],
+                        [[0, 0, h_cnt - h / 2, 1]],
                         [], [], [], [],
                         [], [], [], []
                     ],
