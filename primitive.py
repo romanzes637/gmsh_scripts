@@ -133,21 +133,21 @@ class Primitive:
         tag = self.factory.addSurfaceLoop(self.surfaces)
         tag = self.factory.addVolume([tag])
         self.volumes.append(tag)
-        self.factory.synchronize()
-        # Other
+        # self.factory.synchronize()
+        # Other (evaluate after factory.synchronize()
         self.points_coordinates = []
         self.curves_points_coordinates = []
-        for point in self.points:
-            bb = gmsh.model.getBoundingBox(0, point)
-            self.points_coordinates.append([bb[0], bb[1], bb[2]])
-        for curve_points in self.curves_points:
-            cs = []
-            for point in curve_points:
-                bb = gmsh.model.getBoundingBox(0, point)
-                cs.append([bb[0], bb[1], bb[2]])
-            self.curves_points_coordinates.append(cs)
+        # for point in self.points:
+        #     bb = gmsh.model.getBoundingBox(0, point)
+        #     self.points_coordinates.append([bb[0], bb[1], bb[2]])
+        # for curve_points in self.curves_points:
+        #     cs = []
+        #     for point in curve_points:
+        #         bb = gmsh.model.getBoundingBox(0, point)
+        #         cs.append([bb[0], bb[1], bb[2]])
+        #     self.curves_points_coordinates.append(cs)
         self.bounding_box = []  # [x_min, y_min, z_min, x_max, y_max, z_max] Call self.evaluate_bounding_box() to init
-        self.evaluate_bounding_box()
+        # self.evaluate_bounding_box()
 
     def recombine(self):
         for i in range(len(self.surfaces)):
@@ -230,6 +230,17 @@ class Primitive:
                             self.transfinite_volume[transfinite_volume_data[i]](self, i)
                 result = True
         return result
+
+    def evaluate_coordinates(self):
+        for point in self.points:
+            bb = gmsh.model.getBoundingBox(0, point)
+            self.points_coordinates.append([bb[0], bb[1], bb[2]])
+        for curve_points in self.curves_points:
+            cs = []
+            for point in curve_points:
+                bb = gmsh.model.getBoundingBox(0, point)
+                cs.append([bb[0], bb[1], bb[2]])
+            self.curves_points_coordinates.append(cs)
 
     def evaluate_bounding_box(self):
         if len(self.volumes) > 0:
@@ -460,6 +471,14 @@ class Complex:
                 vs.extend(self.primitives[i].volumes)
         return vs
 
+    def evaluate_coordinates(self):
+        for primitive in self.primitives:
+            primitive.evaluate_coordinates()
+
+    def evaluate_bounding_box(self):
+        for primitive in self.primitives:
+            primitive.evaluate_bounding_box()
+
     def smooth(self, dim, n):
         for primitive in self.primitives:
             primitive.smooth(dim, n)
@@ -495,7 +514,7 @@ def primitive_boolean(factory, primitive_obj, primitive_tool):
         tool_dim_tags = map(lambda x: (3, x), primitive_tool.volumes)
         out_dim_tags, out_dim_tags_map = factory.fragment(obj_dim_tags, tool_dim_tags)
         # factory.removeAllDuplicates()
-        factory.synchronize()
+        # factory.synchronize()  # TODO testing continues
         new_obj_volumes = []
         for i in range(len(primitive_obj.volumes)):
             new_dim_tags = out_dim_tags_map[i]

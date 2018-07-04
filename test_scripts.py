@@ -2475,7 +2475,7 @@ class TestScripts(unittest.TestCase):
         factory = gmsh.model.occ
 
         model = gmsh.model
-        model_name = "test_nk_3"
+        model_name = "test_nk"
         model.add(model_name)
 
         gmsh.option.setNumber("General.Terminal", 1)
@@ -2487,7 +2487,7 @@ class TestScripts(unittest.TestCase):
         nk = NK(
             factory,
             [0, 0, 0], "HostRock", 1000, 1000, 487.5, 100,
-            ["intrusion_1"],  # [],  # ["intrusion_1"],
+            [],  # ["intrusion_1"],
             [
                 [0, 0, 0]  # [-325, 0, 300]
             ],
@@ -2501,11 +2501,12 @@ class TestScripts(unittest.TestCase):
             ],
             [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
             [[3, 0, 1], [3, 0, 1], [3, 0, 1]],
-            [[3, 0, 1], [3, 0, 1], [3, 0, 1]],
+            [[3, 0, 1], [15, 0, 1], [3, 0, 1]],
             [3, 0, 1],
             1,
-            [0, 0, -37.5], "ILW", 1, 1, 23, 15,
-            [23, 0, -37.5], "HLW", 0, 0, 26, 23
+            [-11.5 - (14 - 1) * 23, -(20 - 1) * 15 * 0.5, -37.5], "ILW", 14, 20, 23, 15,  # Base
+            # [11.5, -(13 - 1) * 23 * 0.5, -37.5], "HLW", 14, 13, 26, 23  # Base
+            [11.5, -(13 - 1) * 23 * 0.5, -37.5], "HLW", 14, 13, 39, 23
         )
         nk.boolean()
         nk.correct_and_transfinite()
