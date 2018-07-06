@@ -1,11 +1,12 @@
 {
-  "factory": "gmsh.model.occ",
-  "env_transform": [104, 0, 0],
+  "factory": "occ",
+  "env_transform": [19.5, 0, 0],
   "env_volume_name": "HostRock",
-  "env_dx": 1729,
+  "env_dx": 1560,
   "env_dy": 1185,
   "env_dz": 487.5,
   "env_lc": 100,
+  "env_bool": false,
   "int_filenames": [],
   "int_transforms": [],
   "int_volume_names": [],
@@ -27,6 +28,6 @@
   "hlw_name": "HLW",
   "hlw_nx": 14,
   "hlw_ny": 13,
-  "hlw_dx": 39,
+  "hlw_dx": 26,
   "hlw_dy": 23
 }

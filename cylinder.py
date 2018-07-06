@@ -35,7 +35,7 @@ class Cylinder(Complex):
             c = radii[0] / math.sqrt(2)
             kc = k * radii[0] / math.sqrt(2)
             h = float(heights[i])
-            h_cnt += h / 2
+            h_cnt += h / 2  # height layer center counter
             # Core center
             primitives.append(Primitive(
                 factory,
@@ -398,4 +398,4 @@ class Cylinder(Complex):
                     layers_physical_names[i][j]
                 ))
             h_cnt += h / 2
-            Complex.__init__(self, factory, primitives)
+        Complex.__init__(self, factory, primitives)

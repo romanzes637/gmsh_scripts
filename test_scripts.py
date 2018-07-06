@@ -1,3 +1,4 @@
+
 import gmsh
 import math
 import occ_workarounds as occ_ws
@@ -8,7 +9,7 @@ import itertools
 import time
 
 from borehole import Borehole
-from nk import NK
+from nkm import NKM
 from primitive import primitive_boolean, primitive_cut_by_volume_boolean, Environment, complex_cut_by_volume_boolean
 from import_text import read_complex_type_1, read_complex_type_2, read_complex_type_2_to_complex_primitives
 from complex_primitive import ComplexPrimitive
@@ -18,7 +19,8 @@ from primitive import Complex
 from primitive import primitive_complex_boolean
 from cylinder import Cylinder
 from support import auto_primitive_points_sizes_min_curve, auto_complex_points_sizes_min_curve, \
-    auto_complex_points_sizes_min_curve_in_volume, auto_primitive_points_sizes_min_curve_in_volume
+    auto_complex_points_sizes_min_curve_in_volume, auto_primitive_points_sizes_min_curve_in_volume, \
+    volumes_surfaces_to_volumes_groups_surfaces, auto_volumes_groups_surfaces
 
 
 class TestScripts(unittest.TestCase):
@@ -221,24 +223,78 @@ class TestScripts(unittest.TestCase):
 
         print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
 
-    def test_primitive_environment(self):
+    def test_boundary_surfaces(self):
         """
-        Primitive in Environment
+        Cylinder boundary surfaces
         """
-        start_time = time.time()
-
         gmsh.initialize()
 
-        gmsh.option.setNumber("Geometry.AutoCoherence", 0)
+        gmsh.option.setNumber("Geometry.AutoCoherence", 0)  # No effect at gmsh.model.occ factory
         gmsh.option.setNumber("General.Terminal", 1)
+
+        model_name = "test_boundary_surfaces"
+        gmsh.model.add(model_name)
+
+        factory = gmsh.model.occ
+
+        print("Cylinder")
+        cylinder = Cylinder(
+            factory,
+            [10, 20, 30],
+            [10, 20, 30],
+            [[5, 5, 5], [7, 7, 7], [9, 9, 9]],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [["V0", "V1", "V2"], ["V3", "V4", "V5"], ["V6", "V7", "V8"]],
+            [[3, 0, 1], [4, 0, 1], [5, 0, 1]],
+            [[3, 0, 1], [4, 0, 1], [5, 0, 1]],
+            [5, 0, 1]
+        )
+
+        print("Remove All Duplicates")
+        factory.removeAllDuplicates()
+
+        print("Synchronize")
+        factory.synchronize()
+
+        print("Boundary Surfaces")
+        bs = cylinder.get_boundary_surfaces()
+        self.assertEqual(len(bs), 38)
+
+        print("Universal Way")  # Doesn't works with many inner volumes
+        v_dts = gmsh.model.getEntities(3)  # all model volumes
+        print(len(v_dts))
+        bs_dts = gmsh.model.getBoundary(v_dts)  # all model volumes boundary
+        print(len(bs_dts))
+        bs_u = map(lambda x: x[1], bs_dts)
+        s_dts = gmsh.model.getEntities(2)  # all model surfaces boundary
+        print(len(s_dts))
+        print(bs)
+        print(bs_u)
+        self.assertListEqual(bs, bs_u)
+
+        print("Good Way")
+        vgs_ss = auto_volumes_groups_surfaces()
+        print(vgs_ss)
+
+        gmsh.finalize()
+
+    def test_environment(self):
+        """
+        Cylinder in Environment
+        """
+        gmsh.initialize()
+
+        gmsh.option.setNumber("Geometry.AutoCoherence", 0)  # No effect at gmsh.model.occ factory
+        gmsh.option.setNumber("General.Terminal", 1)
+        # (1=Delaunay, 2=New Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree)
         gmsh.option.setNumber("Mesh.Algorithm3D", 4)
 
-        gmsh.model.add("test_primitive_environment")
+        model_name = "test_environment"
+        gmsh.model.add(model_name)
 
-        factory = gmsh.model.geo
-        # factory = gmsh.model.occ  # TODO Doesn't work with occ because volume with holes is not created
+        factory = gmsh.model.occ
 
-        print("Primitive")
+        print("Primitive 1")
         primitive = Primitive(
             factory,
             [
@@ -259,37 +315,140 @@ class TestScripts(unittest.TestCase):
                 [10, 0, 1], [10, 0, 1], [10, 0, 1], [10, 0, 1],
                 [15, 0, 1], [15, 0, 1], [15, 0, 1], [15, 0, 1]
             ],
-            0
+            0,
+            "P1"
         )
 
-        print("Environment")
-        environment = Environment(factory, 50, 50, 50, 5, [0, 0, 0, 0, 0, 0, 0, 0, 0], primitive.surfaces)
+        print("Primitive 2")
+        primitive2 = Primitive(
+            factory,
+            [
+                [5, 10, -15, 5],
+                [-5, 10, -15, 5],
+                [-5, -10, -15, 5],
+                [5, -10, -15, 5],
+                [5, 10, 15, 5],
+                [-5, 10, 15, 5],
+                [-5, -10, 15, 5],
+                [5, -10, 15, 5],
+            ],
+            [-10, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [[], [], [], [], [], [], [], [], [], [], [], []],
+            [
+                [5, 0, 1], [5, 0, 1], [5, 0, 1], [5, 0, 1],
+                [10, 0, 1], [10, 0, 1], [10, 0, 1], [10, 0, 1],
+                [15, 0, 1], [15, 0, 1], [15, 0, 1], [15, 0, 1]
+            ],
+            0,
+            "P2"
+        )
+
+        print("Primitive 3")
+        primitive3 = Primitive(
+            factory,
+            [
+                [5, 10, -15, 5],
+                [-5, 10, -15, 5],
+                [-5, -10, -15, 5],
+                [5, -10, -15, 5],
+                [5, 10, 15, 5],
+                [-5, 10, 15, 5],
+                [-5, -10, 15, 5],
+                [5, -10, 15, 5],
+            ],
+            [-30, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [[], [], [], [], [], [], [], [], [], [], [], []],
+            [
+                [5, 0, 1], [5, 0, 1], [5, 0, 1], [5, 0, 1],
+                [10, 0, 1], [10, 0, 1], [10, 0, 1], [10, 0, 1],
+                [15, 0, 1], [15, 0, 1], [15, 0, 1], [15, 0, 1]
+            ],
+            0,
+            "P3"
+        )
+
+        print("Cylinder")
+        cylinder = Cylinder(
+            factory,
+            [10, 20, 30],
+            [10, 20, 30],
+            [[5, 5, 5], [7, 7, 7], [9, 9, 9]],
+            [70, 0, 0, 0, 0, 0, 0, 0, 0],
+            [["V0", "V1", "V2"], ["V3", "V4", "V5"], ["V6", "V7", "V8"]],
+            [[3, 0, 1], [4, 0, 1], [5, 0, 1]],
+            [[3, 0, 1], [4, 0, 1], [5, 0, 1]],
+            [5, 0, 1]
+        )
+
+        print("Synchronize")
+        factory.synchronize()
+
+        print("Evaluate")
+        cylinder.evaluate_coordinates()  # for correct and transfinite
+        primitive.evaluate_coordinates()
+        primitive2.evaluate_coordinates()
+        primitive3.evaluate_coordinates()
 
         print("Remove All Duplicates")
         factory.removeAllDuplicates()
 
-        print("Physical Groups")
-        tag = gmsh.model.addPhysicalGroup(3, primitive.volumes)
-        gmsh.model.setPhysicalName(3, tag, "Primitive")
-        tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
-        gmsh.model.setPhysicalName(3, tag, "Environment")
-        for i in range(len(environment.surfaces)):
-            tag = gmsh.model.addPhysicalGroup(2, [environment.surfaces[i]])
-            gmsh.model.setPhysicalName(2, tag, environment.surfaces_names[i])
+        print("Synchronize")
+        factory.synchronize()
 
-        print("Transfinite")
+        print("Volumes Surfaces")
+        vgs_ss = auto_volumes_groups_surfaces()
+
+        print("Environment")
+        environment = Environment(
+            factory,
+            300,
+            300,
+            300,
+            50,
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            vgs_ss
+        )
+
+        print("Synchronize")
+        factory.synchronize()
+
+        print("Correct and Transfinite")
         ss = set()
-        primitive.transfinite(ss)
+        occ_ws.correct_and_transfinite_complex(cylinder, ss)
+        occ_ws.correct_and_transfinite_primitive(primitive, ss)
+        occ_ws.correct_and_transfinite_primitive(primitive2, ss)
+        occ_ws.correct_and_transfinite_primitive(primitive3, ss)
 
+        print("Physical")
+        tag = gmsh.model.addPhysicalGroup(3, primitive.volumes)
+        gmsh.model.setPhysicalName(3, tag, primitive.volume_name)
+        tag = gmsh.model.addPhysicalGroup(3, primitive2.volumes)
+        gmsh.model.setPhysicalName(3, tag, primitive2.volume_name)
+        tag = gmsh.model.addPhysicalGroup(3, primitive3.volumes)
+        gmsh.model.setPhysicalName(3, tag, primitive3.volume_name)
+        for name in cylinder.volumes_names_dict.keys():
+            vs = cylinder.get_volumes_by_name(name)
+            tag = gmsh.model.addPhysicalGroup(3, vs)
+            gmsh.model.setPhysicalName(3, tag, name)
+        tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
+        gmsh.model.setPhysicalName(3, tag, environment.volume_name)
+        volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
+        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        surfaces_names = ["X", "NY", "NX", "Y", "NZ", "Z"]
+        for i, n in enumerate(surfaces_names):
+            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
+            gmsh.model.setPhysicalName(2, tag, n)
+
+        print("Mesh")
         gmsh.model.mesh.generate(3)
-
         gmsh.model.mesh.removeDuplicateNodes()
 
-        gmsh.write("test_primitive_environment.msh")
+        print("Write")
+        gmsh.write(model_name + ".msh")
 
         gmsh.finalize()
-
-        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
 
     def test_primitive_environment_boolean(self):
         """
@@ -2464,9 +2623,9 @@ class TestScripts(unittest.TestCase):
         print('Write:\t\t{:.3f}s'.format(spent_time_write))
         print('Total:\t\t{:.3f}s'.format(time.time() - start_time_global))
 
-    def test_nk(self):
+    def test_nkm(self):
         """
-        Test NK
+        Test NKM
         """
         start_time = time.time()
 
@@ -2484,9 +2643,9 @@ class TestScripts(unittest.TestCase):
 
         print("NK")
         start = time.time()
-        nk = NK(
+        nk = NKM(
             factory,
-            [0, 0, 0], "HostRock", 1000, 1000, 487.5, 100,
+            [0, 0, 0], "HostRock", 1000, 1000, 487.5, 100, True,
             [],  # ["intrusion_1"],
             [
                 [0, 0, 0]  # [-325, 0, 300]

@@ -100,3 +100,41 @@ def auto_complex_points_sizes_min_curve(complex_obj, points_sizes_dict, k=1.0):
 def auto_complex_points_sizes_min_curve_in_volume(complex_obj, points_sizes_dict, k=1.0):
     for p in complex_obj.primitives:
         auto_primitive_points_sizes_min_curve_in_volume(p, points_sizes_dict, k)
+
+
+def volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces):
+    """
+    For Environment object. For each distinct inner volume in Environment should exist
+    the surface loop. If inner volumes touch each other they unite to volume group
+    and have common surface loop.
+    :param volumes_surfaces: [[v1_s1, ..., v1_si], ..., [vj_s1, ..., vj_si]]
+    :return: volumes_groups_surfaces [[vg1_s1, ..., vg1_si], ..., [vgj_s1, ..., vgj_si]]
+    """
+    vgs_ss = list()  # volumes_groups_surfaces
+    vs_set = set(range(len(volumes_surfaces)))  # Set of yet unallocated volumes to volumes groups
+    while len(vs_set) != 0:
+        current_vs = list(vs_set)
+        v0 = current_vs[0]  # Start with volume 0 surfaces
+        vg_ss = set(volumes_surfaces[v0])
+        for i in range(1, len(current_vs)):
+            vi = current_vs[i]
+            vi_ss = set(volumes_surfaces[vi])
+            # print(vg_ss, vi_ss)
+            intersection = vg_ss.intersection(vi_ss)
+            if len(intersection) > 0:  # If volume group and volume i surfaces have common surfaces
+                vg_ss.symmetric_difference_update(vi_ss)  # Add volume i surfaces to volume group without common
+                vs_set.remove(vi)  # Remove volume i from vs_set
+        vgs_ss.append(list(vg_ss))
+        vs_set.remove(v0)
+    return vgs_ss
+
+
+def auto_volumes_groups_surfaces():
+    v_dts = gmsh.model.getEntities(3)  # all model volumes
+    dts = map(lambda x: (3, x[1]), v_dts)  # TODO use v_dts?
+    volumes_surfaces = list()
+    for dt in dts:
+        ss_dts = gmsh.model.getBoundary(dt, combined=False)  # volume surfaces
+        ss = map(lambda x: x[1], ss_dts)
+        volumes_surfaces.append(ss)
+    return volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces)

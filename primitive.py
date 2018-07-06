@@ -5,7 +5,7 @@ import gmsh
 
 class Primitive:
     def __init__(self, factory, point_data, transform_data=None, curve_types=None, curve_data=None,
-                 transfinite_curve_data=None, transfinite_type=None, volume_name="Default"):
+                 transfinite_curve_data=None, transfinite_type=None, volume_name="Primitive"):
         """
         Base object with six quadrangular surfaces and eight points
         The object (e.g. number of its volumes/surfaces) could be changed in process,
@@ -130,7 +130,7 @@ class Primitive:
                 tag = self.factory.addSurfaceFilling(tag)
             self.surfaces.append(tag)
         # Volume
-        tag = self.factory.addSurfaceLoop(self.surfaces)
+        tag = self.factory.addSurfaceLoop(self.surfaces)  # FIXME always return -1
         tag = self.factory.addVolume([tag])
         self.volumes.append(tag)
         # self.factory.synchronize()
@@ -267,6 +267,31 @@ class Primitive:
         for v in self.volumes:
             points_dim_tags = gmsh.model.getBoundary([(3, v)], combined=False, recursive=True)
             gmsh.model.mesh.setSize(points_dim_tags, size)
+
+    def get_surfaces(self):
+        volumes_dim_tags = map(lambda x: (3, x), self.volumes)
+        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        ss = map(lambda x: x[1], surfaces_dim_tags)
+        return ss
+
+    def get_boundary_surfaces(self):
+        ss = self.get_surfaces()  # all surfaces
+        uss = set(ss)  # unique surfaces
+        bs = list()  # boundary surfaces
+        for us in uss:
+            n = ss.count(us)  # count of unique surface in surfaces
+            if n == 1:
+                bs.append(us)
+        return bs
+
+    def get_volumes_surfaces(self):
+        volumes_dim_tags = map(lambda x: (3, x), self.volumes)
+        ss = list()
+        for dt in volumes_dim_tags:
+            vss_dts = gmsh.model.getBoundary(dt, combined=False)
+            vss = map(lambda x: x[1], vss_dts)
+            ss.append(vss)
+        return ss
 
     surfaces_names = {
         0: "NX",
@@ -420,13 +445,11 @@ class Complex:
         :param factory: gmsh factory (currently: gmsh.model.geo or gmsh.model.occ)
         :param primitives: [primitive 1, primitive 2, ..., primitive N]
         """
-        for primitive in primitives:
-            assert factory == primitive.factory
         self.factory = factory
         self.primitives = primitives
         self.volumes_names_dict = {}
-        for i, primitive in enumerate(self.primitives):
-            key = primitive.volume_name
+        for i, p in enumerate(self.primitives):
+            key = p.volume_name
             if key in self.volumes_names_dict:
                 self.volumes_names_dict[key].append(i)
             else:
@@ -434,30 +457,30 @@ class Complex:
 
     def inner_boolean(self):
         combinations = list(itertools.combinations(range(len(self.primitives)), 2))
-        for combination in combinations:
+        for c in combinations:
             print("Boolean primitive_obj {} {} by primitive_tool {} {}".format(
-                combination[0], self.primitives[combination[0]].volume_name,
-                combination[1], self.primitives[combination[1]].volume_name))
-            primitive_boolean(self.factory, self.primitives[combination[0]], self.primitives[combination[1]])
+                c[0], self.primitives[c[0]].volume_name,
+                c[1], self.primitives[c[1]].volume_name))
+            primitive_boolean(self.factory, self.primitives[c[0]], self.primitives[c[1]])
 
     def set_size(self, size, primitive_idx=None):
         if primitive_idx is not None:
             self.primitives[primitive_idx].set_size(size)
         else:
-            for primitive in self.primitives:
-                primitive.set_size(size)
+            for p in self.primitives:
+                p.set_size(size)
 
     def transfinite(self, transfinite_surfaces):
         results = []
-        for primitive in self.primitives:
-            result = primitive.transfinite(transfinite_surfaces)
+        for p in self.primitives:
+            result = p.transfinite(transfinite_surfaces)
             results.append(result)
         return results
 
     def get_union_volume(self):
         dim_tags = []
-        for primitive in self.primitives:
-            dim_tags += map(lambda x: (3, x), primitive.volumes)
+        for p in self.primitives:
+            dim_tags += map(lambda x: (3, x), p.volumes)
         out_dim_tags, out_dim_tags_map = self.factory.fuse(
             dim_tags[:1], dim_tags[1:], tag=-1, removeObject=False, removeTool=False)
         self.factory.synchronize()
@@ -472,16 +495,37 @@ class Complex:
         return vs
 
     def evaluate_coordinates(self):
-        for primitive in self.primitives:
-            primitive.evaluate_coordinates()
+        for p in self.primitives:
+            p.evaluate_coordinates()
 
     def evaluate_bounding_box(self):
-        for primitive in self.primitives:
-            primitive.evaluate_bounding_box()
+        for p in self.primitives:
+            p.evaluate_bounding_box()
 
     def smooth(self, dim, n):
-        for primitive in self.primitives:
-            primitive.smooth(dim, n)
+        for p in self.primitives:
+            p.smooth(dim, n)
+
+    def get_boundary_surfaces(self):
+        ss = list()  # all primitives boundary surfaces
+        for p in self.primitives:
+            ss += p.get_boundary_surfaces()
+        print("Number of surfaces: {}".format(len(ss)))
+        uss = set(ss)  # unique surfaces
+        print("Number of unique surfaces: {}".format(len(uss)))
+        bs = list()  # boundary surfaces
+        for us in uss:
+            n = ss.count(us)  # count of unique surface in surfaces
+            if n == 1:
+                bs.append(us)
+        print("Number of boundary surfaces: {}".format(len(bs)))
+        return bs
+
+    def get_volumes_surfaces(self):
+        ss = list()
+        for p in self.primitives:
+            ss += p.get_volumes_surfaces()
+        return ss
 
 
 def primitive_boolean(factory, primitive_obj, primitive_tool):
@@ -617,7 +661,7 @@ def complex_cut_by_volume_boolean(factory, complex_obj, volume):
 
 
 class Environment:
-    def __init__(self, factory, lx, ly, lz, lc, transform_data, inner_surfaces):
+    def __init__(self, factory, lx, ly, lz, lc, transform_data, inner_surfaces, volume_name="Environment"):
         self.factory = factory
         self.lx = lx
         self.ly = ly
@@ -625,6 +669,7 @@ class Environment:
         self.lc = lc
         self.transform_data = transform_data
         self.inner_surfaces = inner_surfaces
+        self.volume_name = volume_name
         # Points
         self.points = []
         self.points.append(factory.addPoint(lx / 2, ly / 2, -lz / 2, lc))
@@ -636,14 +681,34 @@ class Environment:
         self.points.append(factory.addPoint(-lx / 2, -ly / 2, lz / 2, lc))
         self.points.append(factory.addPoint(lx / 2, -ly / 2, lz / 2, lc))
         # Transform
-        dim_tags = zip([0] * len(self.points), self.points)
-        factory.translate(dim_tags, transform_data[0], transform_data[1], transform_data[2])
-        factory.rotate(dim_tags, transform_data[3], transform_data[4], transform_data[5],
-                       1, 0, 0, transform_data[6])
-        factory.rotate(dim_tags, transform_data[3], transform_data[4], transform_data[5],
-                       0, 1, 0, transform_data[7])
-        factory.rotate(dim_tags, transform_data[3], transform_data[4], transform_data[5],
-                       0, 0, 1, transform_data[8])
+        if transform_data is not None:
+            dim_tags = map(lambda x: (0, x), self.points)
+            self.factory.translate(dim_tags, transform_data[0], transform_data[1], transform_data[2])
+            if len(transform_data) == 6:
+                self.factory.rotate(dim_tags,
+                                    transform_data[0], transform_data[1], transform_data[2],
+                                    1, 0, 0, transform_data[3])
+                self.factory.rotate(dim_tags,
+                                    transform_data[0], transform_data[1], transform_data[2],
+                                    0, 1, 0, transform_data[4])
+                self.factory.rotate(dim_tags,
+                                    transform_data[0], transform_data[1], transform_data[2],
+                                    0, 0, 1, transform_data[5])
+            elif len(transform_data) == 7:
+                self.factory.rotate(dim_tags,
+                                    transform_data[0], transform_data[1], transform_data[2],
+                                    transform_data[3], transform_data[4], transform_data[5],
+                                    transform_data[6])
+            elif len(transform_data) == 9:
+                self.factory.rotate(dim_tags,
+                                    transform_data[3], transform_data[4], transform_data[5],
+                                    1, 0, 0, transform_data[6])
+                self.factory.rotate(dim_tags,
+                                    transform_data[3], transform_data[4], transform_data[5],
+                                    0, 1, 0, transform_data[7])
+                self.factory.rotate(dim_tags,
+                                    transform_data[3], transform_data[4], transform_data[5],
+                                    0, 0, 1, transform_data[8])
         # Curves
         self.curves = []
         for i in range(len(self.curves_points)):
@@ -661,10 +726,18 @@ class Environment:
                 self.surfaces.append(factory.addSurfaceFilling(cl_tag))
         # Volumes
         self.volumes = []
-        out_sl_tag = factory.addSurfaceLoop(self.surfaces)
-        in_sl_tag = factory.addSurfaceLoop(inner_surfaces)
-        self.volumes.append(factory.addVolume([out_sl_tag, in_sl_tag]))
-        factory.synchronize()
+        if self.factory == gmsh.model.occ:
+            out_sl = factory.addSurfaceLoop(self.surfaces, 1)  # FIXME bug always return = -1 by default
+            in_sls = []
+            for i, sl in enumerate(inner_surfaces):
+                in_sls.append(factory.addSurfaceLoop(sl, 2 + i))  # FIXME bug always return = -1 by default
+        else:
+            out_sl = factory.addSurfaceLoop(self.surfaces)
+            in_sls = [factory.addSurfaceLoop(inner_surfaces)]
+        sls = list()
+        sls.append(out_sl)
+        sls += in_sls
+        self.volumes.append(factory.addVolume(sls))
 
     curves_points = [
         [1, 0], [5, 4], [6, 7], [2, 3],

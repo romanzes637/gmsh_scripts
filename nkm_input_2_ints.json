@@ -1,11 +1,12 @@
 {
-  "factory": "gmsh.model.occ",
+  "factory": "occ",
   "env_transform": [0, 0, 0],
   "env_volume_name": "HostRock",
   "env_dx": 1000,
   "env_dy": 1000,
   "env_dz": 487.5,
   "env_lc": 100,
+  "env_bool": false,
   "int_filenames": ["intrusion_1", "intrusion_2"],
   "int_transforms": [[0, 0, 0], [0, 0, 0]],
   "int_volume_names": ["IntOne", "IntOne"],

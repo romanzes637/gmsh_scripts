@@ -10,57 +10,64 @@ import os
 
 from borehole import Borehole
 from import_text import read_complex_type_2_to_complex_primitives
-from primitive import Primitive, complex_boolean, complex_cut_by_volume_boolean, primitive_complex_boolean
-from support import auto_complex_points_sizes_min_curve_in_volume
+from primitive import Primitive, complex_boolean, complex_cut_by_volume_boolean, primitive_complex_boolean, Environment
+from support import auto_complex_points_sizes_min_curve_in_volume, auto_volumes_groups_surfaces
 
 
-class NK:
+class NKM:
     @staticmethod
     def from_json(filename):
-        with open(filename) as json_data:
-            d = json.load(json_data)
-            pprint(d)
-            json_data.close()
-        if d["factory"] == "gmsh.model.occ":
+        try:
+            print('Reading input parameters from ' + filename)
+            with open(filename) as json_data:
+                d = json.load(json_data)
+                json_data.close()
+        except EnvironmentError as e:
+            print(e)
+            print('Using default input parameters')
+            d = {}
+        factory_item = d.get('factory', 'occ')
+        if factory_item == 'occ':
             factory = gmsh.model.occ
         else:
             factory = gmsh.model.geo
-        return NK(
+        return NKM(
             factory,
-            d["env_transform"],
-            d["env_volume_name"],
-            d["env_dx"],
-            d["env_dy"],
-            d["env_dz"],
-            d["env_lc"],
-            d["int_filenames"],
-            d["int_transforms"],
-            d["int_volume_names"],
-            d["int_lcs"],
-            d["int_divides"],
-            d["int_transfinites"],
-            d["bor_lcs"],
-            d["bor_transfinite_r"],
-            d["bor_transfinite_h"],
-            d["bor_transfinite_phi"],
-            d["bor_nh"],
-            d["ilw_transform"],
-            d["ilw_name"],
-            d["ilw_nx"],
-            d["ilw_ny"],
-            d["ilw_dx"],
-            d["ilw_dy"],
-            d["hlw_transform"],
-            d["hlw_name"],
-            d["hlw_nx"],
-            d["hlw_ny"],
-            d["hlw_dx"],
-            d["hlw_dy"]
+            d.get('env_transform', [19.5, 0, 0]),
+            d.get('env_volume_name', 'HostRock'),
+            d.get('env_dx', 1560),
+            d.get('env_dy', 1185),
+            d.get('env_dz', 487.5),
+            d.get('env_lc', 100),
+            d.get('env_bool', False),
+            d.get('int_filenames', []),
+            d.get('int_transforms', []),
+            d.get('int_volume_names', []),
+            d.get('int_lcs', []),
+            d.get('int_divides', []),
+            d.get('int_transfinites', []),
+            d.get('bor_lcs', [[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
+            d.get('bor_transfinite_r', [[3, 0, 1], [3, 0, 1], [3, 0, 1]]),
+            d.get('bor_transfinite_h', [[3, 0, 1], [15, 0, 1], [3, 0, 1]]),
+            d.get('bor_transfinite_phi', [3, 0, 1]),
+            d.get('bor_nh', 1),
+            d.get('ilw_transform', [-310.5, -142.5, -37.5]),
+            d.get('ilw_name', 'ILW'),
+            d.get('ilw_nx', 14),
+            d.get('ilw_ny', 20),
+            d.get('ilw_dx', 23),
+            d.get('ilw_dy', 15),
+            d.get('hlw_transform', [11.5, -138, -37.5]),
+            d.get('hlw_name', 'HLW'),
+            d.get('hlw_nx', 14),
+            d.get('hlw_ny', 13),
+            d.get('hlw_dx', 26),
+            d.get('hlw_dy', 23)
         )
 
     def __init__(
             self, factory,
-            env_transform, env_volume_name, env_dx, env_dy, env_dz, env_lc,
+            env_transform, env_volume_name, env_dx, env_dy, env_dz, env_lc, env_bool,
             int_filenames, int_transforms, int_volume_names, int_lcs, int_divides, int_transfinites,
             bor_lcs, bor_transfinite_r, bor_transfinite_h, bor_transfinite_phi, bor_nh,
             ilw_transform, ilw_name, ilw_nx, ilw_ny, ilw_dx, ilw_dy,
@@ -74,6 +81,7 @@ class NK:
         :param env_dy: Environment length y
         :param env_dz: Environment length z
         :param env_lc: Environment nodes characteristic length
+        :param env_bool: Boolean environment?
         :param int_filenames: Intrusions filenames (Complex Type 2, see import_text.py)
         :param int_transforms: Intrusions transforms (see Primitive transform_data)
         :param int_volume_names: Intrusions physical names
@@ -98,51 +106,41 @@ class NK:
         :param hlw_dx: Interval of HLW Boreholes x
         :param hlw_dy: Interval of HLW Boreholes y
         """
-        print("Initialization")
-        self.spent_times = {
-            "Init Env": 0,
-            "Init Ints": 0,
-            "Init ILW": 0,
-            "Init HLW": 0,
-            "Evaluate": 0,
-            "In Ints": 0,
-            "Ints By Ints": 0,
-            "ILW Unions": 0,
-            "Ints By ILW": 0,
-            "HLW Unions": 0,
-            "Ints By HLW": 0,
-            "Env By Ints": 0,
-            "Env By ILW": 0,
-            "Env By HLW": 0,
-            "Remove Ds": 0,
-            "C And T": 0,
-            "Set Sizes": 0,
-            "Smooth": 0,
-            "Physical": 0
-        }
+        print('Arguments')
+        print(locals())
+        print('Initialization')
+        self.spent_times = {}
         self.factory = factory
         self.int_volume_names = int_volume_names
         self.ilw_name = ilw_name
         self.hlw_name = hlw_name
-        print("Environment")
-        start_time = time.time()
-        self.env = Primitive(
-            factory,
-            [
-                [env_dx / 2, env_dy / 2, -env_dz, env_lc],
-                [-env_dx / 2, env_dy / 2, -env_dz, env_lc],
-                [-env_dx / 2, -env_dy / 2, -env_dz, env_lc],
-                [env_dx / 2, -env_dy / 2, -env_dz, env_lc],
-                [env_dx / 2, env_dy / 2, env_dz, env_lc],
-                [-env_dx / 2, env_dy / 2, env_dz, env_lc],
-                [-env_dx / 2, -env_dy / 2, env_dz, env_lc],
-                [env_dx / 2, -env_dy / 2, env_dz, env_lc]
-            ],
-            transform_data=env_transform,
-            volume_name=env_volume_name
-        )
-        self.spent_times["Init Env"] = time.time() - start_time
-        print("Intrusions")
+        self.env_transform = env_transform
+        self.env_volume_name = env_volume_name
+        self.env_dx = env_dx
+        self.env_dy = env_dy
+        self.env_dz = env_dz
+        self.env_lc = env_lc
+        self.env_bool = env_bool
+        if env_bool:
+            print('Environment')
+            start_time = time.time()
+            self.env = Primitive(
+                factory,
+                [
+                    [env_dx / 2, env_dy / 2, -env_dz, env_lc],
+                    [-env_dx / 2, env_dy / 2, -env_dz, env_lc],
+                    [-env_dx / 2, -env_dy / 2, -env_dz, env_lc],
+                    [env_dx / 2, -env_dy / 2, -env_dz, env_lc],
+                    [env_dx / 2, env_dy / 2, env_dz, env_lc],
+                    [-env_dx / 2, env_dy / 2, env_dz, env_lc],
+                    [-env_dx / 2, -env_dy / 2, env_dz, env_lc],
+                    [env_dx / 2, -env_dy / 2, env_dz, env_lc]
+                ],
+                transform_data=env_transform,
+                volume_name=env_volume_name
+            )
+            self.spent_times['Init Env'] = time.time() - start_time
+        print('Intrusions')
         start_time = time.time()
         self.ints = []  # Array of ComplexPrimitive arrays
         for i, fn in enumerate(int_filenames):
@@ -156,9 +154,9 @@ class NK:
                 int_transfinites[i],
                 int_volume_names[i]
             ))
-        self.spent_times["Init Ints"] = time.time() - start_time
-        print("Boreholes")
-        print("ILW")
+        self.spent_times['Init Ints'] = time.time() - start_time
+        print('Boreholes')
+        print('ILW')
         start_time = time.time()
         self.bs_ilw = []
         ilw_n = ilw_nx * ilw_ny
@@ -189,8 +187,8 @@ class NK:
                 print('{:.3f}s'.format(times[-1]))
                 time_spent += times[-1]
                 est_time = sum(times) / cnt
-        self.spent_times["Init ILW"] = time.time() - start_time
-        print("HLW")
+        self.spent_times['Init ILW'] = time.time() - start_time
+        print('HLW')
         start_time = time.time()
         self.bs_hlw = []
         hlw_n = hlw_nx * hlw_ny
@@ -221,53 +219,53 @@ class NK:
                 print('{:.3f}s'.format(times[-1]))
                 time_spent += times[-1]
                 est_time = sum(times) / cnt
-        self.spent_times["Init HLW"] = time.time() - start_time
+        self.spent_times['Init HLW'] = time.time() - start_time
 
     def evaluate(self):
-        print("Evaluate")
+        print('Evaluate')
         start_time = time.time()
-        print("Environment")
-        if self.env is not None:
+        if self.env_bool:
+            print('Environment')
             self.env.evaluate_coordinates()
             self.env.evaluate_bounding_box()
-        print("Intrusions")
+        print('Intrusions')
         for intrusion in self.ints:
             for c in intrusion:
                 c.evaluate_coordinates()
                 c.evaluate_bounding_box()
-        print("ILW Boreholes")
+        print('ILW Boreholes')
         for b in self.bs_ilw:
             b.evaluate_coordinates()
             b.evaluate_bounding_box()
-        print("HLW Boreholes")
+        print('HLW Boreholes')
         for b in self.bs_hlw:
             b.evaluate_coordinates()
             b.evaluate_bounding_box()
-        self.spent_times["Evaluate"] = time.time() - start_time
+        self.spent_times['Evaluate'] = time.time() - start_time
 
     def boolean(self):
-        print("Boolean")
+        print('Boolean')
         if len(self.ints) > 0:
-            print("Intrusions Inner")
+            print('Intrusions Inner')
             start_time = time.time()
             for intrusion in self.ints:
                 combinations = list(itertools.combinations(range(len(intrusion)), 2))
                 for combination in combinations:
-                    print("Boolean %s by %s" % combination)
+                    print('Boolean %s by %s' % combination)
                     complex_boolean(self.factory, intrusion[combination[0]], intrusion[combination[1]])
-            self.spent_times["In Ints"] = time.time() - start_time
+            self.spent_times['In Ints'] = time.time() - start_time
 
-            print("Intrusions By Intrusions")
+            print('Intrusions By Intrusions')
             start_time = time.time()
             combinations = list(itertools.combinations(range(len(self.ints)), 2))
             for combination in combinations:
-                print("Boolean %s by %s" % combination)
+                print('Boolean %s by %s' % combination)
                 for c0 in self.ints[combination[0]]:
                     for c1 in self.ints[combination[1]]:
                         complex_boolean(self.factory, c0, c1)
-            self.spent_times["Ints by Ints"] = time.time() - start_time
+            self.spent_times['Ints by Ints'] = time.time() - start_time
 
-            print("ILW Unions")
+            print('ILW Unions')
             start_time = time.time()
             us = []
             times = []
@@ -285,9 +283,9 @@ class NK:
                 print('{:.3f}s'.format(times[-1]))
                 time_spent += times[-1]
                 est_time = sum(times) / cnt
-            self.spent_times["ILW Unions"] = time.time() - start_time
+            self.spent_times['ILW Unions'] = time.time() - start_time
 
-            print("Intrusions By ILW Boreholes")
+            print('Intrusions By ILW Boreholes')
             start_time = time.time()
             for i, b in enumerate(self.bs_ilw):
                 for j, intrusion in enumerate(self.ints):
@@ -296,9 +294,9 @@ class NK:
                             i + 1, len(self.bs_ilw), j + 1, len(self.ints), k + 1, len(intrusion)))
                         complex_cut_by_volume_boolean(self.factory, c, us[i][0][1])
                         complex_boolean(self.factory, c, b)
-            self.spent_times["Ints By ILW"] = time.time() - start_time
+            self.spent_times['Ints By ILW'] = time.time() - start_time
 
-            print("HLW Unions")
+            print('HLW Unions')
             start_time = time.time()
             us = []
             times = []
@@ -316,9 +314,9 @@ class NK:
                 print('{:.3f}s'.format(times[-1]))
                 time_spent += times[-1]
                 est_time = sum(times) / cnt
-            self.spent_times["HLW Unions"] = time.time() - start_time
+            self.spent_times['HLW Unions'] = time.time() - start_time
 
-            print("Intrusions By HLW Boreholes")
+            print('Intrusions By HLW Boreholes')
             start_time = time.time()
             for i, b in enumerate(self.bs_hlw):
                 for j, intrusion in enumerate(self.ints):
@@ -327,99 +325,133 @@ class NK:
                             i + 1, len(self.bs_hlw), j + 1, len(self.ints), k + 1, len(intrusion)))
                         complex_cut_by_volume_boolean(self.factory, c, us[i][0][1])
                         complex_boolean(self.factory, c, b)
-            self.spent_times["Ints By HLW"] = time.time() - start_time
+            self.spent_times['Ints By HLW'] = time.time() - start_time
 
-            print("Environment by Intrusions")
+            if self.env_bool:
+                print('Environment by Intrusions')
+                start_time = time.time()
+                for i, intrusion in enumerate(self.ints):
+                    print('Intrusion:{}/{}'.format(i + 1, len(self.ints)))
+                    for c in intrusion:
+                        primitive_complex_boolean(self.factory, self.env, c)
+                self.spent_times['Env By Ints'] = time.time() - start_time
+
+        if self.env_bool:
+            print('Environment By ILW Boreholes')
             start_time = time.time()
-            for i, intrusion in enumerate(self.ints):
-                print('Intrusion:{}/{}'.format(i + 1, len(self.ints)))
-                for c in intrusion:
-                    primitive_complex_boolean(self.factory, self.env, c)
-            self.spent_times["Env By Ints"] = time.time() - start_time
+            for i, b in enumerate(self.bs_ilw):
+                print('Borehole:{}/{}'.format(i + 1, len(self.bs_ilw)))
+                primitive_complex_boolean(self.factory, self.env, b)
+            self.spent_times['Env By ILW'] = time.time() - start_time
 
-        print("Environment By ILW Boreholes")
-        start_time = time.time()
-        for i, b in enumerate(self.bs_ilw):
-            print('Borehole:{}/{}'.format(i + 1, len(self.bs_ilw)))
-            primitive_complex_boolean(self.factory, self.env, b)
-        self.spent_times["Env By ILW"] = time.time() - start_time
+            print('Environment By HLW Boreholes')
+            start_time = time.time()
+            for i, b in enumerate(self.bs_hlw):
+                print('Borehole:{}/{}'.format(i + 1, len(self.bs_hlw)))
+                primitive_complex_boolean(self.factory, self.env, b)
+            self.spent_times['Env By HLW'] = time.time() - start_time
 
-        print("Environment By HLW Boreholes")
-        start_time = time.time()
-        for i, b in enumerate(self.bs_hlw):
-            print('Borehole:{}/{}'.format(i + 1, len(self.bs_hlw)))
-            primitive_complex_boolean(self.factory, self.env, b)
-        self.spent_times["Env By HLW"] = time.time() - start_time
-
-        print("Remove All Duplicates")
+    def remove_duplicates(self):
+        print('Remove Duplicates')
         start_time = time.time()
         self.factory.removeAllDuplicates()
-        self.factory.synchronize()
-        self.spent_times["Remove Ds"] = time.time() - start_time
+        self.spent_times['Remove Ds'] = time.time() - start_time
+
+    def environment(self):
+        if not self.env_bool:
+            print('Environment')
+            start_time = time.time()
+            vgs_ss = auto_volumes_groups_surfaces()
+            self.env = Environment(
+                self.factory,
+                self.env_dx,
+                self.env_dy,
+                self.env_dz,
+                self.env_lc,
+                self.env_transform,
+                vgs_ss,
+                self.env_volume_name
+            )
+            self.spent_times['Init Env'] = time.time() - start_time
 
     def correct_and_transfinite(self):
-        print("Correct and Transfinite")
+        print('Correct and Transfinite')
         start_time = time.time()
         ss = set()
-        print("Environment")
-        if self.env is not None:
+        if self.env_bool:
+            print('Environment')
             occ_ws.correct_and_transfinite_primitive(self.env, ss)
-        print("Intrusions")
-        for intrusion in self.ints:
-            for c in intrusion:
+        print('Intrusions')
+        for i in self.ints:
+            for c in i:
                 occ_ws.correct_and_transfinite_complex(c, ss)
-        print("ILW Boreholes")
+        print('ILW Boreholes')
         for b in self.bs_ilw:
             occ_ws.correct_and_transfinite_complex(b, ss)
-        print("HLW Boreholes")
+        print('HLW Boreholes')
         for b in self.bs_hlw:
             occ_ws.correct_and_transfinite_complex(b, ss)
-        self.spent_times["C And T"] = time.time() - start_time
+        self.spent_times['C And T'] = time.time() - start_time
+
+    def transfinite(self):
+        if self.factory == gmsh.model.geo:
+            ss = set()
+            print('Intrusions')
+            for i in self.ints:
+                for c in i:
+                    c.transfinite(ss)
+            print('ILW Boreholes')
+            for b in self.bs_ilw:
+                rs = b.transfinite(ss)
+                print(rs)
+            print('HLW Boreholes')
+            for b in self.bs_hlw:
+                b.transfinite(b, ss)
 
     def set_sizes(self):
-        print("Set Sizes")
+        print('Set Sizes')
         start_time = time.time()
         pss = dict()
-        print("Intrusions")
+        print('Intrusions')
         for intrusion in self.ints:
             for c in intrusion:
                 auto_complex_points_sizes_min_curve_in_volume(c, pss)
-        print("ILW Boreholes")
+        print('ILW Boreholes')
         for b in self.bs_ilw:
             auto_complex_points_sizes_min_curve_in_volume(b, pss)
-        print("HLW Boreholes")
+        print('HLW Boreholes')
         for b in self.bs_hlw:
             auto_complex_points_sizes_min_curve_in_volume(b, pss)
-        print(pss)
+        # print(pss)
         if len(pss) > 0:
             max_size_key = max(pss.keys(), key=(lambda x: pss[x]))
             min_size_key = min(pss.keys(), key=(lambda x: pss[x]))
             print('Maximum Point, Value: {0}, {1}'.format(max_size_key, pss[max_size_key]))
             print('Minimum Point, Value: {0}, {1}'.format(min_size_key, pss[min_size_key]))
-        self.spent_times["Set Sizes"] = time.time() - start_time
+        self.spent_times['Set Sizes'] = time.time() - start_time
 
     def smooth(self, dim, n):
-        print("Smooth")
+        print('Smooth')
         start_time = time.time()
-        print("Environment")
+        print('Environment')
         if self.env is not None:
             self.env.smooth(dim, n)
-        print("Intrusions")
+        print('Intrusions')
         for intrusion in self.ints:
             for c in intrusion:
                 c.smooth(dim, n)
-        print("ILW Boreholes")
+        print('ILW Boreholes')
         for b in self.bs_ilw:
             b.smooth(dim, n)
-        print("HLW Boreholes")
+        print('HLW Boreholes')
         for b in self.bs_hlw:
             b.smooth(dim, n)
-        self.spent_times["Smooth"] = time.time() - start_time
+        self.spent_times['Smooth'] = time.time() - start_time
 
     def physical(self):
-        print("Physical")
+        print('Physical')
         start_time = time.time()
-        print("Intrusions")
+        print('Intrusions')
         if len(self.ints) > 0:
             for name in set(self.int_volume_names):  # For same names for different ints
                 vs = []
@@ -428,7 +460,7 @@ class NK:
                         vs.extend(c.get_volumes_by_name(name))
                 tag = gmsh.model.addPhysicalGroup(3, vs)
                 gmsh.model.setPhysicalName(3, tag, name)
-        print("ILW Boreholes")
+        print('ILW Boreholes')
         if len(self.bs_ilw) > 0:
             for name in Borehole.volumes_names:
                 vs = []
@@ -436,7 +468,7 @@ class NK:
                     vs.extend(b.get_volumes_by_name(name))
                 tag = gmsh.model.addPhysicalGroup(3, vs)
                 gmsh.model.setPhysicalName(3, tag, self.ilw_name + name)
-        print("HLW Boreholes")
+        print('HLW Boreholes')
         if len(self.bs_hlw) > 0:
             for name in Borehole.volumes_names:
                 vs = []
@@ -444,28 +476,29 @@ class NK:
                     vs.extend(b.get_volumes_by_name(name))
                 tag = gmsh.model.addPhysicalGroup(3, vs)
                 gmsh.model.setPhysicalName(3, tag, self.hlw_name + name)
-        print("Environment")
-        if self.env is not None:
-            tag = gmsh.model.addPhysicalGroup(3, self.env.volumes)
-            gmsh.model.setPhysicalName(3, tag, self.env.volume_name)
-            volumes_dim_tags = map(lambda x: (3, x), self.env.volumes)
-            surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
-            surfaces_names = ["X", "Z", "NY", "NZ", "Y", "NX"]
-            for i in range(len(surfaces_names)):
-                tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
-                gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
-                #     gmsh.model.setPhysicalName(2, tag, 'S%s' % i)
-        self.spent_times["Physical"] = time.time() - start_time
+        print('Environment')
+        tag = gmsh.model.addPhysicalGroup(3, self.env.volumes)
+        gmsh.model.setPhysicalName(3, tag, self.env.volume_name)
+        volumes_dim_tags = map(lambda x: (3, x), self.env.volumes)
+        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        if self.env_bool:
+            surfaces_names = ['X', 'Z', 'NY', 'NZ', 'Y', 'NX']
+        else:
+            surfaces_names = ['X', 'NY', 'NX', 'Y', 'NZ', 'Z']
+        for i, n in enumerate(surfaces_names):
+            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
+            gmsh.model.setPhysicalName(2, tag, n)
+        self.spent_times['Physical'] = time.time() - start_time
 
 
 def main():
     spent_times = {}
     global_start_time = time.time()
 
-    print("Arguments")
+    print('Arguments')
     parser = argparse.ArgumentParser()
-    parser.add_argument("input", help="input filename")
-    parser.add_argument("output", help="output filename")
+    parser.add_argument('-i', '--input', help='input filename', default='nkm_input.json')
+    parser.add_argument('-o', '--output', help='output filename', default='nkm.msh')
     args = parser.parse_args()
     print(args)
 
@@ -473,42 +506,45 @@ def main():
 
     filename, file_extension = os.path.splitext(args.input)
     model_name = os.path.basename(filename)
-    print(model_name)
+    print('Model ' + model_name)
     gmsh.model.add(model_name)
 
-    gmsh.option.setNumber("Geometry.AutoCoherence", 0)  # No effect ...
-    gmsh.option.setNumber("General.Terminal", 1)
+    gmsh.option.setNumber('Geometry.AutoCoherence', 0)  # For geo factory
+    gmsh.option.setNumber('General.Terminal', 1)
     # (1=Delaunay, 2=New Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree)
-    gmsh.option.setNumber("Mesh.Algorithm3D", 4)
+    gmsh.option.setNumber('Mesh.Algorithm3D', 4)
 
-    print("NK")
+    print('NKM')
     start_time = time.time()
-    nk = NK.from_json(args.input)
-    nk.factory.synchronize()
-    nk.evaluate()
-    nk.boolean()
-    nk.factory.synchronize()
-    nk.correct_and_transfinite()
-    nk.set_sizes()
-    nk.physical()
-    # nk.smooth(2, 1)
-    spent_times.update(nk.spent_times)
-    spent_times["NK"] = time.time() - start_time
+    nkm = NKM.from_json(args.input)
+    nkm.factory.synchronize()
+    nkm.evaluate()
+    nkm.boolean()
+    nkm.remove_duplicates()
+    nkm.factory.synchronize()
+    nkm.environment()
+    nkm.factory.synchronize()
+    nkm.correct_and_transfinite()
+    nkm.set_sizes()
+    nkm.physical()
+    # nkm.smooth(2, 1)
+    spent_times.update(nkm.spent_times)
+    spent_times['NK'] = time.time() - start_time
 
-    print("Mesh")
+    print('Mesh')
     start_time = time.time()
     gmsh.model.mesh.generate(3)
     gmsh.model.mesh.removeDuplicateNodes()
-    spent_times["Mesh"] = time.time() - start_time
+    spent_times['Mesh'] = time.time() - start_time
 
-    print("Write")
+    print('Write')
     start_time = time.time()
     gmsh.write(args.output)
-    spent_times["Write"] = time.time() - start_time
+    spent_times['Write'] = time.time() - start_time
 
     gmsh.finalize()
 
-    spent_times["Total"] = time.time() - global_start_time
+    spent_times['Total'] = time.time() - global_start_time
     pprint(spent_times)
 
 
