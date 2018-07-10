@@ -25,14 +25,11 @@ from support import auto_primitive_points_sizes_min_curve, auto_complex_points_s
 
 class TestScripts(unittest.TestCase):
     def test_transfinite(self):
-        start_time = time.time()
-
         gmsh.initialize()
-
+        gmsh.option.setNumber("Geometry.AutoCoherence", 0)  # No effect at gmsh.model.occ factory
         gmsh.option.setNumber("General.Terminal", 1)
         gmsh.model.add("test_transfinite")
 
-        # factory = gmsh.model.geo
         factory = gmsh.model.occ
 
         print("Creation")
@@ -190,38 +187,42 @@ class TestScripts(unittest.TestCase):
             ))
         print('{:.3f}s'.format(time.time() - start))
 
-        print("Correction")
+        print("Synchronize")
+        factory.synchronize()
+
+        print("Evaluate Coordinates")
         start = time.time()
-        for primitive in primitives:
-            result = occ_ws.correct_primitive(primitive)
+        for p in primitives:
+            p.evaluate_coordinates()
+        print('{:.3f}s'.format(time.time() - start))
+
+        print("Correct")
+        start = time.time()
+        for p in primitives:
+            result = occ_ws.correct_primitive(p)
             print(result)
         print('{:.3f}s'.format(time.time() - start))
 
         print("Transfinite")
         start = time.time()
         ss = set()
-        for primitive in primitives:
-            result = primitive.transfinite(ss)
+        for p in primitives:
+            result = p.transfinite(ss)
             print(result)
         print('{:.3f}s'.format(time.time() - start))
 
         print("Physical")
-        for idx, primitive in enumerate(primitives):
-            tag = gmsh.model.addPhysicalGroup(3, primitive.volumes)
-            gmsh.model.setPhysicalName(3, tag, "V{}".format(idx))
-            for surface_idx, surface in enumerate(primitive.surfaces):
-                tag = gmsh.model.addPhysicalGroup(2, [surface])
-                gmsh.model.setPhysicalName(2, tag, "{}{}".format(primitive.surfaces_names[surface_idx], idx))
+        for i, p in enumerate(primitives):
+            tag = gmsh.model.addPhysicalGroup(3, p.volumes)
+            gmsh.model.setPhysicalName(3, tag, "V{}".format(i))
+            for j, s in enumerate(p.surfaces):
+                tag = gmsh.model.addPhysicalGroup(2, [s])
+                gmsh.model.setPhysicalName(2, tag, "{}{}".format(p.surfaces_names[j], i))
 
         gmsh.model.mesh.generate(3)
-
         gmsh.model.mesh.removeDuplicateNodes()
-
         gmsh.write("test_transfinite.msh")
-
         gmsh.finalize()
-
-        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
 
     def test_boundary_surfaces(self):
         """
@@ -283,16 +284,14 @@ class TestScripts(unittest.TestCase):
         Cylinder in Environment
         """
         gmsh.initialize()
-
         gmsh.option.setNumber("Geometry.AutoCoherence", 0)  # No effect at gmsh.model.occ factory
         gmsh.option.setNumber("General.Terminal", 1)
         # (1=Delaunay, 2=New Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree)
         gmsh.option.setNumber("Mesh.Algorithm3D", 4)
-
         model_name = "test_environment"
         gmsh.model.add(model_name)
 
-        factory = gmsh.model.occ
+        factory = gmsh.model.geo
 
         print("Primitive 1")
         primitive = Primitive(
@@ -399,6 +398,7 @@ class TestScripts(unittest.TestCase):
 
         print("Volumes Surfaces")
         vgs_ss = auto_volumes_groups_surfaces()
+        # print(vgs_ss)
 
         print("Environment")
         environment = Environment(
@@ -417,9 +417,9 @@ class TestScripts(unittest.TestCase):
         print("Correct and Transfinite")
         ss = set()
         occ_ws.correct_and_transfinite_complex(cylinder, ss)
-        occ_ws.correct_and_transfinite_primitive(primitive, ss)
-        occ_ws.correct_and_transfinite_primitive(primitive2, ss)
-        occ_ws.correct_and_transfinite_primitive(primitive3, ss)
+        print(occ_ws.correct_and_transfinite_primitive(primitive, ss))
+        print(occ_ws.correct_and_transfinite_primitive(primitive2, ss))
+        print(occ_ws.correct_and_transfinite_primitive(primitive3, ss))
 
         print("Physical")
         tag = gmsh.model.addPhysicalGroup(3, primitive.volumes)
@@ -436,7 +436,10 @@ class TestScripts(unittest.TestCase):
         gmsh.model.setPhysicalName(3, tag, environment.volume_name)
         volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
         surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
-        surfaces_names = ["X", "NY", "NX", "Y", "NZ", "Z"]
+        if factory is not gmsh.model.geo:
+            surfaces_names = ["X", "NY", "NX", "Y", "NZ", "Z"]
+        else:
+            surfaces_names = ["NX", "X", "NY", "Y", "NZ", "Z"]
         for i, n in enumerate(surfaces_names):
             tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
             gmsh.model.setPhysicalName(2, tag, n)

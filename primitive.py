@@ -150,8 +150,10 @@ class Primitive:
         # self.evaluate_bounding_box()
 
     def recombine(self):
-        for i in range(len(self.surfaces)):
-            gmsh.model.mesh.setRecombine(2, self.surfaces[i])
+        volumes_dim_tags = map(lambda x: (3, x), self.volumes)
+        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        for dt in surfaces_dim_tags:
+            gmsh.model.mesh.setRecombine(dt[0], dt[1])
 
     def smooth(self, dim, n):
         """
@@ -174,10 +176,10 @@ class Primitive:
             for v in self.volumes:
                 gmsh.model.mesh.setSmoothing(dim, v, n)
 
-    def transfinite(self, transfinite_surfaces):
+    def transfinite(self, transfinited_surfaces):
         """
         Transfinite primitive
-        :param transfinite_surfaces: set() of already transfinite surfaces (workaround for double transfinite issue)
+        :param transfinited_surfaces: set() of already transfinite surfaces (workaround for double transfinite issue)
         """
         result = False
         # Check
@@ -193,12 +195,12 @@ class Primitive:
                         points_dim_tags = gmsh.model.getBoundary(
                             (dim_tag[0], dim_tag[1]), combined=False, recursive=True)
                         surfaces_points.append(map(lambda x: x[1], points_dim_tags))
-                    is_4 = True
+                    is_4_points = True
                     for surface_points in surfaces_points:
                         if len(surface_points) != 4:  # Fourth
-                            is_4 = False
+                            is_4_points = False
                             break
-                    if is_4:
+                    if is_4_points:
                         check = True
         # Transfinite
         if check:
@@ -219,15 +221,27 @@ class Primitive:
                 transfinite_volume_data = None
             if self.transfinite_curve_data is not None:
                 for i in range(len(self.curves)):
-                    self.transfinite_curve[self.transfinite_curve_data[i][1]](self, i)
+                    if self.factory != gmsh.model.geo:  # FIXME Workaround for GEO factory
+                        transfinite_type = self.transfinite_curve_data[i][1]
+                    else:
+                        transfinite_type = self.transfinite_curve_data[i][1] + 2
+                    self.transfinite_curve[transfinite_type](self, i)
                 if transfinite_surface_data is not None:
-                    for i in range(len(self.surfaces)):
-                        if self.surfaces[i] not in transfinite_surfaces:
-                            self.transfinite_surface[transfinite_surface_data[i]](self, i)
-                            transfinite_surfaces.add(self.surfaces[i])
+                    for i, s in enumerate(self.surfaces):
+                        if s not in transfinited_surfaces:
+                            if self.factory != gmsh.model.geo:  # FIXME Workaround for GEO factory
+                                transfinite_type = transfinite_surface_data[i]
+                            else:
+                                transfinite_type = transfinite_surface_data[i] + 4
+                            self.transfinite_surface[transfinite_type](self, i)
+                            transfinited_surfaces.add(s)
                     if transfinite_volume_data is not None:
                         for i in range(len(self.volumes)):
-                            self.transfinite_volume[transfinite_volume_data[i]](self, i)
+                            if self.factory != gmsh.model.geo:  # FIXME Workaround for GEO factory
+                                transfinite_type = transfinite_volume_data[i]
+                            else:
+                                transfinite_type = transfinite_volume_data[i] + 4
+                            self.transfinite_volume[transfinite_type](self, i)
                 result = True
         return result
 
@@ -267,31 +281,6 @@ class Primitive:
         for v in self.volumes:
             points_dim_tags = gmsh.model.getBoundary([(3, v)], combined=False, recursive=True)
             gmsh.model.mesh.setSize(points_dim_tags, size)
-
-    def get_surfaces(self):
-        volumes_dim_tags = map(lambda x: (3, x), self.volumes)
-        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
-        ss = map(lambda x: x[1], surfaces_dim_tags)
-        return ss
-
-    def get_boundary_surfaces(self):
-        ss = self.get_surfaces()  # all surfaces
-        uss = set(ss)  # unique surfaces
-        bs = list()  # boundary surfaces
-        for us in uss:
-            n = ss.count(us)  # count of unique surface in surfaces
-            if n == 1:
-                bs.append(us)
-        return bs
-
-    def get_volumes_surfaces(self):
-        volumes_dim_tags = map(lambda x: (3, x), self.volumes)
-        ss = list()
-        for dt in volumes_dim_tags:
-            vss_dts = gmsh.model.getBoundary(dt, combined=False)
-            vss = map(lambda x: x[1], vss_dts)
-            ss.append(vss)
-        return ss
 
     surfaces_names = {
         0: "NX",
@@ -347,6 +336,18 @@ class Primitive:
             self.transfinite_curve_data[i][0],
             "Bump",
             self.transfinite_curve_data[i][2]
+        ),
+        2: lambda self, i: gmsh.model.geo.mesh.setTransfiniteCurve(
+            self.curves[i],
+            self.transfinite_curve_data[i][0],
+            "Progression",
+            self.transfinite_curve_data[i][2]
+        ),
+        3: lambda self, i: gmsh.model.geo.mesh.setTransfiniteCurve(
+            self.curves[i],
+            self.transfinite_curve_data[i][0],
+            "Bump",
+            self.transfinite_curve_data[i][2]
         )
     }
 
@@ -367,6 +368,26 @@ class Primitive:
             [self.points[x] for x in self.surfaces_local_points[i]]
         ),
         3: lambda self, i: gmsh.model.mesh.setTransfiniteSurface(
+            self.surfaces[i],
+            "AlternateRight",
+            [self.points[x] for x in self.surfaces_local_points[i]]
+        ),
+        4: lambda self, i: gmsh.model.geo.mesh.setTransfiniteSurface(
+            self.surfaces[i],
+            "Left",
+            [self.points[x] for x in self.surfaces_local_points[i]]
+        ),
+        5: lambda self, i: gmsh.model.geo.mesh.setTransfiniteSurface(
+            self.surfaces[i],
+            "Right",
+            [self.points[x] for x in self.surfaces_local_points[i]]
+        ),
+        6: lambda self, i: gmsh.model.geo.mesh.setTransfiniteSurface(
+            self.surfaces[i],
+            "AlternateLeft",
+            [self.points[x] for x in self.surfaces_local_points[i]]
+        ),
+        7: lambda self, i: gmsh.model.geo.mesh.setTransfiniteSurface(
             self.surfaces[i],
             "AlternateRight",
             [self.points[x] for x in self.surfaces_local_points[i]]
@@ -396,6 +417,34 @@ class Primitive:
             ]
         ),
         3: lambda self, i: gmsh.model.mesh.setTransfiniteVolume(
+            self.volumes[i],
+            [
+                self.points[3], self.points[0], self.points[1], self.points[2],
+                self.points[7], self.points[4], self.points[5], self.points[6]
+            ]
+        ),
+        4: lambda self, i: gmsh.model.geo.mesh.setTransfiniteVolume(
+            self.volumes[i],
+            [
+                self.points[0], self.points[1], self.points[2], self.points[3],
+                self.points[4], self.points[5], self.points[6], self.points[7]
+            ]
+        ),
+        5: lambda self, i: gmsh.model.geo.mesh.setTransfiniteVolume(
+            self.volumes[i],
+            [
+                self.points[1], self.points[2], self.points[3], self.points[0],
+                self.points[5], self.points[6], self.points[7], self.points[4]
+            ]
+        ),
+        6: lambda self, i: gmsh.model.geo.mesh.setTransfiniteVolume(
+            self.volumes[i],
+            [
+                self.points[2], self.points[3], self.points[0], self.points[1],
+                self.points[6], self.points[7], self.points[4], self.points[5]
+            ]
+        ),
+        7: lambda self, i: gmsh.model.geo.mesh.setTransfiniteVolume(
             self.volumes[i],
             [
                 self.points[3], self.points[0], self.points[1], self.points[2],
@@ -505,27 +554,6 @@ class Complex:
     def smooth(self, dim, n):
         for p in self.primitives:
             p.smooth(dim, n)
-
-    def get_boundary_surfaces(self):
-        ss = list()  # all primitives boundary surfaces
-        for p in self.primitives:
-            ss += p.get_boundary_surfaces()
-        print("Number of surfaces: {}".format(len(ss)))
-        uss = set(ss)  # unique surfaces
-        print("Number of unique surfaces: {}".format(len(uss)))
-        bs = list()  # boundary surfaces
-        for us in uss:
-            n = ss.count(us)  # count of unique surface in surfaces
-            if n == 1:
-                bs.append(us)
-        print("Number of boundary surfaces: {}".format(len(bs)))
-        return bs
-
-    def get_volumes_surfaces(self):
-        ss = list()
-        for p in self.primitives:
-            ss += p.get_volumes_surfaces()
-        return ss
 
 
 def primitive_boolean(factory, primitive_obj, primitive_tool):
@@ -733,7 +761,8 @@ class Environment:
                 in_sls.append(factory.addSurfaceLoop(sl, 2 + i))  # FIXME bug always return = -1 by default
         else:
             out_sl = factory.addSurfaceLoop(self.surfaces)
-            in_sls = [factory.addSurfaceLoop(inner_surfaces)]
+            merged_in_sls = list(itertools.chain.from_iterable(inner_surfaces))  # 2D array to 1D array
+            in_sls = [factory.addSurfaceLoop(merged_in_sls)]  # one surface loop
         sls = list()
         sls.append(out_sl)
         sls += in_sls

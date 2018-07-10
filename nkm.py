@@ -15,55 +15,40 @@ from support import auto_complex_points_sizes_min_curve_in_volume, auto_volumes_
 
 
 class NKM:
-    @staticmethod
-    def from_json(filename):
-        try:
-            print('Reading input parameters from ' + filename)
-            with open(filename) as json_data:
-                d = json.load(json_data)
-                json_data.close()
-        except EnvironmentError as e:
-            print(e)
-            print('Using default input parameters')
-            d = {}
-        factory_item = d.get('factory', 'occ')
-        if factory_item == 'occ':
-            factory = gmsh.model.occ
-        else:
-            factory = gmsh.model.geo
-        return NKM(
-            factory,
-            d.get('env_transform', [19.5, 0, 0]),
-            d.get('env_volume_name', 'HostRock'),
-            d.get('env_dx', 1560),
-            d.get('env_dy', 1185),
-            d.get('env_dz', 487.5),
-            d.get('env_lc', 100),
-            d.get('env_bool', False),
-            d.get('int_filenames', []),
-            d.get('int_transforms', []),
-            d.get('int_volume_names', []),
-            d.get('int_lcs', []),
-            d.get('int_divides', []),
-            d.get('int_transfinites', []),
-            d.get('bor_lcs', [[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
-            d.get('bor_transfinite_r', [[3, 0, 1], [3, 0, 1], [3, 0, 1]]),
-            d.get('bor_transfinite_h', [[3, 0, 1], [15, 0, 1], [3, 0, 1]]),
-            d.get('bor_transfinite_phi', [3, 0, 1]),
-            d.get('bor_nh', 1),
-            d.get('ilw_transform', [-310.5, -142.5, -37.5]),
-            d.get('ilw_name', 'ILW'),
-            d.get('ilw_nx', 14),
-            d.get('ilw_ny', 20),
-            d.get('ilw_dx', 23),
-            d.get('ilw_dy', 15),
-            d.get('hlw_transform', [11.5, -138, -37.5]),
-            d.get('hlw_name', 'HLW'),
-            d.get('hlw_nx', 14),
-            d.get('hlw_ny', 13),
-            d.get('hlw_dx', 26),
-            d.get('hlw_dy', 23)
-        )
+
+    default_input = {
+        'factory': gmsh.model.occ,
+        'env_transform': [19.5, 0, 0],
+        'env_volume_name': 'HostRock',
+        'env_dx': 1560,
+        'env_dy': 1185,
+        'env_dz': 487.5,
+        'env_lc': 100,
+        'env_bool': False,
+        'int_filenames': [],
+        'int_transforms': [],
+        'int_volume_names': [],
+        'int_lcs': [],
+        'int_divides': [],
+        'int_transfinites': [],
+        'bor_lcs': [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+        'bor_transfinite_r': [[3, 0, 1], [3, 0, 1], [3, 0, 1]],
+        'bor_transfinite_h': [[3, 0, 1], [15, 0, 1], [3, 0, 1]],
+        'bor_transfinite_phi': [3, 0, 1],
+        'bor_nh': 1,
+        'ilw_transform': [-310.5, -142.5, -37.5],
+        'ilw_name': 'ILW',
+        'ilw_nx': 14,
+        'ilw_ny': 20,
+        'ilw_dx': 23,
+        'ilw_dy': 15,
+        'hlw_transform': [11.5, -138, -37.5],
+        'hlw_name': 'HLW',
+        'hlw_nx': 14,
+        'hlw_ny': 13,
+        'hlw_dx': 26,
+        'hlw_dy': 23
+    }
 
     def __init__(
             self, factory,
@@ -73,7 +58,7 @@ class NKM:
             ilw_transform, ilw_name, ilw_nx, ilw_ny, ilw_dx, ilw_dy,
             hlw_transform, hlw_name, hlw_nx, hlw_ny, hlw_dx, hlw_dy):
         """
-        NK model with Intrusions, ILW and HLW Boreholes inside Environment
+        NKM model with Intrusions, ILW and HLW Boreholes inside Environment
         :param factory: gmsh factory (currently: gmsh.model.geo or gmsh.model.occ)
         :param env_transform: Environment center transform (see Primitive transform_data)
         :param env_volume_name: Environment physical name
@@ -107,7 +92,7 @@ class NKM:
         :param hlw_dy: Interval of HLW Boreholes y
         """
         print('Arguments')
-        print(locals())
+        pprint(locals())
         print('Initialization')
         self.spent_times = {}
         self.factory = factory
@@ -220,6 +205,19 @@ class NKM:
                 time_spent += times[-1]
                 est_time = sum(times) / cnt
         self.spent_times['Init HLW'] = time.time() - start_time
+
+    @staticmethod
+    def from_json(filename):
+        print('Reading input parameters from ' + filename)
+        with open(filename) as json_data:
+            d = json.load(json_data)
+            json_data.close()
+            factory_item = d.get('factory', 'occ')
+            if factory_item == 'occ':
+                d['factory'] = gmsh.model.occ
+            else:
+                d['factory'] = gmsh.model.geo
+        return NKM(**d)
 
     def evaluate(self):
         print('Evaluate')
@@ -481,10 +479,13 @@ class NKM:
         gmsh.model.setPhysicalName(3, tag, self.env.volume_name)
         volumes_dim_tags = map(lambda x: (3, x), self.env.volumes)
         surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
-        if self.env_bool:
-            surfaces_names = ['X', 'Z', 'NY', 'NZ', 'Y', 'NX']
+        if self.factory != gmsh.model.geo:
+            if self.env_bool:
+                surfaces_names = ['X', 'Z', 'NY', 'NZ', 'Y', 'NX']
+            else:
+                surfaces_names = ['X', 'NY', 'NX', 'Y', 'NZ', 'Z']
         else:
-            surfaces_names = ['X', 'NY', 'NX', 'Y', 'NZ', 'Z']
+            surfaces_names = ['NX', 'X', 'NY', 'Y', 'NZ', 'Z']
         for i, n in enumerate(surfaces_names):
             tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
             gmsh.model.setPhysicalName(2, tag, n)
@@ -494,29 +495,47 @@ class NKM:
 def main():
     spent_times = {}
     global_start_time = time.time()
+    print('Start time: {}'.format(time.asctime(time.localtime(time.time()))))
+    print('PID: {}'.format(os.getpid()))
 
-    print('Arguments')
+    print('CMD Arguments')
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', help='input filename', default='nkm_input.json')
-    parser.add_argument('-o', '--output', help='output filename', default='nkm.msh')
+    parser.add_argument('-i', '--input', help='input filename')
+    parser.add_argument('-o', '--output', help='output filename')
     args = parser.parse_args()
     print(args)
+    if args.input:
+        basename, extension = os.path.splitext(args.input)
+    else:
+        print('Using default input')
+        basename = 'nkm_default'
+    if args.output:
+        output_filename = args.output
+    else:
+        print('Using default output')
+        output_filename = basename + '.msh'
+    print('Input filename: ' + str(args.input))
+    print('Output filename: ' + output_filename)
 
     gmsh.initialize()
 
-    filename, file_extension = os.path.splitext(args.input)
-    model_name = os.path.basename(filename)
-    print('Model ' + model_name)
-    gmsh.model.add(model_name)
+    gmsh.model.add(basename)
+    print('Gmsh model name: ' + gmsh.model.__name__)
 
+    print('Gmsh options')
     gmsh.option.setNumber('Geometry.AutoCoherence', 0)  # For geo factory
+    print('Geometry.AutoCoherence: {}'.format(gmsh.option.getNumber('Geometry.AutoCoherence')))
     gmsh.option.setNumber('General.Terminal', 1)
     # (1=Delaunay, 2=New Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree)
     gmsh.option.setNumber('Mesh.Algorithm3D', 4)
+    print('Mesh.Algorithm3D: {}'.format(gmsh.option.getNumber('Mesh.Algorithm3D')))
 
     print('NKM')
     start_time = time.time()
-    nkm = NKM.from_json(args.input)
+    if args.input:
+        nkm = NKM.from_json(args.input)
+    else:
+        nkm = NKM(**NKM.default_input)
     nkm.factory.synchronize()
     nkm.evaluate()
     nkm.boolean()
@@ -539,13 +558,15 @@ def main():
 
     print('Write')
     start_time = time.time()
-    gmsh.write(args.output)
+    gmsh.write(output_filename)
     spent_times['Write'] = time.time() - start_time
 
     gmsh.finalize()
 
     spent_times['Total'] = time.time() - global_start_time
     pprint(spent_times)
+    print('End time: {}'.format(time.asctime(time.localtime(time.time()))))
+
 
 
 if __name__ == '__main__':
