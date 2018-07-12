@@ -1,3 +1,4 @@
+from pprint import pprint
 
 import gmsh
 import math
@@ -24,6 +25,349 @@ from support import auto_primitive_points_sizes_min_curve, auto_complex_points_s
 
 
 class TestScripts(unittest.TestCase):
+    def test_boundary(self):
+        gmsh.initialize()
+        gmsh.option.setNumber('General.Terminal', 1)
+        model_name = 'test_boolean'
+        gmsh.model.add(model_name)
+        factory = gmsh.model.occ
+
+        primitive = Primitive(
+            factory,
+            [
+                [5, 10, -15, 5],
+                [-5, 10, -15, 5],
+                [-5, -10, -15, 5],
+                [5, -10, -15, 5],
+                [5, 10, 15, 5],
+                [-5, 10, 15, 5],
+                [-5, -10, 15, 5],
+                [5, -10, 15, 5],
+            ],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [[], [], [], [], [], [], [], [], [], [], [], []],
+            [
+                [5, 0, 1], [5, 0, 1], [5, 0, 1], [5, 0, 1],
+                [10, 0, 1], [10, 0, 1], [10, 0, 1], [10, 0, 1],
+                [15, 0, 1], [15, 0, 1], [15, 0, 1], [15, 0, 1]
+            ],
+            0,
+            'Primitive'
+        )
+        factory.synchronize()
+
+        print('All Volumes')
+        volume_dts = gmsh.model.getEntities(3)
+        print(volume_dts)
+        for vdt in volume_dts:
+            print('Volume {} surfaces'.format(vdt[1]))
+            print('Combined')
+            ss_dts = gmsh.model.getBoundary([vdt])
+            print(ss_dts)
+            print('Combined Tuple')
+            ss_dts = gmsh.model.getBoundary((vdt[0], vdt[1]))
+            print(ss_dts)
+            print('Uncombined')
+            ss_dts = gmsh.model.getBoundary([vdt], combined=False)
+            print(ss_dts)
+            print('Uncombined Tuple')
+            ss_dts = gmsh.model.getBoundary((vdt[0], vdt[1]), combined=False)
+            print(ss_dts)
+        print('All Surfaces')
+        ss_dts = gmsh.model.getEntities(2)
+        print(ss_dts)
+        for sdt in ss_dts:
+            print('Surface {} lines'.format(sdt[1]))
+            print('Combined')
+            ls_dts = gmsh.model.getBoundary([sdt])
+            print(ls_dts)
+            print('Combined Tuple')
+            ls_dts = gmsh.model.getBoundary((sdt[0], sdt[1]))
+            print(ls_dts)
+            print('Uncombined')
+            ls_dts = gmsh.model.getBoundary([sdt], combined=False)
+            print(ls_dts)
+            print('Uncombined Tuple')
+            ls_dts = gmsh.model.getBoundary([(sdt[0], sdt[1])], combined=False)
+            print(ls_dts)
+        print('All Lines')
+        ls_dts = gmsh.model.getEntities(1)
+        print(ls_dts)
+        for ldt in ls_dts:
+            print('Line {} points'.format(ldt[1]))
+            print('Combined')
+            ps_dts = gmsh.model.getBoundary([ldt])
+            print(ps_dts)
+            print('Combined Tuple')
+            ps_dts = gmsh.model.getBoundary([(ldt[0], ldt[1])])
+            print(ps_dts)
+            print('Uncombined')
+            ps_dts = gmsh.model.getBoundary([ldt], combined=False)
+            print(ps_dts)
+            print('Uncombined Tuple')
+            ps_dts = gmsh.model.getBoundary([(ldt[0], ldt[1])], combined=False)
+            print(ps_dts)
+        print('All Points')
+        ps_dts = gmsh.model.getEntities(0)
+        print(ps_dts)
+
+        gmsh.finalize()
+
+    def test_extend(self):
+        n = int(1e3)
+        m = int(1e3)
+        item = range(m)
+        print('Number of items:\t\t{}'.format(n))
+        print('Item length:\t\t{}'.format(m))
+        # Append Direct
+        start_time = time.time()
+        a = list()
+        for i in range(n):
+            for x in item:
+                a.append(x)
+        print("Append Direct:\t\t{:.3f}s".format(time.time() - start_time))
+        # Append + Comprehension
+        start_time = time.time()
+        a2 = list()
+        for i in range(n):
+            a2.append(item)
+        flatten_a2 = [x for y in a2 for x in y]
+        print("Append+Comprehension:\t{:.3f}s".format(time.time() - start_time))
+        # Append + Chain
+        start_time = time.time()
+        a3 = list()
+        for i in range(n):
+            a3.append(item)
+        flatten_a3 = list(itertools.chain.from_iterable(a3))
+        print("Append+Chain:\t\t{:.3f}s".format(time.time() - start_time))
+        # Extend3
+        start_time = time.time()
+        e = list()
+        for i in range(n):
+            e.extend(item)
+        print("Extend:\t\t\t{:.3f}s".format(time.time() - start_time))
+        # Extend Operator
+        start_time = time.time()
+        eo = list()
+        for i in range(n):
+            eo += item
+        print("Extend Operator:\t{:.3f}s".format(time.time() - start_time))
+        self.assertItemsEqual(a, flatten_a2)
+        self.assertItemsEqual(a, flatten_a3)
+        self.assertItemsEqual(a, e)
+        self.assertItemsEqual(a, eo)
+
+    def test_boolean(self):
+        gmsh.initialize()
+        gmsh.option.setNumber('General.Terminal', 1)
+        model_name = 'test_boolean'
+        gmsh.model.add(model_name)
+        factory = gmsh.model.occ
+
+        times = dict()
+
+        booleans = {
+            'Fuse': lambda objects, tools: factory.fuse(objects, tools),
+            'Cut': lambda objects, tools: factory.cut(objects, tools),
+            'Intersect': lambda objects, tools: factory.intersect(objects, tools),
+            'Fragment': lambda objects, tools: factory.fragment(objects, tools),
+            'FuseRemoveFalse': lambda objects, tools: factory.fuse(
+                objects, tools, removeObject=False, removeTool=False),
+            'CutRemoveFalse': lambda objects, tools: factory.cut(
+                objects, tools, removeObject=False, removeTool=False),
+            'IntersectRemoveFalse': lambda objects, tools: factory.intersect(
+                objects, tools, removeObject=False, removeTool=False),
+            'FragmentRemoveFalse': lambda objects, tools: factory.fragment(
+                objects, tools, removeObject=False, removeTool=False),
+        }
+
+        print('Creation')
+        primitives = list()
+        for i, (k, v) in enumerate(booleans.items()):
+            print(i)
+            print(k)
+            # print(v)
+            obj = Primitive(
+                factory,
+                [
+                    [5, 10, -15, 5],
+                    [-5, 10, -15, 5],
+                    [-5, -10, -15, 5],
+                    [5, -10, -15, 5],
+                    [5, 10, 15, 5],
+                    [-5, 10, 15, 5],
+                    [-5, -10, 15, 5],
+                    [5, -10, 15, 5],
+                ],
+                [i * 30, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [[], [], [], [], [], [], [], [], [], [], [], []],
+                [
+                    [5, 0, 1], [5, 0, 1], [5, 0, 1], [5, 0, 1],
+                    [10, 0, 1], [10, 0, 1], [10, 0, 1], [10, 0, 1],
+                    [15, 0, 1], [15, 0, 1], [15, 0, 1], [15, 0, 1]
+                ],
+                0,
+                '{}Obj'.format(k)
+            )
+            tool = Primitive(
+                factory,
+                [
+                    [5, 10, -15, 5],
+                    [-5, 10, -15, 5],
+                    [-5, -10, -15, 5],
+                    [5, -10, -15, 5],
+                    [5, 10, 15, 5],
+                    [-5, 10, 15, 5],
+                    [-5, -10, 15, 5],
+                    [5, -10, 15, 5],
+                ],
+                [i * 30 + 5, 10, 15, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [[], [], [], [], [], [], [], [], [], [], [], []],
+                [
+                    [5, 0, 1], [5, 0, 1], [5, 0, 1], [5, 0, 1],
+                    [10, 0, 1], [10, 0, 1], [10, 0, 1], [10, 0, 1],
+                    [15, 0, 1], [15, 0, 1], [15, 0, 1], [15, 0, 1]
+                ],
+                0,
+                '{}Tool'.format(k)
+            )
+            primitives.append(obj)
+            primitives.append(tool)
+            start_time = time.time()
+            out, out_map = booleans[k]([[3, obj.volumes[0]]], [[3, tool.volumes[0]]])
+            times[k] = time.time() - start_time
+            print(out)
+            print(out_map)
+            # print('Synchronize')
+            # factory.synchronize()
+            # for j, dt in enumerate(out):
+            #     tag = gmsh.model.addPhysicalGroup(dt[0], [dt[1]])
+            #     gmsh.model.setPhysicalName(3, tag, '{}{}'.format(k, j))
+
+        print('Synchronize')
+        factory.synchronize()
+
+        print('Entities')
+        vs = gmsh.model.getEntities(3)
+        ss = gmsh.model.getEntities(2)
+        ps = gmsh.model.getEntities(1)
+        print('vs: {}, ss: {}, ps: {}'.format(len(vs), len(ss), len(ps)))
+
+        print('Remove All Duplicates')
+        start_time = time.time()
+        factory.removeAllDuplicates()
+        times['RemoveAllDuplicates'] = time.time() - start_time
+
+        print('Synchronize')
+        factory.synchronize()
+
+        print('Entities')
+        vs = gmsh.model.getEntities(3)
+        ss = gmsh.model.getEntities(2)
+        ps = gmsh.model.getEntities(1)
+        print('vs: {}, ss: {}, ps: {}'.format(len(vs), len(ss), len(ps)))
+
+        print('Physical')
+        vs = gmsh.model.getEntities(3)  # all model volumes
+        print('Number of volumes: {}'.format(len(vs)))
+        for i, dt in enumerate(vs):
+            tag = gmsh.model.addPhysicalGroup(3, [dt[1]])
+            gmsh.model.setPhysicalName(3, tag, 'V{}'.format(i))
+
+        gmsh.model.mesh.generate(3)
+        gmsh.model.mesh.removeDuplicateNodes()
+        gmsh.write(model_name + '.msh')
+        gmsh.finalize()
+
+        pprint(times)
+
+    def test_factories(self):
+        """
+        Attempt to combine GEO and OCC factories (failed)
+        """
+        gmsh.initialize()
+        gmsh.option.setNumber('Geometry.AutoCoherence', 0)  # No effect at gmsh.model.occ factory
+        gmsh.option.setNumber('General.Terminal', 1)
+        gmsh.model.add('test_factories')
+        factory_occ = gmsh.model.occ
+        factory_geo = gmsh.model.geo
+
+        print('Creation')
+        print("Primitive GEO")
+        primitive_geo = Primitive(
+            factory_geo,
+            [
+                [5, 10, -15, 5],
+                [-5, 10, -15, 5],
+                [-5, -10, -15, 5],
+                [5, -10, -15, 5],
+                [5, 10, 15, 5],
+                [-5, 10, 15, 5],
+                [-5, -10, 15, 5],
+                [5, -10, 15, 5],
+            ],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [[], [], [], [], [], [], [], [], [], [], [], []],
+            [
+                [5, 0, 1], [5, 0, 1], [5, 0, 1], [5, 0, 1],
+                [10, 0, 1], [10, 0, 1], [10, 0, 1], [10, 0, 1],
+                [15, 0, 1], [15, 0, 1], [15, 0, 1], [15, 0, 1]
+            ],
+            0,
+            "PrimitiveGEO"
+        )
+        print("Synchronize")
+        factory_geo.synchronize()
+        print("Primitive OCC")
+        primitive_occ = Primitive(
+            factory_occ,
+            [
+                [5, 10, -15, 5],
+                [-5, 10, -15, 5],
+                [-5, -10, -15, 5],
+                [5, -10, -15, 5],
+                [5, 10, 15, 5],
+                [-5, 10, 15, 5],
+                [-5, -10, 15, 5],
+                [5, -10, 15, 5],
+            ],
+            [50, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [[], [], [], [], [], [], [], [], [], [], [], []],
+            [
+                [5, 0, 1], [5, 0, 1], [5, 0, 1], [5, 0, 1],
+                [10, 0, 1], [10, 0, 1], [10, 0, 1], [10, 0, 1],
+                [15, 0, 1], [15, 0, 1], [15, 0, 1], [15, 0, 1]
+            ],
+            0,
+            "PrimitiveOCC"
+        )
+        print("Synchronize")
+        factory_occ.synchronize()
+
+        print("Evaluate PrimitiveOCC Coordinates")
+        primitive_occ.evaluate_coordinates()
+
+        print("Correct and Transfinite")
+        ss = set()
+        print(primitive_geo.transfinite(ss))
+        print(occ_ws.correct_and_transfinite_primitive(primitive_occ, ss))
+
+        print("Physical")
+        tag = gmsh.model.addPhysicalGroup(3, primitive_geo.volumes)
+        gmsh.model.setPhysicalName(3, tag, primitive_geo.volume_name)
+        tag = gmsh.model.addPhysicalGroup(3, primitive_occ.volumes)
+        gmsh.model.setPhysicalName(3, tag, primitive_occ.volume_name)
+
+        gmsh.model.mesh.generate(3)
+        gmsh.model.mesh.removeDuplicateNodes()
+        gmsh.write("test_factories.msh")
+        gmsh.finalize()
+
     def test_transfinite(self):
         gmsh.initialize()
         gmsh.option.setNumber("Geometry.AutoCoherence", 0)  # No effect at gmsh.model.occ factory
@@ -257,10 +601,6 @@ class TestScripts(unittest.TestCase):
         print("Synchronize")
         factory.synchronize()
 
-        print("Boundary Surfaces")
-        bs = cylinder.get_boundary_surfaces()
-        self.assertEqual(len(bs), 38)
-
         print("Universal Way")  # Doesn't works with many inner volumes
         v_dts = gmsh.model.getEntities(3)  # all model volumes
         print(len(v_dts))
@@ -269,9 +609,7 @@ class TestScripts(unittest.TestCase):
         bs_u = map(lambda x: x[1], bs_dts)
         s_dts = gmsh.model.getEntities(2)  # all model surfaces boundary
         print(len(s_dts))
-        print(bs)
         print(bs_u)
-        self.assertListEqual(bs, bs_u)
 
         print("Good Way")
         vgs_ss = auto_volumes_groups_surfaces()
@@ -925,6 +1263,19 @@ class TestScripts(unittest.TestCase):
                     1
                 ))
         print('{:.3f}s'.format(time.time() - start))
+
+        print("Synchronize")
+        factory.synchronize()
+
+        print("Evaluate Coordinates and Bounding Boxes")
+        for b in boreholes:
+            b.evaluate_coordinates()
+            b.evaluate_bounding_box()
+        for i in intrusions:
+            i.evaluate_coordinates()
+            i.evaluate_bounding_box()
+        environment.evaluate_coordinates()
+        environment.evaluate_bounding_box()
 
         print("Boolean")
         start = time.time()

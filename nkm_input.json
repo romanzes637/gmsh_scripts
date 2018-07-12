@@ -1,5 +1,5 @@
 {
-  "factory": "geo",
+  "factory": "occ",
   "env_transform": [0, 0, 0],
   "env_volume_name": "HostRock",
   "env_dx": 200,

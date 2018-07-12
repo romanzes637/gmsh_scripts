@@ -536,7 +536,7 @@ class Complex:
         return out_dim_tags
 
     def get_volumes_by_name(self, name):
-        vs = []
+        vs = list()
         primitive_idxs = self.volumes_names_dict.get(name)
         if primitive_idxs is not None:
             for i in primitive_idxs:
@@ -557,8 +557,8 @@ class Complex:
 
 
 def primitive_boolean(factory, primitive_obj, primitive_tool):
-    start = time.time()
-    # Check intersection of bounding boxes first (this operation less expensive than boolean)
+    start_time = time.time()
+    # Check intersection of bounding boxes first (this operation less expensive than direct boolean)
     is_intersection = True
     if primitive_obj.bounding_box[0] > primitive_tool.bounding_box[3]:  # obj_x_min > tool_x_max
         is_intersection = False
@@ -582,10 +582,9 @@ def primitive_boolean(factory, primitive_obj, primitive_tool):
         print("Zero tool!")
     print(is_intersection)
     if is_intersection:
-        obj_dim_tags = map(lambda x: (3, x), primitive_obj.volumes)
-        tool_dim_tags = map(lambda x: (3, x), primitive_tool.volumes)
+        obj_dim_tags = map(lambda x: [3, x], primitive_obj.volumes)
+        tool_dim_tags = map(lambda x: [3, x], primitive_tool.volumes)
         out_dim_tags, out_dim_tags_map = factory.fragment(obj_dim_tags, tool_dim_tags)
-        # factory.removeAllDuplicates()
         # factory.synchronize()  # TODO testing continues
         new_obj_volumes = []
         for i in range(len(primitive_obj.volumes)):
@@ -604,7 +603,7 @@ def primitive_boolean(factory, primitive_obj, primitive_tool):
         primitive_tool.volumes = new_tool_volumes
         # primitive_obj.evaluate_bounding_box()  # FIXME bad bounding box after boolean
         # primitive_tool.evaluate_bounding_box()
-    print('{:.3f}s'.format(time.time() - start))
+    print('{:.3f}s'.format(time.time() - start_time))
 
 
 def complex_boolean(factory, complex_obj, complex_tool):
@@ -633,6 +632,55 @@ def complex_primitive_boolean(factory, complex_obj, primitive_tool):
 
 
 def primitive_cut_by_volume_boolean(factory, primitive_obj, volume):
+    start = time.time()
+    # Check intersection of bounding boxes first (this operation less expensive than boolean)
+    is_intersection = True
+    x_min, y_min, z_min, x_max, y_max, z_max = gmsh.model.getBoundingBox(3, volume)
+    if primitive_obj.bounding_box[0] > x_max:  # obj_x_min > tool_x_max
+        is_intersection = False
+    if primitive_obj.bounding_box[1] > y_max:  # obj_y_min > tool_y_max
+        is_intersection = False
+    if primitive_obj.bounding_box[2] > z_max:  # obj_z_min > tool_z_max
+        is_intersection = False
+    if primitive_obj.bounding_box[3] < x_min:  # obj_x_max < tool_x_min
+        is_intersection = False
+    if primitive_obj.bounding_box[4] < y_min:  # obj_y_max < tool_y_min
+        is_intersection = False
+    if primitive_obj.bounding_box[5] < z_min:  # obj_z_max < tool_z_min
+        is_intersection = False
+    # Check on empty primitive_obj:
+    if len(primitive_obj.volumes) <= 0:
+        is_intersection = False
+    print(is_intersection)
+    if is_intersection:
+        obj_dim_tags = map(lambda x: (3, x), primitive_obj.volumes)
+        tool_dim_tags = [(3, volume)]
+        out_dim_tags, out_dim_tags_map = factory.fragment(obj_dim_tags, tool_dim_tags, removeTool=False)
+        new_obj_volumes = []
+        for i in range(len(primitive_obj.volumes)):
+            new_dim_tags = out_dim_tags_map[i]
+            for j in range(len(new_dim_tags)):
+                new_obj_volumes.append(new_dim_tags[j][1])
+        new_tool_volumes = []
+        for i in range(len(primitive_obj.volumes), len(primitive_obj.volumes) + 1):
+            new_dim_tags = out_dim_tags_map[i]
+            for j in range(len(new_dim_tags)):
+                new_tool_volumes.append(new_dim_tags[j][1])
+        common_vs = set(new_obj_volumes) & set(new_tool_volumes)
+        for v in common_vs:
+            new_obj_volumes.remove(v)
+        # Remove new_tool_volumes without volume itself (it happens when there is no real intersection)
+        if volume in new_tool_volumes:
+            new_tool_volumes.remove(volume)
+        dts = map(lambda x: (3, x), new_tool_volumes)
+        factory.remove(dts)
+        factory.synchronize()
+        primitive_obj.volumes = new_obj_volumes
+        # primitive_obj.evaluate_bounding_box()
+    print('{:.3f}s'.format(time.time() - start))
+
+
+def primitive_intersect_with_volume_boolean(factory, primitive_obj, volume):
     start = time.time()
     # Check intersection of bounding boxes first (this operation less expensive than boolean)
     is_intersection = True
@@ -761,8 +809,8 @@ class Environment:
                 in_sls.append(factory.addSurfaceLoop(sl, 2 + i))  # FIXME bug always return = -1 by default
         else:
             out_sl = factory.addSurfaceLoop(self.surfaces)
-            merged_in_sls = list(itertools.chain.from_iterable(inner_surfaces))  # 2D array to 1D array
-            in_sls = [factory.addSurfaceLoop(merged_in_sls)]  # one surface loop
+            flatten_in_sls = list(itertools.chain.from_iterable(inner_surfaces))  # 2D array to 1D array
+            in_sls = [factory.addSurfaceLoop(flatten_in_sls)]  # one surface loop
         sls = list()
         sls.append(out_sl)
         sls += in_sls

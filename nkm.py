@@ -452,7 +452,7 @@ class NKM:
         print('Intrusions')
         if len(self.ints) > 0:
             for name in set(self.int_volume_names):  # For same names for different ints
-                vs = []
+                vs = list()
                 for intrusion in self.ints:
                     for c in intrusion:
                         vs.extend(c.get_volumes_by_name(name))
@@ -461,7 +461,7 @@ class NKM:
         print('ILW Boreholes')
         if len(self.bs_ilw) > 0:
             for name in Borehole.volumes_names:
-                vs = []
+                vs = list()
                 for b in self.bs_ilw:
                     vs.extend(b.get_volumes_by_name(name))
                 tag = gmsh.model.addPhysicalGroup(3, vs)
@@ -469,7 +469,7 @@ class NKM:
         print('HLW Boreholes')
         if len(self.bs_hlw) > 0:
             for name in Borehole.volumes_names:
-                vs = []
+                vs = list()
                 for b in self.bs_hlw:
                     vs.extend(b.get_volumes_by_name(name))
                 tag = gmsh.model.addPhysicalGroup(3, vs)
@@ -566,7 +566,6 @@ def main():
     spent_times['Total'] = time.time() - global_start_time
     pprint(spent_times)
     print('End time: {}'.format(time.asctime(time.localtime(time.time()))))
-
 
 
 if __name__ == '__main__':

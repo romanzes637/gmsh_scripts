@@ -111,7 +111,7 @@ def volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces):
     :return: volumes_groups_surfaces [[vg1_s1, ..., vg1_si], ..., [vgj_s1, ..., vgj_si]]
     """
     vgs_ss = list()  # volumes_groups_surfaces
-    vs_set = set(range(len(volumes_surfaces)))  # Set of yet unallocated volumes to volumes groups
+    vs_set = set(range(len(volumes_surfaces)))  # Set of yet unallocated volumes indices to volumes groups
     while len(vs_set) != 0:
         current_vs = list(vs_set)
         v0 = current_vs[0]  # Start with volume 0 surfaces
@@ -130,11 +130,10 @@ def volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces):
 
 
 def auto_volumes_groups_surfaces():
-    v_dts = gmsh.model.getEntities(3)  # all model volumes
-    dts = map(lambda x: (3, x[1]), v_dts)  # TODO use v_dts?
+    volumes_dim_tags = gmsh.model.getEntities(3)  # all model volumes
     volumes_surfaces = list()
-    for dt in dts:
-        ss_dts = gmsh.model.getBoundary(dt, combined=False)  # volume surfaces
-        ss = map(lambda x: x[1], ss_dts)
+    for vdt in volumes_dim_tags:
+        surfaces_dim_tags = gmsh.model.getBoundary([vdt])  # volume surfaces
+        ss = map(lambda x: x[1], surfaces_dim_tags)
         volumes_surfaces.append(ss)
     return volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces)

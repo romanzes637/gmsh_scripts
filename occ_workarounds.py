@@ -8,7 +8,7 @@ import gmsh
 def correct_primitive(primitive):
     corrected = False
     if len(primitive.volumes) == 1:
-        volumes_dim_tags = map(lambda x: (3, x), primitive.volumes)
+        volumes_dim_tags = map(lambda x: [3, x], primitive.volumes)
         surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
         if len(surfaces_dim_tags) == 6:
             points_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False, recursive=True)
@@ -39,13 +39,13 @@ def correct_primitive(primitive):
                 # Correct surfaces
                 surfaces_points = []
                 for dim_tag in surfaces_dim_tags:
-                    points_dim_tags = gmsh.model.getBoundary((dim_tag[0], dim_tag[1]), combined=False, recursive=True)
+                    points_dim_tags = gmsh.model.getBoundary([dim_tag], combined=False, recursive=True)
                     surfaces_points.append(map(lambda x: x[1], points_dim_tags))
-                is_4 = True  # Check for 4 points in each surface, if not stop
+                is_4_points = True  # Check for 4 points in each surface, if not stop
                 for surface_points in surfaces_points:
                     if len(surface_points) != 4:
-                        is_4 = False
-                if is_4:
+                        is_4_points = False
+                if is_4_points:
                     # Surfaces local points
                     surfaces_local_points = []
                     for surface_points in surfaces_points:
@@ -63,12 +63,12 @@ def correct_primitive(primitive):
                     # Correct curves
                     curves = set()
                     for dim_tag in surfaces_dim_tags:
-                        curves_dim_tags = gmsh.model.getBoundary((dim_tag[0], dim_tag[1]), combined=False)
+                        curves_dim_tags = gmsh.model.getBoundary([dim_tag], combined=False)
                         for curve in curves_dim_tags:
                             curves.add(abs(curve[1]))
                     curves_points = []
                     for curve in curves:
-                        points_dim_tags = gmsh.model.getBoundary((1, curve), combined=False)
+                        points_dim_tags = gmsh.model.getBoundary([[1, curve]], combined=False)
                         curves_points.append(map(lambda x: x[1], points_dim_tags))
                     # Curves local points
                     curves_local_points = []
@@ -92,8 +92,8 @@ def correct_primitive(primitive):
 # Complex
 def correct_complex(complex_obj):
     results = []
-    for primitive in complex_obj.primitives:
-        result = correct_primitive(primitive)
+    for p in complex_obj.primitives:
+        result = correct_primitive(p)
         results.append(result)
     return results
 
@@ -120,8 +120,8 @@ def correct_and_transfinite_complex(complex_obj, ss):
     """
     correction_rs = correct_complex(complex_obj)
     transfinite_rs = []
-    for idx, p in enumerate(complex_obj.primitives):
-        if correction_rs[idx]:
+    for i, p in enumerate(complex_obj.primitives):
+        if correction_rs[i]:
             result = p.transfinite(ss)
             transfinite_rs.append(result)
         else:
