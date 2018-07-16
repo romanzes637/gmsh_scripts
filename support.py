@@ -8,26 +8,26 @@ def get_volume_points_curves_data(volume):
     :param volume: volume index
     :return: [[p1_index, p1_n_curves, p1_curves_min_length, p1_curves_max_length, p1_curves_avg_length], [p2...], ...]
     """
-    # Get curves
-    surfaces_dim_tags = gmsh.model.getBoundary([(3, volume)], combined=False)
+    # Get volume curves
+    surfaces_dim_tags = gmsh.model.getBoundary([[3, volume]])
     surfaces = map(lambda x: x[1], surfaces_dim_tags)
     curves = set()
     for surface in surfaces:
-        curves_dim_tags = gmsh.model.getBoundary([(2, surface)], combined=False)
+        curves_dim_tags = gmsh.model.getBoundary([[2, surface]])
         for dt in curves_dim_tags:
             curves.add(abs(dt[1]))
     # Get points' curves and curves' points
-    points_dim_tags = gmsh.model.getBoundary([(3, volume)], combined=False, recursive=True)
+    points_dim_tags = gmsh.model.getBoundary([[3, volume]], recursive=True)
     points = map(lambda x: x[1], points_dim_tags)
     points_curves = {x: set() for x in points}
-    curves_points = {}
+    curves_points = dict()
     for c in curves:
-        out_dim_tags = gmsh.model.getBoundary([(1, c)], combined=False)
+        out_dim_tags = gmsh.model.getBoundary([[1, c]])
         curves_points[c] = map(lambda x: x[1], out_dim_tags)
         for p in curves_points[c]:
             points_curves[p].add(c)
     # Calculate curves' square lengths
-    curves_sqr_lengths = {}
+    curves_sqr_lengths = dict()
     for c in curves:
         ps = curves_points[c]
         bb0 = gmsh.model.getBoundingBox(0, ps[0])
@@ -38,9 +38,9 @@ def get_volume_points_curves_data(volume):
         sqr_length = r[0] * r[0] + r[1] * r[1] + r[2] * r[2]
         curves_sqr_lengths[c] = sqr_length
     # Prepare the output
-    points_curves_data = []
+    points_curves_data = list()
     for p in points:
-        sqr_lengths = []
+        sqr_lengths = list()
         for c in points_curves[p]:
             sqr_lengths.append(curves_sqr_lengths[c])
         n_curves = len(sqr_lengths)
@@ -55,6 +55,28 @@ def get_volume_points_curves_data(volume):
             math.sqrt(mean_sqr_length)  # Root Mean Square (RMS)
         ])
     return points_curves_data
+
+
+def auto_points_sizes(k=1.0):
+    points_sizes = dict()
+    volumes_dim_tags = gmsh.model.getEntities(3)  # all model volumes
+    for vdt in volumes_dim_tags:
+        ps_cs_data = get_volume_points_curves_data(vdt[1])
+        v_curves_min_length = []
+        for pd in ps_cs_data:  # for each volume's point data
+            v_curves_min_length.append(k * pd[2])  # k * min curve length
+        size = min(v_curves_min_length)  # min curve length of all points
+        for pd in ps_cs_data:
+            p = pd[0]  # point index
+            old_size = points_sizes.get(p)
+            if old_size is not None:
+                if size < old_size:
+                    points_sizes[p] = size
+                    gmsh.model.mesh.setSize([[0, p]], size)
+            else:
+                points_sizes[p] = size
+                gmsh.model.mesh.setSize([[0, p]], size)
+    return points_sizes
 
 
 def auto_primitive_points_sizes_min_curve(primitive_obj, points_sizes_dict, k=1.0):

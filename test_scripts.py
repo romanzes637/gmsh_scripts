@@ -21,10 +21,91 @@ from primitive import primitive_complex_boolean
 from cylinder import Cylinder
 from support import auto_primitive_points_sizes_min_curve, auto_complex_points_sizes_min_curve, \
     auto_complex_points_sizes_min_curve_in_volume, auto_primitive_points_sizes_min_curve_in_volume, \
-    volumes_surfaces_to_volumes_groups_surfaces, auto_volumes_groups_surfaces
+    volumes_surfaces_to_volumes_groups_surfaces, auto_volumes_groups_surfaces, auto_points_sizes
 
 
 class TestScripts(unittest.TestCase):
+
+    def test_import_brep(self):
+        gmsh.initialize()
+        gmsh.option.setNumber('General.Terminal', 1)
+        model_name = 'test_import_brep'
+        gmsh.model.add(model_name)
+        factory = gmsh.model.occ
+        dts = factory.importShapes('test_read_complex_type_2_to_complex_primitives.brep')
+        pprint(dts)
+        factory.synchronize()
+        sizes = auto_points_sizes(0.5)
+        print(sizes)
+        gmsh.model.mesh.generate(3)
+        gmsh.model.mesh.removeDuplicateNodes()
+        gmsh.write(model_name + '.msh')
+        gmsh.finalize()
+
+    def test_auto_points_sizes(self):
+        gmsh.initialize()
+        gmsh.option.setNumber('General.Terminal', 1)
+        model_name = 'test_auto_points_sizes'
+        gmsh.model.add(model_name)
+        factory = gmsh.model.occ
+        primitive = Primitive(
+            factory,
+            [
+                [5, 10, -15, 1],
+                [-5, 10, -15, 1],
+                [-5, -10, -15, 1],
+                [5, -10, -15, 1],
+                [5, 10, 15, 1],
+                [-5, 10, 15, 1],
+                [-5, -10, 15, 1],
+                [5, -10, 15, 1],
+            ],
+            [5, 5, 6, 0, 0, 0, 3.14 / 4, 3.14 / 6, 3.14 / 8],
+            [5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+            [
+                [
+                    [-2, 20, -20, 1],
+                    [-1, 20, -20, 1],
+                    [1, 20, -20, 1],
+                    [2, 20, -20, 1]
+                ],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [[0, 0, 0, 0]],
+                [],
+                [],
+                [[0, 0, 0, 0], [0, 0, 0, 0]],
+                []
+            ],
+            [
+                [5, 0, 1],
+                [5, 0, 1],
+                [5, 0, 1],
+                [5, 0, 1],
+                [10, 0, 1],
+                [10, 0, 1],
+                [10, 0, 1],
+                [10, 0, 1],
+                [15, 0, 1],
+                [15, 0, 1],
+                [15, 0, 1],
+                [15, 0, 1]
+            ],
+            1,
+            'Primitive'
+        )
+        factory.synchronize()
+        sizes = auto_points_sizes(0.5)
+        pprint(sizes)
+        gmsh.model.mesh.generate(3)
+        gmsh.model.mesh.removeDuplicateNodes()
+        gmsh.write(model_name + '.msh')
+        gmsh.finalize()
+
     def test_boundary(self):
         gmsh.initialize()
         gmsh.option.setNumber('General.Terminal', 1)
@@ -277,9 +358,11 @@ class TestScripts(unittest.TestCase):
             tag = gmsh.model.addPhysicalGroup(3, [dt[1]])
             gmsh.model.setPhysicalName(3, tag, 'V{}'.format(i))
 
-        gmsh.model.mesh.generate(3)
-        gmsh.model.mesh.removeDuplicateNodes()
-        gmsh.write(model_name + '.msh')
+        gmsh.write(model_name + '.brep')
+
+        # gmsh.model.mesh.generate(3)
+        # gmsh.model.mesh.removeDuplicateNodes()
+        # gmsh.write(model_name + '.msh')
         gmsh.finalize()
 
         pprint(times)
@@ -2346,111 +2429,83 @@ class TestScripts(unittest.TestCase):
 
         print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
 
-    def test_read_complex(self):
+    def test_read_complex_type_2_to_complex_primitives(self):
         """
-        Test read Complex
+        Test read Complex Type 2 to ComplexPrimitives
         """
-        start_time = time.time()
-
         gmsh.initialize()
-
         gmsh.option.setNumber("General.Terminal", 1)
-        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
-
-        gmsh.model.add("test_read_complex")
-
+        model_name = 'test_read_complex_type_2_to_complex_primitives'
+        gmsh.model.add(model_name)
         factory = gmsh.model.occ
-
-        print("Reading")
-        start = time.time()
-        intrusion = read_complex_type_2(factory, "complex_type_2", [0, 0, 0], [5, 10, 15], 0, 1)
-        print('{:.3f}s'.format(time.time() - start))
-
-        print("Creation")
-        start = time.time()
-        environment = Primitive(
+        print('Read')
+        complex_primitives = read_complex_type_2_to_complex_primitives(
             factory,
-            [
-                [100, 100, -100, 50],
-                [-100, 100, -100, 50],
-                [-100, -100, -100, 50],
-                [100, -100, -100, 50],
-                [100, 100, 100, 50],
-                [-100, 100, 100, 50],
-                [-100, -100, 100, 50],
-                [100, -100, 100, 50]
-            ],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [[], [], [], [], [], [], [], [], [], [], [], []]
+            'Fractures_Peter/fracture_test_1.txt',
+            [1, 1, 1],
+            1,
+            [0, 0, 0],
+            [[5, 0, 1], [5, 0, 1], [5, 0, 1]],
+            "ComplexPrimitive"
         )
-        print('{:.3f}s'.format(time.time() - start))
-
-        print("Inner Intrusion boolean")
-        start = time.time()
-        intrusion.inner_boolean()
-        print('{:.3f}s'.format(time.time() - start))
-
-        print("Environment by Intrusion boolean")
-        start = time.time()
-        primitive_complex_boolean(factory, environment, intrusion)
-        print('{:.3f}s'.format(time.time() - start))
-
-        print("Remove All Duplicates")
-        start = time.time()
-        factory.removeAllDuplicates()
+        print('Synchronize')
         factory.synchronize()
-        print('{:.3f}s'.format(time.time() - start))
-
-        print("Correction and Transfinite")
-        start = time.time()
-        c_rs = occ_ws.correct_complex(intrusion)
-        print(c_rs)
-        ss = set()  # already transfinite surfaces (workaround for double transfinite issue)
-        t_rs = []
-        for idx, primitive in enumerate(intrusion.primitives):
-            if c_rs[idx]:
-                result = primitive.transfinite(ss)
-                t_rs.append(result)
-            else:
-                t_rs.append(None)
-        print(t_rs)
-        print('{:.3f}s'.format(time.time() - start))
-
-        print("Set Sizes")
-        start = time.time()
-        environment.set_size(50)
-        intrusion.set_size(3)
-        print('{:.3f}s'.format(time.time() - start))
-
-        print("Physical Volumes")
-        v_fgs_names = ["Intrusion"]
-        for idx, name in enumerate(v_fgs_names):
-            volumes_idxs = []
-            volumes_idxs.extend(intrusion.get_volumes_by_physical_index(idx))
-            tag = gmsh.model.addPhysicalGroup(3, volumes_idxs)
-            gmsh.model.setPhysicalName(3, tag, name)
-
-        print("Environment Physical")
-        tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
-        gmsh.model.setPhysicalName(3, tag, "Environment")
-        volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
-        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
-        surfaces_names = ["X", "Z", "NY", "NZ", "Y", "NX"]
-        for i in range(len(surfaces_names)):
-            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
-            gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
-            #     gmsh.model.setPhysicalName(2, tag, 'S%s' % i)
-
+        for cp in complex_primitives:
+            cp.evaluate_coordinates()  # for correct and transfinite
+            cp.evaluate_bounding_box()  # for boolean
+        print('Boolean')
+        combinations = list(itertools.combinations(range(len(complex_primitives)), 2))
+        for c in combinations:
+            complex_boolean(factory, complex_primitives[c[0]], complex_primitives[c[1]])
+        print('Correct and Transfinite')
+        ss = set()
+        for cp in complex_primitives:
+            occ_ws.correct_and_transfinite_complex(cp, ss)
+        print('Auto points sizes')
+        sizes = auto_points_sizes()
         gmsh.model.mesh.generate(3)
-
         gmsh.model.mesh.removeDuplicateNodes()
-
-        gmsh.write("test_read_complex.msh")
-
+        gmsh.write(model_name + '.msh')
         gmsh.finalize()
 
-        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
+    def test_read_complex_type_2_to_complex_primitives_brep(self):
+        """
+        Test read Complex Type 2 to ComplexPrimitives
+        """
+        gmsh.initialize()
+        gmsh.option.setNumber("General.Terminal", 1)
+        model_name = 'test_read_complex_type_2_to_complex_primitives'
+        gmsh.model.add(model_name)
+        factory = gmsh.model.occ
+        print('Read')
+        complex_primitives = read_complex_type_2_to_complex_primitives(
+            factory,
+            'Fractures_Peter/fracture_test_1.txt',
+            [1, 1, 1],
+            1,
+            [0, 0, 0],
+            [[5, 0, 1], [5, 0, 1], [5, 0, 1]],
+            "ComplexPrimitive"
+        )
+        print('Synchronize')
+        factory.synchronize()
+        for cp in complex_primitives:
+            cp.evaluate_coordinates()  # for correct and transfinite
+            cp.evaluate_bounding_box()  # for boolean
+        print('Boolean')
+        combinations = list(itertools.combinations(range(len(complex_primitives)), 2))
+        for c in combinations:
+            complex_boolean(factory, complex_primitives[c[0]], complex_primitives[c[1]])
+        print('Correct and Transfinite')
+        ss = set()
+        for cp in complex_primitives:
+            occ_ws.correct_and_transfinite_complex(cp, ss)
+        print('Auto points sizes')
+        sizes = auto_points_sizes()
+        # gmsh.model.mesh.generate(3)
+        # gmsh.model.mesh.removeDuplicateNodes()
+        gmsh.write(model_name + '.brep')
+        gmsh.finalize()
 
     def test_complex_primitive(self):
         """
@@ -2977,75 +3032,5 @@ class TestScripts(unittest.TestCase):
         print('Write:\t\t{:.3f}s'.format(spent_time_write))
         print('Total:\t\t{:.3f}s'.format(time.time() - start_time_global))
 
-    def test_nkm(self):
-        """
-        Test NKM
-        """
-        start_time = time.time()
-
-        gmsh.initialize()
-
-        factory = gmsh.model.occ
-
-        model = gmsh.model
-        model_name = "test_nk"
-        model.add(model_name)
-
-        gmsh.option.setNumber("General.Terminal", 1)
-        # (1=Delaunay, 2=New Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree)
-        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
-
-        print("NK")
-        start = time.time()
-        nk = NKM(
-            factory,
-            [0, 0, 0], "HostRock", 1000, 1000, 487.5, 100, True,
-            [],  # ["intrusion_1"],
-            [
-                [0, 0, 0]  # [-325, 0, 300]
-            ],
-            ["IntOne"],
-            [1],
-            [
-                [1, 1, 1]  # [16, 12, 1]
-            ],
-            [
-                [[3, 0, 1], [3, 0, 1], [3, 0, 1]]
-            ],
-            [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-            [[3, 0, 1], [3, 0, 1], [3, 0, 1]],
-            [[3, 0, 1], [15, 0, 1], [3, 0, 1]],
-            [3, 0, 1],
-            1,
-            [-11.5 - (14 - 1) * 23, -(20 - 1) * 15 * 0.5, -37.5], "ILW", 14, 20, 23, 15,  # Base
-            # [11.5, -(13 - 1) * 23 * 0.5, -37.5], "HLW", 14, 13, 26, 23  # Base
-            [11.5, -(13 - 1) * 23 * 0.5, -37.5], "HLW", 14, 13, 39, 23
-        )
-        nk.boolean()
-        nk.correct_and_transfinite()
-        nk.set_sizes()
-        nk.physical()
-        # nk.smooth(2, 10)
-        spent_time_nk = time.time() - start
-        print('{:.3f}s'.format(spent_time_nk))
-
-        print("Mesh")
-        start = time.time()
-        model.mesh.generate(3)
-        model.mesh.removeDuplicateNodes()
-        spent_time_mesh = time.time() - start
-        print('{:.3f}s'.format(spent_time_mesh))
-
-        print("Write")
-        start = time.time()
-        gmsh.write(model_name + ".msh")
-        spent_time_write = time.time() - start
-        print('{:.3f}s'.format(spent_time_write))
-
-        gmsh.finalize()
-
-        print(nk.spent_times)
-        print('Total:{:.3f}s'.format(time.time() - start_time))
-
-        if __name__ == '__main__':
-            unittest.main()
+if __name__ == '__main__':
+    unittest.main()
