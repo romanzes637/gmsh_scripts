@@ -5,7 +5,7 @@ import gmsh
 
 class Primitive:
     def __init__(self, factory, point_data, transform_data=None, curve_types=None, curve_data=None,
-                 transfinite_curve_data=None, transfinite_type=None, volume_name="Primitive"):
+                 transfinite_data=None, transfinite_type=None, volume_name="Primitive"):
         """
         Base object with six quadrangular surfaces and eight points
         The object (e.g. number of its volumes/surfaces) could be changed in process,
@@ -41,8 +41,9 @@ class Primitive:
         :param curve_types: [line1_type, line2_type, ..., line12_type],
         types: 0 - line, 1 - circle, 2 - ellipse (FIXME not implemented for occ factory),
         3 - spline, 4 - bspline (number of curve points > 1), 5 - bezier curve
-        :param curve_data: [[line1_point1_x, line1_point1_y, line1_point1_z], ...], ...]
-        :param transfinite_curve_data: [[line1 number of nodes, type, coefficient], ..., [line12 ...]]
+        :param curve_data: [[line1_point1_x, line1_point1_y, line1_point1_z, line1_point1_lc], ...], ..., [line12 ...]]
+        :param transfinite_data: [[line1 number of nodes, type, coefficient], ..., [line12 ...]] or
+        [[x_lines number of nodes, type, coefficient], [y_lines ...], [z_lines ...]]
         types: 0 - progression, 1 - bump
         :param transfinite_type: 0, 1, 2 or 4 determines orientation of tetrahedra at structured volume and its surfaces
         :param volume_name: primitive's physical volume name
@@ -52,7 +53,16 @@ class Primitive:
             curve_types = [0] * 12
         if curve_data is None:
             curve_data = [[]] * 12
-        self.transfinite_curve_data = transfinite_curve_data
+        if transfinite_data is not None:
+            if len(transfinite_data) == 3:
+                self.transfinite_data = list()
+                self.transfinite_data.extend([transfinite_data[0]] * 4)
+                self.transfinite_data.extend([transfinite_data[1]] * 4)
+                self.transfinite_data.extend([transfinite_data[2]] * 4)
+            else:
+                self.transfinite_data = transfinite_data
+        else:
+            self.transfinite_data = transfinite_data
         self.transfinite_type = transfinite_type
         self.volume_name = volume_name
         self.points = []
@@ -219,12 +229,12 @@ class Primitive:
             else:
                 transfinite_surface_data = None
                 transfinite_volume_data = None
-            if self.transfinite_curve_data is not None:
+            if self.transfinite_data is not None:
                 for i in range(len(self.curves)):
                     if self.factory != gmsh.model.geo:  # FIXME Workaround for GEO factory
-                        transfinite_type = self.transfinite_curve_data[i][1]
+                        transfinite_type = self.transfinite_data[i][1]
                     else:
-                        transfinite_type = self.transfinite_curve_data[i][1] + 2
+                        transfinite_type = self.transfinite_data[i][1] + 2
                     self.transfinite_curve[transfinite_type](self, i)
                 if transfinite_surface_data is not None:
                     for i, s in enumerate(self.surfaces):
@@ -327,27 +337,27 @@ class Primitive:
     transfinite_curve = {
         0: lambda self, i: gmsh.model.mesh.setTransfiniteCurve(
             self.curves[i],
-            self.transfinite_curve_data[i][0],
+            self.transfinite_data[i][0],
             "Progression",
-            self.transfinite_curve_data[i][2]
+            self.transfinite_data[i][2]
         ),
         1: lambda self, i: gmsh.model.mesh.setTransfiniteCurve(
             self.curves[i],
-            self.transfinite_curve_data[i][0],
+            self.transfinite_data[i][0],
             "Bump",
-            self.transfinite_curve_data[i][2]
+            self.transfinite_data[i][2]
         ),
         2: lambda self, i: gmsh.model.geo.mesh.setTransfiniteCurve(
             self.curves[i],
-            self.transfinite_curve_data[i][0],
+            self.transfinite_data[i][0],
             "Progression",
-            self.transfinite_curve_data[i][2]
+            self.transfinite_data[i][2]
         ),
         3: lambda self, i: gmsh.model.geo.mesh.setTransfiniteCurve(
             self.curves[i],
-            self.transfinite_curve_data[i][0],
+            self.transfinite_data[i][0],
             "Bump",
-            self.transfinite_curve_data[i][2]
+            self.transfinite_data[i][2]
         )
     }
 
@@ -506,10 +516,13 @@ class Complex:
 
     def inner_boolean(self):
         combinations = list(itertools.combinations(range(len(self.primitives)), 2))
-        for c in combinations:
-            print("Boolean primitive_obj {} {} by primitive_tool {} {}".format(
+        for i, c in enumerate(combinations):
+            print("Inner Boolean {}/{} ({} {} by {} {})".format(
+                i + 1,
+                len(combinations),
                 c[0], self.primitives[c[0]].volume_name,
-                c[1], self.primitives[c[1]].volume_name))
+                c[1], self.primitives[c[1]].volume_name)
+            )
             primitive_boolean(self.factory, self.primitives[c[0]], self.primitives[c[1]])
 
     def set_size(self, size, primitive_idx=None):

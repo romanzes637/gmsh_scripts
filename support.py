@@ -1,3 +1,5 @@
+from pprint import pprint
+
 import gmsh
 import math
 
@@ -10,28 +12,29 @@ def get_volume_points_curves_data(volume):
     """
     # Get volume curves
     surfaces_dim_tags = gmsh.model.getBoundary([[3, volume]])
-    surfaces = map(lambda x: x[1], surfaces_dim_tags)
     curves = set()
-    for surface in surfaces:
-        curves_dim_tags = gmsh.model.getBoundary([[2, surface]])
-        for dt in curves_dim_tags:
-            curves.add(abs(dt[1]))
+    for sdt in surfaces_dim_tags:
+        curves_dim_tags = gmsh.model.getBoundary([sdt])
+        for cdt in curves_dim_tags:
+            curves.add(abs(cdt[1]))
     # Get points' curves and curves' points
     points_dim_tags = gmsh.model.getBoundary([[3, volume]], recursive=True)
     points = map(lambda x: x[1], points_dim_tags)
     points_curves = {x: set() for x in points}
     curves_points = dict()
     for c in curves:
-        out_dim_tags = gmsh.model.getBoundary([[1, c]])
-        curves_points[c] = map(lambda x: x[1], out_dim_tags)
+        points_dim_tags = gmsh.model.getBoundary([[1, c]])
+        curves_points[c] = map(lambda x: x[1], points_dim_tags)
         for p in curves_points[c]:
             points_curves[p].add(c)
     # Calculate curves' square lengths
     curves_sqr_lengths = dict()
+    curves_points_coordinates = dict()
     for c in curves:
         ps = curves_points[c]
         bb0 = gmsh.model.getBoundingBox(0, ps[0])
         bb1 = gmsh.model.getBoundingBox(0, ps[1])
+        curves_points_coordinates[c] = [bb0, bb1]
         cs0 = [bb0[0], bb0[1], bb0[2]]
         cs1 = [bb1[0], bb1[1], bb1[2]]
         r = [cs1[0] - cs0[0], cs1[1] - cs0[1], cs1[2] - cs0[2]]
@@ -54,6 +57,11 @@ def get_volume_points_curves_data(volume):
             math.sqrt(max_sqr_length),
             math.sqrt(mean_sqr_length)  # Root Mean Square (RMS)
         ])
+        # print(volume)
+        # pprint(points_curves)
+        # pprint(curves_points)
+        # pprint(curves_points_coordinates)
+        # pprint(curves_sqr_lengths)
     return points_curves_data
 
 

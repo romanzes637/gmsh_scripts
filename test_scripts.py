@@ -2429,24 +2429,66 @@ class TestScripts(unittest.TestCase):
 
         print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
 
+    def test_read_complex_type_2(self):
+        """
+        Test read Complex Type 2
+        """
+        gmsh.initialize()
+        gmsh.option.setNumber("General.Terminal", 1)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
+        model_name = 'test_read_complex_type_2'
+        gmsh.model.add(model_name)
+        factory = gmsh.model.occ
+        print('Read')
+        c = read_complex_type_2(
+            factory,
+            'Fractures_Peter/fracture_N=2.txt',
+            1,
+            [0, 0, 0],
+            [[5, 0, 1], [5, 0, 1], [5, 0, 1]],
+            "V"
+        )
+        print('Synchronize')
+        factory.synchronize()
+        c.evaluate_coordinates()  # for correct and transfinite
+        c.evaluate_bounding_box()  # for boolean
+        print('Boolean')
+        c.inner_boolean()
+        print('Remove all duplicates')
+        factory.removeAllDuplicates()
+        print('Synchronize')
+        factory.synchronize()
+        print('Correct and Transfinite')
+        ss = set()
+        occ_ws.correct_and_transfinite_complex(c, ss)
+        print('Auto points sizes')
+        sizes = auto_points_sizes()
+        pprint(sizes)
+        print('Mesh')
+        gmsh.model.mesh.generate(3)
+        gmsh.model.mesh.removeDuplicateNodes()
+        gmsh.write(model_name + '.msh')
+        gmsh.finalize()
+
     def test_read_complex_type_2_to_complex_primitives(self):
         """
         Test read Complex Type 2 to ComplexPrimitives
         """
         gmsh.initialize()
         gmsh.option.setNumber("General.Terminal", 1)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
         model_name = 'test_read_complex_type_2_to_complex_primitives'
         gmsh.model.add(model_name)
         factory = gmsh.model.occ
         print('Read')
         complex_primitives = read_complex_type_2_to_complex_primitives(
             factory,
-            'Fractures_Peter/fracture_test_1.txt',
-            [1, 1, 1],
+            'Fractures_Peter/fracture_N=2.txt',
+            [2, 2, 2],
             1,
             [0, 0, 0],
             [[5, 0, 1], [5, 0, 1], [5, 0, 1]],
-            "ComplexPrimitive"
+            "V"
         )
         print('Synchronize')
         factory.synchronize()
@@ -2455,14 +2497,21 @@ class TestScripts(unittest.TestCase):
             cp.evaluate_bounding_box()  # for boolean
         print('Boolean')
         combinations = list(itertools.combinations(range(len(complex_primitives)), 2))
-        for c in combinations:
+        for i, c in enumerate(combinations):
+            print('Boolean: {}/{} (CP {} by CP {})'.format(i, len(combinations), c[0], c[1]))
             complex_boolean(factory, complex_primitives[c[0]], complex_primitives[c[1]])
+        print('Remove all duplicates')
+        factory.removeAllDuplicates()
+        print('Synchronize')
+        factory.synchronize()
         print('Correct and Transfinite')
         ss = set()
         for cp in complex_primitives:
             occ_ws.correct_and_transfinite_complex(cp, ss)
         print('Auto points sizes')
-        sizes = auto_points_sizes()
+        sizes = auto_points_sizes(1000000)
+        pprint(sizes)
+        print('Mesh')
         gmsh.model.mesh.generate(3)
         gmsh.model.mesh.removeDuplicateNodes()
         gmsh.write(model_name + '.msh')
@@ -2481,7 +2530,7 @@ class TestScripts(unittest.TestCase):
         complex_primitives = read_complex_type_2_to_complex_primitives(
             factory,
             'Fractures_Peter/fracture_test_1.txt',
-            [1, 1, 1],
+            [2, 2, 2],
             1,
             [0, 0, 0],
             [[5, 0, 1], [5, 0, 1], [5, 0, 1]],
@@ -2489,21 +2538,16 @@ class TestScripts(unittest.TestCase):
         )
         print('Synchronize')
         factory.synchronize()
-        for cp in complex_primitives:
-            cp.evaluate_coordinates()  # for correct and transfinite
-            cp.evaluate_bounding_box()  # for boolean
         print('Boolean')
+        for cp in complex_primitives:
+            cp.evaluate_bounding_box()  # for boolean
         combinations = list(itertools.combinations(range(len(complex_primitives)), 2))
         for c in combinations:
             complex_boolean(factory, complex_primitives[c[0]], complex_primitives[c[1]])
-        print('Correct and Transfinite')
-        ss = set()
-        for cp in complex_primitives:
-            occ_ws.correct_and_transfinite_complex(cp, ss)
-        print('Auto points sizes')
-        sizes = auto_points_sizes()
-        # gmsh.model.mesh.generate(3)
-        # gmsh.model.mesh.removeDuplicateNodes()
+        print('Remove all duplicates')
+        factory.removeAllDuplicates()
+        print('Synchronize')
+        factory.synchronize()
         gmsh.write(model_name + '.brep')
         gmsh.finalize()
 

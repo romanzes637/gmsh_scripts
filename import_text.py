@@ -117,89 +117,12 @@ def read_complex_type_1(factory, path, transform_data, curve_type, transfinite_d
     return Complex(factory, primitives, physical_data, lcs)
 
 
-def read_complex_type_2(factory, path, transform_data, transfinite_data, physical_tag, lc):
-    origins = []
-    rotations = []
-    coordinates = []
-    primitives_cs = []
-    cnt = 0
-    with open(path) as f:
-        for line in f:
-            if not line.startswith("#" or "//"):
-                tokens = line.split()
-                # print(tokens)
-                if len(tokens) > 0:
-                    cnt += 1
-                    if cnt == 1:
-                        origins.append(map(lambda x: float(x), tokens))
-                    elif cnt == 2:
-                        rotations.append(map(lambda x: float(x), tokens))
-                    else:
-                        coordinates.append(map(lambda x: float(x), tokens))
-                    if cnt == 10:
-                        cnt = 0
-                        primitives_cs.append(coordinates)
-                        coordinates = []
-    primitives = []
-    physical_data = []
-    lcs = []
-    for i in range(len(origins)):
-        point_data = []
-        for j in range(len(primitives_cs[i])):
-            point_with_lc = list(primitives_cs[i][j])
-            point_with_lc.append(float(lc))
-            point_data.append(point_with_lc)
-        t_form_data = [
-            origins[i][0] + transform_data[0],
-            origins[i][1] + transform_data[1],
-            origins[i][2] + transform_data[2]
-        ]
-        if len(rotations[i]) == 3:
-            t_form_data.append(t_form_data[0])
-            t_form_data.append(t_form_data[1])
-            t_form_data.append(t_form_data[2])
-            t_form_data.append(rotations[i][0])
-            t_form_data.append(rotations[i][1])
-            t_form_data.append(rotations[i][2])
-        elif len(rotations[i]) == 4:
-            t_form_data.append(rotations[i][0])
-            t_form_data.append(rotations[i][1])
-            t_form_data.append(rotations[i][2])
-            t_form_data.append(rotations[i][3])
-        t_finite_data = [
-            [transfinite_data[0], 0, 1],
-            [transfinite_data[0], 0, 1],
-            [transfinite_data[0], 0, 1],
-            [transfinite_data[0], 0, 1],
-            [transfinite_data[1], 0, 1],
-            [transfinite_data[1], 0, 1],
-            [transfinite_data[1], 0, 1],
-            [transfinite_data[1], 0, 1],
-            [transfinite_data[2], 0, 1],
-            [transfinite_data[2], 0, 1],
-            [transfinite_data[2], 0, 1],
-            [transfinite_data[2], 0, 1],
-        ]  # TODO do n_points of smaller edge length smaller and so on
-        t_finite_type = 0
-        primitives.append(Primitive(
-            factory,
-            point_data,
-            t_form_data,
-            transfinite_curve_data=t_finite_data,
-            transfinite_type=t_finite_type
-        ))
-        physical_data.append(physical_tag)
-        lcs.append(lc)
-    return Complex(factory, primitives, physical_data, lcs)
-
-
-def read_complex_type_2_to_complex_primitives(
-        factory, path, divide_data, lc,
-        transform_data=None, transfinite_data=None, volume_name=None):
-    origins = []
-    rotations = []
-    coordinates = []
-    primitives_cs = []
+def parse_complex_type_2(path):
+    n_primitives = 0
+    origins = list()
+    rotations = list()
+    coordinates = list()
+    primitives_cs = list()
     cnt = 0
     with open(path) as f:
         for line in f:
@@ -216,68 +139,61 @@ def read_complex_type_2_to_complex_primitives(
                         coordinates.append(map(lambda x: float(x), tokens))
                     if cnt == 10:
                         cnt = 0
+                        n_primitives += 1
                         primitives_cs.append(coordinates)
                         coordinates = []
-    complex_primitives = []
-    for i in range(len(origins)):
-        point_data = []
-        for j in range(len(primitives_cs[i])):
-            point_with_lc = list(primitives_cs[i][j])
-            point_with_lc.append(float(lc))
-            point_data.append(point_with_lc)
-        new_transform_data = []
-        if transform_data is not None:
-            new_transform_data.append(origins[i][0] + transform_data[0])
-            new_transform_data.append(origins[i][1] + transform_data[1])
-            new_transform_data.append(origins[i][2] + transform_data[2])
-            if len(rotations[i]) == 3:
-                if len(transform_data) == 3 or len(transform_data) == 7:
-                    new_transform_data.append(new_transform_data[0])
-                    new_transform_data.append(new_transform_data[1])
-                    new_transform_data.append(new_transform_data[2])
-                    new_transform_data.append(rotations[i][0])
-                    new_transform_data.append(rotations[i][1])
-                    new_transform_data.append(rotations[i][2])
-                if len(transform_data) == 6:
-                    new_transform_data.append(new_transform_data[0])
-                    new_transform_data.append(new_transform_data[1])
-                    new_transform_data.append(new_transform_data[2])
-                    new_transform_data.append(rotations[i][0] + transform_data[3])
-                    new_transform_data.append(rotations[i][1] + transform_data[4])
-                    new_transform_data.append(rotations[i][2] + transform_data[5])
-            elif len(rotations[i]) == 4:
-                if len(transform_data) == 3 or len(transform_data) == 6:
-                    new_transform_data.append(rotations[i][0])
-                    new_transform_data.append(rotations[i][1])
-                    new_transform_data.append(rotations[i][2])
-                    new_transform_data.append(rotations[i][3])
-                if len(transform_data) == 7:  # TODO Don't know how it will be rotated;)
-                    new_transform_data.append(rotations[i][0] + transform_data[3])
-                    new_transform_data.append(rotations[i][1] + transform_data[4])
-                    new_transform_data.append(rotations[i][2] + transform_data[5])
-                    new_transform_data.append(rotations[i][3] + transform_data[6])
-        else:
-            new_transform_data.append(origins[i][0])
-            new_transform_data.append(origins[i][1])
-            new_transform_data.append(origins[i][2])
-            if len(rotations[i]) == 3:
-                new_transform_data.append(new_transform_data[0])
-                new_transform_data.append(new_transform_data[1])
-                new_transform_data.append(new_transform_data[2])
-                new_transform_data.append(rotations[i][0])
-                new_transform_data.append(rotations[i][1])
-                new_transform_data.append(rotations[i][2])
-            elif len(rotations[i]) == 4:
-                new_transform_data.append(rotations[i][0])
-                new_transform_data.append(rotations[i][1])
-                new_transform_data.append(rotations[i][2])
-                new_transform_data.append(rotations[i][3])
+    return n_primitives, origins, rotations, primitives_cs
+
+
+def prepare_complex_type_2(n_primitives, origins, rotations, primitives_cs, lc, transform_data):
+    point_datas = list()
+    new_transform_datas = list()
+    for i in range(n_primitives):
+        point_data = list()
+        for c in primitives_cs[i]:
+            point = c
+            point.append(lc)
+            point_data.append(point)
+        new_transform_data = map(lambda x, y: x + y, origins[i], transform_data)
+        if len(rotations[i]) == 3:
+            new_transform_data.extend(new_transform_data)
+            new_transform_data.extend(rotations[i])
+        elif len(rotations[i]) == 4:
+            new_transform_data.extend(rotations[i])
+        point_datas.append(point_data)
+        new_transform_datas.append(new_transform_data)
+    return point_datas, new_transform_datas
+
+
+def read_complex_type_2(factory, path, lc, transform_data, transfinite_data, volume_name=None):
+    n_primitives, origins, rotations, primitives_cs = parse_complex_type_2(path)
+    point_datas, new_transform_datas = prepare_complex_type_2(
+        n_primitives, origins, rotations, primitives_cs, lc, transform_data)
+    primitives = list()
+    for i in range(n_primitives):
+        primitives.append(Primitive(
+            factory,
+            point_datas[i],
+            new_transform_datas[i],
+            transfinite_data=transfinite_data,
+            volume_name=volume_name
+        ))
+    return Complex(factory, primitives)
+
+
+def read_complex_type_2_to_complex_primitives(
+        factory, path, divide_data, lc, transform_data, transfinite_data, volume_name=None):
+    n_primitives, origins, rotations, primitives_cs = parse_complex_type_2(path)
+    point_datas, new_transform_datas = prepare_complex_type_2(
+        n_primitives, origins, rotations, primitives_cs, lc, transform_data)
+    complex_primitives = list()
+    for i in range(n_primitives):
         complex_primitives.append(ComplexPrimitive(
             factory,
             divide_data,
-            point_data,
+            point_datas[i],
             lc,
-            new_transform_data,
+            new_transform_datas[i],
             transfinite_data=transfinite_data,
             volume_name=volume_name
         ))

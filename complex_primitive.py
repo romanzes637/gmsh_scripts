@@ -19,39 +19,19 @@ class ComplexPrimitive(Complex):
         :param transfinite_type:
         :param volume_name:
         """
-        if transform_data is None:
-            transfinite_curve_data = None
-        else:
-            transfinite_curve_data = [
-                transfinite_data[0],
-                transfinite_data[0],
-                transfinite_data[0],
-                transfinite_data[0],
-                transfinite_data[1],
-                transfinite_data[1],
-                transfinite_data[1],
-                transfinite_data[1],
-                transfinite_data[2],
-                transfinite_data[2],
-                transfinite_data[2],
-                transfinite_data[2],
-            ]
-        if transfinite_type is None:
-            transfinite_type = 0
-        if curve_types is None:
-            curve_types = [0] * 12
+        primitives = list()
         if curve_data is None:
             curve_data = [[]] * 12
-        primitives = []
         ps_base_points, ps_curves_points = divide_primitive(divide_data, point_data, curve_data)
-        for i in range(len(ps_base_points)):
-            base_with_lc = [x + [primitive_lc] for x in ps_base_points[i]]
-            curves_with_lc = []
-            for j in range(len(ps_curves_points[i])):
-                curves_with_lc.append([x + [primitive_lc] for x in ps_curves_points[i][j]])
-            primitives.append(Primitive(factory, base_with_lc, transform_data, curve_types,
-                                        curves_with_lc, transfinite_curve_data, transfinite_type,
-                                        volume_name))
+        for i, bps in enumerate(ps_base_points):
+            new_point_data = [x + [primitive_lc] for x in ps_base_points[i]]
+            new_curve_data = list()
+            for cps in ps_curves_points[i]:
+                new_curve_data.append([x + [primitive_lc] for x in cps])
+            primitives.append(Primitive(
+                factory, new_point_data, transform_data, curve_types,
+                new_curve_data, transfinite_data, transfinite_type, volume_name
+            ))
         Complex.__init__(self, factory, primitives)
 
 
@@ -205,9 +185,9 @@ def centroid_point(ps):
 
 
 def divide_primitive(divide_data, base_points, curves_points):
-    lines = []
+    lines = list()
     for i in range(12):
-        ps = []
+        ps = list()
         if len(curves_points[i]) > 0:
             ps.append(base_points[Primitive.curves_local_points[i][0]])
             ps.extend(curves_points[i])
@@ -218,7 +198,7 @@ def divide_primitive(divide_data, base_points, curves_points):
         lines.append(ps)
 
     # Edges lines
-    new_lines = []
+    new_lines = list()
     nx = divide_data[0]
     ny = divide_data[1]
     nz = divide_data[2]
@@ -251,63 +231,63 @@ def divide_primitive(divide_data, base_points, curves_points):
     correct_volume_lines(nx_x_lines, ny_y_lines, nz_z_lines)
 
     # Sum
-    x_lines = []
-    first_layer_lines = []
+    x_lines = list()
+    first_layer_lines = list()
     first_layer_lines.append(new_lines[3])
     for line_points in nz_x_lines:
         first_layer_lines.append(line_points)
     first_layer_lines.append(new_lines[0])
     x_lines.append(first_layer_lines)
     for i in range(len(ny_x_lines)):
-        layer_lines = []
+        layer_lines = list()
         layer_lines.append(ny_x_lines[i])
         for line_points in nx_x_lines[i]:
             layer_lines.append(line_points)
         layer_lines.append(y_x_lines[i])
         x_lines.append(layer_lines)
-    last_layer_lines = []
+    last_layer_lines = list()
     last_layer_lines.append(new_lines[2])
     for line_points in z_x_lines:
         last_layer_lines.append(line_points)
     last_layer_lines.append(new_lines[1])
     x_lines.append(last_layer_lines)
 
-    y_lines = []
-    first_layer_lines = []
+    y_lines = list()
+    first_layer_lines = list()
     first_layer_lines.append(new_lines[5])
     for line_points in nz_y_lines:
         first_layer_lines.append(line_points)
     first_layer_lines.append(new_lines[4])
     y_lines.append(first_layer_lines)
     for i in range(len(nx_y_lines)):
-        layer_lines = []
+        layer_lines = list()
         layer_lines.append(nx_y_lines[i])
         for line_points in ny_y_lines[i]:
             layer_lines.append(line_points)
         layer_lines.append(x_y_lines[i])
         y_lines.append(layer_lines)
-    last_layer_lines = []
+    last_layer_lines = list()
     last_layer_lines.append(new_lines[6])
     for line_points in z_y_lines:
         last_layer_lines.append(line_points)
     last_layer_lines.append(new_lines[7])
     y_lines.append(last_layer_lines)
 
-    z_lines = []
-    first_layer_lines = []
+    z_lines = list()
+    first_layer_lines = list()
     first_layer_lines.append(new_lines[10])
     for line_points in ny_z_lines:
         first_layer_lines.append(line_points)
     first_layer_lines.append(new_lines[11])
     z_lines.append(first_layer_lines)
     for i in range(len(nx_z_lines)):
-        layer_lines = []
+        layer_lines = list()
         layer_lines.append(nx_z_lines[i])
         for line_points in nz_z_lines[i]:
             layer_lines.append(line_points)
         layer_lines.append(x_z_lines[i])
         z_lines.append(layer_lines)
-    last_layer_lines = []
+    last_layer_lines = list()
     last_layer_lines.append(new_lines[9])
     for line_points in y_z_lines_points:
         last_layer_lines.append(line_points)
@@ -320,7 +300,7 @@ def divide_primitive(divide_data, base_points, curves_points):
 
 
 def correct_volume_lines(nx_x_lines, ny_y_lines, nz_z_lines):
-    if len(nx_x_lines) == 0 or len(ny_y_lines) == 0 or len(nz_z_lines):  # FIXME plug to one layer
+    if len(nx_x_lines) == 0 or len(ny_y_lines) == 0 or len(nz_z_lines) == 0:  # FIXME plug to one layer
         return
     nx = len(nx_x_lines[0][0])
     ny = len(ny_y_lines[0][0])
