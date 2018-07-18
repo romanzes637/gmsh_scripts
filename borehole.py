@@ -30,13 +30,13 @@ class Borehole(Cylinder):
         ]
         if n_h_layers > 1:  # Divide main borehole part into n_h_layers parts
             dh = heights[1] / n_h_layers
-            new_heights = []
+            new_heights = list()
             new_heights.append(heights[0])
-            new_layers_physical_names = []
+            new_layers_physical_names = list()
             new_layers_physical_names.append(layers_physical_names[0])
-            new_lcs = []
+            new_lcs = list()
             new_lcs.append(primitives_lcs[0])
-            new_transfinite_h_data = []
+            new_transfinite_h_data = list()
             new_transfinite_h_data.append(transfinite_h_data[0])
             for i in range(n_h_layers):
                 new_heights.append(dh)

@@ -25,7 +25,6 @@ from support import auto_primitive_points_sizes_min_curve, auto_complex_points_s
 
 
 class TestScripts(unittest.TestCase):
-
     def test_import_brep(self):
         gmsh.initialize()
         gmsh.option.setNumber('General.Terminal', 1)
@@ -112,7 +111,6 @@ class TestScripts(unittest.TestCase):
         model_name = 'test_boolean'
         gmsh.model.add(model_name)
         factory = gmsh.model.occ
-
         primitive = Primitive(
             factory,
             [
@@ -137,7 +135,6 @@ class TestScripts(unittest.TestCase):
             'Primitive'
         )
         factory.synchronize()
-
         print('All Volumes')
         volume_dts = gmsh.model.getEntities(3)
         print(volume_dts)
@@ -192,7 +189,6 @@ class TestScripts(unittest.TestCase):
         print('All Points')
         ps_dts = gmsh.model.getEntities(0)
         print(ps_dts)
-
         gmsh.finalize()
 
     def test_extend(self):
@@ -239,15 +235,65 @@ class TestScripts(unittest.TestCase):
         self.assertItemsEqual(a, e)
         self.assertItemsEqual(a, eo)
 
+    def test_primitive(self):
+        gmsh.initialize()
+        gmsh.option.setNumber('General.Terminal', 1)
+        model_name = 'test_primitive'
+        gmsh.model.add(model_name)
+        factory = gmsh.model.occ
+        primitive = Primitive(
+            factory,
+            [
+                [10, 10, -10, 1],
+                [-10, 10, -10, 1],
+                [-10, -10, -10, 1],
+                [10, -10, -10, 1],
+                [10, 10, 10, 1],
+                [-10, 10, 10, 1],
+                [-10, -10, 10, 1],
+                [10, -10, 10, 1],
+            ],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [[], [], [], [], [], [], [], [], [], [], [], []],
+            [[10, 0, 1], [10, 0, 1], [10, 0, 1]],
+            0,
+            'Primitive'
+        )
+        print('Synchronize')
+        factory.synchronize()
+        print('Evaluate')
+        primitive.evaluate_coordinates()  # for correct and transfinite
+        primitive.evaluate_bounding_box()  # for boolean
+        print('Remove All Duplicates')
+        factory.removeAllDuplicates()
+        print('Synchronize')
+        factory.synchronize()
+        print("Correct and Transfinite")
+        ss = set()
+        occ_ws.correct_and_transfinite_primitive(primitive, ss)
+        print("Recombine")
+        primitive.recombine()
+        print("Physical")
+        vs = primitive.volumes
+        tag = gmsh.model.addPhysicalGroup(3, vs)
+        gmsh.model.setPhysicalName(3, tag, primitive.volume_name)
+        for i, s in enumerate(primitive.surfaces):
+            tag = gmsh.model.addPhysicalGroup(2, [s])
+            gmsh.model.setPhysicalName(2, tag, primitive.surfaces_names[i])
+        print('Mesh')
+        gmsh.model.mesh.generate(3)
+        gmsh.model.mesh.removeDuplicateNodes()
+        gmsh.write(model_name + '.msh')
+        gmsh.finalize()
+
     def test_boolean(self):
         gmsh.initialize()
         gmsh.option.setNumber('General.Terminal', 1)
         model_name = 'test_boolean'
         gmsh.model.add(model_name)
         factory = gmsh.model.occ
-
         times = dict()
-
         booleans = {
             'Fuse': lambda objects, tools: factory.fuse(objects, tools),
             'Cut': lambda objects, tools: factory.cut(objects, tools),
@@ -262,7 +308,6 @@ class TestScripts(unittest.TestCase):
             'FragmentRemoveFalse': lambda objects, tools: factory.fragment(
                 objects, tools, removeObject=False, removeTool=False),
         }
-
         print('Creation')
         primitives = list()
         for i, (k, v) in enumerate(booleans.items()):
@@ -327,44 +372,34 @@ class TestScripts(unittest.TestCase):
             # for j, dt in enumerate(out):
             #     tag = gmsh.model.addPhysicalGroup(dt[0], [dt[1]])
             #     gmsh.model.setPhysicalName(3, tag, '{}{}'.format(k, j))
-
         print('Synchronize')
         factory.synchronize()
-
         print('Entities')
         vs = gmsh.model.getEntities(3)
         ss = gmsh.model.getEntities(2)
         ps = gmsh.model.getEntities(1)
         print('vs: {}, ss: {}, ps: {}'.format(len(vs), len(ss), len(ps)))
-
         print('Remove All Duplicates')
         start_time = time.time()
         factory.removeAllDuplicates()
         times['RemoveAllDuplicates'] = time.time() - start_time
-
         print('Synchronize')
         factory.synchronize()
-
         print('Entities')
         vs = gmsh.model.getEntities(3)
         ss = gmsh.model.getEntities(2)
         ps = gmsh.model.getEntities(1)
         print('vs: {}, ss: {}, ps: {}'.format(len(vs), len(ss), len(ps)))
-
         print('Physical')
         vs = gmsh.model.getEntities(3)  # all model volumes
         print('Number of volumes: {}'.format(len(vs)))
         for i, dt in enumerate(vs):
             tag = gmsh.model.addPhysicalGroup(3, [dt[1]])
             gmsh.model.setPhysicalName(3, tag, 'V{}'.format(i))
-
-        gmsh.write(model_name + '.brep')
-
-        # gmsh.model.mesh.generate(3)
-        # gmsh.model.mesh.removeDuplicateNodes()
-        # gmsh.write(model_name + '.msh')
+        gmsh.model.mesh.generate(3)
+        gmsh.model.mesh.removeDuplicateNodes()
+        gmsh.write(model_name + '.msh')
         gmsh.finalize()
-
         pprint(times)
 
     def test_factories(self):
@@ -377,7 +412,6 @@ class TestScripts(unittest.TestCase):
         gmsh.model.add('test_factories')
         factory_occ = gmsh.model.occ
         factory_geo = gmsh.model.geo
-
         print('Creation')
         print("Primitive GEO")
         primitive_geo = Primitive(
@@ -431,21 +465,17 @@ class TestScripts(unittest.TestCase):
         )
         print("Synchronize")
         factory_occ.synchronize()
-
         print("Evaluate PrimitiveOCC Coordinates")
         primitive_occ.evaluate_coordinates()
-
         print("Correct and Transfinite")
         ss = set()
         print(primitive_geo.transfinite(ss))
         print(occ_ws.correct_and_transfinite_primitive(primitive_occ, ss))
-
         print("Physical")
         tag = gmsh.model.addPhysicalGroup(3, primitive_geo.volumes)
         gmsh.model.setPhysicalName(3, tag, primitive_geo.volume_name)
         tag = gmsh.model.addPhysicalGroup(3, primitive_occ.volumes)
         gmsh.model.setPhysicalName(3, tag, primitive_occ.volume_name)
-
         gmsh.model.mesh.generate(3)
         gmsh.model.mesh.removeDuplicateNodes()
         gmsh.write("test_factories.msh")
@@ -2146,19 +2176,13 @@ class TestScripts(unittest.TestCase):
         """
         Test borehole
         """
-        start_time = time.time()
-
         gmsh.initialize()
-
-        gmsh.option.setNumber("General.Terminal", 1)
+        gmsh.option.setNumber("General.Terminal", 0)
         gmsh.option.setNumber("Mesh.Algorithm3D", 4)
-
         gmsh.model.add("test_borehole")
-
         factory = gmsh.model.occ
-
         print("Creation")
-        start = time.time()
+        start_time = time.time()
         repo_center_depth = 487.5  # repository center depth
         env_length_x = 500
         env_length_y = 500
@@ -2175,9 +2199,7 @@ class TestScripts(unittest.TestCase):
                 [-env_length_x / 2, -env_length_y / 2, repo_center_depth, repo_lc],
                 [env_length_x / 2, -env_length_y / 2, repo_center_depth, repo_lc]
             ],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [[], [], [], [], [], [], [], [], [], [], [], []]
+            volume_name='Rock'
         )
         borehole = Borehole(
             factory,
@@ -2186,68 +2208,60 @@ class TestScripts(unittest.TestCase):
             [[3, 0, 1], [3, 0, 1], [3, 0, 1]],
             [[10, 0, 1], [10, 0, 1], [10, 0, 1]],
             [3, 0, 1],
-            2
+            1
         )
-        print('{:.3f}s'.format(time.time() - start))
-
-        print("Environment by Borehole boolean")
-        start = time.time()
-        primitive_complex_boolean(factory, environment, borehole)
-        print('{:.3f}s'.format(time.time() - start))
-
-        print("Remove All Duplicates")
-        start = time.time()
-        factory.removeAllDuplicates()
+        print('{:.3f}s'.format(time.time() - start_time))
+        print('Synchronize')
         factory.synchronize()
-        print('{:.3f}s'.format(time.time() - start))
-
+        print('Evaluate')
+        borehole.evaluate_coordinates()  # for correct and transfinite
+        borehole.evaluate_bounding_box()  # for boolean
+        environment.evaluate_coordinates()  # for correct and transfinite
+        environment.evaluate_bounding_box()  # for boolean
+        print("Environment by Borehole boolean")
+        start_time = time.time()
+        primitive_complex_boolean(factory, environment, borehole)
+        print('{:.3f}s'.format(time.time() - start_time))
+        print("Remove All Duplicates")
+        start_time = time.time()
+        factory.removeAllDuplicates()
+        print('{:.3f}s'.format(time.time() - start_time))
+        print('Synchronize')
+        start_time = time.time()
+        factory.synchronize()
+        print('{:.3f}s'.format(time.time() - start_time))
         print("Correction and Transfinite")
-        start = time.time()
+        start_time = time.time()
         correction_rs = occ_ws.correct_complex(borehole)
         print(correction_rs)
         ss = set()  # already transfinite surfaces (workaround for double transfinite issue)
-        transfinite_rs = []
-        for idx, primitive in enumerate(borehole.primitives):
-            if correction_rs[idx]:
-                result = primitive.transfinite(ss)
-                transfinite_rs.append(result)
-            else:
-                transfinite_rs.append(None)
-        print(transfinite_rs)
-        print('{:.3f}s'.format(time.time() - start))
-
-        print("Set Sizes")
-        start = time.time()
-        environment.set_size(repo_lc)
-        print('{:.3f}s'.format(time.time() - start))
-
-        print("Borehole Physical")
-        for idx, name in enumerate(borehole.physical_names):
-            volumes_idxs = []
-            volumes_idxs.extend(borehole.get_volumes_by_physical_index(idx))
-            tag = gmsh.model.addPhysicalGroup(3, volumes_idxs)
+        occ_ws.correct_and_transfinite_complex(borehole, ss)
+        print('{:.3f}s'.format(time.time() - start_time))
+        print("Boreholes Physical")
+        start_time = time.time()
+        for name in Borehole.volumes_names:
+            vs = borehole.get_volumes_by_name(name)
+            tag = gmsh.model.addPhysicalGroup(3, vs)
             gmsh.model.setPhysicalName(3, tag, name)
-
+        print('{:.3f}s'.format(time.time() - start_time))
         print("Environment Physical")
+        start_time = time.time()
         tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
-        gmsh.model.setPhysicalName(3, tag, "Environment")
+        gmsh.model.setPhysicalName(3, tag, environment.volume_name)
         volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
         surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
-        surfaces_names = ["X", "Z", "NY", "NZ", "Y", "NX"]
-        for i in range(len(surfaces_names)):
+        surfaces_names = ["X", "Y", "NZ", "NY", "Z", "NX"]
+        for i, n in enumerate(surfaces_names):
             tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
-            gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
-            #     gmsh.model.setPhysicalName(2, tag, 'S%s' % i)
-
+            gmsh.model.setPhysicalName(2, tag, n)
+        print('{:.3f}s'.format(time.time() - start_time))
+        print('Mesh')
+        start_time = time.time()
         gmsh.model.mesh.generate(3)
-
         gmsh.model.mesh.removeDuplicateNodes()
-
         gmsh.write("test_borehole.msh")
-
+        print('{:.3f}s'.format(time.time() - start_time))
         gmsh.finalize()
-
-        print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
 
     def test_borehole_with_intrusion(self):
         """
@@ -3075,6 +3089,7 @@ class TestScripts(unittest.TestCase):
         print('Mesh:\t\t{:.3f}s'.format(spent_time_mesh))
         print('Write:\t\t{:.3f}s'.format(spent_time_write))
         print('Total:\t\t{:.3f}s'.format(time.time() - start_time_global))
+
 
 if __name__ == '__main__':
     unittest.main()
