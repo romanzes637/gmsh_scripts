@@ -3,6 +3,8 @@ from pprint import pprint
 import gmsh
 import math
 
+import itertools
+
 
 def get_volume_points_curves_data(volume):
     """
@@ -63,6 +65,40 @@ def get_volume_points_curves_data(volume):
         # pprint(curves_points_coordinates)
         # pprint(curves_sqr_lengths)
     return points_curves_data
+
+
+def get_volume_curves_lengths(volume):
+    """
+    Return volume's curves lengths.
+    :param volume: volume index
+    :return: dict(c1: length, c2: length, ..., cn: length)
+    """
+    # Get volume curves
+    surfaces_dim_tags = gmsh.model.getBoundary([[3, volume]])
+    curves = set()
+    for sdt in surfaces_dim_tags:
+        curves_dim_tags = gmsh.model.getBoundary([sdt])
+        for cdt in curves_dim_tags:
+            curves.add(abs(cdt[1]))
+    # Get points' curves and curves' points
+    curves_points = dict()
+    for c in curves:
+        points_dim_tags = gmsh.model.getBoundary([[1, c]])
+        curves_points[c] = map(lambda x: x[1], points_dim_tags)
+    # Calculate curves' square lengths
+    curves_lengths = dict()
+    curves_points_coordinates = dict()
+    for c in curves:
+        ps = curves_points[c]
+        bb0 = gmsh.model.getBoundingBox(0, ps[0])
+        bb1 = gmsh.model.getBoundingBox(0, ps[1])
+        curves_points_coordinates[c] = [bb0, bb1]
+        cs0 = [bb0[0], bb0[1], bb0[2]]
+        cs1 = [bb1[0], bb1[1], bb1[2]]
+        r = [cs1[0] - cs0[0], cs1[1] - cs0[1], cs1[2] - cs0[2]]
+        length = math.sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2])
+        curves_lengths[c] = length
+    return curves_lengths
 
 
 def auto_points_sizes(k=1.0):
@@ -167,3 +203,157 @@ def auto_volumes_groups_surfaces():
         ss = map(lambda x: x[1], surfaces_dim_tags)
         volumes_surfaces.append(ss)
     return volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces)
+
+
+def get_volume_composition(volume):
+    volumes_dts = [[3, volume]]
+    points_dts = gmsh.model.getBoundary(volumes_dts, recursive=True)
+    n_points = len(points_dts)
+    surfaces_dts = gmsh.model.getBoundary(volumes_dts)
+    n_surfaces = len(surfaces_dts)
+    edges = set()
+    for surface_dt in surfaces_dts:
+        edges_dts = gmsh.model.getBoundary([surface_dt])
+        for edge_dt in edges_dts:
+            edge = abs(edge_dt[1])
+            edges.add(edge)
+    n_edges = len(edges)
+    return n_points, n_surfaces, n_edges
+
+
+def is_cuboid(volume):
+    n_points = 8
+    n_surfaces = 6
+    n_edges = 12
+    result = False
+    volumes_dts = [[3, volume]]
+    points_dts = gmsh.model.getBoundary(volumes_dts, recursive=True)
+    if len(points_dts) == n_points:
+        surfaces_dts = gmsh.model.getBoundary(volumes_dts)
+        if len(surfaces_dts) == n_surfaces:
+            edges = set()
+            is_4_edges_per_surface = True
+            for surface_dt in surfaces_dts:
+                edges_dts = gmsh.model.getBoundary([surface_dt])
+                if len(edges_dts) != 4:
+                    is_4_edges_per_surface = False
+                    break
+                for edge_dt in edges_dts:
+                    edge = abs(edge_dt[1])
+                    edges.add(edge)
+            if len(edges) == n_edges and is_4_edges_per_surface:
+                result = True
+    return result
+
+
+def make_structured_cuboid(volume, n):
+    volumes_dts = [[3, volume]]
+    surfaces_dts = gmsh.model.getBoundary(volumes_dts)
+    surfaces_edges = dict()
+    surfaces_points = dict()
+    edges = set()
+    for surface_dt in surfaces_dts:
+        edges_dts = gmsh.model.getBoundary([surface_dt], combined=False)  # Save order
+        surface = surface_dt[1]
+        surfaces_edges[surface] = list()
+        surfaces_points[surface] = list()
+        for edge_dt in edges_dts:
+            edge = abs(edge_dt[1])
+            surfaces_edges[surface].append(edge)
+            edges.add(edge)
+            points_dts = gmsh.model.getBoundary([edge_dt], combined=False)  # Save order
+            p0 = points_dts[0][1]
+            p1 = points_dts[1][1]
+            if p0 not in surfaces_points[surface]:
+                surfaces_points[surface].append(p0)
+            if p1 not in surfaces_points[surface]:
+                surfaces_points[surface].append(p1)
+    pprint(surfaces_points)
+    min_point = min(min(x) for x in surfaces_points.values())
+    first_point = min_point
+    diagonal_surfaces = list()
+    for k, v in surfaces_points.items():
+        if first_point not in v:
+            diagonal_surfaces.append(k)
+    diagonal_point = None
+    diagonal_point_set = set()
+    for s in diagonal_surfaces:
+        diagonal_point_set.update(set(surfaces_points[s]))
+    for s in diagonal_surfaces:
+        diagonal_point_set.intersection_update(set(surfaces_points[s]))
+    for p in diagonal_point_set:
+        diagonal_point = p
+    circular_permutations = {
+        0: [0, 1, 2, 3],
+        1: [3, 0, 1, 2],
+        2: [2, 3, 0, 1],
+        3: [1, 2, 3, 0]
+    }
+    for k, v in surfaces_points.items():
+        if first_point in v:
+            point = first_point
+        else:
+            point = diagonal_point
+        for p in circular_permutations.values():
+            new_v = map(lambda x: v[x], p)
+            if new_v[0] == point:
+                surfaces_points[k] = new_v
+                break
+    pprint(surfaces_points)
+    edges_groups = dict()
+    groups_edges = dict()
+    for i in range(3):
+        groups_edges[i] = list()
+        start_edge = None
+        for e in edges:
+            if e not in edges_groups:
+                start_edge = e
+                break
+        edges_groups[start_edge] = i
+        groups_edges[i].append(start_edge)
+        start_edge_surfaces = list()
+        for k, v in surfaces_edges.items():
+            if start_edge in v:
+                start_edge_surfaces.append(k)
+        get_opposite_edge_index = {
+            0: 2,
+            1: 3,
+            2: 0,
+            3: 1
+        }
+        opposite_edge = None
+        for s in start_edge_surfaces:
+            surface_edges = surfaces_edges[s]
+            start_edge_index = surface_edges.index(start_edge)
+            opposite_edge_index = get_opposite_edge_index[start_edge_index]
+            opposite_edge = surface_edges[opposite_edge_index]
+            edges_groups[opposite_edge] = i
+            groups_edges[i].append(opposite_edge)
+        for k, v in surfaces_edges.items():
+            if k not in start_edge_surfaces:
+                if opposite_edge in v:
+                    last_opposite_edge_index = v.index(opposite_edge)
+                    diagonal_edge_index = get_opposite_edge_index[last_opposite_edge_index]
+                    diagonal_edge = v[diagonal_edge_index]
+                    edges_groups[diagonal_edge] = i
+                    groups_edges[i].append(diagonal_edge)
+                    break
+    pprint(edges_groups)
+    pprint(groups_edges)
+    edges_lengths = get_volume_curves_lengths(volume)
+    min_lengths = dict()
+    for k, v in groups_edges.items():
+        lengths = map(lambda x: edges_lengths[x], v)
+        min_lengths[k] = min(lengths)
+    pprint(min_lengths)
+    min_length = min(min_lengths.values())
+    min_n_parts = n
+    n_parts = dict()
+    for k, v in min_lengths.items():
+        n_parts[k] = int(v / min_length * min_n_parts)
+    print(n_parts)
+    for k, v in edges_groups.items():
+        gmsh.model.mesh.setTransfiniteCurve(k, n_parts[v], "Progression", 1)
+    for k, v in surfaces_points.items():
+        gmsh.model.mesh.setTransfiniteSurface(k, cornerTags=v)
+    gmsh.model.mesh.setTransfiniteVolume(volume)

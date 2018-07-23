@@ -21,10 +21,54 @@ from primitive import primitive_complex_boolean
 from cylinder import Cylinder
 from support import auto_primitive_points_sizes_min_curve, auto_complex_points_sizes_min_curve, \
     auto_complex_points_sizes_min_curve_in_volume, auto_primitive_points_sizes_min_curve_in_volume, \
-    volumes_surfaces_to_volumes_groups_surfaces, auto_volumes_groups_surfaces, auto_points_sizes
+    volumes_surfaces_to_volumes_groups_surfaces, auto_volumes_groups_surfaces, auto_points_sizes, make_structured_cuboid
 
 
 class TestScripts(unittest.TestCase):
+
+    def test_structured_cuboid(self):
+        gmsh.initialize()
+        gmsh.option.setNumber('General.Terminal', 1)
+        model_name = 'test_structured_cuboid'
+        gmsh.model.add(model_name)
+        factory = gmsh.model.occ
+        primitive = Primitive(
+            factory,
+            [
+                [5, 10, -15, 5],
+                [-5, 10, -15, 5],
+                [-5, -10, -15, 5],
+                [5, -10, -15, 5],
+                [5, 10, 15, 5],
+                [-5, 10, 15, 5],
+                [-5, -10, 15, 5],
+                [5, -10, 15, 5],
+            ],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [[], [], [], [], [], [], [], [], [], [], [], []],
+            [[10, 0, 1], [10, 0, 1], [10, 0, 1]],
+            0,
+            'Primitive'
+        )
+        print('Synchronize')
+        factory.synchronize()
+        make_structured_cuboid(primitive.volumes[0], 3)
+        print("Physical")
+        vdts = gmsh.model.getEntities(3)
+        for i, vdt in enumerate(vdts):
+            tag = gmsh.model.addPhysicalGroup(3, [vdt[1]])
+            gmsh.model.setPhysicalName(3, tag, 'V{}'.format(i))
+            sdts = gmsh.model.getBoundary([vdt])
+            for j, sdt in enumerate(sdts):
+                tag = gmsh.model.addPhysicalGroup(2, [sdt[1]])
+                gmsh.model.setPhysicalName(2, tag, 'V{}S{}'.format(i, j))
+        print('Mesh')
+        gmsh.model.mesh.generate(3)
+        gmsh.model.mesh.removeDuplicateNodes()
+        gmsh.write(model_name + '.msh')
+        gmsh.finalize()
+
     def test_import_brep(self):
         gmsh.initialize()
         gmsh.option.setNumber('General.Terminal', 1)
@@ -2449,6 +2493,7 @@ class TestScripts(unittest.TestCase):
         """
         gmsh.initialize()
         gmsh.option.setNumber("General.Terminal", 1)
+        # 1=Delaunay, 2=New Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree
         gmsh.option.setNumber("Mesh.Algorithm3D", 4)
         model_name = 'test_read_complex_type_2'
         gmsh.model.add(model_name)
@@ -2456,7 +2501,7 @@ class TestScripts(unittest.TestCase):
         print('Read')
         c = read_complex_type_2(
             factory,
-            'Fractures_Peter/fracture_N=2.txt',
+            'Fractures_Peter/fracture_N=2_fmt=8f.txt',
             1,
             [0, 0, 0],
             [[5, 0, 1], [5, 0, 1], [5, 0, 1]],
@@ -2497,7 +2542,7 @@ class TestScripts(unittest.TestCase):
         print('Read')
         complex_primitives = read_complex_type_2_to_complex_primitives(
             factory,
-            'Fractures_Peter/fracture_N=2.txt',
+            'Fractures_Peter/fracture_N=2_fmt=8f.txt',
             [2, 2, 2],
             1,
             [0, 0, 0],
