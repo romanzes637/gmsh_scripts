@@ -156,7 +156,7 @@ class Primitive:
         #         bb = gmsh.model.getBoundingBox(0, point)
         #         cs.append([bb[0], bb[1], bb[2]])
         #     self.curves_points_coordinates.append(cs)
-        self.bounding_box = []  # [x_min, y_min, z_min, x_max, y_max, z_max] Call self.evaluate_bounding_box() to init
+        self.bounding_box = None  # [x_min, y_min, z_min, x_max, y_max, z_max] Call self.evaluate_bounding_box() to init
         # self.evaluate_bounding_box()
 
     def recombine(self):
@@ -573,18 +573,19 @@ def primitive_boolean(factory, primitive_obj, primitive_tool):
     start_time = time.time()
     # Check intersection of bounding boxes first (this operation less expensive than direct boolean)
     is_intersection = True
-    if primitive_obj.bounding_box[0] > primitive_tool.bounding_box[3]:  # obj_x_min > tool_x_max
-        is_intersection = False
-    if primitive_obj.bounding_box[1] > primitive_tool.bounding_box[4]:  # obj_y_min > tool_y_max
-        is_intersection = False
-    if primitive_obj.bounding_box[2] > primitive_tool.bounding_box[5]:  # obj_z_min > tool_z_max
-        is_intersection = False
-    if primitive_obj.bounding_box[3] < primitive_tool.bounding_box[0]:  # obj_x_max < tool_x_min
-        is_intersection = False
-    if primitive_obj.bounding_box[4] < primitive_tool.bounding_box[1]:  # obj_y_max < tool_y_min
-        is_intersection = False
-    if primitive_obj.bounding_box[5] < primitive_tool.bounding_box[2]:  # obj_z_max < tool_z_min
-        is_intersection = False
+    if primitive_obj.bounding_box is not None and primitive_tool.bounding_box is not None:
+        if primitive_obj.bounding_box[0] > primitive_tool.bounding_box[3]:  # obj_x_min > tool_x_max
+            is_intersection = False
+        if primitive_obj.bounding_box[1] > primitive_tool.bounding_box[4]:  # obj_y_min > tool_y_max
+            is_intersection = False
+        if primitive_obj.bounding_box[2] > primitive_tool.bounding_box[5]:  # obj_z_min > tool_z_max
+            is_intersection = False
+        if primitive_obj.bounding_box[3] < primitive_tool.bounding_box[0]:  # obj_x_max < tool_x_min
+            is_intersection = False
+        if primitive_obj.bounding_box[4] < primitive_tool.bounding_box[1]:  # obj_y_max < tool_y_min
+            is_intersection = False
+        if primitive_obj.bounding_box[5] < primitive_tool.bounding_box[2]:  # obj_z_max < tool_z_min
+            is_intersection = False
     # Check on empty primitive_obj:
     if len(primitive_obj.volumes) <= 0:
         is_intersection = False

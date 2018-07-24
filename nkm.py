@@ -9,7 +9,7 @@ import occ_workarounds as occ_ws
 import os
 
 from borehole import Borehole
-from import_text import read_complex_type_2_to_complex_primitives
+from io import read_complex_type_2_to_complex_primitives
 from primitive import Primitive, complex_boolean, complex_cut_by_volume_boolean, primitive_complex_boolean, Environment
 from support import auto_complex_points_sizes_min_curve_in_volume, auto_volumes_groups_surfaces
 
@@ -67,7 +67,7 @@ class NKM:
         :param env_dz: Environment length z
         :param env_lc: Environment nodes characteristic length
         :param env_bool: Boolean environment?
-        :param int_filenames: Intrusions filenames (Complex Type 2, see import_text.py)
+        :param int_filenames: Intrusions filenames (Complex Type 2, see io.py)
         :param int_transforms: Intrusions transforms (see Primitive transform_data)
         :param int_volume_names: Intrusions physical names
         :param int_lcs: Intrusions characteristic lengths (no effect, if set_sizes method has been called)

@@ -1,5 +1,11 @@
+import json
+from pprint import pprint
+import gmsh
+import math
 from complex_primitive import ComplexPrimitive
 from primitive import Primitive, Complex
+from support import get_points_coordinates, get_edges_points, get_surfaces_edges, get_volumes_surfaces, \
+    get_volumes_entities
 
 
 def read_complex_type_1(factory, path, transform_data, curve_type, transfinite_data, physical_tag, lc):
@@ -198,3 +204,97 @@ def read_complex_type_2_to_complex_primitives(
             volume_name=volume_name
         ))
     return complex_primitives
+
+
+def write_json(filename, only_volume_entities=True):
+    if only_volume_entities:
+        parts = get_volumes_entities()
+        points_coordinates = parts['points']
+        edges_points = parts['edges']
+        surfaces_edges = parts['surfaces']
+        volumes_surfaces = parts['volumes']
+    else:
+        points_coordinates = get_points_coordinates()
+        edges_points = get_edges_points()
+        surfaces_edges = get_surfaces_edges()
+        volumes_surfaces = get_volumes_surfaces()
+    parts_to_write = dict()
+    print('Points')
+    points_coordinates_to_write = dict()
+    for k, v in points_coordinates.items():
+        new_v = [float(x) for x in v]
+        points_coordinates_to_write[str(k)] = new_v
+    parts_to_write['points'] = points_coordinates_to_write
+    print('Edges')
+    edges_points_to_write = dict()
+    for k, v in edges_points.items():
+        new_v = [int(x) for x in v]
+        edges_points_to_write[str(k)] = new_v
+    parts_to_write['edges'] = edges_points_to_write
+    print('Surfaces')
+    surfaces_edges_to_write = dict()
+    for k, v in surfaces_edges.items():
+        new_v = [int(x) for x in v]
+        surfaces_edges_to_write[str(k)] = new_v
+    parts_to_write['surfaces'] = surfaces_edges_to_write
+    volumes_surfaces_to_write = dict()
+    print('Volumes')
+    for k, v in volumes_surfaces.items():
+        new_v = [int(x) for x in v]
+        volumes_surfaces_to_write[str(k)] = new_v
+    parts_to_write['volumes'] = volumes_surfaces_to_write
+    print('Write')
+    # pprint(parts_to_write)
+    with open('{}.json'.format(filename), 'w') as f:
+        json.dump(parts_to_write, f, indent=2)
+
+
+def read_json(factory, filename):
+    # Old to new indices maps
+    old_points_to_new_points = dict()
+    old_edges_to_new_edges = dict()
+    old_surfaces_to_new_surfaces = dict()
+    old_volumes_to_new_volumes = dict()
+    print('Read')
+    with open(filename) as f:
+        parts = json.load(f)
+        # pprint(parts)
+    print('Initialize Points')
+    for i, (k, v) in enumerate(parts['points'].items()):
+        print('Point {} {}/{}'.format(k, i + 1, len(parts['points'])))
+        old_tag = int(k)
+        new_tag = factory.addPoint(v[0], v[1], v[2])
+        old_points_to_new_points[old_tag] = new_tag
+    print('Initialize Edges')
+    for i, (k, v) in enumerate(parts['edges'].items()):
+        print('Edge {} {}/{}'.format(k, i + 1, len(parts['edges'])))
+        old_point0 = v[0]
+        old_point1 = v[1]
+        new_point0 = old_points_to_new_points[old_point0]
+        new_point1 = old_points_to_new_points[old_point1]
+        old_tag = int(k)
+        new_tag = factory.addLine(new_point0, new_point1)
+        old_edges_to_new_edges[old_tag] = new_tag
+    print('Initialize Surfaces')
+    for i, (k, v) in enumerate(parts['surfaces'].items()):
+        print('Surface {} {}/{}'.format(k, i + 1, len(parts['surfaces'])))
+        old_edges = v
+        old_tag = int(k)
+        new_edges = [math.copysign(1, x) * old_edges_to_new_edges[abs(x)] for x in old_edges]
+        if factory == gmsh.model.occ:
+            curve_loop_tag = factory.addCurveLoop([abs(x) for x in new_edges])  # FIXME signed edges doesn't work
+            new_tag = factory.addSurfaceFilling(curve_loop_tag)
+        else:
+            curve_loop_tag = factory.addCurveLoop(new_edges)
+            new_tag = factory.addSurfaceFilling([curve_loop_tag])
+        old_surfaces_to_new_surfaces[old_tag] = new_tag
+    print('Initialize Volumes')
+    for i, (k, v) in enumerate(parts['volumes'].items()):
+        print('Volume {} {}/{}'.format(k, i + 1, len(parts['volumes'])))
+        old_surfaces = v
+        new_surfaces = [old_surfaces_to_new_surfaces[x] for x in old_surfaces]
+        old_tag = int(k)
+        surface_loop_tag = factory.addSurfaceLoop(new_surfaces)  # FIXME always return -1
+        new_tag = factory.addVolume([surface_loop_tag])
+        old_volumes_to_new_volumes[old_tag] = new_tag
+

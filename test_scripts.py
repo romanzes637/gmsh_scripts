@@ -12,7 +12,8 @@ import time
 from borehole import Borehole
 from nkm import NKM
 from primitive import primitive_boolean, primitive_cut_by_volume_boolean, Environment, complex_cut_by_volume_boolean
-from import_text import read_complex_type_1, read_complex_type_2, read_complex_type_2_to_complex_primitives
+from io import read_complex_type_1, read_complex_type_2, read_complex_type_2_to_complex_primitives, write_json, \
+    read_json
 from complex_primitive import ComplexPrimitive
 from primitive import complex_boolean
 from primitive import Primitive
@@ -21,10 +22,300 @@ from primitive import primitive_complex_boolean
 from cylinder import Cylinder
 from support import auto_primitive_points_sizes_min_curve, auto_complex_points_sizes_min_curve, \
     auto_complex_points_sizes_min_curve_in_volume, auto_primitive_points_sizes_min_curve_in_volume, \
-    volumes_surfaces_to_volumes_groups_surfaces, auto_volumes_groups_surfaces, auto_points_sizes, make_structured_cuboid
+    volumes_surfaces_to_volumes_groups_surfaces, auto_volumes_groups_surfaces, auto_points_sizes, \
+    structure_cuboid, is_cuboid
 
 
 class TestScripts(unittest.TestCase):
+
+    def test_read_complex_primitives_json(self):
+        """
+        Test read ComplexPrimitives
+        """
+        gmsh.initialize()
+        gmsh.option.setNumber('General.Terminal', 1)
+        model_name = 'test_complex_primitives'
+        gmsh.model.add(model_name)
+        factory = gmsh.model.occ
+        print('Read')
+        read_json(factory, model_name + '.json')
+        print("Remove Duplicates")
+        factory.removeAllDuplicates()
+        print('Synchronize')
+        factory.synchronize()
+        print('Sizes')
+        sizes = auto_points_sizes(1000)
+        pprint(sizes)
+        print('Mesh')
+        gmsh.model.mesh.generate(3)
+        gmsh.model.mesh.removeDuplicateNodes()
+        gmsh.write(model_name + '.msh')
+        gmsh.finalize()
+
+    def test_read_complex_type_2_to_complex_primitives_json(self):
+        """
+        Test read complex type 2 to ComplexPrimitives
+        """
+        gmsh.initialize()
+        gmsh.option.setNumber("General.Terminal", 1)
+        model_name = 'test_complex_primitives'
+        gmsh.model.add(model_name)
+        factory = gmsh.model.occ
+        print('Read')
+        complex_primitives = read_complex_type_2_to_complex_primitives(
+            factory,
+            'Fractures_Peter/fracture_N=2_fmt=8f.txt',
+            [2, 2, 2],
+            1,
+            [0, 0, 0],
+            [[5, 0, 1], [5, 0, 1], [5, 0, 1]],
+            "ComplexPrimitive"
+        )
+        print('Synchronize')
+        factory.synchronize()
+        for cp in complex_primitives:
+            cp.evaluate_bounding_box()  # for boolean
+        print('Boolean')
+        combinations = list(itertools.combinations(range(len(complex_primitives)), 2))
+        for i, c in enumerate(combinations):
+            print('Boolean: {}/{} (CP {} by CP {})'.format(i, len(combinations), c[0], c[1]))
+            complex_boolean(factory, complex_primitives[c[0]], complex_primitives[c[1]])
+        print('Remove all duplicates')
+        factory.removeAllDuplicates()
+        print('Synchronize')
+        factory.synchronize()
+        print('Write')
+        write_json(model_name)
+        gmsh.finalize()
+
+    def test_read_json_boolean(self):
+        gmsh.initialize()
+        gmsh.option.setNumber('General.Terminal', 1)
+        model_name = 'test_json_boolean'
+        gmsh.model.add(model_name)
+        factory = gmsh.model.occ
+        print('Read')
+        read_json(factory, model_name + '.json')
+        print("Remove Duplicates")
+        factory.removeAllDuplicates()
+        print('Synchronize')
+        factory.synchronize()
+        print('Sizes')
+        sizes = auto_points_sizes()
+        pprint(sizes)
+        print('Mesh')
+        gmsh.model.mesh.generate(3)
+        gmsh.model.mesh.removeDuplicateNodes()
+        gmsh.write(model_name + '.msh')
+        gmsh.finalize()
+
+    def test_write_json_boolean(self):
+        gmsh.initialize()
+        gmsh.option.setNumber('General.Terminal', 1)
+        model_name = 'test_json_boolean'
+        gmsh.model.add(model_name)
+        factory = gmsh.model.occ
+        print('Geometry')
+        primitive1 = Primitive(
+            factory,
+            [
+                [5, 10, -15, 5],
+                [-5, 10, -15, 5],
+                [-5, -10, -15, 5],
+                [5, -10, -15, 5],
+                [5, 10, 15, 5],
+                [-5, 10, 15, 5],
+                [-5, -10, 15, 5],
+                [5, -10, 15, 5],
+            ],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+            # [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [
+                [
+                    [-2, 20, -20, 1],
+                    [-1, 20, -20, 1],
+                    [1, 20, -20, 1],
+                    [2, 20, -20, 1]
+                ],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [[0, 0, 0, 0]],
+                [],
+                [],
+                [[0, 0, 0, 0], [0, 0, 0, 0]],
+                []
+            ],
+            [[5, 0, 1], [10, 0, 1], [15, 0, 1]],
+            0,
+            'Primitive'
+        )
+        primitive2 = Primitive(
+            factory,
+            [
+                [5, 10, -15, 5],
+                [-5, 10, -15, 5],
+                [-5, -10, -15, 5],
+                [5, -10, -15, 5],
+                [5, 10, 15, 5],
+                [-5, 10, 15, 5],
+                [-5, -10, 15, 5],
+                [5, -10, 15, 5],
+            ],
+            [3, 0, 0, 0, 0, 0, 3.14 / 4, 3.14 / 6, 3.14 / 8],
+            # [3, 4, 5, 0, 0, 0, 0, 0, 0],
+            [5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+            # [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [
+                [
+                    [-2, 20, -20, 1],
+                    [-1, 20, -20, 1],
+                    [1, 20, -20, 1],
+                    [2, 20, -20, 1]
+                ],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [[0, 0, 0, 0]],
+                [],
+                [],
+                [[0, 0, 0, 0], [0, 0, 0, 0]],
+                []
+            ],
+            [[5, 0, 1], [10, 0, 1], [15, 0, 1]],
+            0,
+            'Primitive2'
+        )
+        print('Boolean')
+        primitive_boolean(factory, primitive1, primitive2)
+        print("Remove Duplicates")
+        factory.removeAllDuplicates()
+        print('Synchronize')
+        factory.synchronize()
+        print('Write')
+        write_json(model_name)
+        print('Sizes')
+        sizes = auto_points_sizes()
+        pprint(sizes)
+        print('Mesh')
+        gmsh.model.mesh.generate(3)
+        gmsh.model.mesh.removeDuplicateNodes()
+        gmsh.write(model_name + '.msh')
+        gmsh.finalize()
+
+    def test_read_json(self):
+        gmsh.initialize()
+        gmsh.option.setNumber('General.Terminal', 1)
+        model_name = 'test_json'
+        gmsh.model.add(model_name)
+        factory = gmsh.model.occ
+        print('Read')
+        read_json(factory, model_name + '.json')
+        print('Synchronize')
+        factory.synchronize()
+        print('Mesh')
+        gmsh.model.mesh.generate(3)
+        gmsh.model.mesh.removeDuplicateNodes()
+        gmsh.write(model_name + '.msh')
+        gmsh.finalize()
+
+    def test_write_json(self):
+        gmsh.initialize()
+        gmsh.option.setNumber('General.Terminal', 1)
+        model_name = 'test_json'
+        gmsh.model.add(model_name)
+        factory = gmsh.model.occ
+        print('Geometry')
+        primitive = Primitive(
+            factory,
+            [
+                [5, 10, -15, 5],
+                [-5, 10, -15, 5],
+                [-5, -10, -15, 5],
+                [5, -10, -15, 5],
+                [5, 10, 15, 5],
+                [-5, 10, 15, 5],
+                [-5, -10, 15, 5],
+                [5, -10, 15, 5],
+            ],
+            [0, 0, 0, 0, 0, 0, 3.14 / 4, 3.14 / 6, 3.14 / 8],
+            [5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+            [
+                [
+                    [-2, 20, -20, 1],
+                    [-1, 20, -20, 1],
+                    [1, 20, -20, 1],
+                    [2, 20, -20, 1]
+                ],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [[0, 0, 0, 0]],
+                [],
+                [],
+                [[0, 0, 0, 0], [0, 0, 0, 0]],
+                []
+            ],
+            [[5, 0, 1], [10, 0, 1], [15, 0, 1]],
+            0,
+            'Primitive'
+        )
+        print('Synchronize')
+        factory.synchronize()
+        print('Write')
+        write_json(model_name)
+        print('Mesh')
+        gmsh.model.mesh.generate(3)
+        gmsh.model.mesh.removeDuplicateNodes()
+        gmsh.write(model_name + '.msh')
+        gmsh.finalize()
+
+    def test_import_brep_and_structured_cuboid(self):
+        gmsh.initialize()
+        gmsh.option.setNumber("Geometry.AutoCoherence", 0)  # No effect at gmsh.model.occ factory
+        gmsh.option.setNumber("General.Terminal", 1)
+        # (1=Delaunay, 2=New Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 1)
+        model_name = 'test_import_brep_and_structured_cuboid'
+        gmsh.model.add(model_name)
+        factory = gmsh.model.occ
+        vdts = factory.importShapes('test_read_complex_type_2_to_complex_primitives.brep')
+        pprint(vdts)
+        print("Remove Duplicates")
+        # factory.removeAllDuplicates()
+        print('Synchronize')
+        factory.synchronize()
+        print('Structure')
+        ss = set()
+        for vdt in vdts:
+            result = is_cuboid(vdt[1])
+            if result:
+                structure_cuboid(vdt[1], ss, 3, 0.001)
+        # sizes = auto_points_sizes(1000)
+        # print(sizes)
+        print("Physical")
+        # vdts = gmsh.model.getEntities(3)
+        # for i, vdt in enumerate(vdts):
+        #     tag = gmsh.model.addPhysicalGroup(3, [vdt[1]])
+        #     gmsh.model.setPhysicalName(3, tag, 'V{}'.format(i))
+        # sdts = gmsh.model.getBoundary([vdt])
+        # for j, sdt in enumerate(sdts):
+        #     tag = gmsh.model.addPhysicalGroup(2, [sdt[1]])
+        #     gmsh.model.setPhysicalName(2, tag, 'V{}S{}'.format(i, j))
+        gmsh.model.mesh.generate(3)
+        gmsh.model.mesh.removeDuplicateNodes()
+        gmsh.write(model_name + '.msh')
+        gmsh.finalize()
 
     def test_structured_cuboid(self):
         gmsh.initialize()
@@ -44,16 +335,52 @@ class TestScripts(unittest.TestCase):
                 [-5, -10, 15, 5],
                 [5, -10, 15, 5],
             ],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [[], [], [], [], [], [], [], [], [], [], [], []],
-            [[10, 0, 1], [10, 0, 1], [10, 0, 1]],
+            [0, 0, 0, 0, 0, 0, 3.14 / 4, 3.14 / 6, 3.14 / 8],
+            [5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+            [
+                [
+                    [-2, 20, -20, 1],
+                    [-1, 20, -20, 1],
+                    [1, 20, -20, 1],
+                    [2, 20, -20, 1]
+                ],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [[0, 0, 0, 0]],
+                [],
+                [],
+                [[0, 0, 0, 0], [0, 0, 0, 0]],
+                []
+            ],
+            [
+                [5, 0, 1],
+                [5, 0, 1],
+                [5, 0, 1],
+                [5, 0, 1],
+                [10, 0, 1],
+                [10, 0, 1],
+                [10, 0, 1],
+                [10, 0, 1],
+                [15, 0, 1],
+                [15, 0, 1],
+                [15, 0, 1],
+                [15, 0, 1]
+            ],
             0,
             'Primitive'
         )
         print('Synchronize')
         factory.synchronize()
-        make_structured_cuboid(primitive.volumes[0], 3)
+        print('Check Cuboid')
+        result = is_cuboid(primitive.volumes[0])
+        print(result)
+        print('Make Structured Cuboid')
+        ss = set()
+        structure_cuboid(primitive.volumes[0], ss, 10, 0.8)
         print("Physical")
         vdts = gmsh.model.getEntities(3)
         for i, vdt in enumerate(vdts):
@@ -785,9 +1112,7 @@ class TestScripts(unittest.TestCase):
         gmsh.option.setNumber("Mesh.Algorithm3D", 4)
         model_name = "test_environment"
         gmsh.model.add(model_name)
-
         factory = gmsh.model.geo
-
         print("Primitive 1")
         primitive = Primitive(
             factory,
@@ -812,7 +1137,6 @@ class TestScripts(unittest.TestCase):
             0,
             "P1"
         )
-
         print("Primitive 2")
         primitive2 = Primitive(
             factory,
@@ -837,7 +1161,6 @@ class TestScripts(unittest.TestCase):
             0,
             "P2"
         )
-
         print("Primitive 3")
         primitive3 = Primitive(
             factory,
@@ -862,7 +1185,6 @@ class TestScripts(unittest.TestCase):
             0,
             "P3"
         )
-
         print("Cylinder")
         cylinder = Cylinder(
             factory,
@@ -875,26 +1197,20 @@ class TestScripts(unittest.TestCase):
             [[3, 0, 1], [4, 0, 1], [5, 0, 1]],
             [5, 0, 1]
         )
-
         print("Synchronize")
         factory.synchronize()
-
         print("Evaluate")
         cylinder.evaluate_coordinates()  # for correct and transfinite
         primitive.evaluate_coordinates()
         primitive2.evaluate_coordinates()
         primitive3.evaluate_coordinates()
-
         print("Remove All Duplicates")
         factory.removeAllDuplicates()
-
         print("Synchronize")
         factory.synchronize()
-
         print("Volumes Surfaces")
         vgs_ss = auto_volumes_groups_surfaces()
         # print(vgs_ss)
-
         print("Environment")
         environment = Environment(
             factory,
@@ -905,17 +1221,14 @@ class TestScripts(unittest.TestCase):
             [0, 0, 0, 0, 0, 0, 0, 0, 0],
             vgs_ss
         )
-
         print("Synchronize")
         factory.synchronize()
-
         print("Correct and Transfinite")
         ss = set()
         occ_ws.correct_and_transfinite_complex(cylinder, ss)
         print(occ_ws.correct_and_transfinite_primitive(primitive, ss))
         print(occ_ws.correct_and_transfinite_primitive(primitive2, ss))
         print(occ_ws.correct_and_transfinite_primitive(primitive3, ss))
-
         print("Physical")
         tag = gmsh.model.addPhysicalGroup(3, primitive.volumes)
         gmsh.model.setPhysicalName(3, tag, primitive.volume_name)
@@ -938,14 +1251,11 @@ class TestScripts(unittest.TestCase):
         for i, n in enumerate(surfaces_names):
             tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
             gmsh.model.setPhysicalName(2, tag, n)
-
         print("Mesh")
         gmsh.model.mesh.generate(3)
         gmsh.model.mesh.removeDuplicateNodes()
-
         print("Write")
         gmsh.write(model_name + ".msh")
-
         gmsh.finalize()
 
     def test_primitive_environment_boolean(self):
@@ -1241,16 +1551,11 @@ class TestScripts(unittest.TestCase):
         All boreholes and intrusions are included in rock environment.
         """
         start_time = time.time()
-
         gmsh.initialize()
-
         gmsh.option.setNumber("General.Terminal", 1)
         gmsh.option.setNumber("Mesh.Algorithm3D", 4)
-
         gmsh.model.add("test_primitive_mix")
-
         factory = gmsh.model.occ
-
         print("Creation")
         start = time.time()
         environment = Primitive(
@@ -2588,20 +2893,21 @@ class TestScripts(unittest.TestCase):
         print('Read')
         complex_primitives = read_complex_type_2_to_complex_primitives(
             factory,
-            'Fractures_Peter/fracture_test_1.txt',
+            'Fractures_Peter/fracture_N=2_fmt=8f.txt',
             [2, 2, 2],
             1,
             [0, 0, 0],
             [[5, 0, 1], [5, 0, 1], [5, 0, 1]],
-            "ComplexPrimitive"
+            "V"
         )
         print('Synchronize')
         factory.synchronize()
-        print('Boolean')
         for cp in complex_primitives:
             cp.evaluate_bounding_box()  # for boolean
+        print('Boolean')
         combinations = list(itertools.combinations(range(len(complex_primitives)), 2))
-        for c in combinations:
+        for i, c in enumerate(combinations):
+            print('Boolean: {}/{} (CP {} by CP {})'.format(i, len(combinations), c[0], c[1]))
             complex_boolean(factory, complex_primitives[c[0]], complex_primitives[c[1]])
         print('Remove all duplicates')
         factory.removeAllDuplicates()
