@@ -9,7 +9,7 @@ import itertools
 
 import time
 
-from borehole import Borehole
+from borehole import Borehole, BoreholeSeismic
 from nkm import NKM
 from primitive import primitive_boolean, primitive_cut_by_volume_boolean, Environment, complex_cut_by_volume_boolean
 from io import read_complex_type_1, read_complex_type_2, read_complex_type_2_to_complex_primitives, write_json, \
@@ -23,17 +23,19 @@ from cylinder import Cylinder
 from support import auto_primitive_points_sizes_min_curve, auto_complex_points_sizes_min_curve, \
     auto_complex_points_sizes_min_curve_in_volume, auto_primitive_points_sizes_min_curve_in_volume, \
     volumes_surfaces_to_volumes_groups_surfaces, auto_volumes_groups_surfaces, auto_points_sizes, \
-    structure_cuboid, is_cuboid
+    structure_cuboid, is_cuboid, get_volumes_geometry, check_geometry
 
 
 class TestScripts(unittest.TestCase):
 
     def test_read_complex_primitives_json(self):
         """
-        Test read ComplexPrimitives
+        Test read ComplexPrimitives json
         """
         gmsh.initialize()
         gmsh.option.setNumber('General.Terminal', 1)
+        # (1=Delaunay, 2=New Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
         model_name = 'test_complex_primitives'
         gmsh.model.add(model_name)
         factory = gmsh.model.occ
@@ -44,8 +46,22 @@ class TestScripts(unittest.TestCase):
         print('Synchronize')
         factory.synchronize()
         print('Sizes')
-        sizes = auto_points_sizes(1000)
+        sizes = auto_points_sizes(10000)
         pprint(sizes)
+        print('Structure')
+        structured_surfaces = set()
+        structured_edges = dict()
+        structured_volumes = set()
+        volumes_dim_tags = gmsh.model.getEntities(3)
+        for vdt in volumes_dim_tags:
+            volume = vdt[1]
+            result = is_cuboid(volume)
+            if result:
+                structured_volumes.add(volume)
+                structure_cuboid(volume, structured_surfaces, structured_edges, 5, 0.0001)
+        pprint(structured_edges)
+        pprint(structured_surfaces)
+        pprint(structured_volumes)
         print('Mesh')
         gmsh.model.mesh.generate(3)
         gmsh.model.mesh.removeDuplicateNodes()
@@ -54,7 +70,7 @@ class TestScripts(unittest.TestCase):
 
     def test_read_complex_type_2_to_complex_primitives_json(self):
         """
-        Test read complex type 2 to ComplexPrimitives
+        Test read complex type 2 to ComplexPrimitives to json
         """
         gmsh.initialize()
         gmsh.option.setNumber("General.Terminal", 1)
@@ -65,7 +81,7 @@ class TestScripts(unittest.TestCase):
         complex_primitives = read_complex_type_2_to_complex_primitives(
             factory,
             'Fractures_Peter/fracture_N=2_fmt=8f.txt',
-            [2, 2, 2],
+            [1, 2, 1],
             1,
             [0, 0, 0],
             [[5, 0, 1], [5, 0, 1], [5, 0, 1]],
@@ -84,8 +100,11 @@ class TestScripts(unittest.TestCase):
         factory.removeAllDuplicates()
         print('Synchronize')
         factory.synchronize()
+        print('Check geometry')
+        geo = get_volumes_geometry()
+        check_geometry(geo)
         print('Write')
-        write_json(model_name)
+        write_json(model_name + '.json')
         gmsh.finalize()
 
     def test_read_json_boolean(self):
@@ -200,7 +219,7 @@ class TestScripts(unittest.TestCase):
         print('Synchronize')
         factory.synchronize()
         print('Write')
-        write_json(model_name)
+        write_json(model_name + '.json')
         print('Sizes')
         sizes = auto_points_sizes()
         pprint(sizes)
@@ -273,7 +292,7 @@ class TestScripts(unittest.TestCase):
         print('Synchronize')
         factory.synchronize()
         print('Write')
-        write_json(model_name)
+        write_json(model_name + '.json')
         print('Mesh')
         gmsh.model.mesh.generate(3)
         gmsh.model.mesh.removeDuplicateNodes()
@@ -2609,6 +2628,97 @@ class TestScripts(unittest.TestCase):
         gmsh.model.mesh.generate(3)
         gmsh.model.mesh.removeDuplicateNodes()
         gmsh.write("test_borehole.msh")
+        print('{:.3f}s'.format(time.time() - start_time))
+        gmsh.finalize()
+
+    def test_borehole_seismic(self):
+        """
+        Test borehole for seismic tasks
+        """
+        gmsh.initialize()
+        gmsh.option.setNumber("General.Terminal", 0)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
+        model_name = 'test_borehole_seismic'
+        gmsh.model.add(model_name)
+        factory = gmsh.model.occ
+        print("Geometry")
+        start_time = time.time()
+        env_length_x = 6 + 1.3 + 1.3 + 6
+        env_length_y = 6 + 1.3 + 1.3 + 6
+        env_length_z = 1.3 + 0.6 + 4.1 + 0.6 + 6
+        repo_lc = 1
+        environment = Primitive(
+            factory,
+            [
+                [env_length_x / 2, env_length_y / 2, -env_length_z/2, repo_lc],
+                [-env_length_x / 2, env_length_y / 2, -env_length_z/2, repo_lc],
+                [-env_length_x / 2, -env_length_y / 2, -env_length_z/2, repo_lc],
+                [env_length_x / 2, -env_length_y / 2, -env_length_z/2, repo_lc],
+                [env_length_x / 2, env_length_y / 2, env_length_z/2, repo_lc],
+                [-env_length_x / 2, env_length_y / 2, env_length_z/2, repo_lc],
+                [-env_length_x / 2, -env_length_y / 2, env_length_z/2, repo_lc],
+                [env_length_x / 2, -env_length_y / 2, env_length_z/2, repo_lc]
+            ],
+            volume_name='Rock'
+        )
+        borehole = BoreholeSeismic(
+            factory,
+            [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+            [0, 0, -5, 0, 0, 0, 0, 0, 0],
+            [[5, 0, 1], [5, 0, 1], [5, 0, 1]],
+            [[5, 0, 1], [28, 0, 1], [5, 0, 1]],
+            [5, 0, 1]
+        )
+        print('{:.3f}s'.format(time.time() - start_time))
+        print('Synchronize')
+        factory.synchronize()
+        print('Evaluate')
+        borehole.evaluate_coordinates()  # for correct and transfinite
+        borehole.evaluate_bounding_box()  # for boolean
+        environment.evaluate_coordinates()  # for correct and transfinite
+        environment.evaluate_bounding_box()  # for boolean
+        print("Environment by Borehole boolean")
+        start_time = time.time()
+        primitive_complex_boolean(factory, environment, borehole)
+        print('{:.3f}s'.format(time.time() - start_time))
+        print("Remove All Duplicates")
+        start_time = time.time()
+        factory.removeAllDuplicates()
+        print('{:.3f}s'.format(time.time() - start_time))
+        print('Synchronize')
+        start_time = time.time()
+        factory.synchronize()
+        print('{:.3f}s'.format(time.time() - start_time))
+        print("Correction and Transfinite")
+        start_time = time.time()
+        correction_rs = occ_ws.correct_complex(borehole)
+        print(correction_rs)
+        ss = set()  # already transfinite surfaces (workaround for double transfinite issue)
+        occ_ws.correct_and_transfinite_complex(borehole, ss)
+        print('{:.3f}s'.format(time.time() - start_time))
+        print("Boreholes Physical")
+        start_time = time.time()
+        for name in BoreholeSeismic.volumes_names:
+            vs = borehole.get_volumes_by_name(name)
+            tag = gmsh.model.addPhysicalGroup(3, vs)
+            gmsh.model.setPhysicalName(3, tag, name)
+        print('{:.3f}s'.format(time.time() - start_time))
+        print("Environment Physical")
+        start_time = time.time()
+        tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
+        gmsh.model.setPhysicalName(3, tag, environment.volume_name)
+        volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
+        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        surfaces_names = ["X", "Z", "NY", "NZ", "Y", "NX"]
+        for i, n in enumerate(surfaces_names):
+            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
+            gmsh.model.setPhysicalName(2, tag, n)
+        print('{:.3f}s'.format(time.time() - start_time))
+        print('Mesh')
+        start_time = time.time()
+        gmsh.model.mesh.generate(3)
+        gmsh.model.mesh.removeDuplicateNodes()
+        gmsh.write(model_name + '.msh')
         print('{:.3f}s'.format(time.time() - start_time))
         gmsh.finalize()
 

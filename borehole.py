@@ -56,3 +56,31 @@ class Borehole(Cylinder):
 
     volumes_names = ["RW", "EBS", "Grout", "Plug"]
 
+
+class BoreholeSeismic(Cylinder):
+    def __init__(self, factory, primitives_lcs, transform_data,
+                 transfinite_r_data, transfinite_h_data, transfinite_phi_data):
+        """
+        Borehole with 3 layers:
+        Radioactive Waste (RW), Engineering Barrier System (EBS), Excavation Disturbed Zone EDZ and two Plugs
+        :param factory: gmsh factory (currently: gmsh.model.geo or gmsh.model.occ)
+        :param primitives_lcs: characteristic lengths of layers [[h1_r1, h1_r2, ...], [h2_r1, h2_r2 ...], ...]
+        :param transform_data: [displacement x, y, z] or
+        [displacement x, y, z, rotation origin x, y, z, rotation angle x, y, z] or
+        [displacement x, y, z, rotation vector x, y, z, rotation angle] or
+        [displacement x, y, z, rotation angle x, y, z]
+        :param transfinite_r_data: [[r1 number of nodes, type (0 - Progression, 1 - Bump), coefficient], [r2 ...], ...]
+        :param transfinite_h_data: [[h1 number of nodes, type (0 - Progression, 1 - Bump), coefficient], [h2 ...], ...]
+        :param transfinite_phi_data: [circumferential number of nodes, type, coefficient]
+        """
+        radii = [0.2835, 0.650, 1.300]
+        heights = [0.600, 4.100, 0.600]
+        layers_physical_names = [
+            [self.volumes_names[3], self.volumes_names[3], self.volumes_names[2]],
+            [self.volumes_names[0], self.volumes_names[1], self.volumes_names[2]],
+            [self.volumes_names[3], self.volumes_names[3], self.volumes_names[2]]
+        ]
+        Cylinder.__init__(self, factory, radii, heights, primitives_lcs, transform_data, layers_physical_names,
+                          transfinite_r_data, transfinite_h_data, transfinite_phi_data)
+
+    volumes_names = ["RW", "EBS", "EDZ", "Plug"]
