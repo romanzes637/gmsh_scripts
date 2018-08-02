@@ -9,7 +9,7 @@
   "env_bool": false,
   "int_filenames": ["intrusion_1", "intrusion_2"],
   "int_transforms": [[0, 0, 0], [0, 0, 0]],
-  "int_volume_names": ["IntOne", "IntOne"],
+  "int_volume_names": ["IntOne", "IntTwo"],
   "int_lcs": [1, 1],
   "int_divides": [[1, 1, 1], [1, 1, 1]],
   "int_transfinites": [[[3, 0, 1], [3, 0, 1], [3, 0, 1]], [[3, 0, 1], [3, 0, 1], [3, 0, 1]]],

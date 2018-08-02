@@ -388,19 +388,18 @@ def auto_primitive_points_sizes_min_curve_in_volume(primitive_obj, points_sizes_
     for v in primitive_obj.volumes:
         ps_cs_data = get_volume_points_edges_data(v)
         v_curves_min_length = []
-        for pd in ps_cs_data:  # for each volume's point data
-            v_curves_min_length.append(k * pd[2])  # k * min curve length
+        for p, d in ps_cs_data.items():
+            v_curves_min_length.append(k * d[1])  # k * min curve length
         size = min(v_curves_min_length)  # min curve length of all points
-        for pd in ps_cs_data:
-            p = pd[0]  # point index
+        for p in ps_cs_data:
             old_size = points_sizes_dict.get(p)
             if old_size is not None:
                 if size < old_size:
                     points_sizes_dict[p] = size
-                    gmsh.model.mesh.setSize([(0, p)], size)
+                    gmsh.model.mesh.setSize([[0, p]], size)
             else:
                 points_sizes_dict[p] = size
-                gmsh.model.mesh.setSize([(0, p)], size)
+                gmsh.model.mesh.setSize([[0, p]], size)
 
 
 def auto_complex_points_sizes_min_curve(complex_obj, points_sizes_dict, k=1.0):
