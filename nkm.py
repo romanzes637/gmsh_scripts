@@ -502,71 +502,88 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', help='input filename')
     parser.add_argument('-o', '--output', help='output filename')
+    parser.add_argument('-m', '--mode', help='run mode (preview or mesh)', default='mesh')
+    parser.add_argument('-v', '--verbose', help='verbose', action='store_true')
     args = parser.parse_args()
     print(args)
+    mode = args.mode
     if args.input:
         basename, extension = os.path.splitext(args.input)
     else:
         print('Using default input')
         basename = 'nkm_default'
-    if args.output:
-        output_filename = args.output
-    else:
+    if args.output is None:
         print('Using default output')
+        args.output = basename
+    if mode == 'mesh':
         output_filename = basename + '.msh'
+    else:
+        output_filename = basename + '.brep'
     print('Input filename: ' + str(args.input))
     print('Output filename: ' + output_filename)
-
     gmsh.initialize()
-
     gmsh.model.add(basename)
     print('Gmsh model name: ' + gmsh.model.__name__)
-
     print('Gmsh options')
     gmsh.option.setNumber('Geometry.AutoCoherence', 0)  # For geo factory
     print('Geometry.AutoCoherence: {}'.format(gmsh.option.getNumber('Geometry.AutoCoherence')))
-    gmsh.option.setNumber('General.Terminal', 1)
+    if args.verbose:
+        gmsh.option.setNumber('General.Terminal', 1)
+    else:
+        gmsh.option.setNumber('General.Terminal', 0)
+    print('General.Terminal: {}'.format(gmsh.option.getNumber('General.Terminal')))
     # (1=Delaunay, 2=New Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree)
     gmsh.option.setNumber('Mesh.Algorithm3D', 4)
     print('Mesh.Algorithm3D: {}'.format(gmsh.option.getNumber('Mesh.Algorithm3D')))
-
     print('NKM')
-    start_time = time.time()
-    if args.input:
-        nkm = NKM.from_json(args.input)
+    if mode == 'mesh':
+        start_time = time.time()
+        if args.input:
+            nkm = NKM.from_json(args.input)
+        else:
+            nkm = NKM(**NKM.default_input)
+        nkm.factory.synchronize()
+        nkm.evaluate()
+        nkm.boolean()
+        nkm.remove_duplicates()
+        nkm.factory.synchronize()
+        nkm.environment()
+        nkm.factory.synchronize()
+        nkm.correct_and_transfinite()
+        nkm.set_sizes()
+        nkm.physical()
+        # nkm.smooth(2, 1)
+        spent_times.update(nkm.spent_times)
+        spent_times['NK'] = time.time() - start_time
+        print('Mesh')
+        start_time = time.time()
+        gmsh.model.mesh.generate(3)
+        gmsh.model.mesh.removeDuplicateNodes()
+        spent_times['Mesh'] = time.time() - start_time
+        print('Write')
+        start_time = time.time()
+        gmsh.write(output_filename)
+        spent_times['Write'] = time.time() - start_time
+        gmsh.finalize()
+        spent_times['Total'] = time.time() - global_start_time
+        pprint(spent_times)
+        print('End time: {}'.format(time.asctime(time.localtime(time.time()))))
     else:
-        nkm = NKM(**NKM.default_input)
-    nkm.factory.synchronize()
-    nkm.evaluate()
-    nkm.boolean()
-    nkm.remove_duplicates()
-    nkm.factory.synchronize()
-    nkm.environment()
-    nkm.factory.synchronize()
-    nkm.correct_and_transfinite()
-    nkm.set_sizes()
-    nkm.physical()
-    # nkm.smooth(2, 1)
-    spent_times.update(nkm.spent_times)
-    spent_times['NK'] = time.time() - start_time
-
-    print('Mesh')
-    start_time = time.time()
-    gmsh.model.mesh.generate(3)
-    gmsh.model.mesh.removeDuplicateNodes()
-    spent_times['Mesh'] = time.time() - start_time
-
-    print('Write')
-    start_time = time.time()
-    gmsh.write(output_filename)
-    spent_times['Write'] = time.time() - start_time
-
-    gmsh.finalize()
-
-    spent_times['Total'] = time.time() - global_start_time
-    pprint(spent_times)
-    print('End time: {}'.format(time.asctime(time.localtime(time.time()))))
-
+        if args.input:
+            nkm = NKM.from_json(args.input)
+        else:
+            nkm = NKM(**NKM.default_input)
+        nkm.factory.synchronize()
+        nkm.physical()
+        spent_times.update(nkm.spent_times)
+        print('Write')
+        start_time = time.time()
+        gmsh.write(output_filename)
+        spent_times['Write'] = time.time() - start_time
+        gmsh.finalize()
+        spent_times['Total'] = time.time() - global_start_time
+        pprint(spent_times)
+        print('End time: {}'.format(time.asctime(time.localtime(time.time()))))
 
 if __name__ == '__main__':
     main()

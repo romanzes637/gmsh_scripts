@@ -2916,10 +2916,10 @@ class TestScripts(unittest.TestCase):
         print('Read')
         c = read_complex_type_2(
             factory,
-            'Fractures_Peter/fracture_N=2_fmt=8f.txt',
+            'complex_type_2.json',
             1,
             [0, 0, 0],
-            [[5, 0, 1], [5, 0, 1], [5, 0, 1]],
+            [[3, 0, 1], [3, 0, 1], [3, 0, 1]],
             "V"
         )
         print('Synchronize')
@@ -2957,11 +2957,11 @@ class TestScripts(unittest.TestCase):
         print('Read')
         complex_primitives = read_complex_type_2_to_complex_primitives(
             factory,
-            'Fractures_Peter/fracture_N=2_fmt=8f.txt',
+            'complex_type_2.json',
             [2, 2, 2],
             1,
             [0, 0, 0],
-            [[5, 0, 1], [5, 0, 1], [5, 0, 1]],
+            [[3, 0, 1], [3, 0, 1], [3, 0, 1]],
             "V"
         )
         print('Synchronize')
@@ -2983,7 +2983,7 @@ class TestScripts(unittest.TestCase):
         for cp in complex_primitives:
             occ_ws.correct_and_transfinite_complex(cp, ss)
         print('Auto points sizes')
-        sizes = auto_points_sizes(1000000)
+        sizes = auto_points_sizes(100000)
         pprint(sizes)
         print('Mesh')
         gmsh.model.mesh.generate(3)

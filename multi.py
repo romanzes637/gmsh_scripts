@@ -1,4 +1,5 @@
 import json
+from pprint import pprint
 from subprocess import Popen
 from copy import deepcopy
 import itertools
@@ -25,25 +26,28 @@ multi_input_path = args.multi_input
 combination_length = args.length
 mesh_format = args.format
 output_prefix = args.prefix
-print(args)
+pprint(args)
 # Get script input
 with open(script_input_path) as f:
     script_input = json.load(f)
-print(script_input)
+print('Script Input:')
+pprint(script_input)
 # Get multi input
 with open(multi_input_path) as f:
     multi_input = json.load(f)
-print(multi_input)
+print('Multi Input:')
+pprint(multi_input)
 # Evaluate arguments combinations
 args_combinations = itertools.combinations(multi_input, combination_length)
 for ac in args_combinations:
-    print(ac)
+    print('Arguments Names: {}'.format(ac))
     # Evaluate values indices combinations
     i_multi_input = {key: range(len(multi_input[key])) for key in ac}  # dict with indices of values
     values_indices_combinations = itertools.product(
         *i_multi_input.values())  # * - unpacking items to separated function arguments
+    pids = []
     for vic in values_indices_combinations:
-        print(vic)
+        print('Values Indices: {}'.format(vic))
         vs = []
         # Change script input
         new_script_input = deepcopy(script_input)
@@ -55,19 +59,21 @@ for ac in args_combinations:
             suffix_list.append(a)
             suffix_list.append(str(vi))
             vs.append(v)
-        print(vs)
+        print('Values: {}'.format(vs))
         # Change paths
         path_suffix = '_'.join(suffix_list)
         in_path = '{}_input.json'.format(path_suffix)
         out_path = '{}.{}'.format(path_suffix, mesh_format)
         log_path = 'log_{}'.format(path_suffix)
-        print(path_suffix)
-        print(in_path)
-        print(out_path)
-        print(log_path)
+        print('Path Suffix: {}'.format(path_suffix))
+        print('Input File Path: {}'.format(in_path))
+        print('Out File Path: {}'.format(out_path))
+        print('Log File Path: {}'.format(log_path))
         # Write new args
         with open(in_path, 'w') as f:
             json.dump(new_script_input, f, indent=2, sort_keys=True)
         # Run script
         with open(log_path, 'w') as f:
             process = Popen(['python', script_path, '-i', in_path, '-o', out_path], stdout=f, stderr=f)
+            pids.append(process.pid)
+        print('PID: {}'.format(pids[-1]))

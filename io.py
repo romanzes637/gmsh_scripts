@@ -1,11 +1,11 @@
 import json
 from pprint import pprint
-import gmsh
-import math
+
+import os
+
 from complex_primitive import ComplexPrimitive
 from primitive import Primitive, Complex
-from support import get_points_coordinates, get_edges_points, get_surfaces_edges, get_volumes_surfaces, \
-    get_volumes_geometry, get_geometry, check_geometry, initialize_geometry
+from support import get_volumes_geometry, get_geometry, check_geometry, initialize_geometry
 
 
 def read_complex_type_1(factory, path, transform_data, curve_type, transfinite_data, physical_tag, lc):
@@ -128,7 +128,7 @@ def parse_complex_type_2(path):
     origins = list()
     rotations = list()
     coordinates = list()
-    primitives_cs = list()
+    points_coordinates = list()
     cnt = 0
     with open(path) as f:
         for line in f:
@@ -146,17 +146,32 @@ def parse_complex_type_2(path):
                     if cnt == 10:
                         cnt = 0
                         n_primitives += 1
-                        primitives_cs.append(coordinates)
+                        points_coordinates.append(coordinates)
                         coordinates = []
-    return n_primitives, origins, rotations, primitives_cs
+    return n_primitives, origins, rotations, points_coordinates
 
 
-def prepare_complex_type_2(n_primitives, origins, rotations, primitives_cs, lc, transform_data):
+def parse_complex_type_2_json(path):
+    with open(path) as f:
+        d = json.load(f)
+    # pprint(d)
+    n_primitives = len(d)
+    origins = list()
+    rotations = list()
+    points_coordinates = list()
+    for primitive, data in d.items():
+        origins.append(data['origin'])
+        rotations.append(data['rotation'])
+        points_coordinates.append(data['points'])
+    return n_primitives, origins, rotations, points_coordinates
+
+
+def prepare_complex_type_2(n_primitives, origins, rotations, points_coordinates, lc, transform_data):
     point_datas = list()
     new_transform_datas = list()
     for i in range(n_primitives):
         point_data = list()
-        for c in primitives_cs[i]:
+        for c in points_coordinates[i]:
             point = c
             point.append(lc)
             point_data.append(point)
@@ -172,9 +187,13 @@ def prepare_complex_type_2(n_primitives, origins, rotations, primitives_cs, lc, 
 
 
 def read_complex_type_2(factory, path, lc, transform_data, transfinite_data, volume_name=None):
-    n_primitives, origins, rotations, primitives_cs = parse_complex_type_2(path)
+    basename, extension = os.path.splitext(path)
+    if extension == '.json':
+        n_primitives, origins, rotations, points_coordinates = parse_complex_type_2_json(path)
+    else:
+        n_primitives, origins, rotations, points_coordinates = parse_complex_type_2(path)
     point_datas, new_transform_datas = prepare_complex_type_2(
-        n_primitives, origins, rotations, primitives_cs, lc, transform_data)
+        n_primitives, origins, rotations, points_coordinates, lc, transform_data)
     primitives = list()
     for i in range(n_primitives):
         primitives.append(Primitive(
@@ -189,9 +208,13 @@ def read_complex_type_2(factory, path, lc, transform_data, transfinite_data, vol
 
 def read_complex_type_2_to_complex_primitives(factory, path, divide_data, lc,
                                               transform_data, transfinite_data, volume_name=None):
-    n_primitives, origins, rotations, primitives_cs = parse_complex_type_2(path)
+    basename, extension = os.path.splitext(path)
+    if extension == '.json':
+        n_primitives, origins, rotations, points_coordinates = parse_complex_type_2_json(path)
+    else:
+        n_primitives, origins, rotations, points_coordinates = parse_complex_type_2(path)
     point_datas, new_transform_datas = prepare_complex_type_2(
-        n_primitives, origins, rotations, primitives_cs, lc, transform_data)
+        n_primitives, origins, rotations, points_coordinates, lc, transform_data)
     complex_primitives = list()
     for i in range(n_primitives):
         complex_primitives.append(ComplexPrimitive(
