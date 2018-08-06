@@ -37,6 +37,8 @@ with open(multi_input_path) as f:
     multi_input = json.load(f)
 print('Multi Input:')
 pprint(multi_input)
+pids = []
+log_paths = []
 # Evaluate arguments combinations
 args_combinations = itertools.combinations(multi_input, combination_length)
 for ac in args_combinations:
@@ -45,7 +47,6 @@ for ac in args_combinations:
     i_multi_input = {key: range(len(multi_input[key])) for key in ac}  # dict with indices of values
     values_indices_combinations = itertools.product(
         *i_multi_input.values())  # * - unpacking items to separated function arguments
-    pids = []
     for vic in values_indices_combinations:
         print('Values Indices: {}'.format(vic))
         vs = []
@@ -76,4 +77,17 @@ for ac in args_combinations:
         with open(log_path, 'w') as f:
             process = Popen(['python', script_path, '-i', in_path, '-o', out_path], stdout=f, stderr=f)
             pids.append(process.pid)
+            log_paths.append(os.path.abspath(log_path))
         print('PID: {}'.format(pids[-1]))
+# Write ps data
+suffix_list = [output_prefix, basename]
+path_suffix = '_'.join(suffix_list)
+processes_data_path = '{}_processes.json'.format(output_prefix)
+processes_data = dict()
+for i, p in enumerate(pids):
+    data = dict()
+    data['status'] = 1
+    data['log_path'] = os.path.abspath(log_paths[i])
+    processes_data[p] = data
+with open(processes_data_path, 'w+') as f:
+    json.dump(processes_data, f, indent=2, sort_keys=True)

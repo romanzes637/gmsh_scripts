@@ -11,7 +11,7 @@ import os
 from borehole import Borehole
 from io import read_complex_type_2_to_complex_primitives
 from primitive import Primitive, complex_boolean, complex_cut_by_volume_boolean, primitive_complex_boolean, Environment
-from support import auto_complex_points_sizes_min_curve_in_volume, auto_volumes_groups_surfaces
+from support import auto_complex_points_sizes_min_curve_in_volume, auto_volumes_groups_surfaces, auto_points_sizes
 
 
 class NKM:
@@ -409,6 +409,7 @@ class NKM:
     def set_sizes(self):
         print('Set Sizes')
         start_time = time.time()
+        # pss = auto_points_sizes()  # Very small size of environment points
         pss = dict()
         print('Intrusions')
         for intrusion in self.ints:
@@ -497,7 +498,6 @@ def main():
     global_start_time = time.time()
     print('Start time: {}'.format(time.asctime(time.localtime(time.time()))))
     print('PID: {}'.format(os.getpid()))
-
     print('CMD Arguments')
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', help='input filename')
@@ -549,8 +549,8 @@ def main():
         nkm.factory.synchronize()
         nkm.environment()
         nkm.factory.synchronize()
-        nkm.correct_and_transfinite()
         nkm.set_sizes()
+        nkm.correct_and_transfinite()
         nkm.physical()
         # nkm.smooth(2, 1)
         spent_times.update(nkm.spent_times)

@@ -4,6 +4,11 @@ import gmsh
 import math
 
 
+# FIXME Bug with this approach:
+# File "/share/home/butovr/gmsh_scripts/support.py", line 14, in get_volume_points_edges_data
+# surfaces_dim_tags = gmsh.model.getBoundary([[3, volume]])
+# File "/home/butovr/Programs/gmsh/api/gmsh.py", line 517, in getBoundary ierr.value)
+# ValueError: ('gmshModelGetBoundary returned non-zero error code: ', 1)
 def get_volume_points_edges_data(volume):
     """
     Return volume points edges data. For point's characteristic length (lc) auto setting.
@@ -11,14 +16,15 @@ def get_volume_points_edges_data(volume):
     :return: dictionary (point: [n_edges, edges_min_length, edges_max_length, edges_avg_length])
     """
     # Get volume edges
-    surfaces_dim_tags = gmsh.model.getBoundary([[3, volume]])
+    volume_dim_tag = [3, volume]
+    surfaces_dim_tags = gmsh.model.getBoundary([volume_dim_tag])
     edges = set()
     for sdt in surfaces_dim_tags:
         curves_dim_tags = gmsh.model.getBoundary([sdt])
         for cdt in curves_dim_tags:
             edges.add(abs(cdt[1]))
     # Get volume points
-    points_dim_tags = gmsh.model.getBoundary([[3, volume]], recursive=True)
+    points_dim_tags = gmsh.model.getBoundary([volume_dim_tag], recursive=True)
     points = map(lambda x: x[1], points_dim_tags)
     # Get points edges and edges points
     points_edges = {x: set() for x in points}
@@ -60,7 +66,8 @@ def get_volume_edges_lengths(volume):
     :return: dictionary (edge: edge_length)
     """
     # Get volume edges
-    surfaces_dim_tags = gmsh.model.getBoundary([[3, volume]])
+    volume_dim_tag = [3, volume]
+    surfaces_dim_tags = gmsh.model.getBoundary([volume_dim_tag])
     edges = set()
     for sdt in surfaces_dim_tags:
         edges_dim_tags = gmsh.model.getBoundary([sdt])
@@ -84,30 +91,6 @@ def get_volume_edges_lengths(volume):
         length = math.sqrt(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2])
         edges_lengths[e] = length
     return edges_lengths
-
-
-def auto_points_sizes(c=1.0):
-    points_sizes = dict()
-    volumes_dim_tags = gmsh.model.getEntities(3)
-    for vdt in volumes_dim_tags:
-        # Evaluate new_size
-        ps_es_data = get_volume_points_edges_data(vdt[1])
-        min_length = list()
-        for k, v in ps_es_data.items():
-            min_length.append(c * v[1])
-        new_size = min(min_length)
-        # Update sizes
-        for k, v in ps_es_data.items():
-            update_size = True
-            old_size = points_sizes.get(k)
-            if old_size is not None:
-                if new_size > old_size:
-                    update_size = False
-            if update_size:
-                points_sizes[k] = new_size
-                point_dim_tag = [0, k]
-                gmsh.model.mesh.setSize([point_dim_tag], new_size)
-    return points_sizes
 
 
 def get_points_coordinates():
@@ -368,12 +351,36 @@ def initialize_geometry(factory, geometry):
     return new_geo
 
 
-def auto_primitive_points_sizes_min_curve(primitive_obj, points_sizes_dict, k=1.0):
+def auto_points_sizes(c=1.0):
+    points_sizes = dict()
+    volumes_dim_tags = gmsh.model.getEntities(3)
+    for vdt in volumes_dim_tags:
+        # Evaluate new_size
+        ps_es_data = get_volume_points_edges_data(vdt[1])
+        min_length = list()
+        for k, v in ps_es_data.items():
+            min_length.append(c * v[1])
+        new_size = min(min_length)
+        # Update sizes
+        for k, v in ps_es_data.items():
+            update_size = True
+            old_size = points_sizes.get(k)
+            if old_size is not None:
+                if new_size > old_size:
+                    update_size = False
+            if update_size:
+                points_sizes[k] = new_size
+                point_dim_tag = [0, k]
+                gmsh.model.mesh.setSize([point_dim_tag], new_size)
+    return points_sizes
+
+
+def auto_primitive_points_sizes_min_curve(primitive_obj, points_sizes_dict, c=1.0):
     for v in primitive_obj.volumes:
         ps_cs_data = get_volume_points_edges_data(v)
         for pd in ps_cs_data:
             p = pd[0]  # point index
-            size = k * pd[2]  # k * min curve length
+            size = c * pd[1]  # c * min curve length
             old_size = points_sizes_dict.get(p)
             if old_size is not None:
                 if size < old_size:
@@ -384,22 +391,31 @@ def auto_primitive_points_sizes_min_curve(primitive_obj, points_sizes_dict, k=1.
                 gmsh.model.mesh.setSize([(0, p)], size)
 
 
-def auto_primitive_points_sizes_min_curve_in_volume(primitive_obj, points_sizes_dict, k=1.0):
-    for v in primitive_obj.volumes:
-        ps_cs_data = get_volume_points_edges_data(v)
-        v_curves_min_length = []
-        for p, d in ps_cs_data.items():
-            v_curves_min_length.append(k * d[1])  # k * min curve length
-        size = min(v_curves_min_length)  # min curve length of all points
-        for p in ps_cs_data:
-            old_size = points_sizes_dict.get(p)
+def auto_primitive_points_sizes_min_curve_in_volume(primitive_obj, points_sizes, c=1.0):
+    for volume in primitive_obj.volumes:
+        # Evaluate new_size
+        # FIXME workaround ValueError: ('gmshModelGetBoundary returned non-zero error code: ', 1)
+        try:
+            ps_es_data = get_volume_points_edges_data(volume)
+        except ValueError as e:
+            print('ValueError Volume {}'.format(volume))
+            print(e)
+            continue
+        min_length = list()
+        for k, v in ps_es_data.items():
+            min_length.append(c * v[1])
+        new_size = min(min_length)
+        # Update sizes
+        for k, v in ps_es_data.items():
+            update_size = True
+            old_size = points_sizes.get(k)
             if old_size is not None:
-                if size < old_size:
-                    points_sizes_dict[p] = size
-                    gmsh.model.mesh.setSize([[0, p]], size)
-            else:
-                points_sizes_dict[p] = size
-                gmsh.model.mesh.setSize([[0, p]], size)
+                if new_size > old_size:
+                    update_size = False
+            if update_size:
+                points_sizes[k] = new_size
+                point_dim_tag = [0, k]
+                gmsh.model.mesh.setSize([point_dim_tag], new_size)
 
 
 def auto_complex_points_sizes_min_curve(complex_obj, points_sizes_dict, k=1.0):
@@ -493,8 +509,8 @@ def is_cuboid(volume):
 
 
 def structure_cuboid(volume, structured_surfaces, structured_edges, min_edge_nodes, c=1.0):
-    volumes_dts = [[3, volume]]
-    surfaces_dts = gmsh.model.getBoundary(volumes_dts)
+    volume_dt = [3, volume]
+    surfaces_dts = gmsh.model.getBoundary([volume_dt])
     surfaces_edges = dict()
     surfaces_points = dict()
     edges = set()
