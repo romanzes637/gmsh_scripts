@@ -1,7 +1,0 @@
-{
-  "input": "processes.json",
-  "ssh": "username@host",
-  "mailing_list": ["local-part@domain"],
-  "n_log_lines": 10,
-  "full_log": false
-}
