@@ -71,13 +71,14 @@ for ac in args_combinations:
         print('Out File Path: {}'.format(out_path))
         print('Log File Path: {}'.format(log_path))
         # Write new args
-        with open(in_path, 'w') as f:
-            json.dump(new_script_input, f, indent=2, sort_keys=True)
+        with open(in_path, 'w+') as input_file:
+            json.dump(new_script_input, input_file, indent=2, sort_keys=True)
         # Run script
-        with open(log_path, 'w') as f:
-            process = Popen(['python', script_path, '-i', in_path, '-o', out_path], stdout=f, stderr=f)
+        with open(log_path, 'w+') as log_file:
+            print(os.path.isfile(in_path))
+            process = Popen(['python', script_path, '-i', in_path, '-o', out_path], stdout=log_file, stderr=log_file)
             pids.append(process.pid)
-            log_paths.append(os.path.abspath(log_path))
+        log_paths.append(os.path.abspath(log_path))
         print('PID: {}'.format(pids[-1]))
 # Write ps data
 suffix_list = [output_prefix, basename]
@@ -86,7 +87,6 @@ processes_data_path = '{}_processes.json'.format(output_prefix)
 processes_data = dict()
 for i, p in enumerate(pids):
     data = dict()
-    data['status'] = 1
     data['log_path'] = os.path.abspath(log_paths[i])
     processes_data[p] = data
 with open(processes_data_path, 'w+') as f:
