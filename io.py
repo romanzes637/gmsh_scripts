@@ -201,7 +201,7 @@ def read_complex_type_2(factory, path, lc, transform_data, transfinite_data, vol
             point_datas[i],
             new_transform_datas[i],
             transfinite_data=transfinite_data,
-            volume_name=volume_name
+            physical_name=volume_name
         ))
     return Complex(factory, primitives)
 
@@ -224,7 +224,7 @@ def read_complex_type_2_to_complex_primitives(factory, path, divide_data, lc,
             lc,
             new_transform_datas[i],
             transfinite_data=transfinite_data,
-            volume_name=volume_name
+            physical_name=volume_name
         ))
     return complex_primitives
 

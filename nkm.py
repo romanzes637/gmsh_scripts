@@ -8,94 +8,67 @@ import itertools
 import occ_workarounds as occ_ws
 import os
 
-from borehole import Borehole
+from divided_cylinder import DividedCylinder
 from io import read_complex_type_2_to_complex_primitives
 from primitive import Primitive, complex_boolean, complex_cut_by_volume_boolean, primitive_complex_boolean, Environment
 from support import auto_complex_points_sizes_min_curve_in_volume, auto_volumes_groups_surfaces, auto_points_sizes
 
 
 class NKM:
-
-    default_input = {
-        'factory': gmsh.model.occ,
-        'env_transform': [19.5, 0, 0],
-        'env_volume_name': 'HostRock',
-        'env_dx': 1560,
-        'env_dy': 1185,
-        'env_dz': 487.5,
-        'env_lc': 100,
-        'env_bool': False,
-        'int_filenames': [],
-        'int_transforms': [],
-        'int_volume_names': [],
-        'int_lcs': [],
-        'int_divides': [],
-        'int_transfinites': [],
-        'bor_lcs': [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-        'bor_transfinite_r': [[3, 0, 1], [3, 0, 1], [3, 0, 1]],
-        'bor_transfinite_h': [[3, 0, 1], [15, 0, 1], [3, 0, 1]],
-        'bor_transfinite_phi': [3, 0, 1],
-        'bor_nh': 1,
-        'ilw_transform': [-310.5, -142.5, -37.5],
-        'ilw_name': 'ILW',
-        'ilw_nx': 14,
-        'ilw_ny': 20,
-        'ilw_dx': 23,
-        'ilw_dy': 15,
-        'hlw_transform': [11.5, -138, -37.5],
-        'hlw_name': 'HLW',
-        'hlw_nx': 14,
-        'hlw_ny': 13,
-        'hlw_dx': 26,
-        'hlw_dy': 23
-    }
-
     def __init__(
             self, factory,
             env_transform, env_volume_name, env_dx, env_dy, env_dz, env_lc, env_bool,
             int_filenames, int_transforms, int_volume_names, int_lcs, int_divides, int_transfinites,
-            bor_lcs, bor_transfinite_r, bor_transfinite_h, bor_transfinite_phi, bor_nh,
-            ilw_transform, ilw_name, ilw_nx, ilw_ny, ilw_dx, ilw_dy,
-            hlw_transform, hlw_name, hlw_nx, hlw_ny, hlw_dx, hlw_dy):
+            ilw_input_path, ilw_name, ilw_transform, ilw_nx, ilw_ny, ilw_dx, ilw_dy,
+            hlw_input_path, hlw_name, hlw_transform, hlw_nx, hlw_ny, hlw_dx, hlw_dy):
         """
         NKM model with Intrusions, ILW and HLW Boreholes inside Environment
-        :param factory: gmsh factory (currently: gmsh.model.geo or gmsh.model.occ)
-        :param env_transform: Environment center transform (see Primitive transform_data)
-        :param env_volume_name: Environment physical name
-        :param env_dx: Environment length x
-        :param env_dy: Environment length y
-        :param env_dz: Environment length z
-        :param env_lc: Environment nodes characteristic length
-        :param env_bool: Boolean environment?
-        :param int_filenames: Intrusions filenames (Complex Type 2, see io.py)
-        :param int_transforms: Intrusions transforms (see Primitive transform_data)
-        :param int_volume_names: Intrusions physical names
-        :param int_lcs: Intrusions characteristic lengths (no effect, if set_sizes method has been called)
-        :param int_divides: Intrusions number of divide parts (see ComplexPrimitive divide_data)
-        :param int_transfinites: Intrusions transfinites (see ComplexPrimitive transfinite_data)
-        :param bor_lcs: Boreholes characteristic length
-        :param bor_transfinite_r: Boreholes radius transfinite (see Borehole)
-        :param bor_transfinite_h: Boreholes height transfinite (see Borehole)
-        :param bor_transfinite_phi: Boreholes circumferential transfinite (see Borehole)
-        :param bor_nh: Number of Borehole parts (see Borehole)
-        :param ilw_transform: ILW Boreholes transform (First ILW Borehole position)
-        :param ilw_name: ILW Boreholes physical name prefix
-        :param ilw_nx: Number of ILW Boreholes x
-        :param ilw_ny: Number of ILW Boreholes y
-        :param ilw_dx: Interval of ILW Boreholes x
-        :param ilw_dy: Interval of ILW Boreholes y
-        :param hlw_transform: HLW Boreholes transform (First HLW Borehole position)
-        :param hlw_name: HLW Boreholes physical name prefix
-        :param hlw_nx: Number of HLW Boreholes x
-        :param hlw_ny: Number of HLW Boreholes y
-        :param hlw_dx: Interval of HLW Boreholes x
-        :param hlw_dy: Interval of HLW Boreholes y
+        :param str factory: see Primitive
+        :param list of float env_transform: Environment center transform (see Primitive)
+        :param str env_volume_name: Environment physical name
+        :param float env_dx: Environment length x
+        :param float env_dy: Environment length y
+        :param float env_dz: Environment length z
+        :param float env_lc: Environment nodes characteristic length
+        :param bool env_bool: Boolean environment?
+        :param list of str int_filenames: Intrusions filenames (Complex Type 2, see io.py)
+        :param list of list of float int_transforms: Intrusions transforms (see Primitive)
+        :param list of str int_volume_names: Intrusions physical names
+        :param list of float int_lcs: Intrusions characteristic lengths (no effect, if set_sizes method has been called)
+        :param list of list of int int_divides: Intrusions number of divide parts (see ComplexPrimitive)
+        :param list of list of float int_transfinites: Intrusions transfinites (see ComplexPrimitive)
+        :param str ilw_input_path: ILW Boreholes input path
+        :param str ilw_name: ILW Boreholes physical name prefix
+        :param list of float ilw_transform: ILW Boreholes transform (First ILW Borehole position) see Primitive
+        :param int ilw_nx: Number of ILW Boreholes x
+        :param int ilw_ny: Number of ILW Boreholes y
+        :param float ilw_dx: Interval of ILW Boreholes x
+        :param float ilw_dy: Interval of ILW Boreholes y
+        :param str hlw_input_path: HLW Boreholes input path
+        :param str hlw_name: HLW Boreholes physical name prefix
+        :param list of float hlw_transform: HLW Boreholes transform (First HLW Borehole position) see Primitive
+        :param int hlw_nx: Number of HLW Boreholes x
+        :param int hlw_ny: Number of HLW Boreholes y
+        :param float hlw_dx: Interval of HLW Boreholes x
+        :param float hlw_dy: Interval of HLW Boreholes y
         """
         print('Arguments')
+        print('NKM')
         pprint(locals())
+        print('ILW')
+        with open(ilw_input_path) as ilw_input_file:
+            ilw_args = json.load(ilw_input_file)
+        pprint(ilw_args)
+        print('HLW')
+        with open(hlw_input_path) as hlw_input_file:
+            hlw_args = json.load(hlw_input_file)
+        pprint(hlw_args)
         print('Initialization')
         self.spent_times = {}
-        self.factory = factory
+        if factory == 'occ':
+            self.factory = gmsh.model.occ
+        else:
+            self.factory = gmsh.model.geo
         self.int_volume_names = int_volume_names
         self.ilw_name = ilw_name
         self.hlw_name = hlw_name
@@ -122,7 +95,7 @@ class NKM:
                     [env_dx / 2, -env_dy / 2, env_dz, env_lc]
                 ],
                 transform_data=env_transform,
-                volume_name=env_volume_name
+                physical_name=env_volume_name
             )
             self.spent_times['Init Env'] = time.time() - start_time
         print('Intrusions')
@@ -159,15 +132,8 @@ class NKM:
                 new_ilw_transform = list(ilw_transform)
                 new_ilw_transform[0] += ilw_dx * i
                 new_ilw_transform[1] += ilw_dy * j
-                self.bs_ilw.append(Borehole(
-                    factory,
-                    bor_lcs,  # No effect due to auto points' sizes algorithm
-                    new_ilw_transform,
-                    bor_transfinite_r,
-                    bor_transfinite_h,
-                    bor_transfinite_phi,
-                    bor_nh  # 10
-                ))
+                ilw_args['transform_data'] = new_ilw_transform
+                self.bs_ilw.append(DividedCylinder(**ilw_args))
                 times.append(time.time() - start)
                 print('{:.3f}s'.format(times[-1]))
                 time_spent += times[-1]
@@ -191,33 +157,13 @@ class NKM:
                 new_hlw_transform = list(hlw_transform)
                 new_hlw_transform[0] += hlw_dx * i
                 new_hlw_transform[1] += hlw_dy * j
-                self.bs_hlw.append(Borehole(
-                    factory,
-                    bor_lcs,  # No effect due to auto points' sizes algorithm
-                    new_hlw_transform,
-                    bor_transfinite_r,  # [[3, 0, 1], [3, 0, 1], [3, 0, 1]]
-                    bor_transfinite_h,  # [[10, 0, 1], [10, 0, 1], [10, 0, 1]]
-                    bor_transfinite_phi,  # [5, 0, 1]
-                    bor_nh  # 10
-                ))
+                hlw_args['transform_data'] = new_hlw_transform
+                self.bs_hlw.append(DividedCylinder(**hlw_args))
                 times.append(time.time() - start)
                 print('{:.3f}s'.format(times[-1]))
                 time_spent += times[-1]
                 est_time = sum(times) / cnt
         self.spent_times['Init HLW'] = time.time() - start_time
-
-    @staticmethod
-    def from_json(filename):
-        print('Reading input parameters from ' + filename)
-        with open(filename) as json_data:
-            d = json.load(json_data)
-            json_data.close()
-            factory_item = d.get('factory', 'occ')
-            if factory_item == 'occ':
-                d['factory'] = gmsh.model.occ
-            else:
-                d['factory'] = gmsh.model.geo
-        return NKM(**d)
 
     def evaluate(self):
         print('Evaluate')
@@ -456,7 +402,7 @@ class NKM:
                 vs = list()
                 for intrusion in self.ints:
                     for c in intrusion:
-                        vs.extend(c.get_volumes_by_name(name))
+                        vs.extend(c.get_volumes_by_physical_name(name))
                 tag = gmsh.model.addPhysicalGroup(3, vs)
                 gmsh.model.setPhysicalName(3, tag, name)
         print('ILW Boreholes')
@@ -464,7 +410,7 @@ class NKM:
             for name in Borehole.volumes_names:
                 vs = list()
                 for b in self.bs_ilw:
-                    vs.extend(b.get_volumes_by_name(name))
+                    vs.extend(b.get_volumes_by_physical_name(name))
                 tag = gmsh.model.addPhysicalGroup(3, vs)
                 gmsh.model.setPhysicalName(3, tag, self.ilw_name + name)
         print('HLW Boreholes')
@@ -472,7 +418,7 @@ class NKM:
             for name in Borehole.volumes_names:
                 vs = list()
                 for b in self.bs_hlw:
-                    vs.extend(b.get_volumes_by_name(name))
+                    vs.extend(b.get_volumes_by_physical_name(name))
                 tag = gmsh.model.addPhysicalGroup(3, vs)
                 gmsh.model.setPhysicalName(3, tag, self.hlw_name + name)
         print('Environment')
@@ -500,34 +446,33 @@ def main():
     print('PID: {}'.format(os.getpid()))
     print('CMD Arguments')
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', help='input filename')
+    parser.add_argument('-i', '--input', help='input filename', default='input_nkm.json')
     parser.add_argument('-o', '--output', help='output filename')
-    parser.add_argument('-m', '--mode', help='run mode (preview or mesh)', default='mesh')
     parser.add_argument('-v', '--verbose', help='verbose', action='store_true')
+    parser.add_argument('-t', '--test', help='test mode', action='store_true')
     args = parser.parse_args()
-    print(args)
-    mode = args.mode
-    if args.input:
-        basename, extension = os.path.splitext(args.input)
-    else:
-        print('Using default input')
-        basename = 'nkm_default'
+    basename, extension = os.path.splitext(args.input)
     if args.output is None:
         print('Using default output')
         args.output = basename
-    if mode == 'mesh':
-        output_filename = basename + '.msh'
+    print(args)
+    input_path = args.input
+    model_name = basename
+    is_test = args.test
+    is_verbose = args.verbose
+    if is_test:
+        output_path = args.output + '.brep'
     else:
-        output_filename = basename + '.brep'
-    print('Input filename: ' + str(args.input))
-    print('Output filename: ' + output_filename)
+        output_path = args.output + '.msh'
+    print('Input path: ' + input_path)
+    print('Output path: ' + output_path)
     gmsh.initialize()
-    gmsh.model.add(basename)
+    gmsh.model.add(model_name)
     print('Gmsh model name: ' + gmsh.model.__name__)
     print('Gmsh options')
     gmsh.option.setNumber('Geometry.AutoCoherence', 0)  # For geo factory
     print('Geometry.AutoCoherence: {}'.format(gmsh.option.getNumber('Geometry.AutoCoherence')))
-    if args.verbose:
+    if is_verbose:
         gmsh.option.setNumber('General.Terminal', 1)
     else:
         gmsh.option.setNumber('General.Terminal', 0)
@@ -536,13 +481,12 @@ def main():
     gmsh.option.setNumber('Mesh.Algorithm3D', 4)
     print('Mesh.Algorithm3D: {}'.format(gmsh.option.getNumber('Mesh.Algorithm3D')))
     print('NKM')
-    if mode == 'mesh':
-        start_time = time.time()
-        if args.input:
-            nkm = NKM.from_json(args.input)
-        else:
-            nkm = NKM(**NKM.default_input)
-        nkm.factory.synchronize()
+    start_time = time.time()
+    with open(input_path) as f:
+        d = json.load(f)
+    nkm = NKM(**d)
+    nkm.factory.synchronize()
+    if not is_test:
         nkm.evaluate()
         nkm.boolean()
         nkm.remove_duplicates()
@@ -560,30 +504,14 @@ def main():
         gmsh.model.mesh.generate(3)
         gmsh.model.mesh.removeDuplicateNodes()
         spent_times['Mesh'] = time.time() - start_time
-        print('Write')
-        start_time = time.time()
-        gmsh.write(output_filename)
-        spent_times['Write'] = time.time() - start_time
-        gmsh.finalize()
-        spent_times['Total'] = time.time() - global_start_time
-        pprint(spent_times)
-        print('End time: {}'.format(time.asctime(time.localtime(time.time()))))
-    else:
-        if args.input:
-            nkm = NKM.from_json(args.input)
-        else:
-            nkm = NKM(**NKM.default_input)
-        nkm.factory.synchronize()
-        nkm.physical()
-        spent_times.update(nkm.spent_times)
-        print('Write')
-        start_time = time.time()
-        gmsh.write(output_filename)
-        spent_times['Write'] = time.time() - start_time
-        gmsh.finalize()
-        spent_times['Total'] = time.time() - global_start_time
-        pprint(spent_times)
-        print('End time: {}'.format(time.asctime(time.localtime(time.time()))))
+    print('Write')
+    start_time = time.time()
+    gmsh.write(output_path)
+    spent_times['Write'] = time.time() - start_time
+    gmsh.finalize()
+    spent_times['Total'] = time.time() - global_start_time
+    pprint(spent_times)
+    print('End time: {}'.format(time.asctime(time.localtime(time.time()))))
 
 if __name__ == '__main__':
     main()

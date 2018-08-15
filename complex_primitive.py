@@ -5,19 +5,19 @@ from primitive import Primitive, Complex
 class ComplexPrimitive(Complex):
     def __init__(self, factory, divide_data, point_data, primitive_lc,
                  transform_data=None, curve_types=None, curve_data=None,
-                 transfinite_data=None, transfinite_type=None, volume_name=None):
+                 transfinite_data=None, transfinite_type=None, physical_name=None):
         """
         Primitive object divided into parts for boolean accuracy.
-        :param factory:
+        :param str factory: see Primitive
         :param divide_data: [n_parts_x, n_parts_y, n_parts_z]
-        :param point_data:
-        :param primitive_lc:
-        :param transform_data: see Primitive transform_data
-        :param curve_types:
-        :param curve_data:
-        :param transfinite_data: [[x number of nodes, type, coefficient], [y ...], [z ...]]
-        :param transfinite_type:
-        :param volume_name:
+        :param point_data: see Primitive
+        :param primitive_lc: see Primitive
+        :param list of float transform_data: see Primitive
+        :param curve_types: see Primitive
+        :param curve_data: see Primitive
+        :param list of list of float transfinite_data: see Primitive
+        :param int transfinite_type: see Primitive
+        :param str physical_name: see Primitive
         """
         primitives = list()
         if curve_data is None:
@@ -30,7 +30,7 @@ class ComplexPrimitive(Complex):
                 new_curve_data.append([x + [primitive_lc] for x in cps])
             primitives.append(Primitive(
                 factory, new_point_data, transform_data, curve_types,
-                new_curve_data, transfinite_data, transfinite_type, volume_name
+                new_curve_data, transfinite_data, transfinite_type, physical_name
             ))
         Complex.__init__(self, factory, primitives)
 

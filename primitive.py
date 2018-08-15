@@ -1,11 +1,13 @@
 import itertools
 import time
+from pprint import pprint
+
 import gmsh
 
 
 class Primitive:
     def __init__(self, factory, point_data, transform_data=None, curve_types=None, curve_data=None,
-                 transfinite_data=None, transfinite_type=None, volume_name="Primitive"):
+                 transfinite_data=None, transfinite_type=None, physical_name="Primitive"):
         """
         Base object with six quadrangular surfaces and eight points
         The object (e.g. number of its volumes/surfaces) could be changed in process,
@@ -32,23 +34,30 @@ class Primitive:
         S3: L0  -> L8  -> -L1 -> -L9  (Y surface)
         S4: -L0 -> -L5 ->  L3 -> L4   (NZ surface)
         S5: L1  -> -L7 -> -L2 -> L6   (Z surface)
-        :param factory: gmsh factory (currently: gmsh.model.geo or gmsh.model.occ)
-        :param point_data: [[point1_x, point1_y, point1_z, point1_lc], ..., [point8_x, point8_y, point8_z, point8_lc]]
-        :param transform_data: [displacement x, y, z] or
+        :param str factory: gmsh factory (currently: 'geo' or 'occ')
+        :param list of list of float point_data:
+        [[point1_x, point1_y, point1_z, point1_lc], ..., [point8_x, point8_y, point8_z, point8_lc]]
+        :param list of float transform_data:
+        [displacement x, y, z] or
         [displacement x, y, z, rotation origin x, y, z, rotation angle x, y, z] or
         [displacement x, y, z, rotation vector x, y, z, rotation angle] or
         [displacement x, y, z, rotation angle x, y, z]
-        :param curve_types: [line1_type, line2_type, ..., line12_type],
+        :param list of float curve_types: [line1_type, line2_type, ..., line12_type],
         types: 0 - line, 1 - circle, 2 - ellipse (FIXME not implemented for occ factory),
         3 - spline, 4 - bspline (number of curve points > 1), 5 - bezier curve
-        :param curve_data: [[line1_point1_x, line1_point1_y, line1_point1_z, line1_point1_lc], ...], ..., [line12 ...]]
-        :param transfinite_data: [[line1 number of nodes, type, coefficient], ..., [line12 ...]] or
+        :param list of list of list of float curve_data:
+        [[[line1_point1_x, line1_point1_y, line1_point1_z, line1_point1_lc], ...], ..., [[line_12_point_1, ...], ...]]
+        :param list of list of float transfinite_data:
+        [[line1 number of nodes, type, coefficient], ..., [line12 ...]] or
         [[x_lines number of nodes, type, coefficient], [y_lines ...], [z_lines ...]]
         types: 0 - progression, 1 - bump
-        :param transfinite_type: 0, 1, 2 or 4 determines orientation of tetrahedra at structured volume and its surfaces
-        :param volume_name: primitive's physical volume name
+        :param int transfinite_type: 0, 1, 2 or 4 determines orientation of surfaces' tetrahedra at structured volume
+        :param str physical_name: primitive's volumes physical name
         """
-        self.factory = factory
+        if factory == 'occ':
+            self.factory = gmsh.model.occ
+        else:
+            self.factory = gmsh.model.geo
         if curve_types is None:
             curve_types = [0] * 12
         if curve_data is None:
@@ -63,8 +72,11 @@ class Primitive:
                 self.transfinite_data = transfinite_data
         else:
             self.transfinite_data = transfinite_data
-        self.transfinite_type = transfinite_type
-        self.volume_name = volume_name
+        if transfinite_type is None:
+            self.transfinite_type = 0
+        else:
+            self.transfinite_type = transfinite_type
+        self.physical_name = physical_name
         self.points = []
         self.curves_points = []
         self.curves = []
@@ -158,6 +170,7 @@ class Primitive:
         #     self.curves_points_coordinates.append(cs)
         self.bounding_box = None  # [x_min, y_min, z_min, x_max, y_max, z_max] Call self.evaluate_bounding_box() to init
         # self.evaluate_bounding_box()
+        # pprint(self.__dict__)
 
     def recombine(self):
         volumes_dim_tags = map(lambda x: (3, x), self.volumes)
@@ -186,10 +199,11 @@ class Primitive:
             for v in self.volumes:
                 gmsh.model.mesh.setSmoothing(dim, v, n)
 
-    def transfinite(self, transfinited_surfaces):
+    def transfinite(self, transfinited_surfaces, transfinited_curves):
         """
         Transfinite primitive
         :param transfinited_surfaces: set() of already transfinite surfaces (workaround for double transfinite issue)
+        :param transfinited_curves: set() of already transfinite curves (workaround for double transfinite issue)
         """
         result = False
         # Check
@@ -230,12 +244,14 @@ class Primitive:
                 transfinite_surface_data = None
                 transfinite_volume_data = None
             if self.transfinite_data is not None:
-                for i in range(len(self.curves)):
-                    if self.factory != gmsh.model.geo:  # FIXME Workaround for GEO factory
-                        transfinite_type = self.transfinite_data[i][1]
-                    else:
-                        transfinite_type = self.transfinite_data[i][1] + 2
-                    self.transfinite_curve[transfinite_type](self, i)
+                for i, c in enumerate(self.curves):
+                    if c not in transfinited_curves:
+                        if self.factory != gmsh.model.geo:  # FIXME Workaround for GEO factory
+                            transfinite_type = self.transfinite_data[i][1]
+                        else:
+                            transfinite_type = self.transfinite_data[i][1] + 2
+                        self.transfinite_curve[transfinite_type](self, i)
+                        transfinited_curves.add(c)
                 if transfinite_surface_data is not None:
                     for i, s in enumerate(self.surfaces):
                         if s not in transfinited_surfaces:
@@ -289,7 +305,8 @@ class Primitive:
 
     def set_size(self, size):
         for v in self.volumes:
-            points_dim_tags = gmsh.model.getBoundary([(3, v)], combined=False, recursive=True)
+            volume_dim_tag = [3, v]
+            points_dim_tags = gmsh.model.getBoundary([volume_dim_tag], combined=False, recursive=True)
             gmsh.model.mesh.setSize(points_dim_tags, size)
 
     surfaces_names = {
@@ -501,18 +518,19 @@ class Complex:
     def __init__(self, factory, primitives):
         """
         Object consisting of primitives
-        :param factory: gmsh factory (currently: gmsh.model.geo or gmsh.model.occ)
-        :param primitives: [primitive 1, primitive 2, ..., primitive N]
+        :param str factory: see Primitive Factory
+        :param list primitives: [primitive 1, primitive 2, ..., primitive N]
         """
-        self.factory = factory
+        if factory == 'occ':
+            self.factory = gmsh.model.occ
+        else:
+            self.factory = gmsh.model.geo
         self.primitives = primitives
-        self.volumes_names_dict = {}
+        self.map_physical_name_to_primitives_indices = dict()
         for i, p in enumerate(self.primitives):
-            key = p.volume_name
-            if key in self.volumes_names_dict:
-                self.volumes_names_dict[key].append(i)
-            else:
-                self.volumes_names_dict[key] = [i]
+            key = p.physical_name
+            value = i
+            self.map_physical_name_to_primitives_indices.setdefault(key, list()).append(value)
 
     def inner_boolean(self):
         combinations = list(itertools.combinations(range(len(self.primitives)), 2))
@@ -532,25 +550,25 @@ class Complex:
             for p in self.primitives:
                 p.set_size(size)
 
-    def transfinite(self, transfinite_surfaces):
-        results = []
+    def transfinite(self, transfinited_surfaces, transfinited_curves):
+        results = list()
         for p in self.primitives:
-            result = p.transfinite(transfinite_surfaces)
+            result = p.transfinite(transfinited_surfaces, transfinited_curves)
             results.append(result)
         return results
 
     def get_union_volume(self):
         dim_tags = []
         for p in self.primitives:
-            dim_tags += map(lambda x: (3, x), p.volumes)
+            dim_tags += map(lambda x: [3, x], p.volumes)
         out_dim_tags, out_dim_tags_map = self.factory.fuse(
             dim_tags[:1], dim_tags[1:], tag=-1, removeObject=False, removeTool=False)
         self.factory.synchronize()
         return out_dim_tags
 
-    def get_volumes_by_name(self, name):
+    def get_volumes_by_physical_name(self, name):
         vs = list()
-        primitive_idxs = self.volumes_names_dict.get(name)
+        primitive_idxs = self.map_physical_name_to_primitives_indices.get(name)
         if primitive_idxs is not None:
             for i in primitive_idxs:
                 vs.extend(self.primitives[i].volumes)
@@ -752,7 +770,10 @@ def complex_cut_by_volume_boolean(factory, complex_obj, volume):
 
 class Environment:
     def __init__(self, factory, lx, ly, lz, lc, transform_data, inner_surfaces, volume_name="Environment"):
-        self.factory = factory
+        if factory == 'occ':
+            self.factory = gmsh.model.occ
+        else:
+            self.factory = gmsh.model.geo
         self.lx = lx
         self.ly = ly
         self.lz = lz

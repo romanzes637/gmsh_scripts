@@ -1,0 +1,29 @@
+{
+  "factory": "occ",
+  "radii": [10, 20, 30],
+  "heights": [5, 10, 15],
+  "layers_lcs": [
+    [3, 4, 5],
+    [6, 7, 8],
+    [9, 10, 11]
+  ],
+  "transform_data": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  "layers_physical_names": [
+    ["r1h1", "r2h1", "r3h1"],
+    ["r1h2", "r2h2", "r3h2"],
+    ["r1h3", "r2h3", "r3h3"]
+  ],
+  "transfinite_r_data": [
+    [5, 0, 1.5],
+    [7, 0, 1],
+    [9, 1, 0.1]
+  ],
+  "transfinite_h_data": [
+    [5, 1, 5],
+    [7, 1, 1],
+    [9, 0, 0.5]
+  ],
+  "transfinite_phi_data": [7, 0, 1],
+  "divide_r_data": [3, 2, 1],
+  "divide_h_data": [1, 2, 3]
+}

@@ -394,13 +394,7 @@ def auto_primitive_points_sizes_min_curve(primitive_obj, points_sizes_dict, c=1.
 def auto_primitive_points_sizes_min_curve_in_volume(primitive_obj, points_sizes, c=1.0):
     for volume in primitive_obj.volumes:
         # Evaluate new_size
-        # FIXME workaround ValueError: ('gmshModelGetBoundary returned non-zero error code: ', 1)
-        try:
-            ps_es_data = get_volume_points_edges_data(volume)
-        except ValueError as e:
-            print('ValueError Volume {}'.format(volume))
-            print(e)
-            continue
+        ps_es_data = get_volume_points_edges_data(volume)
         min_length = list()
         for k, v in ps_es_data.items():
             min_length.append(c * v[1])
