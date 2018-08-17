@@ -1,0 +1,13 @@
+{
+  "metadata": {
+    "type": "unittest_arguments",
+    "test_name": "test_boolean",
+    "description": "Test boolean"
+  },
+  "arguments": {
+    "factory": "occ",
+    "first_complex_path": "input_intrusion.json",
+    "second_complex_path": "input_intrusion_2.json",
+    "environment_complex_path": "input_environment.json"
+  }
+}

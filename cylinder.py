@@ -1,6 +1,5 @@
 import math
-
-from primitive import Complex
+from complex import Complex
 from primitive import Primitive
 
 

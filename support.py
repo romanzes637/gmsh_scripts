@@ -1,7 +1,7 @@
 from pprint import pprint
+import math
 
 import gmsh
-import math
 
 
 # FIXME Bug with this approach:
@@ -420,6 +420,148 @@ def auto_complex_points_sizes_min_curve(complex_obj, points_sizes_dict, k=1.0):
 def auto_complex_points_sizes_min_curve_in_volume(complex_obj, points_sizes_dict, k=1.0):
     for p in complex_obj.primitives:
         auto_primitive_points_sizes_min_curve_in_volume(p, points_sizes_dict, k)
+
+
+def get_bounding_box_by_boundary_surfaces(boundary_surfaces):
+    points_x = dict()
+    points_y = dict()
+    points_z = dict()
+    surfaces_dim_tags = map(lambda x: [2, x], boundary_surfaces)
+    points_dim_tags = gmsh.model.getBoundary(surfaces_dim_tags, combined=False, recursive=True)
+    for dt in points_dim_tags:
+        dim = dt[0]
+        p = dt[1]
+        bb = gmsh.model.getBoundingBox(dim, p)
+        points_x[p] = bb[0]
+        points_y[p] = bb[1]
+        points_z[p] = bb[2]
+    pprint(points_x)
+    pprint(points_y)
+    pprint(points_z)
+    p_max_x = max(points_x, key=(lambda x: points_x[x]))
+    p_min_x = min(points_x, key=(lambda x: points_x[x]))
+    p_max_y = max(points_y, key=(lambda x: points_y[x]))
+    p_min_y = min(points_y, key=(lambda x: points_y[x]))
+    p_max_z = max(points_z, key=(lambda x: points_z[x]))
+    p_min_z = min(points_z, key=(lambda x: points_z[x]))
+    max_x = points_x[p_max_x]
+    min_x = points_x[p_min_x]
+    max_y = points_y[p_max_y]
+    min_y = points_y[p_min_y]
+    max_z = points_z[p_max_z]
+    min_z = points_z[p_min_z]
+    return min_x, min_y, min_z, max_x, max_y, max_z
+
+
+def get_boundary_surfaces():
+    volumes_dim_tags = gmsh.model.getEntities(3)
+    surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags)
+    surfaces = map(lambda x: x[1], surfaces_dim_tags)
+    return surfaces
+
+
+def boundary_surfaces_to_six_side_groups():
+    """
+    Try group boundary surfaces them into 6 groups by sides of cuboid (NX, NY, NZ, X, Y, Z)
+    :return: dict surfaces_groups
+    """
+    boundary_surfaces = get_boundary_surfaces()
+    surfaces_groups = {
+        'NX': list(),
+        'NY': list(),
+        'NZ': list(),
+        'X': list(),
+        'Y': list(),
+        'Z': list(),
+    }
+    # Points coordinates
+    points_x = dict()
+    points_y = dict()
+    points_z = dict()
+    surfaces_dim_tags = map(lambda x: [2, x], boundary_surfaces)
+    points_dim_tags = gmsh.model.getBoundary(surfaces_dim_tags, combined=False, recursive=True)
+    for dt in points_dim_tags:
+        dim = dt[0]
+        p = dt[1]
+        bb = gmsh.model.getBoundingBox(dim, p)
+        points_x[p] = bb[0]
+        points_y[p] = bb[1]
+        points_z[p] = bb[2]
+    # Evaluate bounding box
+    p_max_x = max(points_x, key=(lambda x: points_x[x]))
+    p_min_x = min(points_x, key=(lambda x: points_x[x]))
+    p_max_y = max(points_y, key=(lambda x: points_y[x]))
+    p_min_y = min(points_y, key=(lambda x: points_y[x]))
+    p_max_z = max(points_z, key=(lambda x: points_z[x]))
+    p_min_z = min(points_z, key=(lambda x: points_z[x]))
+    max_x = points_x[p_max_x]
+    min_x = points_x[p_min_x]
+    max_y = points_y[p_max_y]
+    min_y = points_y[p_min_y]
+    max_z = points_z[p_max_z]
+    min_z = points_z[p_min_z]
+    # Check surfaces for parallel to NX, NY, NZ, X, Y, Z
+    for s in boundary_surfaces:
+        surface_dim_tag = [2, s]
+        points_dim_tags = gmsh.model.getBoundary(surface_dim_tag, combined=False, recursive=True)
+        s_points_xs = list()
+        s_points_ys = list()
+        s_points_zs = list()
+        for dt in points_dim_tags:
+            p = dt[1]
+            s_points_xs.append(points_x[p])
+            s_points_ys.append(points_y[p])
+            s_points_zs.append(points_z[p])
+        tol = gmsh.option.getNumber("Geometry.Tolerance")
+        done = False
+        while not done:
+            # Check X
+            s_min_x = min(s_points_xs)
+            s_max_x = max(s_points_xs)
+            if abs(s_max_x - s_min_x) < tol:
+                # Check X or NX
+                while not done:
+                    if abs(s_min_x - min_x ) < tol:
+                        surfaces_groups['NX'].append(s)
+                        done = True
+                    elif abs(s_max_x - max_x) < tol:
+                        surfaces_groups['X'].append(s)
+                        done = True
+                    else:
+                        tol *= 10
+                break
+            # Check Y
+            s_min_y = min(s_points_ys)
+            s_max_y = max(s_points_ys)
+            if abs(s_max_y - s_min_y) < tol:
+                # Check Y or NY
+                while not done:
+                    if abs(s_min_y - min_y) < tol:
+                        surfaces_groups['NY'].append(s)
+                        done = True
+                    elif abs(s_max_y - max_y) < tol:
+                        surfaces_groups['Y'].append(s)
+                        done = True
+                    else:
+                        tol *= 10
+                break
+            # Check Z
+            s_min_z = min(s_points_zs)
+            s_max_z = max(s_points_zs)
+            if abs(s_max_z - s_min_z) < tol:
+                # Check Z or NZ
+                while not done:
+                    if abs(s_min_z - min_z) < tol:
+                        surfaces_groups['NZ'].append(s)
+                        done = True
+                    elif abs(s_max_z - max_z) < tol:
+                        surfaces_groups['Z'].append(s)
+                        done = True
+                    else:
+                        tol *= 10
+                break
+            tol *= 10
+    return surfaces_groups
 
 
 def volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces):

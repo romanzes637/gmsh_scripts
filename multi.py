@@ -11,7 +11,7 @@ import os
 parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--script', help='script filename')
 parser.add_argument('-si', '--script_input', help='script input filename')
-parser.add_argument('-i', '--input', help='input filename', default='input_multi.json')
+parser.add_argument('-i', '--input', help='input filename', default='input_multi_nkm.json')
 parser.add_argument('-l', '--length', help='combinations length', type=int, default=1)
 parser.add_argument('-f', '--format', help='mesh format/extension', default='msh')
 parser.add_argument('-p', '--prefix', help='output_prefix', default='multi')
@@ -62,7 +62,7 @@ for j, ac in enumerate(args_combinations):
         for i, vi in enumerate(vic):
             a = ac[i]
             v = multi_input[a][vi]
-            new_script_input[a] = v
+            new_script_input['arguments'][a] = v
             suffix_list.append(a)
             suffix_list.append(str(vi))
             vs.append(v)

@@ -1,33 +1,71 @@
 import math
-from primitive import Primitive, Complex
+from primitive import Primitive
+from complex import Complex
 
 
 class ComplexPrimitive(Complex):
-    def __init__(self, factory, divide_data, point_data, primitive_lc,
-                 transform_data=None, curve_types=None, curve_data=None,
+    def __init__(self, factory, divide_data, point_data, transform_data=None, curve_types=None, curve_data=None,
                  transfinite_data=None, transfinite_type=None, physical_name=None):
         """
         Primitive object divided into parts for boolean accuracy.
         :param str factory: see Primitive
-        :param divide_data: [n_parts_x, n_parts_y, n_parts_z]
-        :param point_data: see Primitive
-        :param primitive_lc: see Primitive
+        :param list of int divide_data: [n_parts_x, n_parts_y, n_parts_z]
+        :param list point_data: see Primitive
         :param list of float transform_data: see Primitive
-        :param curve_types: see Primitive
-        :param curve_data: see Primitive
+        :param list of int curve_types: see Primitive
+        :param list curve_data: see Primitive
         :param list of list of float transfinite_data: see Primitive
         :param int transfinite_type: see Primitive
         :param str physical_name: see Primitive
         """
         primitives = list()
+        if len(point_data) == 3:
+            half_lx = point_data[0] / 2.0
+            half_ly = point_data[1] / 2.0
+            half_lz = point_data[2] / 2.0
+            primitive_lc = None
+            new_point_data = [
+                [half_lx, half_ly, -half_lz],
+                [-half_lx, half_ly, -half_lz],
+                [-half_lx, -half_ly, -half_lz],
+                [half_lx, -half_ly, -half_lz],
+                [half_lx, half_ly, half_lz],
+                [-half_lx, half_ly, half_lz],
+                [-half_lx, -half_ly, half_lz],
+                [half_lx, -half_ly, half_lz]
+            ]
+        elif len(point_data) == 4:
+            half_lx = point_data[0] / 2.0
+            half_ly = point_data[1] / 2.0
+            half_lz = point_data[2] / 2.0
+            primitive_lc = point_data[3]
+            new_point_data = [
+                [half_lx, half_ly, -half_lz],
+                [-half_lx, half_ly, -half_lz],
+                [-half_lx, -half_ly, -half_lz],
+                [half_lx, -half_ly, -half_lz],
+                [half_lx, half_ly, half_lz],
+                [-half_lx, half_ly, half_lz],
+                [-half_lx, -half_ly, half_lz],
+                [half_lx, -half_ly, half_lz]
+            ]
+        else:
+            primitive_lc = None
+            new_point_data = [x[:3] for x in point_data]  # slice lc if exist
         if curve_data is None:
             curve_data = [[]] * 12
-        ps_base_points, ps_curves_points = divide_primitive(divide_data, point_data, curve_data)
+        ps_base_points, ps_curves_points = divide_primitive(divide_data, new_point_data, curve_data)
         for i, bps in enumerate(ps_base_points):
-            new_point_data = [x + [primitive_lc] for x in ps_base_points[i]]
+            if primitive_lc is not None:
+                new_point_data = [x + [primitive_lc] for x in ps_base_points[i]]
+            else:
+                new_point_data = ps_base_points[i]
             new_curve_data = list()
             for cps in ps_curves_points[i]:
-                new_curve_data.append([x + [primitive_lc] for x in cps])
+                if primitive_lc is not None:
+                    new_curve_data.append([x + [primitive_lc] for x in cps])
+                else:
+                    new_curve_data.append(cps)
             primitives.append(Primitive(
                 factory, new_point_data, transform_data, curve_types,
                 new_curve_data, transfinite_data, transfinite_type, physical_name
@@ -299,6 +337,7 @@ def divide_primitive(divide_data, base_points, curves_points):
     return primitives_base_points, primitives_curves_points
 
 
+# FIXME bug with divide_data [1, 2, 3]: ny = len(ny_y_lines[0][0])
 def correct_volume_lines(nx_x_lines, ny_y_lines, nz_z_lines):
     if len(nx_x_lines) == 0 or len(ny_y_lines) == 0 or len(nz_z_lines) == 0:  # FIXME plug to one layer
         return

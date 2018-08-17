@@ -1,12 +1,4 @@
-import argparse
-import json
-from pprint import pprint
-import os
-
-import gmsh
-
 from cylinder import Cylinder
-from occ_workarounds import correct_and_transfinite_complex
 
 
 class DividedCylinder(Cylinder):
@@ -96,64 +88,3 @@ class DividedCylinder(Cylinder):
         Cylinder.__init__(self, factory, new_radii, new_heights, new_primitives_lcs, transform_data,
                           new_layers_physical_names, new_transfinite_r_data, new_transfinite_h_data,
                           transfinite_phi_data)
-
-
-if __name__ == '__main__':
-    print('Arguments')
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', help='input filename', default='input_test_divided_cylinder.json')
-    parser.add_argument('-o', '--output', help='output filename')
-    parser.add_argument('-v', '--verbose', help='verbose', action='store_true')
-    parser.add_argument('-t', '--test', help='test mode', action='store_true')
-    args = parser.parse_args()
-    basename, extension = os.path.splitext(args.input)
-    if args.output is None:
-        args.output = basename
-    print(args)
-    is_test = args.test
-    is_verbose = args.verbose
-    output_path = args.output
-    input_path = args.input
-    model_name = basename
-    gmsh.initialize()
-    if is_verbose:
-        gmsh.option.setNumber("General.Terminal", 1)
-    else:
-        gmsh.option.setNumber("General.Terminal", 0)
-    gmsh.option.setNumber('Geometry.AutoCoherence', 0)  # No effect at gmsh.model.occ factory
-    gmsh.model.add(model_name)
-    print('Input')
-    with open(input_path) as f:
-        d = json.load(f)
-    pprint(d)
-    print('Initialize')
-    cylinder = DividedCylinder(**d)
-    factory = cylinder.factory
-    print('Synchronize')
-    factory.synchronize()
-    if not is_test:
-        print('Evaluate')
-        cylinder.evaluate_coordinates()  # for correct and transfinite
-        cylinder.evaluate_bounding_box()  # for boolean
-        print('Remove Duplicates')
-        factory.removeAllDuplicates()
-        print('Synchronize')
-        factory.synchronize()
-        print('Correct and Transfinite')
-        ss = set()
-        cs = set()
-        correct_and_transfinite_complex(cylinder, ss, cs)
-        print('Physical')
-        for name in cylinder.map_physical_name_to_primitives_indices.keys():
-            vs = cylinder.get_volumes_by_physical_name(name)
-            tag = gmsh.model.addPhysicalGroup(3, vs)
-            gmsh.model.setPhysicalName(3, tag, name)
-        print("Mesh")
-        gmsh.model.mesh.generate(3)
-        gmsh.model.mesh.removeDuplicateNodes()
-        print("Write")
-        gmsh.write(output_path + '.msh')
-    else:
-        print("Write")
-        gmsh.write(output_path + '.brep')
-    gmsh.finalize()

@@ -1,10 +1,10 @@
 import json
 from pprint import pprint
-
 import os
 
 from complex_primitive import ComplexPrimitive
-from primitive import Primitive, Complex
+from primitive import Primitive
+from complex import Complex
 from support import get_volumes_geometry, get_geometry, check_geometry, initialize_geometry
 
 
@@ -218,14 +218,8 @@ def read_complex_type_2_to_complex_primitives(factory, path, divide_data, lc,
     complex_primitives = list()
     for i in range(n_primitives):
         complex_primitives.append(ComplexPrimitive(
-            factory,
-            divide_data,
-            point_datas[i],
-            lc,
-            new_transform_datas[i],
-            transfinite_data=transfinite_data,
-            physical_name=volume_name
-        ))
+            factory, divide_data, point_datas[i], new_transform_datas[i],
+            transfinite_data=transfinite_data, physical_name=volume_name))
     return complex_primitives
 
 
@@ -302,5 +296,3 @@ def read_json(factory, filename):
     new_geo = initialize_geometry(factory, geo)
     # pprint(new_geo)
     return new_geo
-
-

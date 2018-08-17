@@ -2,13 +2,13 @@
   "metadata": {
     "type": "class_arguments",
     "class_name": "ComplexPrimitive",
-    "description": "Base Environment"
+    "description": "Test Intrusion 2"
   },
   "arguments": {
     "factory": "occ",
     "divide_data": [1, 1, 1],
-    "point_data": [5, 5, 5],
-    "transform_data": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "point_data": [5, 5, 22],
+    "transform_data": [0, 0, -20, 0, 0, 0, 0, 0, 0],
     "curve_types": null,
     "curve_data": null,
     "transfinite_data": [
@@ -17,6 +17,6 @@
       [10, 0, 1]
     ],
     "transfinite_type": null,
-    "physical_name": "Environment"
+    "physical_name": "Intrusion2"
   }
 }
