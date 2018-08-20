@@ -2,21 +2,17 @@
   "metadata": {
     "type": "class_arguments",
     "class_name": "ComplexPrimitive",
-    "description": "Test Intrusion 2"
+    "description": "NKM Environment"
   },
   "arguments": {
     "factory": "occ",
     "divide_data": [1, 1, 1],
-    "point_data": [5, 5, 22],
-    "transform_data": [0, 0, -20, 0, 0, 0, 0, 0, 0],
+    "point_data": [100, 100, 40, 10],
+    "transform_data": null,
     "curve_types": null,
     "curve_data": null,
-    "transfinite_data": [
-      [10, 0, 1],
-      [10, 0, 1],
-      [10, 0, 1]
-    ],
+    "transfinite_data": null,
     "transfinite_type": null,
-    "physical_name": "Intrusion2"
+    "physical_name": ""
   }
 }

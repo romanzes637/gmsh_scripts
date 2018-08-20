@@ -54,6 +54,8 @@ class ComplexPrimitive(Complex):
             new_point_data = [x[:3] for x in point_data]  # slice lc if exist
         if curve_data is None:
             curve_data = [[]] * 12
+        if physical_name is None:
+            physical_name = ComplexPrimitive.__name__
         ps_base_points, ps_curves_points = divide_primitive(divide_data, new_point_data, curve_data)
         for i, bps in enumerate(ps_base_points):
             if primitive_lc is not None:

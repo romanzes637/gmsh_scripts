@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "ComplexPrimitive",
+    "description": "Test Intrusion 2"
+  },
+  "arguments": {
+    "factory": "occ",
+    "divide_data": [2, 7, 3],
+    "point_data": [5, 80, 30],
+    "transform_data": [10, 0, -25, 0, 0, 0, 0, 0, 0],
+    "curve_types": null,
+    "curve_data": null,
+    "transfinite_data": [
+      [10, 0, 1],
+      [10, 0, 1],
+      [10, 0, 1]
+    ],
+    "transfinite_type": null,
+    "physical_name": "Intrusion2"
+  }
+}

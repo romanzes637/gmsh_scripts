@@ -206,8 +206,10 @@ class TestScripts(unittest.TestCase):
 
     def test_boolean(self):
         """
-         Test complex boolean
-         """
+        Test complex boolean
+        """
+        # FIXME bug with input_test_environment.json "divide_data": [1, 1, 1] then boolean at
+        # complex_by_volumes(factory, c1, evs, remove_tool=False, sort_function=sort_object_only_shared_no_tool)
         model_name = "test_boolean"
         gmsh.initialize()
         gmsh.option.setNumber("General.Terminal", 1)
@@ -218,14 +220,25 @@ class TestScripts(unittest.TestCase):
         with open(input_path) as f:
             d = json.load(f)
         pprint(d)
+        is_test_mode = d['arguments']['test_mode']
+        is_simple_environment = d['arguments']['simple_environment']
+        is_simple_first = d['arguments']['simple_first']
+        is_simple_second = d['arguments']['simple_second']
+        is_simple_boundary = d['arguments']['simple_boundary']
         with open(d['arguments']['first_complex_path']) as f1:
             d1 = json.load(f1)
+        if is_simple_first:
+            d1['arguments']["divide_data"] = [1, 1, 1]
         pprint(d1)
         with open(d['arguments']['second_complex_path']) as f2:
             d2 = json.load(f2)
+        if is_simple_second:
+            d2['arguments']["divide_data"] = [1, 1, 1]
         pprint(d2)
         with open(d['arguments']['environment_complex_path']) as fe:
             de = json.load(fe)
+        if is_simple_environment:
+            de['arguments']["divide_data"] = [1, 1, 1]
         pprint(de)
         if d['arguments']['factory'] == 'occ':
             factory = gmsh.model.occ
@@ -244,34 +257,43 @@ class TestScripts(unittest.TestCase):
         c2.evaluate_bounding_box()  # for boolean
         e.evaluate_coordinates()  # for correct and transfinite
         e.evaluate_bounding_box()  # for boolean
-        print("Boolean")
-        print("First by Second")
-        complex_by_complex(factory, c1, c2)
-        print("Environment Volumes")
-        evs = e.get_volumes()
-        print("First by Environment Volumes")
-        complex_by_volumes(factory, c1, evs, remove_tool=False, sort_function=sort_object_only_shared_no_tool)
-        print("Second by Environment Volumes")
-        complex_by_volumes(factory, c2, evs, remove_tool=False, sort_function=sort_object_only_shared_no_tool)
-        print("Environment by First")
-        complex_by_complex(factory, e, c1)
-        print("Environment by Second")
-        complex_by_complex(factory, e, c2)
-        print("Remove Duplicates")
-        factory.removeAllDuplicates()
-        print('Synchronize')
-        factory.synchronize()
+        if not is_test_mode:
+            print("Boolean")
+            print("First by Second")
+            complex_by_complex(factory, c1, c2)
+            if not is_simple_environment:
+                print("Environment Volumes")
+                evs = e.get_volumes()
+                print("First by Environment Volumes")
+                complex_by_volumes(factory, c1, evs, remove_tool=False, sort_function=sort_object_only_shared_no_tool)
+                print("Second by Environment Volumes")
+                complex_by_volumes(factory, c2, evs, remove_tool=False, sort_function=sort_object_only_shared_no_tool)
+                print("Environment by First")
+                complex_by_complex(factory, e, c1)
+                print("Environment by Second")
+                complex_by_complex(factory, e, c2)
+            else:
+                print("First By Environment")
+                complex_by_complex(factory, c1, e, sort_function=sort_object_only_shared_tool_no_shared,
+                                   pre_boolean=False)
+                print("Second By Environment")
+                complex_by_complex(factory, c2, e, sort_function=sort_object_only_shared_tool_no_shared,
+                                   pre_boolean=False)
+            print("Remove Duplicates")
+            factory.removeAllDuplicates()
+            print('Synchronize')
+            factory.synchronize()
+            print("Set Sizes")
+            pss = dict()
+            auto_complex_points_sizes_min_curve_in_volume(c1, pss)
+            auto_complex_points_sizes_min_curve_in_volume(c2, pss)
+            auto_complex_points_sizes_min_curve_in_volume(e, pss)
         print("Correct and Transfinite")
         cs = set()
         ss = set()
         occ_ws.correct_and_transfinite_complex(c1, ss, cs)
         occ_ws.correct_and_transfinite_complex(c2, ss, cs)
         occ_ws.correct_and_transfinite_complex(e, ss, cs)
-        print("Set Sizes")
-        pss = dict()
-        auto_complex_points_sizes_min_curve_in_volume(c1, pss)
-        auto_complex_points_sizes_min_curve_in_volume(c2, pss)
-        auto_complex_points_sizes_min_curve_in_volume(e, pss)
         print("Physical")
         print("First")
         for name in c1.map_physical_name_to_primitives_indices.keys():
@@ -288,11 +310,38 @@ class TestScripts(unittest.TestCase):
             vs = e.get_volumes_by_physical_name(name)
             tag = gmsh.model.addPhysicalGroup(3, vs)
             gmsh.model.setPhysicalName(3, tag, name)
-        print('Surfaces')
-        boundary_surfaces_groups = boundary_surfaces_to_six_side_groups()
-        for i, (name, ss) in enumerate(boundary_surfaces_groups.items()):
-            tag = gmsh.model.addPhysicalGroup(2, ss)
-            gmsh.model.setPhysicalName(2, tag, name)
+        if not is_test_mode:
+            print('Surfaces')
+            boundary_surfaces_groups = boundary_surfaces_to_six_side_groups()
+            if not is_simple_boundary:
+                map_surface_to_physical_name = dict()
+                print("First")
+                for physical_name in c1.map_physical_name_to_primitives_indices:
+                    surfaces = c1.get_surfaces_by_physical_name(physical_name)
+                    for s in surfaces:
+                        map_surface_to_physical_name[s] = physical_name
+                print("Second")
+                for physical_name in c2.map_physical_name_to_primitives_indices:
+                    surfaces = c2.get_surfaces_by_physical_name(physical_name)
+                    for s in surfaces:
+                        map_surface_to_physical_name[s] = physical_name
+                print("Environment")
+                for physical_name in e.map_physical_name_to_primitives_indices:
+                    surfaces = e.get_surfaces_by_physical_name(physical_name)
+                    for s in surfaces:
+                        map_surface_to_physical_name[s] = physical_name
+                for i, (name, ss) in enumerate(boundary_surfaces_groups.items()):
+                    map_expanded_physical_name_to_surfaces = dict()
+                    for s in ss:
+                        physical_name = '_'.join([name, map_surface_to_physical_name[s]])
+                        map_expanded_physical_name_to_surfaces.setdefault(physical_name, list()).append(s)
+                    for j, (epn, ess) in enumerate(map_expanded_physical_name_to_surfaces.items()):
+                        tag = gmsh.model.addPhysicalGroup(2, ess)
+                        gmsh.model.setPhysicalName(2, tag, epn)
+            else:
+                for i, (name, ss) in enumerate(boundary_surfaces_groups.items()):
+                    tag = gmsh.model.addPhysicalGroup(2, ss)
+                    gmsh.model.setPhysicalName(2, tag, name)
         print('Mesh')
         gmsh.model.mesh.generate(3)
         gmsh.model.mesh.removeDuplicateNodes()
@@ -853,8 +902,8 @@ class TestScripts(unittest.TestCase):
         gmsh.finalize()
 
     def test_extend(self):
-        n = int(1e3)
-        m = int(1e3)
+        n = int(1e4)
+        m = int(1e4)
         item = range(m)
         print('Number of items:\t\t{}'.format(n))
         print('Item length:\t\t{}'.format(m))
@@ -864,6 +913,8 @@ class TestScripts(unittest.TestCase):
         for i in range(n):
             for x in item:
                 a.append(x)
+        for x in a:  # Some operation
+            pass
         print("Append Direct:\t\t{:.3f}s".format(time.time() - start_time))
         # Append + Comprehension
         start_time = time.time()
@@ -871,6 +922,8 @@ class TestScripts(unittest.TestCase):
         for i in range(n):
             a2.append(item)
         flatten_a2 = [x for y in a2 for x in y]
+        for x in flatten_a2:  # Some operation
+            pass
         print("Append+Comprehension:\t{:.3f}s".format(time.time() - start_time))
         # Append + Chain
         start_time = time.time()
@@ -878,23 +931,37 @@ class TestScripts(unittest.TestCase):
         for i in range(n):
             a3.append(item)
         flatten_a3 = list(itertools.chain.from_iterable(a3))
-        print("Append+Chain:\t\t{:.3f}s".format(time.time() - start_time))
+        for x in flatten_a3:  # Some operation
+            pass
+        print("Append+ListChain:\t{:.3f}s".format(time.time() - start_time))
         # Extend3
         start_time = time.time()
         e = list()
         for i in range(n):
             e.extend(item)
+        for x in e:  # Some operation
+            pass
         print("Extend:\t\t\t{:.3f}s".format(time.time() - start_time))
         # Extend Operator
         start_time = time.time()
         eo = list()
         for i in range(n):
             eo += item
+        for x in eo:  # Some operation
+            pass
         print("Extend Operator:\t{:.3f}s".format(time.time() - start_time))
-        self.assertItemsEqual(a, flatten_a2)
-        self.assertItemsEqual(a, flatten_a3)
-        self.assertItemsEqual(a, e)
-        self.assertItemsEqual(a, eo)
+        # Append + Append Chain
+        start_time = time.time()
+        a4 = list()
+        for i in range(n):
+            a4.append(item)
+        for x in itertools.chain.from_iterable(a4):  # Some operation
+            pass
+        print("Append+Chain:\t\t{:.3f}s".format(time.time() - start_time))
+        # self.assertItemsEqual(a, flatten_a2)
+        # self.assertItemsEqual(a, flatten_a3)
+        # self.assertItemsEqual(a, e)
+        # self.assertItemsEqual(a, eo)
 
     def test_boolean_gmsh(self):
         gmsh.initialize()

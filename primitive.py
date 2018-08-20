@@ -3,7 +3,7 @@ import gmsh
 
 class Primitive:
     def __init__(self, factory, point_data, transform_data=None, curve_types=None, curve_data=None,
-                 transfinite_data=None, transfinite_type=None, physical_name="Primitive"):
+                 transfinite_data=None, transfinite_type=None, physical_name=None):
         """
         Base object with six quadrangular surfaces and eight points
         The object (e.g. number of its volumes/surfaces) could be changed in process,
@@ -107,7 +107,10 @@ class Primitive:
             self.transfinite_type = 0
         else:
             self.transfinite_type = transfinite_type
-        self.physical_name = physical_name
+        if physical_name is None:
+            self.physical_name = Primitive.__name__
+        else:
+            self.physical_name = physical_name
         self.points = []
         self.curves_points = []
         self.curves = []
@@ -176,22 +179,9 @@ class Primitive:
         tag = self.factory.addSurfaceLoop(self.surfaces)  # FIXME always return -1
         tag = self.factory.addVolume([tag])
         self.volumes.append(tag)
-        # self.factory.synchronize()
-        # Other (evaluate after factory.synchronize()
         self.points_coordinates = []
         self.curves_points_coordinates = []
-        # for point in self.points:
-        #     bb = gmsh.model.getBoundingBox(0, point)
-        #     self.points_coordinates.append([bb[0], bb[1], bb[2]])
-        # for curve_points in self.curves_points:
-        #     cs = []
-        #     for point in curve_points:
-        #         bb = gmsh.model.getBoundingBox(0, point)
-        #         cs.append([bb[0], bb[1], bb[2]])
-        #     self.curves_points_coordinates.append(cs)
         self.bounding_box = None  # [x_min, y_min, z_min, x_max, y_max, z_max] Call self.evaluate_bounding_box() to init
-        # self.evaluate_bounding_box()
-        # pprint(self.__dict__)
 
     def recombine(self):
         volumes_dim_tags = map(lambda x: (3, x), self.volumes)
@@ -329,6 +319,12 @@ class Primitive:
             volume_dim_tag = [3, v]
             points_dim_tags = gmsh.model.getBoundary([volume_dim_tag], combined=False, recursive=True)
             gmsh.model.mesh.setSize(points_dim_tags, size)
+
+    def get_surfaces(self, combined=True):
+        volumes_dim_tags = map(lambda x: [3, x], self.volumes)
+        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=combined)
+        surfaces = map(lambda x: x[1], surfaces_dim_tags)
+        return surfaces
 
     surfaces_names = {
         0: "NX",

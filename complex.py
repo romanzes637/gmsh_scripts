@@ -44,6 +44,14 @@ class Complex:
                 vs.extend(self.primitives[i].volumes)
         return vs
 
+    def get_surfaces_by_physical_name(self, name, combined=True):
+        ss = list()
+        primitive_idxs = self.map_physical_name_to_primitives_indices.get(name)
+        if primitive_idxs is not None:
+            for i in primitive_idxs:
+                ss.extend(self.primitives[i].get_surfaces(combined))
+        return ss
+
     def evaluate_coordinates(self):
         for p in self.primitives:
             p.evaluate_coordinates()

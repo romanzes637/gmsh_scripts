@@ -6,8 +6,13 @@
   },
   "arguments": {
     "factory": "occ",
-    "first_complex_path": "input_intrusion.json",
-    "second_complex_path": "input_intrusion_2.json",
-    "environment_complex_path": "input_environment.json"
+    "first_complex_path": "input_test_intrusion.json",
+    "second_complex_path": "input_test_intrusion_2.json",
+    "environment_complex_path": "input_test_environment.json",
+    "test_mode": false,
+    "simple_environment": true,
+    "simple_first": false,
+    "simple_second": false,
+    "simple_boundary": true
   }
 }
