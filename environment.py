@@ -4,7 +4,19 @@ import gmsh
 
 
 class Environment:
-    def __init__(self, factory, lx, ly, lz, lc, transform_data, inner_surfaces, physical_name="Environment"):
+    def __init__(self, factory, lx, ly, lz, lc, transform_data, inner_surfaces, physical_name=None):
+        """
+        Environment volume primarily for GEO factory and optionally for OCC (if no boolean operations needed)
+        :param str factory: see Primitive
+        :param float lx: length X
+        :param float ly: length Y
+        :param float lz: length Z
+        :param float lc: characteristic length
+        :param list of float transform_data: see Primitive
+        :param list of list of int inner_surfaces: Inner surfaces tags by surfaces groups
+        (surface group - surfaces that form a closed volume)
+        :param str physical_name: see Primitive
+        """
         if factory == 'occ':
             self.factory = gmsh.model.occ
         else:
@@ -15,17 +27,20 @@ class Environment:
         self.lc = lc
         self.transform_data = transform_data
         self.inner_surfaces = inner_surfaces
-        self.physical_name = physical_name
+        if physical_name is None:
+            self.physical_name = Environment.__name__
+        else:
+            self.physical_name = physical_name
         # Points
         self.points = []
-        self.points.append(factory.addPoint(lx / 2, ly / 2, -lz / 2, lc))
-        self.points.append(factory.addPoint(-lx / 2, ly / 2, -lz / 2, lc))
-        self.points.append(factory.addPoint(-lx / 2, -ly / 2, -lz / 2, lc))
-        self.points.append(factory.addPoint(lx / 2, -ly / 2, -lz / 2, lc))
-        self.points.append(factory.addPoint(lx / 2, ly / 2, lz / 2, lc))
-        self.points.append(factory.addPoint(-lx / 2, ly / 2, lz / 2, lc))
-        self.points.append(factory.addPoint(-lx / 2, -ly / 2, lz / 2, lc))
-        self.points.append(factory.addPoint(lx / 2, -ly / 2, lz / 2, lc))
+        self.points.append(self.factory.addPoint(lx / 2, ly / 2, -lz / 2, lc))
+        self.points.append(self.factory.addPoint(-lx / 2, ly / 2, -lz / 2, lc))
+        self.points.append(self.factory.addPoint(-lx / 2, -ly / 2, -lz / 2, lc))
+        self.points.append(self.factory.addPoint(lx / 2, -ly / 2, -lz / 2, lc))
+        self.points.append(self.factory.addPoint(lx / 2, ly / 2, lz / 2, lc))
+        self.points.append(self.factory.addPoint(-lx / 2, ly / 2, lz / 2, lc))
+        self.points.append(self.factory.addPoint(-lx / 2, -ly / 2, lz / 2, lc))
+        self.points.append(self.factory.addPoint(lx / 2, -ly / 2, lz / 2, lc))
         # Transform
         if transform_data is not None:
             dim_tags = map(lambda x: (0, x), self.points)
@@ -59,32 +74,32 @@ class Environment:
         self.curves = []
         for i in range(len(self.curves_points)):
             curve_points = [self.points[x] for x in self.curves_points[i]]
-            self.curves.append(factory.addLine(curve_points[0], curve_points[1]))
+            self.curves.append(self.factory.addLine(curve_points[0], curve_points[1]))
         # Surfaces
         self.surfaces = []
         for i in range(len(self.surfaces_curves)):
-            if factory == gmsh.model.geo:
-                cl_tag = factory.addCurveLoop(
+            if self.factory == gmsh.model.geo:
+                cl_tag = self.factory.addCurveLoop(
                     map(lambda x, y: y * self.curves[x], self.surfaces_curves[i], self.surfaces_curves_signs[i]))
-                self.surfaces.append(factory.addSurfaceFilling([cl_tag]))
+                self.surfaces.append(self.factory.addSurfaceFilling([cl_tag]))
             else:
-                cl_tag = factory.addCurveLoop([self.curves[x] for x in self.surfaces_curves[i]])
-                self.surfaces.append(factory.addSurfaceFilling(cl_tag))
+                cl_tag = self.factory.addCurveLoop([self.curves[x] for x in self.surfaces_curves[i]])
+                self.surfaces.append(self.factory.addSurfaceFilling(cl_tag))
         # Volumes
         self.volumes = []
         if self.factory == gmsh.model.occ:
-            out_sl = factory.addSurfaceLoop(self.surfaces, 1)  # FIXME bug always return = -1 by default
+            out_sl = self.factory.addSurfaceLoop(self.surfaces, 1)  # FIXME bug always return = -1 by default
             in_sls = []
             for i, sl in enumerate(inner_surfaces):
-                in_sls.append(factory.addSurfaceLoop(sl, 2 + i))  # FIXME bug always return = -1 by default
+                in_sls.append(self.factory.addSurfaceLoop(sl, 2 + i))  # FIXME bug always return = -1 by default
         else:
-            out_sl = factory.addSurfaceLoop(self.surfaces)
+            out_sl = self.factory.addSurfaceLoop(self.surfaces)
             flatten_in_sls = list(itertools.chain.from_iterable(inner_surfaces))  # 2D array to 1D array
-            in_sls = [factory.addSurfaceLoop(flatten_in_sls)]  # one surface loop
+            in_sls = [self.factory.addSurfaceLoop(flatten_in_sls)]  # one surface loop
         sls = list()
         sls.append(out_sl)
         sls += in_sls
-        self.volumes.append(factory.addVolume(sls))
+        self.volumes.append(self.factory.addVolume(sls))
 
     curves_points = [
         [1, 0], [5, 4], [6, 7], [2, 3],

@@ -11,9 +11,8 @@ import gmsh
 import occ_workarounds as occ_ws
 from complex_factory import ComplexFactory
 from io import read_complex_type_2_to_complex_primitives
-from primitive import Primitive
 from environment import Environment
-from boolean import complex_by_volumes, complex_by_complex, primitive_by_complex, complex_self, \
+from boolean import complex_by_volumes, complex_by_complex, complex_self, \
     sort_object_only_shared_no_tool, sort_object_only_shared_tool_no_shared
 from support import auto_complex_points_sizes_min_curve_in_volume, auto_volumes_groups_surfaces, auto_points_sizes, \
     boundary_surfaces_to_six_side_groups
@@ -52,13 +51,9 @@ class NKM:
         :param int hlw_ny: Number of HLW Boreholes y
         :param float hlw_dx: Interval of HLW Boreholes x
         :param float hlw_dy: Interval of HLW Boreholes y
-        :param bool simple_boundary: Make only 6 boundary surfaces: NX, NY, NZ, X, Y, Z
+        :param bool simple_boundary: Make only 6 boundary surfaces: NX, NY, NZ, X, Y, Z (mandatory True for geo factory)
         """
-        print('Input')
-        print('Environment')
-        with open(env_input_path) as env_input_file:
-            env_input = json.load(env_input_file)
-        pprint(env_input)
+        print('Read Input')
         print('ILW')
         with open(ilw_input_path) as ilw_input_file:
             ilw_input = json.load(ilw_input_file)
@@ -67,28 +62,28 @@ class NKM:
         with open(hlw_input_path) as hlw_input_file:
             hlw_input = json.load(hlw_input_file)
         pprint(hlw_input)
-        print('Initialization')
+        print('Environment')
+        with open(env_input_path) as env_input_file:
+            env_input = json.load(env_input_file)
+        pprint(env_input)
+        print('Initialize')
         self.spent_times = {}
+        self.factory_str = factory
         if factory == 'occ':
             self.factory = gmsh.model.occ
-            env_input['arguments']['factory'] = 'occ'
             ilw_input['arguments']['factory'] = 'occ'
             hlw_input['arguments']['factory'] = 'occ'
+            env_input['arguments']['factory'] = 'occ'
         else:
             self.factory = gmsh.model.geo
-            env_input['arguments']['factory'] = 'geo'
             ilw_input['arguments']['factory'] = 'geo'
             hlw_input['arguments']['factory'] = 'geo'
+            env_input['arguments']['factory'] = 'geo'
         self.int_names = int_names
-        self.env_name = env_name
         self.ilw_name = ilw_name
         self.hlw_name = hlw_name
+        self.env_name = env_name
         self.simple_boundary = simple_boundary
-        print('Environment')
-        start_time = time.time()
-        env_input['arguments']['transform_data'] = env_transform
-        self.env = ComplexFactory.new(env_input)
-        self.spent_times['Init Env'] = time.time() - start_time
         print('Intrusions')
         start_time = time.time()
         self.ints = []  # Array of ComplexPrimitive arrays
@@ -103,8 +98,7 @@ class NKM:
                 int_transfinites[i],
                 int_names[i]
             ))
-        self.spent_times['Init Ints'] = time.time() - start_time
-        print('Boreholes')
+        self.spent_times['Initialize Intrusions'] = time.time() - start_time
         print('ILW')
         start_time = time.time()
         self.ilws = []
@@ -129,7 +123,7 @@ class NKM:
                 print('{:.3f}s'.format(times[-1]))
                 time_spent += times[-1]
                 est_time = sum(times) / cnt
-        self.spent_times['Init ILW'] = time.time() - start_time
+        self.spent_times['Initialize ILW'] = time.time() - start_time
         print('HLW')
         start_time = time.time()
         self.hlws = []
@@ -154,14 +148,30 @@ class NKM:
                 print('{:.3f}s'.format(times[-1]))
                 time_spent += times[-1]
                 est_time = sum(times) / cnt
-        self.spent_times['Init HLW'] = time.time() - start_time
+        self.spent_times['Initialize HLW'] = time.time() - start_time
+        print('Environment')
+        start_time = time.time()
+        self.env_transform = env_transform
+        self.env_point_data = env_input['arguments']['point_data']
+        if self.factory == gmsh.model.occ:
+            env_input['arguments']['transform_data'] = env_transform
+            self.env = ComplexFactory.new(env_input)
+        self.spent_times['Initialize Environment'] = time.time() - start_time
+
+    def environment(self):
+        print('Environment')
+        start_time = time.time()
+        lx = self.env_point_data[0]
+        ly = self.env_point_data[1]
+        lz = self.env_point_data[2]
+        lc = self.env_point_data[3]
+        inner_surfaces = auto_volumes_groups_surfaces()
+        self.env = Environment(self.factory_str, lx, ly, lz, lc, self.env_transform, inner_surfaces, self.env_name)
+        self.spent_times['Environment'] = time.time() - start_time
 
     def evaluate(self):
-        print('Evaluate')
+        print('Evaluating')
         start_time = time.time()
-        print('Environment')
-        self.env.evaluate_coordinates()
-        self.env.evaluate_bounding_box()
         print('Intrusions')
         for intrusion in self.ints:
             for c in intrusion:
@@ -175,13 +185,18 @@ class NKM:
         for b in self.hlws:
             b.evaluate_coordinates()
             b.evaluate_bounding_box()
-        self.spent_times['Evaluate'] = time.time() - start_time
+        if self.factory == gmsh.model.occ:
+            print('Environment')
+            self.env.evaluate_coordinates()
+            self.env.evaluate_bounding_box()
+        self.spent_times['Evaluating'] = time.time() - start_time
 
     def boolean_intrusions(self):
         print('Intrusions Inner')
         start_time = time.time()
         for intrusion in self.ints:
-            complex_self(self.factory, intrusion)
+            for c in intrusion:
+                complex_self(self.factory, c)
         self.spent_times['In Ints'] = time.time() - start_time
         print('Intrusions By Intrusions')
         start_time = time.time()
@@ -194,6 +209,7 @@ class NKM:
         self.spent_times['Ints by Ints'] = time.time() - start_time
 
     def boolean_intrusions_by_boreholes(self):
+        print('Cut')
         print('Intrusions By ILW Boreholes')
         start_time = time.time()
         for i, b in enumerate(self.ilws):
@@ -204,8 +220,7 @@ class NKM:
                     b_volumes = c.get_volumes()
                     complex_by_volumes(self.factory, c, b_volumes, remove_tool=False,
                                        sort_function=sort_object_only_shared_no_tool)
-                    complex_by_complex(self.factory, c, b)
-        self.spent_times['Ints By ILW'] = time.time() - start_time
+        self.spent_times['Ints By ILW Cut'] = time.time() - start_time
         print('Intrusions By HLW Boreholes')
         start_time = time.time()
         for i, b in enumerate(self.hlws):
@@ -216,38 +231,101 @@ class NKM:
                     b_volumes = c.get_volumes()
                     complex_by_volumes(self.factory, c, b_volumes, remove_tool=False,
                                        sort_function=sort_object_only_shared_no_tool)
+        self.spent_times['Ints By HLW Cut'] = time.time() - start_time
+        print('Bool')
+        print('Intrusions By ILW Boreholes')
+        start_time = time.time()
+        for i, b in enumerate(self.ilws):
+            for j, intrusion in enumerate(self.ints):
+                for k, c in enumerate(intrusion):
+                    print('Borehole:{}/{} Intrusion:{}/{} IntrusionPart:{}/{}'.format(
+                        i + 1, len(self.ilws), j + 1, len(self.ints), k + 1, len(intrusion)))
+                    complex_by_complex(self.factory, c, b)
+        self.spent_times['Ints By ILW'] = time.time() - start_time
+        print('Intrusions By HLW Boreholes')
+        start_time = time.time()
+        for i, b in enumerate(self.hlws):
+            for j, intrusion in enumerate(self.ints):
+                for k, c in enumerate(intrusion):
+                    print('Borehole:{}/{} Intrusion:{}/{} IntrusionPart:{}/{}'.format(
+                        i + 1, len(self.ilws), j + 1, len(self.ints), k + 1, len(intrusion)))
                     complex_by_complex(self.factory, c, b)
         self.spent_times['Ints By HLW'] = time.time() - start_time
 
     def boolean_environment(self):
-        print('Intrusions By Environment')
-        start_time = time.time()
-        for i, intrusion in enumerate(self.ints):
-            print('Intrusion:{}/{}'.format(i + 1, len(self.ints)))
-            for c in intrusion:
-                complex_by_complex(self.factory, c, self.env, sort_function=sort_object_only_shared_tool_no_shared,
+        if len(self.env.primitives) == 1:
+            print('Intrusions By Environment')
+            start_time = time.time()
+            for i, intrusion in enumerate(self.ints):
+                print('Intrusion:{}/{}'.format(i + 1, len(self.ints)))
+                for c in intrusion:
+                    complex_by_complex(self.factory, c, self.env, sort_function=sort_object_only_shared_tool_no_shared,
+                                       pre_boolean=False)
+            self.spent_times['Ints By Env'] = time.time() - start_time
+            print('ILW Boreholes By Environment')
+            start_time = time.time()
+            for i, b in enumerate(self.ilws):
+                print('Borehole:{}/{}'.format(i + 1, len(self.ilws)))
+                complex_by_complex(self.factory, b, self.env, sort_function=sort_object_only_shared_tool_no_shared,
                                    pre_boolean=False)
-        self.spent_times['Ints By Env'] = time.time() - start_time
-        print('ILW Boreholes By Environment')
-        start_time = time.time()
-        for i, b in enumerate(self.ilws):
-            print('Borehole:{}/{}'.format(i + 1, len(self.ilws)))
-            complex_by_complex(self.factory, b, self.env, sort_function=sort_object_only_shared_tool_no_shared,
-                               pre_boolean=False)
-        self.spent_times['ILW By Env'] = time.time() - start_time
-        print('HLW Boreholes By Environment')
-        start_time = time.time()
-        for i, b in enumerate(self.hlws):
-            print('Borehole:{}/{}'.format(i + 1, len(self.hlws)))
-            complex_by_complex(self.factory, b, self.env, sort_function=sort_object_only_shared_tool_no_shared,
-                               pre_boolean=False)
-        self.spent_times['HLW By Env'] = time.time() - start_time
+            self.spent_times['ILW By Env'] = time.time() - start_time
+            print('HLW Boreholes By Environment')
+            start_time = time.time()
+            for i, b in enumerate(self.hlws):
+                print('Borehole:{}/{}'.format(i + 1, len(self.hlws)))
+                complex_by_complex(self.factory, b, self.env, sort_function=sort_object_only_shared_tool_no_shared,
+                                   pre_boolean=False)
+        else:
+            print('Cut')
+            e_volumes = self.env.get_volumes()
+            print('Environment By Intrusions')
+            start_time = time.time()
+            for i, intrusion in enumerate(self.ints):
+                print('Intrusion:{}/{}'.format(i + 1, len(self.ints)))
+                for c in intrusion:
+                    complex_by_volumes(self.factory, c, e_volumes, remove_tool=False,
+                                       sort_function=sort_object_only_shared_no_tool)
+            self.spent_times['Env By Ints Cut'] = time.time() - start_time
+            print('Environment By ILW Boreholes')
+            start_time = time.time()
+            for i, b in enumerate(self.ilws):
+                print('Borehole:{}/{}'.format(i + 1, len(self.ilws)))
+                complex_by_volumes(self.factory, b, e_volumes, remove_tool=False,
+                                   sort_function=sort_object_only_shared_no_tool)
+            self.spent_times['Env By Ilw Cut'] = time.time() - start_time
+            print('Environment By HLW Boreholes')
+            start_time = time.time()
+            for i, b in enumerate(self.hlws):
+                print('Borehole:{}/{}'.format(i + 1, len(self.hlws)))
+                complex_by_volumes(self.factory, b, e_volumes, remove_tool=False,
+                                   sort_function=sort_object_only_shared_no_tool)
+            self.spent_times['Env By Hlw Cut'] = time.time() - start_time
+            print('Bool')
+            print('Environment By Intrusions')
+            start_time = time.time()
+            for i, intrusion in enumerate(self.ints):
+                print('Intrusion:{}/{}'.format(i + 1, len(self.ints)))
+                for c in intrusion:
+                    complex_by_complex(self.factory, self.env, c)
+            self.spent_times['Env By Ints'] = time.time() - start_time
+            print('Environment By ILW Boreholes')
+            start_time = time.time()
+            for i, b in enumerate(self.ilws):
+                print('Borehole:{}/{}'.format(i + 1, len(self.ilws)))
+                complex_by_complex(self.factory, self.env, b)
+            self.spent_times['Env By Ilw'] = time.time() - start_time
+            print('Environment By HLW Boreholes')
+            start_time = time.time()
+            for i, b in enumerate(self.hlws):
+                print('Borehole:{}/{}'.format(i + 1, len(self.hlws)))
+                complex_by_complex(self.factory, self.env, b)
+            self.spent_times['Env By Hlw'] = time.time() - start_time
 
     def remove_duplicates(self):
         print('Remove Duplicates')
         start_time = time.time()
         self.factory.removeAllDuplicates()
-        self.spent_times['Remove Duplicates'] = time.time() - start_time
+        self.spent_times['Removing Duplicates'] = time.time() - start_time
 
     def synchronize(self):
         print('Synchronize')
@@ -261,8 +339,6 @@ class NKM:
         start_time = time.time()
         cs = set()
         ss = set()
-        print('Environment')
-        occ_ws.correct_and_transfinite_complex(self.env, ss, cs)
         print('Intrusions')
         for i in self.ints:
             for c in i:
@@ -273,22 +349,10 @@ class NKM:
         print('HLW Boreholes')
         for b in self.hlws:
             occ_ws.correct_and_transfinite_complex(b, ss, cs)
+        if self.factory == gmsh.model.occ:
+            print('Environment')
+            occ_ws.correct_and_transfinite_complex(self.env, ss, cs)
         self.spent_times['Correct And Transfinite'] = time.time() - start_time
-
-    def transfinite(self):
-        if self.factory == gmsh.model.geo:
-            ss = set()
-            print('Intrusions')
-            for i in self.ints:
-                for c in i:
-                    c.transfinite(ss)
-            print('ILW Boreholes')
-            for b in self.ilws:
-                rs = b.transfinite(ss)
-                print(rs)
-            print('HLW Boreholes')
-            for b in self.hlws:
-                b.transfinite(b, ss)
 
     def set_sizes(self):
         print('Set Sizes')
@@ -318,8 +382,6 @@ class NKM:
     def smooth(self, dim, n):
         print('Smooth')
         start_time = time.time()
-        print('Environment')
-        self.env.smooth(dim, n)
         print('Intrusions')
         for i in self.ints:
             for c in i:
@@ -330,6 +392,9 @@ class NKM:
         print('HLW Boreholes')
         for b in self.hlws:
             b.smooth(dim, n)
+        print('Environment')
+        if self.factory == gmsh.model.occ:
+            self.env.smooth(dim, n)
         self.spent_times['Smooth'] = time.time() - start_time
 
     def physical_volumes(self):
@@ -363,13 +428,17 @@ class NKM:
                 tag = gmsh.model.addPhysicalGroup(3, vs)
                 gmsh.model.setPhysicalName(3, tag, '_'.join([self.hlw_name, local_name]))
         print('Environment')
-        for local_name in self.env.map_physical_name_to_primitives_indices.keys():
-            vs = self.env.get_volumes_by_physical_name(local_name)
-            tag = gmsh.model.addPhysicalGroup(3, vs)
-            if local_name == '':
-                gmsh.model.setPhysicalName(3, tag, self.env_name)
-            else:
-                gmsh.model.setPhysicalName(3, tag, '_'.join([self.env_name, local_name]))
+        if self.factory == gmsh.model.occ:
+            for local_name in self.env.map_physical_name_to_primitives_indices.keys():
+                vs = self.env.get_volumes_by_physical_name(local_name)
+                tag = gmsh.model.addPhysicalGroup(3, vs)
+                if local_name == '':
+                    gmsh.model.setPhysicalName(3, tag, self.env_name)
+                else:
+                    gmsh.model.setPhysicalName(3, tag, '_'.join([self.env_name, local_name]))
+        else:
+            tag = gmsh.model.addPhysicalGroup(3, self.env.volumes)
+            gmsh.model.setPhysicalName(3, tag, self.env_name)
         self.spent_times['Physical Volumes'] = time.time() - start_time
 
     def physical_surfaces(self):
@@ -473,21 +542,31 @@ if __name__ == '__main__':
     with open(input_path) as f:
         input_nkm = json.load(f)
     pprint(input_nkm)
+    factory_str = input_nkm['arguments']['factory']
     print('Initialize')
     nkm = NKM(**input_nkm['arguments'])
     nkm.synchronize()
     if not is_test:
-        nkm.evaluate()
-        nkm.boolean_intrusions()
-        nkm.boolean_intrusions_by_boreholes()
-        nkm.boolean_environment()
-        nkm.remove_duplicates()
-        nkm.synchronize()
-        nkm.set_sizes()
-        nkm.correct_and_transfinite()
-        nkm.physical_volumes()
-        nkm.physical_surfaces()
-        # nkm.smooth(2, 1)
+        if factory_str == 'occ':
+            nkm.evaluate()
+            nkm.boolean_intrusions()
+            nkm.boolean_intrusions_by_boreholes()
+            nkm.boolean_environment()
+            nkm.remove_duplicates()
+            nkm.synchronize()
+            nkm.set_sizes()
+            nkm.correct_and_transfinite()
+            nkm.physical_volumes()
+            nkm.physical_surfaces()
+        else:
+            nkm.evaluate()
+            nkm.remove_duplicates()
+            nkm.synchronize()
+            nkm.environment()
+            nkm.synchronize()
+            nkm.correct_and_transfinite()
+            nkm.physical_volumes()
+            nkm.physical_surfaces()
         spent_times.update(nkm.spent_times)
         print('Mesh')
         start_time = time.time()

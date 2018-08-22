@@ -7,7 +7,7 @@
   "arguments": {
     "factory": "occ",
     "divide_data": [1, 1, 1],
-    "point_data": [100, 100, 40, 10],
+    "point_data": [500, 500, 500, 100],
     "transform_data": null,
     "curve_types": null,
     "curve_data": null,

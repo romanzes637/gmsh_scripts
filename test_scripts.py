@@ -1162,13 +1162,14 @@ class TestScripts(unittest.TestCase):
         gmsh.option.setNumber("Geometry.AutoCoherence", 0)  # No effect at gmsh.model.occ factory
         gmsh.option.setNumber("General.Terminal", 1)
         gmsh.model.add("test_transfinite")
-        factory = gmsh.model.occ
+        factory = gmsh.model.geo
+        factory_str = 'geo'
         print("Creation")
         start = time.time()
         primitives = []
         for i in range(4):
             primitives.append(Primitive(
-                factory,
+                factory_str,
                 [
                     [5, 10, -15, 1],
                     [-5, 10, -15, 1],
@@ -1218,7 +1219,7 @@ class TestScripts(unittest.TestCase):
             ))
         for i in range(4):
             primitives.append(Primitive(
-                factory,
+                factory_str,
                 [
                     [10, 5, -15, 1],
                     [-10, 5, -15, 1],
@@ -1268,7 +1269,7 @@ class TestScripts(unittest.TestCase):
             ))
         for i in range(4):
             primitives.append(Primitive(
-                factory,
+                factory_str,
                 [
                     [15, 10, -5, 1],
                     [-15, 10, -5, 1],
@@ -1320,21 +1321,22 @@ class TestScripts(unittest.TestCase):
         print("Synchronize")
         factory.synchronize()
         print("Evaluate Coordinates")
-        start = time.time()
-        for p in primitives:
-            p.evaluate_coordinates()
-        print('{:.3f}s'.format(time.time() - start))
-        print("Correct")
-        start = time.time()
-        for p in primitives:
-            result = occ_ws.correct_primitive(p)
-            print(result)
+        # start = time.time()
+        # for p in primitives:
+        #     p.evaluate_coordinates()
+        # print('{:.3f}s'.format(time.time() - start))
+        # print("Correct")
+        # start = time.time()
+        # for p in primitives:
+        #     result = occ_ws.correct_primitive(p)
+        #     print(result)
         print('{:.3f}s'.format(time.time() - start))
         print("Transfinite")
         start = time.time()
         ss = set()
+        cs = set()
         for p in primitives:
-            result = p.transfinite(ss)
+            result = p.transfinite(ss, cs)
             print(result)
         print('{:.3f}s'.format(time.time() - start))
         print("Physical")
