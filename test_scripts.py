@@ -179,12 +179,12 @@ class TestScripts(unittest.TestCase):
         else:
             factory = gmsh.model.geo
         print('Initialize')
-        cylinder = ComplexPrimitive(**d['arguments'])
+        cp = ComplexPrimitive(**d['arguments'])
         print('Synchronize')
         factory.synchronize()
         print('Evaluate')
-        cylinder.evaluate_coordinates()  # for correct and transfinite
-        cylinder.evaluate_bounding_box()  # for boolean
+        cp.evaluate_coordinates()  # for correct and transfinite
+        cp.evaluate_bounding_box()  # for boolean
         print('Remove All Duplicates')
         factory.removeAllDuplicates()
         print('Synchronize')
@@ -192,10 +192,10 @@ class TestScripts(unittest.TestCase):
         print('Correct and Transfinite')
         ss = set()
         cs = set()
-        occ_ws.correct_and_transfinite_complex(cylinder, ss, cs)
+        print(occ_ws.correct_and_transfinite_complex(cp, ss, cs))
         print('Physical')
-        for name in cylinder.map_physical_name_to_primitives_indices.keys():
-            vs = cylinder.get_volumes_by_physical_name(name)
+        for name in cp.map_physical_name_to_primitives_indices.keys():
+            vs = cp.get_volumes_by_physical_name(name)
             tag = gmsh.model.addPhysicalGroup(3, vs)
             gmsh.model.setPhysicalName(3, tag, name)
         print("Mesh")

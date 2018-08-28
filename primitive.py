@@ -1,4 +1,14 @@
+import argparse
+import json
+import socket
+from pprint import pprint
+
 import gmsh
+import sys
+
+import os
+
+from occ_workarounds import correct_and_transfinite_primitive
 
 
 class Primitive:
@@ -529,3 +539,71 @@ class Primitive:
             [self.points[self.curves_local_points[i][1]]]
         )
     }
+
+
+if __name__ == '__main__':
+    print('Python: {0}'.format(sys.executable))
+    print('Script: {0}'.format(__file__))
+    print('Working Directory: {0}'.format(os.getcwd()))
+    print('Host: {}'.format(socket.gethostname()))
+    print('PID: {}'.format(os.getpid()))
+    print('Arguments')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--input', help='input filename', default='input_primitive.json')
+    parser.add_argument('-o', '--output', help='output filename')
+    parser.add_argument('-v', '--verbose', help='verbose', action='store_true')
+    parser.add_argument('-t', '--test', help='test mode', action='store_true')
+    args = parser.parse_args()
+    basename, extension = os.path.splitext(args.input)
+    if args.output is None:
+        args.output = basename
+    print(args)
+    is_test = args.test
+    is_verbose = args.verbose
+    output_path = args.output
+    input_path = args.input
+    model_name = basename
+    gmsh.initialize()
+    if is_verbose:
+        gmsh.option.setNumber("General.Terminal", 1)
+    else:
+        gmsh.option.setNumber("General.Terminal", 0)
+    gmsh.option.setNumber('Geometry.AutoCoherence', 0)  # No effect at gmsh.model.occ factory
+    gmsh.model.add(model_name)
+    print('Input')
+    with open(input_path) as f:
+        d = json.load(f)
+    pprint(d)
+    print('Initialize')
+    primitive = Primitive(**d['arguments'])
+    factory = primitive.factory
+    print('Synchronize')
+    factory.synchronize()
+    if not is_test:
+        print('Evaluate')
+        primitive.evaluate_coordinates()  # for correct and transfinite
+        primitive.evaluate_bounding_box()  # for boolean
+        print('Remove Duplicates')
+        factory.removeAllDuplicates()
+        print('Synchronize')
+        factory.synchronize()
+        print("Correct and Transfinite")
+        ss = set()
+        cs = set()
+        correct_and_transfinite_primitive(primitive, ss, cs)
+        print("Physical")
+        vs = primitive.volumes
+        tag = gmsh.model.addPhysicalGroup(3, vs)
+        gmsh.model.setPhysicalName(3, tag, primitive.physical_name)
+        for i, s in enumerate(primitive.surfaces):
+            tag = gmsh.model.addPhysicalGroup(2, [s])
+            gmsh.model.setPhysicalName(2, tag, primitive.surfaces_names[i])
+        print("Mesh")
+        gmsh.model.mesh.generate(3)
+        gmsh.model.mesh.removeDuplicateNodes()
+        print("Write")
+        gmsh.write(output_path + '.msh')
+    else:
+        print("Write")
+        gmsh.write(output_path + '.brep')
+    gmsh.finalize()
