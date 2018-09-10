@@ -6,8 +6,8 @@ import math
 import time
 
 import gmsh
+import os
 
-import occ_workarounds as occ_ws
 from complex_factory import ComplexFactory
 from environment import Environment
 from boolean import complex_by_volumes, complex_by_complex, primitive_by_complex, primitive_by_volumes, \
@@ -15,8 +15,8 @@ from boolean import complex_by_volumes, complex_by_complex, primitive_by_complex
 from io import read_complex_type_1, read_complex_type_2, read_complex_type_2_to_complex_primitives, write_json, \
     read_json
 from complex_primitive import ComplexPrimitive
+from occ_workarounds import correct_and_transfinite_primitive, correct_and_transfinite_complex
 from primitive import Primitive
-from complex import Complex
 from cylinder import Cylinder
 from divided_cylinder import DividedCylinder
 from support import auto_primitive_points_sizes_min_curve, auto_complex_points_sizes_min_curve, \
@@ -36,8 +36,14 @@ class TestScripts(unittest.TestCase):
         model_name = 'test_primitive'
         gmsh.model.add(model_name)
         print('Input')
-        input_path = '_'.join(['input', model_name + '.json'])
-        with open(input_path) as f:
+        input_file_name = '_'.join(['input', model_name + '.json'])
+        output_file_name = model_name + '.msh'
+        script_dir_path = os.path.dirname(os.path.abspath(__file__))
+        rel_input_file_path = os.path.join(script_dir_path, input_file_name)
+        rel_output_file_path = os.path.join(script_dir_path, output_file_name)
+        real_rel_input_file_path = os.path.realpath(rel_input_file_path)
+        real_rel_output_file_path = os.path.realpath(rel_output_file_path)
+        with open(real_rel_input_file_path) as f:
             d = json.load(f)
         pprint(d)
         if d['arguments']['factory'] == 'occ':
@@ -58,7 +64,7 @@ class TestScripts(unittest.TestCase):
         print("Correct and Transfinite")
         ss = set()
         cs = set()
-        occ_ws.correct_and_transfinite_primitive(primitive, ss, cs)
+        correct_and_transfinite_primitive(primitive, ss, cs)
         print("Physical")
         vs = primitive.volumes
         tag = gmsh.model.addPhysicalGroup(3, vs)
@@ -69,7 +75,7 @@ class TestScripts(unittest.TestCase):
         print('Mesh')
         gmsh.model.mesh.generate(3)
         gmsh.model.mesh.removeDuplicateNodes()
-        gmsh.write(model_name + '.msh')
+        gmsh.write(real_rel_output_file_path)
         gmsh.finalize()
 
     def test_cylinder(self):
@@ -82,8 +88,14 @@ class TestScripts(unittest.TestCase):
         model_name = 'test_cylinder'
         gmsh.model.add(model_name)
         print('Input')
-        input_path = '_'.join(['input', model_name + '.json'])
-        with open(input_path) as f:
+        input_file_name = '_'.join(['input', model_name + '.json'])
+        output_file_name = model_name + '.msh'
+        script_dir_path = os.path.dirname(os.path.abspath(__file__))
+        rel_input_file_path = os.path.join(script_dir_path, input_file_name)
+        rel_output_file_path = os.path.join(script_dir_path, output_file_name)
+        real_rel_input_file_path = os.path.realpath(rel_input_file_path)
+        real_rel_output_file_path = os.path.realpath(rel_output_file_path)
+        with open(real_rel_input_file_path) as f:
             d = json.load(f)
         pprint(d)
         if d['arguments']['factory'] == 'occ':
@@ -104,7 +116,7 @@ class TestScripts(unittest.TestCase):
         print('Correct and Transfinite')
         ss = set()
         cs = set()
-        occ_ws.correct_and_transfinite_complex(cylinder, ss, cs)
+        correct_and_transfinite_complex(cylinder, ss, cs)
         print('Physical')
         for name in cylinder.map_physical_name_to_primitives_indices.keys():
             vs = cylinder.get_volumes_by_physical_name(name)
@@ -113,7 +125,7 @@ class TestScripts(unittest.TestCase):
         print("Mesh")
         gmsh.model.mesh.generate(3)
         gmsh.model.mesh.removeDuplicateNodes()
-        gmsh.write(model_name + ".msh")
+        gmsh.write(real_rel_output_file_path)
         gmsh.finalize()
 
     def test_divided_cylinder(self):
@@ -148,7 +160,7 @@ class TestScripts(unittest.TestCase):
         print('Correct and Transfinite')
         ss = set()
         cs = set()
-        occ_ws.correct_and_transfinite_complex(cylinder, ss, cs)
+        correct_and_transfinite_complex(cylinder, ss, cs)
         print('Physical')
         for name in cylinder.map_physical_name_to_primitives_indices.keys():
             vs = cylinder.get_volumes_by_physical_name(name)
@@ -192,7 +204,7 @@ class TestScripts(unittest.TestCase):
         print('Correct and Transfinite')
         ss = set()
         cs = set()
-        print(occ_ws.correct_and_transfinite_complex(cp, ss, cs))
+        print(correct_and_transfinite_complex(cp, ss, cs))
         print('Physical')
         for name in cp.map_physical_name_to_primitives_indices.keys():
             vs = cp.get_volumes_by_physical_name(name)
@@ -291,9 +303,9 @@ class TestScripts(unittest.TestCase):
         print("Correct and Transfinite")
         cs = set()
         ss = set()
-        occ_ws.correct_and_transfinite_complex(c1, ss, cs)
-        occ_ws.correct_and_transfinite_complex(c2, ss, cs)
-        occ_ws.correct_and_transfinite_complex(e, ss, cs)
+        correct_and_transfinite_complex(c1, ss, cs)
+        correct_and_transfinite_complex(c2, ss, cs)
+        correct_and_transfinite_complex(e, ss, cs)
         print("Physical")
         print("First")
         for name in c1.map_physical_name_to_primitives_indices.keys():
@@ -1146,7 +1158,7 @@ class TestScripts(unittest.TestCase):
         print("Correct and Transfinite")
         ss = set()
         print(primitive_geo.transfinite(ss))
-        print(occ_ws.correct_and_transfinite_primitive(primitive_occ, ss))
+        print(correct_and_transfinite_primitive(primitive_occ, ss))
         print("Physical")
         tag = gmsh.model.addPhysicalGroup(3, primitive_geo.volumes)
         gmsh.model.setPhysicalName(3, tag, primitive_geo.volume_name)
@@ -1524,10 +1536,10 @@ class TestScripts(unittest.TestCase):
         factory.synchronize()
         print("Correct and Transfinite")
         ss = set()
-        occ_ws.correct_and_transfinite_complex(cylinder, ss)
-        print(occ_ws.correct_and_transfinite_primitive(primitive, ss))
-        print(occ_ws.correct_and_transfinite_primitive(primitive2, ss))
-        print(occ_ws.correct_and_transfinite_primitive(primitive3, ss))
+        correct_and_transfinite_complex(cylinder, ss)
+        print(correct_and_transfinite_primitive(primitive, ss))
+        print(correct_and_transfinite_primitive(primitive2, ss))
+        print(correct_and_transfinite_primitive(primitive3, ss))
         print("Physical")
         tag = gmsh.model.addPhysicalGroup(3, primitive.volumes)
         gmsh.model.setPhysicalName(3, tag, primitive.volume_name)
@@ -1589,7 +1601,7 @@ class TestScripts(unittest.TestCase):
         factory.synchronize()
         print('Correct and Transfinite')
         ss = set()
-        occ_ws.correct_and_transfinite_complex(c, ss)
+        correct_and_transfinite_complex(c, ss)
         print('Auto points sizes')
         sizes = auto_points_sizes()
         pprint(sizes)
@@ -1637,7 +1649,7 @@ class TestScripts(unittest.TestCase):
         print('Correct and Transfinite')
         ss = set()
         for cp in complex_primitives:
-            result = occ_ws.correct_and_transfinite_complex(cp, ss)
+            result = correct_and_transfinite_complex(cp, ss)
             print(result)
         print('Auto points sizes')
         sizes = auto_points_sizes()
@@ -1767,7 +1779,7 @@ class TestScripts(unittest.TestCase):
         start = time.time()
         ss = set()
         for cp in complex_primitives:
-            occ_ws.correct_and_transfinite_complex(cp, ss)
+            correct_and_transfinite_complex(cp, ss)
         print('{:.3f}s'.format(time.time() - start))
 
         print("Set Sizes")

@@ -9,6 +9,9 @@ import gmsh
 # surfaces_dim_tags = gmsh.model.getBoundary([[3, volume]])
 # File "/home/butovr/Programs/gmsh/api/gmsh.py", line 517, in getBoundary ierr.value)
 # ValueError: ('gmshModelGetBoundary returned non-zero error code: ', 1)
+import os
+
+
 def get_volume_points_edges_data(volume):
     """
     Return volume points edges data. For point's characteristic length (lc) auto setting.
@@ -767,3 +770,45 @@ def structure_cuboid(volume, structured_surfaces, structured_edges, min_edge_nod
             gmsh.model.mesh.setTransfiniteSurface(surface, cornerTags=points)
             structured_surfaces.add(surface)
     gmsh.model.mesh.setTransfiniteVolume(volume)
+
+
+def check_file(path):
+    """
+    Check path on the existing file in the order:
+    0. If file at absolute path
+    1. Else if file at relative to current working directory path
+    2. Else if file at relative to running script directory path
+    3. Else if file at relative to real running script directory path (with eliminating all symbolics links)
+    -1. Else no file
+    :param str path:
+    :return dict: {'type': int, 'path': str}
+    """
+    # Expand path
+    path_expand_vars = os.path.expandvars(path)
+    path_expand_vars_user = os.path.expanduser(path_expand_vars)
+    # Get directories
+    wd_path = os.getcwd()
+    script_dir_path = os.path.dirname(os.path.abspath(__file__))
+    # Set paths to file check
+    clear_path = path_expand_vars_user
+    rel_wd_path = os.path.join(wd_path, path_expand_vars_user)
+    rel_script_path = os.path.join(script_dir_path, path_expand_vars_user)
+    real_rel_script_path = os.path.realpath(rel_script_path)
+    # Check on file:
+    result = dict()
+    if os.path.isfile(clear_path):
+        result['type'] = 0
+        result['path'] = clear_path
+    elif os.path.isfile(rel_wd_path):
+        result['type'] = 1
+        result['path'] = rel_wd_path
+    elif os.path.isfile(rel_script_path):
+        result['type'] = 2
+        result['path'] = rel_script_path
+    elif os.path.isfile(real_rel_script_path):
+        result['type'] = 3
+        result['path'] = real_rel_script_path
+    else:  # No file
+        result['type'] = -1
+        result['path'] = path
+    return result

@@ -1,4 +1,5 @@
 import json
+import shlex
 from pprint import pprint
 from subprocess import Popen
 from copy import deepcopy
@@ -7,107 +8,107 @@ import argparse
 import os
 
 # Multiple run of gmsh scripts
-# Arguments
+from support import check_file
+
+print('Cmd')
 parser = argparse.ArgumentParser()
-parser.add_argument('-s', '--script', help='script filename')
-parser.add_argument('-si', '--script_input', help='script input filename')
-parser.add_argument('-i', '--input', help='input filename', default='input_multi_nkm.json')
-parser.add_argument('-l', '--length', help='combinations length', type=int, default=1)
-parser.add_argument('-f', '--format', help='mesh format/extension', default='msh')
-parser.add_argument('-p', '--prefix', help='output_prefix', default='multi')
-parser.add_argument('-v', '--verbose', help='verbose', action='store_true')
-parser.add_argument('-t', '--test', help='test mode, no processes starting', action='store_true')
-args = parser.parse_args()
-# Correct arguments
-basename, extension = os.path.splitext(args.script)
-if args.script_input is None:
-    args.script_input = '{}_input.json'.format(basename)
-print('Arguments:')
-pprint(args)
-# Parameters initialization
-script_path = args.script
-script_input_path = args.script_input
-input_path = args.input
-length = args.length
-mesh_format = args.format
-prefix = args.prefix
-is_test = args.test
-is_verbose = args.verbose
-# Get script input
-with open(script_input_path) as f:
-    script_input = json.load(f)
-print('Script Input from {}:'.format(script_input_path))
-pprint(script_input)
-# Get multi input
+parser.add_argument('-i', '--input', help='input filename', required=True)
+parser.add_argument('-p', '--prefix', help='prefix', default='multi')
+parser.add_argument('-t', '--test', help='test mode', action='store_true')
+cmd_args = parser.parse_args()
+pprint(cmd_args)
+input_path = cmd_args.input
+is_test = cmd_args.test
+prefix = cmd_args.prefix
+print('Input')
 with open(input_path) as f:
-    multi_input = json.load(f)
-print('Input from {}:'.format(input_path))
-pprint(multi_input)
-pids = []
-log_paths = []
-# Evaluate arguments combinations
-args_combinations = itertools.combinations(multi_input, length)
-for j, ac in enumerate(args_combinations):
-    # Evaluate values indices combinations
-    i_multi_input = {key: range(len(multi_input[key])) for key in ac}  # dict with indices of values
-    values_indices_combinations = itertools.product(*i_multi_input.values())  # * - unpack items as separate func args
-    for vic in values_indices_combinations:
-        print('\tArguments Combination {} Values Combination {}'.format(j + 1, len(pids) + 1))
-        print('Arguments:\n{}'.format(ac))
-        print('Values Indices:\n{}'.format(vic))
-        vs = []
-        # Change script input
-        new_script_input = deepcopy(script_input)
-        suffix_list = [prefix, basename]
-        for i, vi in enumerate(vic):
-            a = ac[i]
-            v = multi_input[a][vi]
-            new_script_input['arguments'][a] = v
-            suffix_list.append(a)
-            suffix_list.append(str(vi))
-            vs.append(v)
-        print('Values:\n{}'.format(vs))
-        # Change paths
-        path_suffix = '_'.join(suffix_list)
-        in_path = 'input_{}.json'.format(path_suffix)
-        out_path = '{}.{}'.format(path_suffix, mesh_format)
-        log_path = 'log_{}'.format(path_suffix)
-        print('Path Suffix:\n{}'.format(path_suffix))
-        print('Input File Path:\n{}'.format(in_path))
-        print('Out File Path:\n{}'.format(out_path))
-        print('Log File Path:\n{}'.format(log_path))
-        log_paths.append(os.path.abspath(log_path))
-        if not is_test:
-            # Write new script input file
-            with open(in_path, 'w+') as script_input_file:
-                json.dump(new_script_input, script_input_file, indent=2, sort_keys=True)
-            # Run script
-            with open(log_path, 'w+') as log_file:
-                cmd = ['python', script_path, '-i', in_path, '-o', out_path]
-                if is_verbose:
-                    cmd.append('-v')
-                print(cmd)
-                process = Popen(cmd, stdout=log_file, stderr=log_file)
-                pids.append(process.pid)
-        else:
-            if len(pids) > 0:
-                pids.append(pids[-1] + 1)
-            else:
-                pids.append(0)
-        print('PID:\n{}'.format(pids[-1]))
-print('\tNumber of processes: {}'.format(len(pids)))
-# Write processes data
-suffix_list = [prefix, basename]
-path_suffix = '_'.join(suffix_list)
-processes_path = 'processes_{}.json'.format(path_suffix)
-print('Processes File Path:\n{}'.format(processes_path))
-processes_data = dict()
+    input_args = json.load(f)
+pprint(input_args)
+run_cmd = input_args['arguments']['run_cmd']
+print('Inputs')
+inputs = dict()
+for i in input_args['arguments']['inputs']:
+    path = i['path']
+    if path not in inputs:
+        result = check_file(path)
+        print(result)
+        with open(result['path']) as f:
+            d = json.load(f)
+        inputs[path] = d
+pprint(inputs)
+print('Arguments')
+args = list()
+for i in input_args['arguments']['inputs']:
+    path = i['path']
+    for a in i.get('args', list()):
+        arg = dict()
+        arg['path'] = path
+        for name, values in a.items():
+            arg['name'] = name
+            arg['values'] = values
+            args.append(arg)
+pprint(args)
+print('Values indices')
+values_indices = [range(len(x['values'])) for x in args]  # indices of values of args
+print(values_indices)
+values_combinations = itertools.product(*values_indices)  # * - unpack items as separate func args
+pids = list()
+logs = list()
+for i, vc in enumerate(values_combinations):
+    print('Combination {}'.format(i + 1))
+    print('Values {}'.format(vc))
+    # Make new directory and change cwd to it
+    dirname = os.path.join(prefix, str(i + 1))
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+    os.chdir(dirname)
+    print('cwd: {}'.format(os.getcwd()))
+    # Copy all inputs
+    for path, d in inputs.items():
+        if not os.path.exists(os.path.dirname(path)):
+            os.makedirs(os.path.dirname(path))
+        with open(path, 'w+') as f:
+            json.dump(d, f, indent=2, sort_keys=True)
+    # Change inputs
+    for j, v in enumerate(vc):
+        name = args[j]['name']
+        path = args[j]['path']
+        value = args[j]['values'][v]
+        d = deepcopy(inputs[path])
+        d['arguments'][name] = value
+        with open(path, 'w') as f:
+            json.dump(d, f, indent=2, sort_keys=True)
+    # Run
+    log = '_'.join(['log', prefix])
+    logs.append(os.path.abspath(log))
+    if not is_test:
+        with open(log, 'w+') as f:
+            tokens = shlex.split(run_cmd)
+            cmd = ['python']
+            cmd.extend(tokens)
+            print(cmd)
+            process = Popen(cmd, stdout=f, stderr=f)
+            pids.append(process.pid)
+    else:
+        with open(log, 'w+') as f:
+            pass
+        pids.append(i + 1)
+    print('PID: {}'.format(pids[-1]))
+    print('log: {}'.format(logs[-1]))
+    os.chdir(os.path.join('..', '..'))
+print('Number of processes: {}'.format(len(pids)))
+dirname = os.path.join(prefix)
+os.chdir(dirname)
+ps_filename = 'ps.json'
+print('Processes file: {}'.format(os.path.abspath(ps_filename)))
+ps_data = dict()
 for i, p in enumerate(pids):
     d = dict()
-    d['log_path'] = os.path.abspath(log_paths[i])
-    processes_data[p] = d
+    d['log_path'] = os.path.abspath(logs[i])
+    ps_data[p] = d
 print('Processes data:')
-pprint(processes_data)
+pprint(ps_data)
 if not is_test:
-    with open(processes_path, 'w+') as f:
-        json.dump(processes_data, f, indent=2, sort_keys=True)
+    with open(ps_filename, 'w+') as f:
+        json.dump(ps_data, f, indent=2, sort_keys=True)
+os.chdir(os.path.join('..'))

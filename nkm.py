@@ -15,7 +15,7 @@ from environment import Environment
 from boolean import complex_by_volumes, complex_by_complex, complex_self, \
     sort_object_only_shared_no_tool, sort_object_only_shared_tool_no_shared
 from support import auto_complex_points_sizes_min_curve_in_volume, auto_volumes_groups_surfaces, auto_points_sizes, \
-    boundary_surfaces_to_six_side_groups
+    boundary_surfaces_to_six_side_groups, check_file
 
 
 class NKM:
@@ -55,15 +55,21 @@ class NKM:
         """
         print('Read Input')
         print('ILW')
-        with open(ilw_input_path) as ilw_input_file:
+        result = check_file(ilw_input_path)
+        print(result['path'])
+        with open(result['path']) as ilw_input_file:
             ilw_input = json.load(ilw_input_file)
         pprint(ilw_input)
         print('HLW')
-        with open(hlw_input_path) as hlw_input_file:
+        result = check_file(hlw_input_path)
+        print(result['path'])
+        with open(result['path']) as hlw_input_file:
             hlw_input = json.load(hlw_input_file)
         pprint(hlw_input)
         print('Environment')
-        with open(env_input_path) as env_input_file:
+        result = check_file(env_input_path)
+        print(result['path'])
+        with open(result['path']) as env_input_file:
             env_input = json.load(env_input_file)
         pprint(env_input)
         print('Initialize')
@@ -504,24 +510,28 @@ if __name__ == '__main__':
     print('PID: {0}'.format(os.getpid()))
     print('CMD Arguments')
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', help='input filename', default='input_nkm.json')
+    parser.add_argument('-i', '--input', help='input filename', required=True)
     parser.add_argument('-o', '--output', help='output filename')
     parser.add_argument('-v', '--verbose', help='verbose', action='store_true')
     parser.add_argument('-t', '--test', help='test mode', action='store_true')
     args = parser.parse_args()
-    basename, extension = os.path.splitext(args.input)
-    if args.output is None:
-        print('Using default output')
-        args.output = basename
+    root, extension = os.path.splitext(args.input)
+    basename = os.path.basename(root)
     print(args)
+    if args.output is None:
+        output_root = basename
+    else:
+        output_root = args.output
+    is_test = args.test
+    is_verbose = args.verbose
     input_path = args.input
     model_name = basename
     is_test = args.test
     is_verbose = args.verbose
     if is_test:
-        output_path = args.output + '.brep'
+        output_path = output_root + '.brep'
     else:
-        output_path = args.output + '.msh'
+        output_path = output_root + '.msh'
     print('Input path: ' + input_path)
     print('Output path: ' + output_path)
     gmsh.initialize()

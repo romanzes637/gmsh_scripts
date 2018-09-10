@@ -43,18 +43,20 @@ if __name__ == '__main__':
     print('PID: {}'.format(os.getpid()))
     print('Arguments')
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', help='input filename', default='input_test_divided_cylinder.json')
+    parser.add_argument('-i', '--input', help='input filename', required=True)
     parser.add_argument('-o', '--output', help='output filename')
     parser.add_argument('-v', '--verbose', help='verbose', action='store_true')
     parser.add_argument('-t', '--test', help='test mode', action='store_true')
     args = parser.parse_args()
-    basename, extension = os.path.splitext(args.input)
-    if args.output is None:
-        args.output = basename
     print(args)
+    root, extension = os.path.splitext(args.input)
+    basename = os.path.basename(root)
+    if args.output is None:
+        output_path = basename
+    else:
+        output_path = args.output
     is_test = args.test
     is_verbose = args.verbose
-    output_path = args.output
     input_path = args.input
     model_name = basename
     gmsh.initialize()
