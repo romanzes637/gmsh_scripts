@@ -33,14 +33,17 @@ class Environment:
             self.physical_name = physical_name
         # Points
         self.points = []
-        self.points.append(self.factory.addPoint(lx / 2, ly / 2, -lz / 2, lc))
-        self.points.append(self.factory.addPoint(-lx / 2, ly / 2, -lz / 2, lc))
-        self.points.append(self.factory.addPoint(-lx / 2, -ly / 2, -lz / 2, lc))
-        self.points.append(self.factory.addPoint(lx / 2, -ly / 2, -lz / 2, lc))
-        self.points.append(self.factory.addPoint(lx / 2, ly / 2, lz / 2, lc))
-        self.points.append(self.factory.addPoint(-lx / 2, ly / 2, lz / 2, lc))
-        self.points.append(self.factory.addPoint(-lx / 2, -ly / 2, lz / 2, lc))
-        self.points.append(self.factory.addPoint(lx / 2, -ly / 2, lz / 2, lc))
+        half_lx = lx / 2.0
+        half_ly = ly / 2.0
+        half_lz = lz / 2.0
+        self.points.append(self.factory.addPoint(half_lx, half_ly, -half_lz, lc))
+        self.points.append(self.factory.addPoint(-half_lx, half_ly, -half_lz, lc))
+        self.points.append(self.factory.addPoint(-half_lx, -half_ly, -half_lz, lc))
+        self.points.append(self.factory.addPoint(half_lx, -half_ly, -half_lz, lc))
+        self.points.append(self.factory.addPoint(half_lx, half_ly, half_lz, lc))
+        self.points.append(self.factory.addPoint(-half_lx, half_ly, half_lz, lc))
+        self.points.append(self.factory.addPoint(-half_lx, -half_ly, half_lz, lc))
+        self.points.append(self.factory.addPoint(half_lx, -half_ly, half_lz, lc))
         # Transform
         if transform_data is not None:
             dim_tags = map(lambda x: (0, x), self.points)

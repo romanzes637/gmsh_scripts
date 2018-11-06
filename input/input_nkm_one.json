@@ -1,0 +1,34 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "NKM",
+    "description": "NKM with one HLW borehole with RW, EBS and EDZ zones"
+  },
+  "arguments": {
+    "factory": "geo",
+    "simple_boundary": true,
+    "env_input_path": "input/input_nkm_environment_one.json",
+    "env_name": "Rock",
+    "env_transform": [0, 0, 0],
+    "int_filenames": [],
+    "int_names": [],
+    "int_transforms": [],
+    "int_lcs": [],
+    "int_divides": [],
+    "int_transfinites": [],
+    "ilw_input_path": "input/input_borehole_rw_ebs_edz_one.json",
+    "ilw_name": "ILW",
+    "ilw_transform": [0, 0, -37.5],
+    "ilw_nx": 0,
+    "ilw_ny": 0,
+    "ilw_dx": 23,
+    "ilw_dy": 15,
+    "hlw_input_path": "input/input_borehole_rw_ebs_edz_one.json",
+    "hlw_name": "HLW",
+    "hlw_transform": [0, 0, -37.5],
+    "hlw_nx": 1,
+    "hlw_ny": 1,
+    "hlw_dx": 26,
+    "hlw_dy": 23
+  }
+}

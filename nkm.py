@@ -409,29 +409,32 @@ class NKM:
         print('Intrusions')
         if len(self.ints) > 0:
             for local_name in set(self.int_names):  # For same names for different ints
-                vs = list()
+                vs = set()
                 for intrusion in self.ints:
                     for c in intrusion:
-                        vs.extend(c.get_volumes_by_physical_name(local_name))
-                tag = gmsh.model.addPhysicalGroup(3, vs)
+                        cvs = c.get_volumes_by_physical_name(local_name)
+                        vs.update(cvs)
+                tag = gmsh.model.addPhysicalGroup(3, list(vs))
                 gmsh.model.setPhysicalName(3, tag, local_name)
         print('ILW Boreholes')
         if len(self.ilws) > 0:
             local_names = self.ilws[0].map_physical_name_to_primitives_indices.keys()
             for local_name in local_names:
-                vs = list()
+                vs = set()
                 for b in self.ilws:
-                    vs.extend(b.get_volumes_by_physical_name(local_name))
-                tag = gmsh.model.addPhysicalGroup(3, vs)
+                    bvs = b.get_volumes_by_physical_name(local_name)
+                    vs.update(bvs)
+                tag = gmsh.model.addPhysicalGroup(3, list(vs))
                 gmsh.model.setPhysicalName(3, tag, '_'.join([self.ilw_name, local_name]))
         print('HLW Boreholes')
         if len(self.hlws) > 0:
             local_names = self.hlws[0].map_physical_name_to_primitives_indices.keys()
             for local_name in local_names:
-                vs = list()
+                vs = set()
                 for b in self.hlws:
-                    vs.extend(b.get_volumes_by_physical_name(local_name))
-                tag = gmsh.model.addPhysicalGroup(3, vs)
+                    bvs = b.get_volumes_by_physical_name(local_name)
+                    vs.update(bvs)
+                tag = gmsh.model.addPhysicalGroup(3, list(vs))
                 gmsh.model.setPhysicalName(3, tag, '_'.join([self.hlw_name, local_name]))
         print('Environment')
         if self.factory == gmsh.model.occ:

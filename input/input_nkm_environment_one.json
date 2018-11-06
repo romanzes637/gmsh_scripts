@@ -2,12 +2,12 @@
   "metadata": {
     "type": "class_arguments",
     "class_name": "ComplexPrimitive",
-    "description": "NKM Environment"
+    "description": "NKM Environment for one borehole"
   },
   "arguments": {
     "factory": "occ",
     "divide_data": [1, 1, 1],
-    "point_data": [1560, 1185, 975, 100],
+    "point_data": [975, 975, 975, 100],
     "transform_data": null,
     "curve_types": null,
     "curve_data": null,

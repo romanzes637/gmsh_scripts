@@ -10,6 +10,7 @@ from complex_primitive import ComplexPrimitive
 from cylinder import Cylinder
 from divided_cylinder import DividedCylinder
 from occ_workarounds import correct_and_transfinite_complex
+from support import boundary_surfaces_to_six_side_groups
 
 
 class ComplexFactory:
@@ -47,6 +48,7 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output', help='output filename')
     parser.add_argument('-v', '--verbose', help='verbose', action='store_true')
     parser.add_argument('-t', '--test', help='test mode', action='store_true')
+    parser.add_argument('-r', '--recombine', help='recombine', action='store_true')
     args = parser.parse_args()
     print(args)
     root, extension = os.path.splitext(args.input)
@@ -59,6 +61,7 @@ if __name__ == '__main__':
     is_verbose = args.verbose
     input_path = args.input
     model_name = basename
+    is_recombine = args.recombine
     gmsh.initialize()
     if is_verbose:
         gmsh.option.setNumber("General.Terminal", 1)
@@ -87,11 +90,21 @@ if __name__ == '__main__':
         ss = set()
         cs = set()
         correct_and_transfinite_complex(c, ss, cs)
+        if is_recombine:
+            print('Recombine')
+            for p in c.primitives:
+                p.recombine()
         print('Physical')
+        print("Volumes")
         for name in c.map_physical_name_to_primitives_indices.keys():
             vs = c.get_volumes_by_physical_name(name)
             tag = gmsh.model.addPhysicalGroup(3, vs)
             gmsh.model.setPhysicalName(3, tag, name)
+        print("Surfaces")
+        boundary_surfaces_groups = boundary_surfaces_to_six_side_groups()
+        for i, (name, ss) in enumerate(boundary_surfaces_groups.items()):
+            tag = gmsh.model.addPhysicalGroup(2, ss)
+            gmsh.model.setPhysicalName(2, tag, name)
         print("Mesh")
         gmsh.model.mesh.generate(3)
         gmsh.model.mesh.removeDuplicateNodes()

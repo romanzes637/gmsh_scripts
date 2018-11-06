@@ -197,7 +197,10 @@ class Primitive:
         volumes_dim_tags = map(lambda x: (3, x), self.volumes)
         surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
         for dt in surfaces_dim_tags:
-            gmsh.model.mesh.setRecombine(dt[0], dt[1])
+            if self.factory == gmsh.model.occ:
+                gmsh.model.mesh.setRecombine(dt[0], dt[1])
+            else:
+                self.factory.mesh.setRecombine(dt[0], dt[1])
 
     def smooth(self, dim, n):
         """

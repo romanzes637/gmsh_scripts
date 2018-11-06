@@ -970,6 +970,24 @@ class TestScripts(unittest.TestCase):
         for x in itertools.chain.from_iterable(a4):  # Some operation
             pass
         print("Append+Chain:\t\t{:.3f}s".format(time.time() - start_time))
+        # Set + Update
+        start_time = time.time()
+        a5 = set()
+        for i in range(n):
+            a5.update(item)
+        flatten_a5 = list(a5)
+        for x in flatten_a5:  # Some operation
+            pass
+        print("Set+Update:\t\t{:.3f}s".format(time.time() - start_time))
+        # Set + Union
+        start_time = time.time()
+        a6 = set()
+        for i in range(n):
+            a6.union(item)
+        flatten_a6 = list(a6)
+        for x in flatten_a6:  # Some operation
+            pass
+        print("Set+Union:\t\t{:.3f}s".format(time.time() - start_time))
         # self.assertItemsEqual(a, flatten_a2)
         # self.assertItemsEqual(a, flatten_a3)
         # self.assertItemsEqual(a, e)
