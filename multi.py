@@ -27,8 +27,8 @@ pprint(input_args)
 run_cmd = input_args['arguments']['run_cmd']
 print('Inputs')
 inputs = dict()
-for i in input_args['arguments']['inputs']:
-    path = i['path']
+for c_i in input_args['arguments']['inputs']:
+    path = c_i['path']
     if path not in inputs:
         result = check_file(path)
         print(result)
@@ -48,17 +48,17 @@ for i in input_args['arguments']['inputs']:
             arg['values'] = values
             args.append(arg)
 pprint(args)
-print('Values indices')
-values_indices = [range(len(x['values'])) for x in args]  # indices of values of args
-print(values_indices)
-values_combinations = itertools.product(*values_indices)  # * - unpack items as separate func args
+print('Args indices')
+args_indices = [range(len(x['values'])) for x in args]  # indices of values of args
+print(args_indices)
+args_combinations = itertools.product(*args_indices)  # * - unpack items as separate func args
 pids = list()
 logs = list()
-for i, vc in enumerate(values_combinations):
-    print('Combination {}'.format(i + 1))
-    print('Values {}'.format(vc))
+for c_i, c in enumerate(args_combinations):
+    print('Combination {}'.format(c_i + 1))
+    print('Values {}'.format(c))
     # Make new directory and change cwd to it
-    dirname = os.path.join(prefix, str(i + 1))
+    dirname = os.path.join(prefix, str(c_i + 1))
     if not os.path.exists(dirname):
         os.makedirs(dirname)
     os.chdir(dirname)
@@ -70,12 +70,16 @@ for i, vc in enumerate(values_combinations):
         with open(path, 'w+') as f:
             json.dump(d, f, indent=2, sort_keys=True)
     # Change inputs
-    for j, v in enumerate(vc):
-        name = args[j]['name']
-        path = args[j]['path']
-        value = args[j]['values'][v]
-        d = deepcopy(inputs[path])
+    for a_i, v_i in enumerate(c):
+        print('argument {} value {}'.format(a_i, v_i))
+        name = args[a_i]['name']
+        path = args[a_i]['path']
+        value = args[a_i]['values'][v_i]
+        print('name: {}\nvalue: {}\npath: {}'.format(name, value, path))
+        with open(path) as f:
+            d = json.load(f)
         d['arguments'][name] = value
+        pprint(d)
         with open(path, 'w') as f:
             json.dump(d, f, indent=2, sort_keys=True)
     # Run
@@ -92,7 +96,7 @@ for i, vc in enumerate(values_combinations):
     else:
         with open(log, 'w+') as f:
             pass
-        pids.append(i + 1)
+        pids.append(c_i + 1)
     print('PID: {}'.format(pids[-1]))
     print('log: {}'.format(logs[-1]))
     os.chdir(os.path.join('..', '..'))
@@ -102,9 +106,9 @@ os.chdir(dirname)
 ps_filename = 'ps.json'
 print('Processes file: {}'.format(os.path.abspath(ps_filename)))
 ps_data = dict()
-for i, p in enumerate(pids):
+for c_i, p in enumerate(pids):
     d = dict()
-    d['log_path'] = os.path.abspath(logs[i])
+    d['log_path'] = os.path.abspath(logs[c_i])
     ps_data[p] = d
 print('Processes data:')
 pprint(ps_data)
