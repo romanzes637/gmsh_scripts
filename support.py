@@ -3,7 +3,6 @@ import math
 
 import gmsh
 
-
 # FIXME Bug with this approach:
 # File "/share/home/butovr/gmsh_scripts/support.py", line 14, in get_volume_points_edges_data
 # surfaces_dim_tags = gmsh.model.getBoundary([[3, volume]])
@@ -91,7 +90,9 @@ def get_volume_edges_lengths(volume):
         cs0 = [bb0[0], bb0[1], bb0[2]]
         cs1 = [bb1[0], bb1[1], bb1[2]]
         vector = [cs1[0] - cs0[0], cs1[1] - cs0[1], cs1[2] - cs0[2]]
-        length = math.sqrt(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2])
+        length = math.sqrt(
+            vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[
+                2])
         edges_lengths[e] = length
     return edges_lengths
 
@@ -233,8 +234,10 @@ def check_geometry(geometry, check_duplicates=False):
             for volume2, surfaces2 in geometry['volumes'].items():
                 if surfaces2 == surfaces:
                     if volume2 != volume:
-                        out['duplicate_volumes'].setdefault(volume2, set()).add(volume)
-                        out['duplicate_volumes'].setdefault(volume, set()).add(volume2)
+                        out['duplicate_volumes'].setdefault(volume2, set()).add(
+                            volume)
+                        out['duplicate_volumes'].setdefault(volume, set()).add(
+                            volume2)
     for surface, edges in geometry['surfaces'].items():
         if len(edges) == 0:
             out['empty_surfaces'][surface] = edges
@@ -250,8 +253,11 @@ def check_geometry(geometry, check_duplicates=False):
             for surface2, edges2 in geometry['surfaces'].items():
                 if edges2 == edges:
                     if surface2 != surface:
-                        out['duplicate_surfaces'].setdefault(surface2, set()).add(surface)
-                        out['duplicate_surfaces'].setdefault(surface, set()).add(surface2)
+                        out['duplicate_surfaces'].setdefault(surface2,
+                                                             set()).add(surface)
+                        out['duplicate_surfaces'].setdefault(surface,
+                                                             set()).add(
+                            surface2)
     for edge, points in geometry['edges'].items():
         if len(points) == 0:
             out['empty_edges'][edge] = points
@@ -266,8 +272,10 @@ def check_geometry(geometry, check_duplicates=False):
             for edge2, points2 in geometry['edges'].items():
                 if points2 == points:
                     if edge2 != edge:
-                        out['duplicate_edges'].setdefault(edge2, set()).add(edge)
-                        out['duplicate_edges'].setdefault(edge, set()).add(edge2)
+                        out['duplicate_edges'].setdefault(edge2, set()).add(
+                            edge)
+                        out['duplicate_edges'].setdefault(edge, set()).add(
+                            edge2)
     for point, coordinates in geometry['points'].items():
         if len(coordinates) == 0:
             out['empty_points'][point] = coordinates
@@ -286,8 +294,10 @@ def check_geometry(geometry, check_duplicates=False):
                         duplicates.append(0)
                 if sum(duplicates) == n_coordinates:
                     if point2 != point:
-                        out['duplicate_points'].setdefault(point2, set()).add(point)
-                        out['duplicate_points'].setdefault(point, set()).add(point2)
+                        out['duplicate_points'].setdefault(point2, set()).add(
+                            point)
+                        out['duplicate_points'].setdefault(point, set()).add(
+                            point2)
     for k, v in out.items():
         result = True if len(v) == 0 else False
         answer = 'OK' if result else 'BAD'
@@ -330,11 +340,13 @@ def initialize_geometry(factory, geometry):
         print('Surface {} {}/{}'.format(k, i + 1, len(geometry['surfaces'])))
         old_edges = v
         old_tag = k
-        new_edges = [math.copysign(1, x) * old_edges_to_new_edges[abs(x)] for x in old_edges]
+        new_edges = [math.copysign(1, x) * old_edges_to_new_edges[abs(x)] for x
+                     in old_edges]
         if factory == gmsh.model.occ:
             abs_new_edges = [abs(x) for x in new_edges]
             # curve_loop_tag = factory.addCurveLoop(abs_new_edges)  # FIXME signed edges doesn't work
-            curve_loop_tag = factory.addWire(abs_new_edges)  # FIXME signed edges doesn't work
+            curve_loop_tag = factory.addWire(
+                abs_new_edges)  # FIXME signed edges doesn't work
             new_tag = factory.addSurfaceFilling(curve_loop_tag)
         else:
             curve_loop_tag = factory.addCurveLoop(new_edges)
@@ -347,7 +359,8 @@ def initialize_geometry(factory, geometry):
         old_surfaces = v
         new_surfaces = [old_surfaces_to_new_surfaces[x] for x in old_surfaces]
         old_tag = k
-        surface_loop_tag = factory.addSurfaceLoop(new_surfaces)  # FIXME always return -1
+        surface_loop_tag = factory.addSurfaceLoop(
+            new_surfaces)  # FIXME always return -1
         new_tag = factory.addVolume([surface_loop_tag])
         old_volumes_to_new_volumes[old_tag] = new_tag
         new_geo['volumes'][new_tag] = new_surfaces
@@ -378,7 +391,8 @@ def auto_points_sizes(c=1.0):
     return points_sizes
 
 
-def auto_primitive_points_sizes_min_curve(primitive_obj, points_sizes_dict, c=1.0):
+def auto_primitive_points_sizes_min_curve(primitive_obj, points_sizes_dict,
+                                          c=1.0):
     for v in primitive_obj.volumes:
         ps_cs_data = get_volume_points_edges_data(v)
         for pd in ps_cs_data:
@@ -394,7 +408,8 @@ def auto_primitive_points_sizes_min_curve(primitive_obj, points_sizes_dict, c=1.
                 gmsh.model.mesh.setSize([(0, p)], size)
 
 
-def auto_primitive_points_sizes_min_curve_in_volume(primitive_obj, points_sizes, c=1.0):
+def auto_primitive_points_sizes_min_curve_in_volume(primitive_obj, points_sizes,
+                                                    c=1.0):
     for volume in primitive_obj.volumes:
         # Evaluate new_size
         ps_es_data = get_volume_points_edges_data(volume)
@@ -420,7 +435,8 @@ def auto_complex_points_sizes_min_curve(complex_obj, points_sizes_dict, k=1.0):
         auto_primitive_points_sizes_min_curve(p, points_sizes_dict, k)
 
 
-def auto_complex_points_sizes_min_curve_in_volume(complex_obj, points_sizes_dict, k=1.0):
+def auto_complex_points_sizes_min_curve_in_volume(complex_obj,
+                                                  points_sizes_dict, k=1.0):
     for p in complex_obj.primitives:
         auto_primitive_points_sizes_min_curve_in_volume(p, points_sizes_dict, k)
 
@@ -430,7 +446,8 @@ def get_bounding_box_by_boundary_surfaces(boundary_surfaces):
     points_y = dict()
     points_z = dict()
     surfaces_dim_tags = map(lambda x: [2, x], boundary_surfaces)
-    points_dim_tags = gmsh.model.getBoundary(surfaces_dim_tags, combined=False, recursive=True)
+    points_dim_tags = gmsh.model.getBoundary(surfaces_dim_tags, combined=False,
+                                             recursive=True)
     for dt in points_dim_tags:
         dim = dt[0]
         p = dt[1]
@@ -482,7 +499,8 @@ def boundary_surfaces_to_six_side_groups():
     points_y = dict()
     points_z = dict()
     surfaces_dim_tags = map(lambda x: [2, x], boundary_surfaces)
-    points_dim_tags = gmsh.model.getBoundary(surfaces_dim_tags, combined=False, recursive=True)
+    points_dim_tags = gmsh.model.getBoundary(surfaces_dim_tags, combined=False,
+                                             recursive=True)
     for dt in points_dim_tags:
         dim = dt[0]
         p = dt[1]
@@ -506,7 +524,8 @@ def boundary_surfaces_to_six_side_groups():
     # Check surfaces for parallel to NX, NY, NZ, X, Y, Z
     for s in boundary_surfaces:
         surface_dim_tag = [2, s]
-        points_dim_tags = gmsh.model.getBoundary(surface_dim_tag, combined=False, recursive=True)
+        points_dim_tags = gmsh.model.getBoundary(surface_dim_tag,
+                                                 combined=False, recursive=True)
         s_points_xs = list()
         s_points_ys = list()
         s_points_zs = list()
@@ -524,7 +543,7 @@ def boundary_surfaces_to_six_side_groups():
             if abs(s_max_x - s_min_x) < tol:
                 # Check X or NX
                 while not done:
-                    if abs(s_min_x - min_x ) < tol:
+                    if abs(s_min_x - min_x) < tol:
                         surfaces_groups['NX'].append(s)
                         done = True
                     elif abs(s_max_x - max_x) < tol:
@@ -569,37 +588,55 @@ def boundary_surfaces_to_six_side_groups():
 
 def volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces):
     """
-    For Environment object. For each distinct inner volume in Environment should exist
-    the surface loop. If inner volumes touch each other they unite to volume group
-    and have common surface loop.
+    For Environment object. For each distinct inner volume in Environment
+    should exist the surface loop. If inner volumes touch each other they unite
+    to volume group and have common surface loop.
     :param volumes_surfaces: [[v1_s1, ..., v1_si], ..., [vj_s1, ..., vj_si]]
-    :return: volumes_groups_surfaces [[vg1_s1, ..., vg1_si], ..., [vgj_s1, ..., vgj_si]]
+    :return: volumes_groups_surfaces [[vg1_s1, ..., vg1_si], ...]
     """
-    vgs_ss = list()  # volumes_groups_surfaces
-    vs_set = set(range(len(volumes_surfaces)))  # Set of yet unallocated volumes indices to volumes groups
-    while len(vs_set) != 0:
-        current_vs = list(vs_set)
-        v0 = current_vs[0]  # Start with volume 0 surfaces
-        vg_ss = set(volumes_surfaces[v0])
-        for i in range(1, len(current_vs)):
-            vi = current_vs[i]
-            vi_ss = set(volumes_surfaces[vi])
-            # print(vg_ss, vi_ss)
-            intersection = vg_ss.intersection(vi_ss)
-            if len(intersection) > 0:  # If volume group and volume i surfaces have common surfaces
-                vg_ss.symmetric_difference_update(vi_ss)  # Add volume i surfaces to volume group without common
-                vs_set.remove(vi)  # Remove volume i from vs_set
-        vgs_ss.append(list(vg_ss))
-        vs_set.remove(v0)
-    return vgs_ss
+    vs_indexes = set(range(len(volumes_surfaces)))
+    while len(vs_indexes) != 0:
+        current_index = list(vs_indexes)[0]
+        current_surfaces = set(volumes_surfaces[current_index])
+        other_vs_indexes = {x for x in vs_indexes if x != current_index}
+        is_intersection = True
+        while is_intersection:
+            is_intersection = False
+            new_other_vs_indexes = {x for x in other_vs_indexes}
+            for index in other_vs_indexes:
+                surfaces_i = set(volumes_surfaces[index])
+                intersection = current_surfaces.intersection(surfaces_i)
+                if len(intersection) > 0:
+                    is_intersection = True
+                    # Update current
+                    current_surfaces.symmetric_difference_update(surfaces_i)
+                    new_other_vs_indexes.remove(index)
+                    vs_indexes.remove(index)
+                    # Update global
+                    volumes_surfaces[current_index] = list(current_surfaces)
+                    volumes_surfaces[index] = list()
+            other_vs_indexes = new_other_vs_indexes
+        vs_indexes.remove(current_index)
+    volumes_surfaces_groups = [x for x in volumes_surfaces if len(x) != 0]
+    return volumes_surfaces_groups
 
 
 def auto_volumes_groups_surfaces():
-    volumes_dim_tags = gmsh.model.getEntities(3)  # all model volumes
+    volumes_dim_tags = gmsh.model.getEntities(3)
     volumes_surfaces = list()
     for vdt in volumes_dim_tags:
-        surfaces_dim_tags = gmsh.model.getBoundary([vdt])  # volume surfaces
+        surfaces_dim_tags = gmsh.model.getBoundary([vdt], oriented=False)
         ss = map(lambda x: x[1], surfaces_dim_tags)
+        volumes_surfaces.append(ss)
+    return volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces)
+
+
+def volumes_groups_surfaces(volumes):
+    volumes_dim_tags = [(3, x) for x in volumes]
+    volumes_surfaces = list()
+    for vdt in volumes_dim_tags:
+        surfaces_dim_tags = gmsh.model.getBoundary([vdt], oriented=False)
+        ss = [x[1] for x in surfaces_dim_tags]
         volumes_surfaces.append(ss)
     return volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces)
 
@@ -647,14 +684,16 @@ def is_cuboid(volume):
     return result
 
 
-def structure_cuboid(volume, structured_surfaces, structured_edges, min_edge_nodes, c=1.0):
+def structure_cuboid(volume, structured_surfaces, structured_edges,
+                     min_edge_nodes, c=1.0):
     volume_dt = [3, volume]
     surfaces_dts = gmsh.model.getBoundary([volume_dt])
     surfaces_edges = dict()
     surfaces_points = dict()
     edges = set()
     for surface_dt in surfaces_dts:
-        edges_dts = gmsh.model.getBoundary([surface_dt], combined=False)  # Save order
+        edges_dts = gmsh.model.getBoundary([surface_dt],
+                                           combined=False)  # Save order
         surface = surface_dt[1]
         surfaces_edges[surface] = list()
         surfaces_points[surface] = list()
@@ -662,7 +701,8 @@ def structure_cuboid(volume, structured_surfaces, structured_edges, min_edge_nod
             edge = abs(edge_dt[1])
             surfaces_edges[surface].append(edge)
             edges.add(edge)
-            points_dts = gmsh.model.getBoundary([edge_dt], combined=False)  # Save order
+            points_dts = gmsh.model.getBoundary([edge_dt],
+                                                combined=False)  # Save order
             p0 = points_dts[0][1]
             p1 = points_dts[1][1]
             if p0 not in surfaces_points[surface]:
@@ -734,7 +774,8 @@ def structure_cuboid(volume, structured_surfaces, structured_edges, min_edge_nod
             if k not in start_edge_surfaces:
                 if opposite_edge in v:
                     last_opposite_edge_index = v.index(opposite_edge)
-                    diagonal_edge_index = get_opposite_edge_index[last_opposite_edge_index]
+                    diagonal_edge_index = get_opposite_edge_index[
+                        last_opposite_edge_index]
                     diagonal_edge = v[diagonal_edge_index]
                     edges_groups[diagonal_edge] = i
                     groups_edges[i].append(diagonal_edge)

@@ -2,9 +2,12 @@ import itertools
 
 import gmsh
 
+from support import volumes_groups_surfaces
+
 
 class Environment:
-    def __init__(self, factory, lx, ly, lz, lc, transform_data, inner_surfaces, physical_name=None):
+    def __init__(self, factory, lx, ly, lz, lc, transform_data, inner_surfaces,
+                 physical_name=None):
         """
         Environment volume primarily for GEO factory and optionally for OCC (if no boolean operations needed)
         :param str factory: see Primitive
@@ -36,69 +39,92 @@ class Environment:
         half_lx = lx / 2.0
         half_ly = ly / 2.0
         half_lz = lz / 2.0
-        self.points.append(self.factory.addPoint(half_lx, half_ly, -half_lz, lc))
-        self.points.append(self.factory.addPoint(-half_lx, half_ly, -half_lz, lc))
-        self.points.append(self.factory.addPoint(-half_lx, -half_ly, -half_lz, lc))
-        self.points.append(self.factory.addPoint(half_lx, -half_ly, -half_lz, lc))
+        self.points.append(
+            self.factory.addPoint(half_lx, half_ly, -half_lz, lc))
+        self.points.append(
+            self.factory.addPoint(-half_lx, half_ly, -half_lz, lc))
+        self.points.append(
+            self.factory.addPoint(-half_lx, -half_ly, -half_lz, lc))
+        self.points.append(
+            self.factory.addPoint(half_lx, -half_ly, -half_lz, lc))
         self.points.append(self.factory.addPoint(half_lx, half_ly, half_lz, lc))
-        self.points.append(self.factory.addPoint(-half_lx, half_ly, half_lz, lc))
-        self.points.append(self.factory.addPoint(-half_lx, -half_ly, half_lz, lc))
-        self.points.append(self.factory.addPoint(half_lx, -half_ly, half_lz, lc))
+        self.points.append(
+            self.factory.addPoint(-half_lx, half_ly, half_lz, lc))
+        self.points.append(
+            self.factory.addPoint(-half_lx, -half_ly, half_lz, lc))
+        self.points.append(
+            self.factory.addPoint(half_lx, -half_ly, half_lz, lc))
         # Transform
         if transform_data is not None:
             dim_tags = map(lambda x: (0, x), self.points)
-            self.factory.translate(dim_tags, transform_data[0], transform_data[1], transform_data[2])
+            self.factory.translate(dim_tags, transform_data[0],
+                                   transform_data[1], transform_data[2])
             if len(transform_data) == 6:
                 self.factory.rotate(dim_tags,
-                                    transform_data[0], transform_data[1], transform_data[2],
+                                    transform_data[0], transform_data[1],
+                                    transform_data[2],
                                     1, 0, 0, transform_data[3])
                 self.factory.rotate(dim_tags,
-                                    transform_data[0], transform_data[1], transform_data[2],
+                                    transform_data[0], transform_data[1],
+                                    transform_data[2],
                                     0, 1, 0, transform_data[4])
                 self.factory.rotate(dim_tags,
-                                    transform_data[0], transform_data[1], transform_data[2],
+                                    transform_data[0], transform_data[1],
+                                    transform_data[2],
                                     0, 0, 1, transform_data[5])
             elif len(transform_data) == 7:
                 self.factory.rotate(dim_tags,
-                                    transform_data[0], transform_data[1], transform_data[2],
-                                    transform_data[3], transform_data[4], transform_data[5],
+                                    transform_data[0], transform_data[1],
+                                    transform_data[2],
+                                    transform_data[3], transform_data[4],
+                                    transform_data[5],
                                     transform_data[6])
             elif len(transform_data) == 9:
                 self.factory.rotate(dim_tags,
-                                    transform_data[3], transform_data[4], transform_data[5],
+                                    transform_data[3], transform_data[4],
+                                    transform_data[5],
                                     1, 0, 0, transform_data[6])
                 self.factory.rotate(dim_tags,
-                                    transform_data[3], transform_data[4], transform_data[5],
+                                    transform_data[3], transform_data[4],
+                                    transform_data[5],
                                     0, 1, 0, transform_data[7])
                 self.factory.rotate(dim_tags,
-                                    transform_data[3], transform_data[4], transform_data[5],
+                                    transform_data[3], transform_data[4],
+                                    transform_data[5],
                                     0, 0, 1, transform_data[8])
         # Curves
         self.curves = []
         for i in range(len(self.curves_points)):
             curve_points = [self.points[x] for x in self.curves_points[i]]
-            self.curves.append(self.factory.addLine(curve_points[0], curve_points[1]))
+            self.curves.append(
+                self.factory.addLine(curve_points[0], curve_points[1]))
         # Surfaces
         self.surfaces = []
         for i in range(len(self.surfaces_curves)):
             if self.factory == gmsh.model.geo:
                 cl_tag = self.factory.addCurveLoop(
-                    map(lambda x, y: y * self.curves[x], self.surfaces_curves[i], self.surfaces_curves_signs[i]))
+                    map(lambda x, y: y * self.curves[x],
+                        self.surfaces_curves[i], self.surfaces_curves_signs[i]))
                 self.surfaces.append(self.factory.addSurfaceFilling([cl_tag]))
             else:
-                cl_tag = self.factory.addCurveLoop([self.curves[x] for x in self.surfaces_curves[i]])
+                cl_tag = self.factory.addCurveLoop(
+                    [self.curves[x] for x in self.surfaces_curves[i]])
                 self.surfaces.append(self.factory.addSurfaceFilling(cl_tag))
         # Volumes
         self.volumes = []
         if self.factory == gmsh.model.occ:
-            out_sl = self.factory.addSurfaceLoop(self.surfaces, 1)  # FIXME bug always return = -1 by default
+            # FIXME bug always return = -1 by default
+            out_sl = self.factory.addSurfaceLoop(self.surfaces, 1)
             in_sls = []
             for i, sl in enumerate(inner_surfaces):
-                in_sls.append(self.factory.addSurfaceLoop(sl, 2 + i))  # FIXME bug always return = -1 by default
+                # FIXME bug always return = -1 by default
+                in_sls.append(self.factory.addSurfaceLoop(sl, 2 + i))
         else:
             out_sl = self.factory.addSurfaceLoop(self.surfaces)
-            flatten_in_sls = list(itertools.chain.from_iterable(inner_surfaces))  # 2D array to 1D array
-            in_sls = [self.factory.addSurfaceLoop(flatten_in_sls)]  # one surface loop
+            flatten_in_sls = list(itertools.chain.from_iterable(
+                inner_surfaces))  # 2D array to 1D array
+            in_sls = [
+                self.factory.addSurfaceLoop(flatten_in_sls)]  # one surface loop
         sls = list()
         sls.append(out_sl)
         sls += in_sls
@@ -136,3 +162,47 @@ class Environment:
         4: "NZ",
         5: "Z"
     }
+
+
+class NestedEnvironment:
+    def __init__(self, factory, lengths, transforms, inner_volumes,
+                 physical_names):
+        if factory == 'occ':
+            self.factory = gmsh.model.occ
+        else:
+            self.factory = gmsh.model.geo
+        self.envs = list()
+        vs = list()
+        vs.extend(inner_volumes)
+        for i, length in enumerate(lengths):
+            in_ss = volumes_groups_surfaces(vs)
+            lx = length[0]
+            ly = length[1]
+            lz = length[2]
+            lc = length[3]
+            pn = physical_names[i]
+            t = transforms[i]
+            env = Environment(factory, lx, ly, lz, lc, t, in_ss, pn)
+            # !!! FACTORY SYNC !!!
+            self.factory.synchronize()
+            # !!! FACTORY SYNC !!!
+            vs.extend(env.volumes)
+            self.envs.append(env)
+
+    def get_volumes(self):
+        vs = list()
+        for env in self.envs:
+            vs.extend(env.volumes)
+        return vs
+
+    def get_nested_volumes(self):
+        vs = list()
+        for env in self.envs:
+            vs.append(env.volumes)
+        return vs
+
+    def get_nested_physical_names(self):
+        ns = list()
+        for env in self.envs:
+            ns.append(env.physical_name)
+        return ns

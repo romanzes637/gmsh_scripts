@@ -26,14 +26,14 @@
       -525
     ],
     "n_levels": 2,
-    "n_tunnels": 8,
-    "n_trenches": 20,
+    "n_tunnels": 2,
+    "n_trenches": 2,
     "n_boreholes": 10,
     "d_tunnel": 90,
     "d_level": 75,
     "d_trench": 15,
     "dx_borehole": 2.500,
     "dz_borehole": -4.400,
-    "borehole_input_path": "input/input_container_mayak.json"
+    "borehole_input_path": "input/input_container_mayak_test.json"
   }
 }
