@@ -476,7 +476,7 @@ def get_bounding_box_by_boundary_surfaces(boundary_surfaces):
 def get_boundary_surfaces():
     volumes_dim_tags = gmsh.model.getEntities(3)
     surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags)
-    surfaces = map(lambda x: x[1], surfaces_dim_tags)
+    surfaces = [x[1] for x in surfaces_dim_tags]
     return surfaces
 
 
@@ -498,7 +498,7 @@ def boundary_surfaces_to_six_side_groups():
     points_x = dict()
     points_y = dict()
     points_z = dict()
-    surfaces_dim_tags = map(lambda x: [2, x], boundary_surfaces)
+    surfaces_dim_tags = [(2, x) for x in boundary_surfaces]
     points_dim_tags = gmsh.model.getBoundary(surfaces_dim_tags, combined=False,
                                              recursive=True)
     for dt in points_dim_tags:
@@ -523,8 +523,8 @@ def boundary_surfaces_to_six_side_groups():
     min_z = points_z[p_min_z]
     # Check surfaces for parallel to NX, NY, NZ, X, Y, Z
     for s in boundary_surfaces:
-        surface_dim_tag = [2, s]
-        points_dim_tags = gmsh.model.getBoundary(surface_dim_tag,
+        surface_dim_tag = (2, s)
+        points_dim_tags = gmsh.model.getBoundary([surface_dim_tag],
                                                  combined=False, recursive=True)
         s_points_xs = list()
         s_points_ys = list()

@@ -19,23 +19,28 @@ from support import auto_complex_points_sizes_min_curve_in_volume, \
     boundary_surfaces_to_six_side_groups, check_file, volumes_groups_surfaces
 
 
-class TrenchEbsNKM:
+class TrenchEbsNkm:
     def __init__(
             self, factory, simple_boundary,
             env_input_path, env_name, env_point_data, env_transform_data,
             origin, n_levels, n_tunnels, n_trenches, n_boreholes,
             d_tunnel, d_level, d_trench, dx_borehole, dz_borehole,
-            borehole_input_path,
+            borehole_input_path, ebs_ls
     ):
         """
         NKM model with Intrusions, ILW and HLW Boreholes inside Environment
+        :param list of float ebs_ls: characteristic lengths of EBS layers
         :param str factory: see Primitive
-        :param bool simple_boundary: Make only 6 boundary surfaces: NX, NY, NZ, X, Y, Z (mandatory True for geo factory)
+        :param bool simple_boundary: Make only 6 boundary surfaces:
+         NX, NY, NZ, X, Y, Z (mandatory True for geo factory)
         :param str env_input_path: Environment input path (Complex class child)
         :param str env_name: Environment physical name
-        :param list of float env_point_data: Environment point data (see Primitive)
-        :param list of float env_transform_data: Environment center transform (see Primitive)
-        :param list of float origin: position [x, y, z] of first trench of first tunnel of first level 
+        :param list of float env_point_data: Environment point data
+        (see Primitive)
+        :param list of float env_transform_data: Environment center transform
+        (see Primitive)
+        :param list of float origin: position [x, y, z] of first trench
+        of first tunnel of first level
         """
         print('Read Input')
         print('Boreholes')
@@ -144,8 +149,8 @@ class TrenchEbsNKM:
                     #     (26.700, 1.500, 4.300, 1),
                     #     (28.000, 2.800, 5.400, 1)]
                     lengths = [
-                        (26.200, 1.500, 4.100, 1),
-                        (27.500, 2.800, 5.400, 1)]
+                        (26.200, 1.500, 4.100, ebs_ls[0]),
+                        (27.500, 2.800, 5.400, ebs_ls[1])]
                     physical_names = [
                         'Concrete',
                         'Bentonite'
@@ -593,6 +598,9 @@ class TrenchEbsNKM:
                 gmsh.model.setPhysicalName(2, tag, name)
         self.spent_times['Physical Surfaces'] = time.time() - start_time
 
+    def recombine(self):
+        for b in self.boreholes:
+            b.recombine()
 
 if __name__ == '__main__':
     spent_times = {}
@@ -644,8 +652,9 @@ if __name__ == '__main__':
     print(
         'General.Terminal: {}'.format(
             gmsh.option.getNumber('General.Terminal')))
-    # (1=Delaunay, 2=New Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree)
-    gmsh.option.setNumber('Mesh.Algorithm3D', 4)
+    gmsh.option.setNumber('Mesh.Algorithm3D', 1)
+    # 1: Delaunay, 4: Frontal, 5: Frontal Delaunay, 6: Frontal Hex,
+    # 7: MMG3D, 9: R-tree, 10: HXT
     print(
         'Mesh.Algorithm3D: {}'.format(
             gmsh.option.getNumber('Mesh.Algorithm3D')))
@@ -655,7 +664,7 @@ if __name__ == '__main__':
     pprint(input_nkm)
     factory_str = input_nkm['arguments']['factory']
     print('Initialize')
-    nkm = TrenchEbsNKM(**input_nkm['arguments'])
+    nkm = TrenchEbsNkm(**input_nkm['arguments'])
     # nkm.synchronize()
     if not is_test:
         if factory_str == 'occ':
@@ -667,6 +676,7 @@ if __name__ == '__main__':
             nkm.synchronize()
             nkm.set_sizes()
             nkm.correct_and_transfinite()
+            # nkm.recombine()
             nkm.physical_volumes()
             nkm.physical_surfaces()
         else:
@@ -676,6 +686,7 @@ if __name__ == '__main__':
             nkm.environment()
             nkm.synchronize()
             nkm.correct_and_transfinite()
+            # nkm.recombine()
             nkm.physical_volumes()
             nkm.physical_surfaces()
         spent_times.update(nkm.spent_times)

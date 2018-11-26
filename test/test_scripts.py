@@ -833,8 +833,9 @@ class TestScripts(unittest.TestCase):
         model_name = 'test_boolean'
         gmsh.model.add(model_name)
         factory = gmsh.model.occ
+        factory_str = 'occ'
         primitive = Primitive(
-            factory,
+            factory_str,
             [
                 [5, 10, -15, 5],
                 [-5, 10, -15, 5],
@@ -861,18 +862,21 @@ class TestScripts(unittest.TestCase):
         volume_dts = gmsh.model.getEntities(3)
         print(volume_dts)
         for vdt in volume_dts:
+            print(type(vdt))
+            print(type(vdt[0]))
+            print(type(vdt[1]))
             print('Volume {} surfaces'.format(vdt[1]))
             print('Combined')
             ss_dts = gmsh.model.getBoundary([vdt])
             print(ss_dts)
             print('Combined Tuple')
-            ss_dts = gmsh.model.getBoundary((vdt[0], vdt[1]))
+            ss_dts = gmsh.model.getBoundary([(vdt[0], vdt[1])])
             print(ss_dts)
             print('Uncombined')
             ss_dts = gmsh.model.getBoundary([vdt], combined=False)
             print(ss_dts)
             print('Uncombined Tuple')
-            ss_dts = gmsh.model.getBoundary((vdt[0], vdt[1]), combined=False)
+            ss_dts = gmsh.model.getBoundary([(vdt[0], vdt[1])], combined=False)
             print(ss_dts)
         print('All Surfaces')
         ss_dts = gmsh.model.getEntities(2)
@@ -883,7 +887,7 @@ class TestScripts(unittest.TestCase):
             ls_dts = gmsh.model.getBoundary([sdt])
             print(ls_dts)
             print('Combined Tuple')
-            ls_dts = gmsh.model.getBoundary((sdt[0], sdt[1]))
+            ls_dts = gmsh.model.getBoundary([(sdt[0], sdt[1])])
             print(ls_dts)
             print('Uncombined')
             ls_dts = gmsh.model.getBoundary([sdt], combined=False)
@@ -1435,16 +1439,19 @@ class TestScripts(unittest.TestCase):
         Cylinder in Environment
         """
         gmsh.initialize()
-        gmsh.option.setNumber("Geometry.AutoCoherence", 0)  # No effect at gmsh.model.occ factory
+        # No effect at gmsh.model.occ factory
+        gmsh.option.setNumber("Geometry.AutoCoherence", 0)
         gmsh.option.setNumber("General.Terminal", 1)
-        # (1=Delaunay, 2=New Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree)
-        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
+        # 1: Delaunay, 4: Frontal, 5: Frontal Delaunay, 6: Frontal Hex,
+        # 7: MMG3D, 9: R-tree, 10: HXT
+        gmsh.option.setNumber("Mesh.Algorithm3D", 1)
         model_name = "test_environment"
         gmsh.model.add(model_name)
         factory = gmsh.model.geo
+        factory_str = 'geo'
         print("Primitive 1")
         primitive = Primitive(
-            factory,
+            factory_str,
             [
                 [5, 10, -15, 5],
                 [-5, 10, -15, 5],
@@ -1468,7 +1475,7 @@ class TestScripts(unittest.TestCase):
         )
         print("Primitive 2")
         primitive2 = Primitive(
-            factory,
+            factory_str,
             [
                 [5, 10, -15, 5],
                 [-5, 10, -15, 5],
@@ -1492,7 +1499,7 @@ class TestScripts(unittest.TestCase):
         )
         print("Primitive 3")
         primitive3 = Primitive(
-            factory,
+            factory_str,
             [
                 [5, 10, -15, 5],
                 [-5, 10, -15, 5],
@@ -1516,7 +1523,7 @@ class TestScripts(unittest.TestCase):
         )
         print("Cylinder")
         cylinder = Cylinder(
-            factory,
+            factory_str,
             [10, 20, 30],
             [10, 20, 30],
             [[5, 5, 5], [7, 7, 7], [9, 9, 9]],
@@ -1542,7 +1549,7 @@ class TestScripts(unittest.TestCase):
         # print(vgs_ss)
         print("Environment")
         environment = Environment(
-            factory,
+            factory_str,
             300,
             300,
             300,
@@ -1554,31 +1561,39 @@ class TestScripts(unittest.TestCase):
         factory.synchronize()
         print("Correct and Transfinite")
         ss = set()
-        correct_and_transfinite_complex(cylinder, ss)
-        print(correct_and_transfinite_primitive(primitive, ss))
-        print(correct_and_transfinite_primitive(primitive2, ss))
-        print(correct_and_transfinite_primitive(primitive3, ss))
+        cs = set()
+        correct_and_transfinite_complex(cylinder, ss, cs)
+        print(correct_and_transfinite_primitive(primitive, ss, cs))
+        print(correct_and_transfinite_primitive(primitive2, ss, cs))
+        print(correct_and_transfinite_primitive(primitive3, ss, cs))
+        print('Recombine')
+        primitive.recombine()
+        primitive2.recombine()
+        primitive3.recombine()
+        cylinder.recombine()
         print("Physical")
         tag = gmsh.model.addPhysicalGroup(3, primitive.volumes)
-        gmsh.model.setPhysicalName(3, tag, primitive.volume_name)
+        gmsh.model.setPhysicalName(3, tag, primitive.physical_name)
         tag = gmsh.model.addPhysicalGroup(3, primitive2.volumes)
-        gmsh.model.setPhysicalName(3, tag, primitive2.volume_name)
+        gmsh.model.setPhysicalName(3, tag, primitive2.physical_name)
         tag = gmsh.model.addPhysicalGroup(3, primitive3.volumes)
-        gmsh.model.setPhysicalName(3, tag, primitive3.volume_name)
+        gmsh.model.setPhysicalName(3, tag, primitive3.physical_name)
         for name in cylinder.map_physical_name_to_primitives_indices.keys():
             vs = cylinder.get_volumes_by_physical_name(name)
             tag = gmsh.model.addPhysicalGroup(3, vs)
             gmsh.model.setPhysicalName(3, tag, name)
         tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
-        gmsh.model.setPhysicalName(3, tag, environment.volume_name)
+        gmsh.model.setPhysicalName(3, tag, environment.physical_name)
         volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
-        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags,
+                                                   combined=False)
         if factory is not gmsh.model.geo:
             surfaces_names = ["X", "NY", "NX", "Y", "NZ", "Z"]
         else:
             surfaces_names = ["NX", "X", "NY", "Y", "NZ", "Z"]
         for i, n in enumerate(surfaces_names):
-            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
+            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0],
+                                              [surfaces_dim_tags[i][1]])
             gmsh.model.setPhysicalName(2, tag, n)
         print("Mesh")
         gmsh.model.mesh.generate(3)

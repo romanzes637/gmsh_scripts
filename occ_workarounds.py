@@ -8,8 +8,9 @@ import gmsh
 def correct_primitive(primitive):
     corrected = False
     if len(primitive.volumes) == 1:
-        volumes_dim_tags = map(lambda x: [3, x], primitive.volumes)
-        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        volumes_dim_tags = [(3, x) for x in primitive.volumes]
+        surfaces_dim_tags = gmsh.model.getBoundary(dimTags=volumes_dim_tags,
+                                                   combined=False)
         if len(surfaces_dim_tags) == 6:
             points_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False, recursive=True)
             if len(points_dim_tags) == 8:
@@ -68,7 +69,7 @@ def correct_primitive(primitive):
                             curves.add(abs(curve[1]))
                     curves_points = []
                     for curve in curves:
-                        points_dim_tags = gmsh.model.getBoundary([[1, curve]], combined=False)
+                        points_dim_tags = gmsh.model.getBoundary([(1, curve)], combined=False)
                         curves_points.append(map(lambda x: x[1], points_dim_tags))
                     # Curves local points
                     curves_local_points = []

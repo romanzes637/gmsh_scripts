@@ -63,3 +63,7 @@ class Complex:
     def smooth(self, dim, n):
         for p in self.primitives:
             p.smooth(dim, n)
+
+    def recombine(self):
+        for p in self.primitives:
+            p.recombine()
