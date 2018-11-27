@@ -1,28 +1,37 @@
-import json
-from pprint import pprint
 import unittest
+import os
+import json
 import itertools
 import math
 import time
+from pprint import pprint
 
 import gmsh
-import os
 
 from complex_factory import ComplexFactory
 from environment import Environment
-from boolean import complex_by_volumes, complex_by_complex, primitive_by_complex, primitive_by_volumes, \
-    primitive_by_primitive, sort_object_only_shared_tool_no_shared, sort_object_only_shared_no_tool
-from io import read_complex_type_1, read_complex_type_2, read_complex_type_2_to_complex_primitives, write_json, \
+from boolean import complex_by_volumes, complex_by_complex, \
+    primitive_by_complex, primitive_by_volumes, \
+    primitive_by_primitive, sort_object_only_shared_tool_no_shared, \
+    sort_object_only_shared_no_tool
+from io import read_complex_type_1, read_complex_type_2, \
+    read_complex_type_2_to_complex_primitives, write_json, \
     read_json
 from complex_primitive import ComplexPrimitive
-from occ_workarounds import correct_and_transfinite_primitive, correct_and_transfinite_complex
+from occ_workarounds import correct_and_transfinite_primitive, \
+    correct_and_transfinite_complex, \
+    correct_and_transfinite_and_recombine_complex
 from primitive import Primitive
 from cylinder import Cylinder
 from divided_cylinder import DividedCylinder
-from support import auto_primitive_points_sizes_min_curve, auto_complex_points_sizes_min_curve, \
-    auto_complex_points_sizes_min_curve_in_volume, auto_primitive_points_sizes_min_curve_in_volume, \
-    volumes_surfaces_to_volumes_groups_surfaces, auto_volumes_groups_surfaces, auto_points_sizes, \
-    structure_cuboid, is_cuboid, get_volumes_geometry, check_geometry, boundary_surfaces_to_six_side_groups
+from support import auto_primitive_points_sizes_min_curve, \
+    auto_complex_points_sizes_min_curve, \
+    auto_complex_points_sizes_min_curve_in_volume, \
+    auto_primitive_points_sizes_min_curve_in_volume, \
+    volumes_surfaces_to_volumes_groups_surfaces, auto_volumes_groups_surfaces, \
+    auto_points_sizes, \
+    structure_cuboid, is_cuboid, get_volumes_geometry, check_geometry, \
+    boundary_surfaces_to_six_side_groups, check_file
 
 
 class TestScripts(unittest.TestCase):
@@ -32,18 +41,15 @@ class TestScripts(unittest.TestCase):
         """
         gmsh.initialize()
         gmsh.option.setNumber("General.Terminal", 1)
-        gmsh.option.setNumber('Geometry.AutoCoherence', 0)  # No effect at gmsh.model.occ factory
+        # Geometry.AutoCoherence has no effect at gmsh.model.occ factory
+        gmsh.option.setNumber('Geometry.AutoCoherence', 0)
         model_name = 'test_primitive'
         gmsh.model.add(model_name)
         print('Input')
         input_file_name = '_'.join(['input', model_name + '.json'])
-        output_file_name = model_name + '.msh'
-        script_dir_path = os.path.dirname(os.path.abspath(__file__))
-        rel_input_file_path = os.path.join(script_dir_path, input_file_name)
-        rel_output_file_path = os.path.join(script_dir_path, output_file_name)
-        real_rel_input_file_path = os.path.realpath(rel_input_file_path)
-        real_rel_output_file_path = os.path.realpath(rel_output_file_path)
-        with open(real_rel_input_file_path) as f:
+        file_path = os.path.join('input', input_file_name)
+        result = check_file(file_path)
+        with open(result['path']) as f:
             d = json.load(f)
         pprint(d)
         if d['arguments']['factory'] == 'occ':
@@ -75,7 +81,7 @@ class TestScripts(unittest.TestCase):
         print('Mesh')
         gmsh.model.mesh.generate(3)
         gmsh.model.mesh.removeDuplicateNodes()
-        gmsh.write(real_rel_output_file_path)
+        gmsh.write(model_name + ".msh")
         gmsh.finalize()
 
     def test_cylinder(self):
@@ -84,18 +90,15 @@ class TestScripts(unittest.TestCase):
         """
         gmsh.initialize()
         gmsh.option.setNumber("General.Terminal", 1)
-        gmsh.option.setNumber('Geometry.AutoCoherence', 0)  # No effect at gmsh.model.occ factory
+        gmsh.option.setNumber('Geometry.AutoCoherence',
+                              0)  # No effect at gmsh.model.occ factory
         model_name = 'test_cylinder'
         gmsh.model.add(model_name)
         print('Input')
         input_file_name = '_'.join(['input', model_name + '.json'])
-        output_file_name = model_name + '.msh'
-        script_dir_path = os.path.dirname(os.path.abspath(__file__))
-        rel_input_file_path = os.path.join(script_dir_path, input_file_name)
-        rel_output_file_path = os.path.join(script_dir_path, output_file_name)
-        real_rel_input_file_path = os.path.realpath(rel_input_file_path)
-        real_rel_output_file_path = os.path.realpath(rel_output_file_path)
-        with open(real_rel_input_file_path) as f:
+        file_path = os.path.join('input', input_file_name)
+        result = check_file(file_path)
+        with open(result['path']) as f:
             d = json.load(f)
         pprint(d)
         if d['arguments']['factory'] == 'occ':
@@ -125,7 +128,7 @@ class TestScripts(unittest.TestCase):
         print("Mesh")
         gmsh.model.mesh.generate(3)
         gmsh.model.mesh.removeDuplicateNodes()
-        gmsh.write(real_rel_output_file_path)
+        gmsh.write(model_name + ".msh")
         gmsh.finalize()
 
     def test_divided_cylinder(self):
@@ -134,12 +137,16 @@ class TestScripts(unittest.TestCase):
         """
         gmsh.initialize()
         gmsh.option.setNumber("General.Terminal", 1)
-        gmsh.option.setNumber('Geometry.AutoCoherence', 0)  # No effect at gmsh.model.occ factory
+        gmsh.option.setNumber('Geometry.AutoCoherence',
+                              0)  # No effect at gmsh.model.occ factory
         model_name = 'test_divided_cylinder'
         gmsh.model.add(model_name)
         print('Input')
-        input_path = '_'.join(['input', model_name + '.json'])
-        with open(input_path) as f:
+        input_file_name = '_'.join(['input', model_name + '.json'])
+        file_path = os.path.join('input', input_file_name)
+        result = check_file(file_path)
+        print(result['path'])
+        with open(result['path']) as f:
             d = json.load(f)
         pprint(d)
         if d['arguments']['factory'] == 'occ':
@@ -178,12 +185,15 @@ class TestScripts(unittest.TestCase):
         """
         gmsh.initialize()
         gmsh.option.setNumber("General.Terminal", 1)
-        gmsh.option.setNumber('Geometry.AutoCoherence', 0)  # No effect at gmsh.model.occ factory
+        gmsh.option.setNumber('Geometry.AutoCoherence',
+                              0)  # No effect at gmsh.model.occ factory
         model_name = 'test_complex_primitive'
         gmsh.model.add(model_name)
         print('Input')
-        input_path = '_'.join(['input', model_name + '.json'])
-        with open(input_path) as f:
+        input_file_name = '_'.join(['input', model_name + '.json'])
+        file_path = os.path.join('input', input_file_name)
+        result = check_file(file_path)
+        with open(result['path']) as f:
             d = json.load(f)
         pprint(d)
         if d['arguments']['factory'] == 'occ':
@@ -220,16 +230,20 @@ class TestScripts(unittest.TestCase):
         """
         Test complex boolean
         """
-        # FIXME bug with input_test_environment.json "divide_data": [1, 1, 1] then boolean at
-        # complex_by_volumes(factory, c1, evs, remove_tool=False, sort_function=sort_object_only_shared_no_tool)
+        # FIXME bug with input_test_environment.json "divide_data":
+        # [1, 1, 1] then boolean at complex_by_volumes(factory, c1, evs,
+        # remove_tool=False, sort_function=sort_object_only_shared_no_tool)
         model_name = "test_boolean"
         gmsh.initialize()
         gmsh.option.setNumber("General.Terminal", 1)
-        gmsh.option.setNumber("Mesh.Algorithm3D", 4)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 1)
         gmsh.model.add(model_name)
         print('Input')
-        input_path = '_'.join(['input', model_name + '.json'])
-        with open(input_path) as f:
+        input_file_name = '_'.join(['input', model_name + '.json'])
+        file_path = os.path.join('input', input_file_name)
+        result = check_file(file_path)
+        print(result['path'])
+        with open(result['path']) as f:
             d = json.load(f)
         pprint(d)
         is_test_mode = d['arguments']['test_mode']
@@ -237,6 +251,7 @@ class TestScripts(unittest.TestCase):
         is_simple_first = d['arguments']['simple_first']
         is_simple_second = d['arguments']['simple_second']
         is_simple_boundary = d['arguments']['simple_boundary']
+        is_recombine = d['arguments']['recombine']
         with open(d['arguments']['first_complex_path']) as f1:
             d1 = json.load(f1)
         if is_simple_first:
@@ -277,19 +292,23 @@ class TestScripts(unittest.TestCase):
                 print("Environment Volumes")
                 evs = e.get_volumes()
                 print("First by Environment Volumes")
-                complex_by_volumes(factory, c1, evs, remove_tool=False, sort_function=sort_object_only_shared_no_tool)
+                complex_by_volumes(factory, c1, evs, remove_tool=False,
+                                   sort_function=sort_object_only_shared_no_tool)
                 print("Second by Environment Volumes")
-                complex_by_volumes(factory, c2, evs, remove_tool=False, sort_function=sort_object_only_shared_no_tool)
+                complex_by_volumes(factory, c2, evs, remove_tool=False,
+                                   sort_function=sort_object_only_shared_no_tool)
                 print("Environment by First")
                 complex_by_complex(factory, e, c1)
                 print("Environment by Second")
                 complex_by_complex(factory, e, c2)
             else:
                 print("First By Environment")
-                complex_by_complex(factory, c1, e, sort_function=sort_object_only_shared_tool_no_shared,
+                complex_by_complex(factory, c1, e,
+                                   sort_function=sort_object_only_shared_tool_no_shared,
                                    pre_boolean=False)
                 print("Second By Environment")
-                complex_by_complex(factory, c2, e, sort_function=sort_object_only_shared_tool_no_shared,
+                complex_by_complex(factory, c2, e,
+                                   sort_function=sort_object_only_shared_tool_no_shared,
                                    pre_boolean=False)
             print("Remove Duplicates")
             factory.removeAllDuplicates()
@@ -300,12 +319,20 @@ class TestScripts(unittest.TestCase):
             auto_complex_points_sizes_min_curve_in_volume(c1, pss)
             auto_complex_points_sizes_min_curve_in_volume(c2, pss)
             auto_complex_points_sizes_min_curve_in_volume(e, pss)
-        print("Correct and Transfinite")
-        cs = set()
-        ss = set()
-        correct_and_transfinite_complex(c1, ss, cs)
-        correct_and_transfinite_complex(c2, ss, cs)
-        correct_and_transfinite_complex(e, ss, cs)
+        if is_recombine:
+            print("Correct and Transfinite and Recombine")
+            cs = set()
+            ss = set()
+            correct_and_transfinite_and_recombine_complex(c1, ss, cs)
+            correct_and_transfinite_and_recombine_complex(c2, ss, cs)
+            correct_and_transfinite_and_recombine_complex(e, ss, cs)
+        else:
+            print("Correct and Transfinite")
+            cs = set()
+            ss = set()
+            correct_and_transfinite_complex(c1, ss, cs)
+            correct_and_transfinite_complex(c2, ss, cs)
+            correct_and_transfinite_complex(e, ss, cs)
         print("Physical")
         print("First")
         for name in c1.map_physical_name_to_primitives_indices.keys():
@@ -342,16 +369,21 @@ class TestScripts(unittest.TestCase):
                     surfaces = e.get_surfaces_by_physical_name(physical_name)
                     for s in surfaces:
                         map_surface_to_physical_name[s] = physical_name
-                for i, (name, ss) in enumerate(boundary_surfaces_groups.items()):
+                for i, (name, ss) in enumerate(
+                        boundary_surfaces_groups.items()):
                     map_expanded_physical_name_to_surfaces = dict()
                     for s in ss:
-                        physical_name = '_'.join([name, map_surface_to_physical_name[s]])
-                        map_expanded_physical_name_to_surfaces.setdefault(physical_name, list()).append(s)
-                    for j, (epn, ess) in enumerate(map_expanded_physical_name_to_surfaces.items()):
+                        physical_name = '_'.join(
+                            [name, map_surface_to_physical_name[s]])
+                        map_expanded_physical_name_to_surfaces.setdefault(
+                            physical_name, list()).append(s)
+                    for j, (epn, ess) in enumerate(
+                            map_expanded_physical_name_to_surfaces.items()):
                         tag = gmsh.model.addPhysicalGroup(2, ess)
                         gmsh.model.setPhysicalName(2, tag, epn)
             else:
-                for i, (name, ss) in enumerate(boundary_surfaces_groups.items()):
+                for i, (name, ss) in enumerate(
+                        boundary_surfaces_groups.items()):
                     tag = gmsh.model.addPhysicalGroup(2, ss)
                     gmsh.model.setPhysicalName(2, tag, name)
         print('Mesh')
@@ -372,7 +404,7 @@ class TestScripts(unittest.TestCase):
         gmsh.model.add(model_name)
         factory = gmsh.model.occ
         print('Read')
-        read_json(factory, model_name + '.json')
+        read_json(factory, os.path.join('input', model_name + '.json'))
         print("Remove Duplicates")
         factory.removeAllDuplicates()
         print('Synchronize')
@@ -390,7 +422,8 @@ class TestScripts(unittest.TestCase):
             result = is_cuboid(volume)
             if result:
                 structured_volumes.add(volume)
-                structure_cuboid(volume, structured_surfaces, structured_edges, 5, 0.0001)
+                structure_cuboid(volume, structured_surfaces, structured_edges,
+                                 5, 0.0001)
         pprint(structured_edges)
         pprint(structured_surfaces)
         pprint(structured_volumes)
@@ -424,10 +457,15 @@ class TestScripts(unittest.TestCase):
         for cp in complex_primitives:
             cp.evaluate_bounding_box()  # for boolean
         print('Boolean')
-        combinations = list(itertools.combinations(range(len(complex_primitives)), 2))
+        combinations = list(
+            itertools.combinations(range(len(complex_primitives)), 2))
         for i, c in enumerate(combinations):
-            print('Boolean: {}/{} (CP {} by CP {})'.format(i, len(combinations), c[0], c[1]))
-            complex_by_complex(factory, complex_primitives[c[0]], complex_primitives[c[1]])
+            print(
+                'Boolean: {}/{} (CP {} by CP {})'.format(i, len(combinations),
+                                                         c[0],
+                                                         c[1]))
+            complex_by_complex(factory, complex_primitives[c[0]],
+                               complex_primitives[c[1]])
         print('Remove all duplicates')
         factory.removeAllDuplicates()
         print('Synchronize')
@@ -466,9 +504,10 @@ class TestScripts(unittest.TestCase):
         model_name = 'test_json_boolean'
         gmsh.model.add(model_name)
         factory = gmsh.model.occ
+        factory_str = 'occ'
         print('Geometry')
         primitive1 = Primitive(
-            factory,
+            factory_str,
             [
                 [5, 10, -15, 5],
                 [-5, 10, -15, 5],
@@ -506,7 +545,7 @@ class TestScripts(unittest.TestCase):
             'Primitive'
         )
         primitive2 = Primitive(
-            factory,
+            factory_str,
             [
                 [5, 10, -15, 5],
                 [-5, 10, -15, 5],
@@ -583,9 +622,10 @@ class TestScripts(unittest.TestCase):
         model_name = 'test_json'
         gmsh.model.add(model_name)
         factory = gmsh.model.occ
+        factory_str = 'occ'
         print('Geometry')
         primitive = Primitive(
-            factory,
+            factory_str,
             [
                 [5, 10, -15, 5],
                 [-5, 10, -15, 5],
@@ -633,14 +673,16 @@ class TestScripts(unittest.TestCase):
 
     def test_import_brep_and_structured_cuboid(self):
         gmsh.initialize()
-        gmsh.option.setNumber("Geometry.AutoCoherence", 0)  # No effect at gmsh.model.occ factory
+        gmsh.option.setNumber("Geometry.AutoCoherence",
+                              0)  # No effect at gmsh.model.occ factory
         gmsh.option.setNumber("General.Terminal", 1)
         # (1=Delaunay, 2=New Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree)
         gmsh.option.setNumber("Mesh.Algorithm3D", 1)
         model_name = 'test_import_brep_and_structured_cuboid'
         gmsh.model.add(model_name)
         factory = gmsh.model.occ
-        vdts = factory.importShapes('test_read_complex_type_2_to_complex_primitives.brep')
+        vdts = factory.importShapes(
+            'test_read_complex_type_2_to_complex_primitives.brep')
         pprint(vdts)
         print("Remove Duplicates")
         # factory.removeAllDuplicates()
@@ -674,8 +716,9 @@ class TestScripts(unittest.TestCase):
         model_name = 'test_structured_cuboid'
         gmsh.model.add(model_name)
         factory = gmsh.model.occ
+        factory_str = 'occ'
         primitive = Primitive(
-            factory,
+            factory_str,
             [
                 [5, 10, -15, 5],
                 [-5, 10, -15, 5],
@@ -753,7 +796,8 @@ class TestScripts(unittest.TestCase):
         model_name = 'test_import_brep'
         gmsh.model.add(model_name)
         factory = gmsh.model.occ
-        dts = factory.importShapes('test_read_complex_type_2_to_complex_primitives.brep')
+        dts = factory.importShapes(
+            'test_read_complex_type_2_to_complex_primitives.brep')
         pprint(dts)
         factory.synchronize()
         sizes = auto_points_sizes(0.5)
@@ -769,8 +813,9 @@ class TestScripts(unittest.TestCase):
         model_name = 'test_auto_points_sizes'
         gmsh.model.add(model_name)
         factory = gmsh.model.occ
+        factory_str = 'occ'
         primitive = Primitive(
-            factory,
+            factory_str,
             [
                 [5, 10, -15, 1],
                 [-5, 10, -15, 1],
@@ -1000,14 +1045,16 @@ class TestScripts(unittest.TestCase):
     def test_boolean_gmsh(self):
         gmsh.initialize()
         gmsh.option.setNumber('General.Terminal', 1)
-        model_name = 'test_boolean'
+        model_name = 'test_boolean_gmsh'
         gmsh.model.add(model_name)
         factory = gmsh.model.occ
+        factory_str = 'occ'
         times = dict()
         booleans = {
             'Fuse': lambda objects, tools: factory.fuse(objects, tools),
             'Cut': lambda objects, tools: factory.cut(objects, tools),
-            'Intersect': lambda objects, tools: factory.intersect(objects, tools),
+            'Intersect': lambda objects, tools: factory.intersect(objects,
+                                                                  tools),
             'Fragment': lambda objects, tools: factory.fragment(objects, tools),
             'FuseRemoveFalse': lambda objects, tools: factory.fuse(
                 objects, tools, removeObject=False, removeTool=False),
@@ -1025,7 +1072,7 @@ class TestScripts(unittest.TestCase):
             print(k)
             # print(v)
             obj = Primitive(
-                factory,
+                factory_str,
                 [
                     [5, 10, -15, 5],
                     [-5, 10, -15, 5],
@@ -1048,7 +1095,7 @@ class TestScripts(unittest.TestCase):
                 '{}Obj'.format(k)
             )
             tool = Primitive(
-                factory,
+                factory_str,
                 [
                     [5, 10, -15, 5],
                     [-5, 10, -15, 5],
@@ -1073,7 +1120,8 @@ class TestScripts(unittest.TestCase):
             primitives.append(obj)
             primitives.append(tool)
             start_time = time.time()
-            out, out_map = booleans[k]([[3, obj.volumes[0]]], [[3, tool.volumes[0]]])
+            out, out_map = booleans[k]([(3, obj.volumes[0])],
+                                       [(3, tool.volumes[0])])
             times[k] = time.time() - start_time
             print(out)
             print(out_map)
@@ -1117,15 +1165,18 @@ class TestScripts(unittest.TestCase):
         Attempt to combine GEO and OCC factories (failed)
         """
         gmsh.initialize()
-        gmsh.option.setNumber('Geometry.AutoCoherence', 0)  # No effect at gmsh.model.occ factory
+        gmsh.option.setNumber('Geometry.AutoCoherence',
+                              0)  # No effect at gmsh.model.occ factory
         gmsh.option.setNumber('General.Terminal', 1)
         gmsh.model.add('test_factories')
         factory_occ = gmsh.model.occ
         factory_geo = gmsh.model.geo
+        factory_occ_str = 'occ'
+        factory_geo_str = 'geo'
         print('Creation')
         print("Primitive GEO")
         primitive_geo = Primitive(
-            factory_geo,
+            factory_geo_str,
             [
                 [5, 10, -15, 5],
                 [-5, 10, -15, 5],
@@ -1151,7 +1202,7 @@ class TestScripts(unittest.TestCase):
         factory_geo.synchronize()
         print("Primitive OCC")
         primitive_occ = Primitive(
-            factory_occ,
+            factory_occ_str,
             [
                 [5, 10, -15, 5],
                 [-5, 10, -15, 5],
@@ -1179,13 +1230,14 @@ class TestScripts(unittest.TestCase):
         primitive_occ.evaluate_coordinates()
         print("Correct and Transfinite")
         ss = set()
-        print(primitive_geo.transfinite(ss))
-        print(correct_and_transfinite_primitive(primitive_occ, ss))
+        cs = set()
+        print(primitive_geo.transfinite(ss, cs))
+        print(correct_and_transfinite_primitive(primitive_occ, ss, cs))
         print("Physical")
         tag = gmsh.model.addPhysicalGroup(3, primitive_geo.volumes)
-        gmsh.model.setPhysicalName(3, tag, primitive_geo.volume_name)
+        gmsh.model.setPhysicalName(3, tag, primitive_geo.physical_name)
         tag = gmsh.model.addPhysicalGroup(3, primitive_occ.volumes)
-        gmsh.model.setPhysicalName(3, tag, primitive_occ.volume_name)
+        gmsh.model.setPhysicalName(3, tag, primitive_occ.physical_name)
         gmsh.model.mesh.generate(3)
         gmsh.model.mesh.removeDuplicateNodes()
         gmsh.write("test_factories.msh")
@@ -1193,7 +1245,8 @@ class TestScripts(unittest.TestCase):
 
     def test_transfinite(self):
         gmsh.initialize()
-        gmsh.option.setNumber("Geometry.AutoCoherence", 0)  # No effect at gmsh.model.occ factory
+        gmsh.option.setNumber("Geometry.AutoCoherence",
+                              0)  # No effect at gmsh.model.occ factory
         gmsh.option.setNumber("General.Terminal", 1)
         gmsh.model.add("test_transfinite")
         factory = gmsh.model.geo
@@ -1379,7 +1432,9 @@ class TestScripts(unittest.TestCase):
             gmsh.model.setPhysicalName(3, tag, "V{}".format(i))
             for j, s in enumerate(p.surfaces):
                 tag = gmsh.model.addPhysicalGroup(2, [s])
-                gmsh.model.setPhysicalName(2, tag, "{}{}".format(p.surfaces_names[j], i))
+                gmsh.model.setPhysicalName(2, tag,
+                                           "{}{}".format(p.surfaces_names[j],
+                                                         i))
         gmsh.model.mesh.generate(3)
         gmsh.model.mesh.removeDuplicateNodes()
         gmsh.write("test_transfinite.msh")
@@ -1390,18 +1445,16 @@ class TestScripts(unittest.TestCase):
         Cylinder boundary surfaces
         """
         gmsh.initialize()
-
-        gmsh.option.setNumber("Geometry.AutoCoherence", 0)  # No effect at gmsh.model.occ factory
+        # No effect at gmsh.model.occ factory
+        gmsh.option.setNumber("Geometry.AutoCoherence", 0)
         gmsh.option.setNumber("General.Terminal", 1)
-
         model_name = "test_boundary_surfaces"
         gmsh.model.add(model_name)
-
         factory = gmsh.model.occ
-
+        factory_str = 'occ'
         print("Cylinder")
         cylinder = Cylinder(
-            factory,
+            factory_str,
             [10, 20, 30],
             [10, 20, 30],
             [[5, 5, 5], [7, 7, 7], [9, 9, 9]],
@@ -1411,13 +1464,10 @@ class TestScripts(unittest.TestCase):
             [[3, 0, 1], [4, 0, 1], [5, 0, 1]],
             [5, 0, 1]
         )
-
         print("Remove All Duplicates")
         factory.removeAllDuplicates()
-
         print("Synchronize")
         factory.synchronize()
-
         print("Universal Way")  # Doesn't works with many inner volumes
         v_dts = gmsh.model.getEntities(3)  # all model volumes
         print(len(v_dts))
@@ -1427,11 +1477,9 @@ class TestScripts(unittest.TestCase):
         s_dts = gmsh.model.getEntities(2)  # all model surfaces boundary
         print(len(s_dts))
         print(bs_u)
-
         print("Good Way")
         vgs_ss = auto_volumes_groups_surfaces()
         print(vgs_ss)
-
         gmsh.finalize()
 
     def test_environment(self):
@@ -1608,7 +1656,8 @@ class TestScripts(unittest.TestCase):
         """
         gmsh.initialize()
         gmsh.option.setNumber("General.Terminal", 1)
-        # 1=Delaunay, 2=New Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree
+        # 1=Delaunay, 2=New Delaunay, 4=Frontal,
+        # 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree
         gmsh.option.setNumber("Mesh.Algorithm3D", 4)
         model_name = 'test_read_complex_type_2'
         gmsh.model.add(model_name)
@@ -1634,7 +1683,8 @@ class TestScripts(unittest.TestCase):
         factory.synchronize()
         print('Correct and Transfinite')
         ss = set()
-        correct_and_transfinite_complex(c, ss)
+        cs = set()
+        correct_and_transfinite_complex(c, ss, cs)
         print('Auto points sizes')
         sizes = auto_points_sizes()
         pprint(sizes)
@@ -1649,7 +1699,8 @@ class TestScripts(unittest.TestCase):
         Test read Complex Type 2 to ComplexPrimitives
         """
         gmsh.initialize()
-        gmsh.option.setNumber("Geometry.AutoCoherence", 0)  # No effect at gmsh.model.occ factory
+        gmsh.option.setNumber("Geometry.AutoCoherence",
+                              0)  # No effect at gmsh.model.occ factory
         gmsh.option.setNumber("General.Terminal", 1)
         gmsh.option.setNumber("Mesh.Algorithm3D", 4)
         model_name = 'test_read_complex_type_2_to_complex_primitives'
@@ -1671,18 +1722,24 @@ class TestScripts(unittest.TestCase):
             cp.evaluate_coordinates()  # for correct and transfinite
             cp.evaluate_bounding_box()  # for boolean
         print('Boolean')
-        combinations = list(itertools.combinations(range(len(complex_primitives)), 2))
+        combinations = list(
+            itertools.combinations(range(len(complex_primitives)), 2))
         for i, c in enumerate(combinations):
-            print('Boolean: {}/{} (CP {} by CP {})'.format(i, len(combinations), c[0], c[1]))
-            complex_by_complex(factory, complex_primitives[c[0]], complex_primitives[c[1]])
+            print(
+                'Boolean: {}/{} (CP {} by CP {})'.format(i, len(combinations),
+                                                         c[0],
+                                                         c[1]))
+            complex_by_complex(factory, complex_primitives[c[0]],
+                               complex_primitives[c[1]])
         print('Remove all duplicates')
         factory.removeAllDuplicates()
         print('Synchronize')
         factory.synchronize()
         print('Correct and Transfinite')
         ss = set()
+        cs = set()
         for cp in complex_primitives:
-            result = correct_and_transfinite_complex(cp, ss)
+            result = correct_and_transfinite_complex(cp, ss, cs)
             print(result)
         print('Auto points sizes')
         sizes = auto_points_sizes()
@@ -1717,10 +1774,15 @@ class TestScripts(unittest.TestCase):
         for cp in complex_primitives:
             cp.evaluate_bounding_box()  # for boolean
         print('Boolean')
-        combinations = list(itertools.combinations(range(len(complex_primitives)), 2))
+        combinations = list(
+            itertools.combinations(range(len(complex_primitives)), 2))
         for i, c in enumerate(combinations):
-            print('Boolean: {}/{} (CP {} by CP {})'.format(i, len(combinations), c[0], c[1]))
-            complex_by_complex(factory, complex_primitives[c[0]], complex_primitives[c[1]])
+            print(
+                'Boolean: {}/{} (CP {} by CP {})'.format(i, len(combinations),
+                                                         c[0],
+                                                         c[1]))
+            complex_by_complex(factory, complex_primitives[c[0]],
+                               complex_primitives[c[1]])
         print('Remove all duplicates')
         factory.removeAllDuplicates()
         print('Synchronize')
@@ -1733,16 +1795,12 @@ class TestScripts(unittest.TestCase):
         Test read ComplexPrimitives
         """
         start_time = time.time()
-
         gmsh.initialize()
-
         gmsh.option.setNumber("General.Terminal", 1)
         gmsh.option.setNumber("Mesh.Algorithm3D", 4)
-
         gmsh.model.add("test_read_complex_primitives")
-
         factory = gmsh.model.occ
-
+        factory_str = 'occ'
         int_name = "Intrusion"
         int_physical_tag = 0
         int_lc = 5
@@ -1767,11 +1825,10 @@ class TestScripts(unittest.TestCase):
             [int_center_x, int_center_y, int_center_z],
             [int_tr_x, int_tr_y, int_tr_z])
         print('{:.3f}s'.format(time.time() - start))
-
         print("Creation")
         start = time.time()
         environment = Primitive(
-            factory,
+            factory_str,
             [
                 [100, 100, -100, 50],
                 [-100, 100, -100, 50],
@@ -1787,66 +1844,59 @@ class TestScripts(unittest.TestCase):
             [[], [], [], [], [], [], [], [], [], [], [], []]
         )
         print('{:.3f}s'.format(time.time() - start))
-
         print("ComplexPrimitives boolean")
         start = time.time()
-        combinations = list(itertools.combinations(range(len(complex_primitives)), 2))
+        combinations = list(
+            itertools.combinations(range(len(complex_primitives)), 2))
         for combination in combinations:
             print("Boolean %s by %s" % combination)
-            complex_by_complex(factory, complex_primitives[combination[0]], complex_primitives[combination[1]])
+            complex_by_complex(factory, complex_primitives[combination[0]],
+                               complex_primitives[combination[1]])
         print('{:.3f}s'.format(time.time() - start))
-
         print("Environment by Intrusion boolean")
         start = time.time()
         for cp in complex_primitives:
             primitive_by_complex(factory, environment, cp)
         print('{:.3f}s'.format(time.time() - start))
-
         print("Remove All Duplicates")
         start = time.time()
         factory.removeAllDuplicates()
         factory.synchronize()
         print('{:.3f}s'.format(time.time() - start))
-
         print("Correction and Transfinite")
         start = time.time()
         ss = set()
+        cs = set()
         for cp in complex_primitives:
-            correct_and_transfinite_complex(cp, ss)
+            correct_and_transfinite_complex(cp, ss, cs)
         print('{:.3f}s'.format(time.time() - start))
-
         print("Set Sizes")
         start = time.time()
         for cp in complex_primitives:
             cp.set_size()
         print('{:.3f}s'.format(time.time() - start))
-
         print("Physical Volumes")
         vs = []
         for cp in complex_primitives:
             vs += cp.get_volumes_by_physical_index(int_physical_tag)
         tag = gmsh.model.addPhysicalGroup(3, vs)
         gmsh.model.setPhysicalName(3, tag, int_name)
-
         print("Environment Physical")
         tag = gmsh.model.addPhysicalGroup(3, environment.volumes)
         gmsh.model.setPhysicalName(3, tag, "Environment")
         volumes_dim_tags = map(lambda x: (3, x), environment.volumes)
-        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags,
+                                                   combined=False)
         surfaces_names = ["X", "Z", "NY", "NZ", "Y", "NX"]
         for i in range(len(surfaces_names)):
-            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0], [surfaces_dim_tags[i][1]])
+            tag = gmsh.model.addPhysicalGroup(surfaces_dim_tags[i][0],
+                                              [surfaces_dim_tags[i][1]])
             gmsh.model.setPhysicalName(2, tag, surfaces_names[i])
             #     gmsh.model.setPhysicalName(2, tag, 'S%s' % i)
-
         gmsh.model.mesh.generate(3)
-
         gmsh.model.mesh.removeDuplicateNodes()
-
         gmsh.write("test_read_complex_primitives.msh")
-
         gmsh.finalize()
-
         print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
 
     def test_volume_points_curves_data(self):
@@ -1854,48 +1904,45 @@ class TestScripts(unittest.TestCase):
         Test auto_complex_points_sizes_min_curve_in_volume
         """
         start_time = time.time()
-
         model_name = "test_volume_points_curves_data"
-
         gmsh.initialize()
-
         gmsh.option.setNumber("General.Terminal", 1)
-        # 1=Delaunay, 2=New Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree
+        # 1=Delaunay, 2=New Delaunay, 4=Frontal,
+        #  5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D, 9=R-tree
         gmsh.option.setNumber("Mesh.Algorithm3D", 4)
-
         gmsh.model.add(model_name)
-
         factory = gmsh.model.occ
-
+        factory_str = 'occ'
         repo_center_depth = 487.5  # repository center depth
         env_length_x = 1200
         env_length_y = 1000
         env_lc = 100
         environment = Primitive(
-            factory,
+            factory_str,
             [
-                [env_length_x / 2, env_length_y / 2, -repo_center_depth, env_lc],
-                [-env_length_x / 2, env_length_y / 2, -repo_center_depth, env_lc],
-                [-env_length_x / 2, -env_length_y / 2, -repo_center_depth, env_lc],
-                [env_length_x / 2, -env_length_y / 2, -repo_center_depth, env_lc],
+                [env_length_x / 2, env_length_y / 2, -repo_center_depth,
+                 env_lc],
+                [-env_length_x / 2, env_length_y / 2, -repo_center_depth,
+                 env_lc],
+                [-env_length_x / 2, -env_length_y / 2, -repo_center_depth,
+                 env_lc],
+                [env_length_x / 2, -env_length_y / 2, -repo_center_depth,
+                 env_lc],
                 [env_length_x / 2, env_length_y / 2, repo_center_depth, env_lc],
-                [-env_length_x / 2, env_length_y / 2, repo_center_depth, env_lc],
-                [-env_length_x / 2, -env_length_y / 2, repo_center_depth, env_lc],
+                [-env_length_x / 2, env_length_y / 2, repo_center_depth,
+                 env_lc],
+                [-env_length_x / 2, -env_length_y / 2, repo_center_depth,
+                 env_lc],
                 [env_length_x / 2, -env_length_y / 2, repo_center_depth, env_lc]
             ]
         )
-
         pss = dict()
         auto_primitive_points_sizes_min_curve_in_volume(environment, pss)
         print(pss)
-
         gmsh.model.mesh.generate(3)
         gmsh.model.mesh.removeDuplicateNodes()
-
         gmsh.write(model_name + ".msh")
-
         gmsh.finalize()
-
         print('\nElapsed time: {:.3f}s'.format(time.time() - start_time))
 
 

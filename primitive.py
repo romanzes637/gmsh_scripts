@@ -363,14 +363,14 @@ class Primitive:
                 x_maxs.append(x_max)
                 y_maxs.append(y_max)
                 z_maxs.append(z_max)
-            self.bounding_box = [min(x_mins), min(y_mins), min(z_mins),
-                                 max(x_maxs), max(y_maxs), max(z_maxs)]
+            self.bounding_box = (min(x_mins), min(y_mins), min(z_mins),
+                                 max(x_maxs), max(y_maxs), max(z_maxs))
         else:
-            self.bounding_box = [0, 0, 0, 0, 0, 0]
+            self.bounding_box = (0, 0, 0, 0, 0, 0)
 
     def set_size(self, size):
         for v in self.volumes:
-            volume_dim_tag = [3, v]
+            volume_dim_tag = (3, v)
             points_dim_tags = gmsh.model.getBoundary([volume_dim_tag],
                                                      combined=False,
                                                      recursive=True)

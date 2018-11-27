@@ -1,24 +1,29 @@
-from pprint import pprint
+import os
 import math
+from pprint import pprint
 
 import gmsh
 
 # FIXME Bug with this approach:
-# File "/share/home/butovr/gmsh_scripts/support.py", line 14, in get_volume_points_edges_data
+# File "/share/home/butovr/gmsh_scripts/support.py", line 14,
+# in get_volume_points_edges_data
 # surfaces_dim_tags = gmsh.model.getBoundary([[3, volume]])
-# File "/home/butovr/Programs/gmsh/api/gmsh.py", line 517, in getBoundary ierr.value)
-# ValueError: ('gmshModelGetBoundary returned non-zero error code: ', 1)
-import os
+# File "/home/butovr/Programs/gmsh/api/gmsh.py", line 517,
+# in getBoundary ierr.value)
+# ValueError: ('gmshModelGetBoundary
 
 
 def get_volume_points_edges_data(volume):
     """
-    Return volume points edges data. For point's characteristic length (lc) auto setting.
-    :param volume: volume index
-    :return: dictionary (point: [n_edges, edges_min_length, edges_max_length, edges_avg_length])
+    Return volume points edges data.
+    For point's characteristic length (lc) auto setting.
+    :param int volume: volume index
+    :return:
+    {point: (n_edges, edges_min_length, edges_max_length, edges_avg_length)}
+    :rtype: dict
     """
     # Get volume edges
-    volume_dim_tag = [3, volume]
+    volume_dim_tag = (3, volume)
     surfaces_dim_tags = gmsh.model.getBoundary([volume_dim_tag])
     edges = set()
     for sdt in surfaces_dim_tags:
@@ -27,14 +32,14 @@ def get_volume_points_edges_data(volume):
             edges.add(abs(cdt[1]))
     # Get volume points
     points_dim_tags = gmsh.model.getBoundary([volume_dim_tag], recursive=True)
-    points = map(lambda x: x[1], points_dim_tags)
+    points = tuple(x[1] for x in points_dim_tags)
     # Get points edges and edges points
     points_edges = {x: set() for x in points}
     edges_points = dict()
     for e in edges:
-        edge_dim_tag = [1, e]
+        edge_dim_tag = (1, e)
         points_dim_tags = gmsh.model.getBoundary([edge_dim_tag])
-        edges_points[e] = map(lambda x: x[1], points_dim_tags)
+        edges_points[e] = tuple(x[1] for x in points_dim_tags)
         for p in edges_points[e]:
             points_edges[p].add(e)
     # Calculate edges lengths
@@ -49,12 +54,12 @@ def get_volume_points_edges_data(volume):
         min_length = min(lengths)
         max_length = max(lengths)
         mean_length = sum(lengths) / n_edges
-        points_edges_data[p] = [
+        points_edges_data[p] = (
             n_edges,
             min_length,
             max_length,
             mean_length
-        ]
+        )
         # print(volume)
         # pprint(points_edges)
         # pprint(edges_points)
@@ -68,7 +73,7 @@ def get_volume_edges_lengths(volume):
     :return: dictionary (edge: edge_length)
     """
     # Get volume edges
-    volume_dim_tag = [3, volume]
+    volume_dim_tag = (3, volume)
     surfaces_dim_tags = gmsh.model.getBoundary([volume_dim_tag])
     edges = set()
     for sdt in surfaces_dim_tags:
@@ -78,9 +83,9 @@ def get_volume_edges_lengths(volume):
     # Get edges points
     edges_points = dict()
     for e in edges:
-        edge_dim_tag = [1, e]
+        edge_dim_tag = (1, e)
         points_dim_tags = gmsh.model.getBoundary([edge_dim_tag])
-        edges_points[e] = map(lambda x: x[1], points_dim_tags)
+        edges_points[e] = [x[1] for x in points_dim_tags]
     # Calculate edges lengths
     edges_lengths = dict()
     for e in edges:
@@ -167,7 +172,7 @@ def get_volumes_geometry():
     # Surfaces
     edges = set()
     for s in surfaces:
-        dim_tag = [2, s]
+        dim_tag = (2, s)
         edges_dim_tags = gmsh.model.getBoundary([dim_tag], combined=False)
         surface_edges = [x[1] for x in edges_dim_tags]
         surfaces_edges[s] = surface_edges
@@ -176,7 +181,7 @@ def get_volumes_geometry():
     # Edges
     points = set()
     for e in edges:
-        dim_tag = [1, e]
+        dim_tag = (1, e)
         points_dim_tags = gmsh.model.getBoundary([dim_tag], combined=False)
         edge_points = [x[1] for x in points_dim_tags]
         edges_points[e] = edge_points
@@ -344,7 +349,8 @@ def initialize_geometry(factory, geometry):
                      in old_edges]
         if factory == gmsh.model.occ:
             abs_new_edges = [abs(x) for x in new_edges]
-            # curve_loop_tag = factory.addCurveLoop(abs_new_edges)  # FIXME signed edges doesn't work
+            # curve_loop_tag = factory.addCurveLoop(abs_new_edges)
+            # FIXME signed edges doesn't work
             curve_loop_tag = factory.addWire(
                 abs_new_edges)  # FIXME signed edges doesn't work
             new_tag = factory.addSurfaceFilling(curve_loop_tag)
@@ -386,7 +392,7 @@ def auto_points_sizes(c=1.0):
                     update_size = False
             if update_size:
                 points_sizes[k] = new_size
-                point_dim_tag = [0, k]
+                point_dim_tag = (0, k)
                 gmsh.model.mesh.setSize([point_dim_tag], new_size)
     return points_sizes
 
@@ -426,7 +432,7 @@ def auto_primitive_points_sizes_min_curve_in_volume(primitive_obj, points_sizes,
                     update_size = False
             if update_size:
                 points_sizes[k] = new_size
-                point_dim_tag = [0, k]
+                point_dim_tag = (0, k)
                 gmsh.model.mesh.setSize([point_dim_tag], new_size)
 
 
@@ -445,7 +451,7 @@ def get_bounding_box_by_boundary_surfaces(boundary_surfaces):
     points_x = dict()
     points_y = dict()
     points_z = dict()
-    surfaces_dim_tags = map(lambda x: [2, x], boundary_surfaces)
+    surfaces_dim_tags = [(2, x) for x in boundary_surfaces]
     points_dim_tags = gmsh.model.getBoundary(surfaces_dim_tags, combined=False,
                                              recursive=True)
     for dt in points_dim_tags:
@@ -626,7 +632,7 @@ def auto_volumes_groups_surfaces():
     volumes_surfaces = list()
     for vdt in volumes_dim_tags:
         surfaces_dim_tags = gmsh.model.getBoundary([vdt], oriented=False)
-        ss = map(lambda x: x[1], surfaces_dim_tags)
+        ss = [x[1] for x in surfaces_dim_tags]
         volumes_surfaces.append(ss)
     return volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces)
 
@@ -642,7 +648,7 @@ def volumes_groups_surfaces(volumes):
 
 
 def get_volume_composition(volume):
-    volume_dt = [3, volume]
+    volume_dt = (3, volume)
     points_dts = gmsh.model.getBoundary([volume_dt], recursive=True)
     n_points = len(points_dts)
     surfaces_dts = gmsh.model.getBoundary([volume_dt])
@@ -663,7 +669,7 @@ def is_cuboid(volume):
     n_surfaces = 6
     n_edges = 12
     n_edges_per_surface = 4  # FIXME needs to check this?
-    volume_dt = [3, volume]
+    volume_dt = (3, volume)
     points_dts = gmsh.model.getBoundary([volume_dt], recursive=True)
     if len(points_dts) == n_points:
         surfaces_dts = gmsh.model.getBoundary([volume_dt])
@@ -686,7 +692,7 @@ def is_cuboid(volume):
 
 def structure_cuboid(volume, structured_surfaces, structured_edges,
                      min_edge_nodes, c=1.0):
-    volume_dt = [3, volume]
+    volume_dt = (3, volume)
     surfaces_dts = gmsh.model.getBoundary([volume_dt])
     surfaces_edges = dict()
     surfaces_points = dict()
@@ -736,7 +742,7 @@ def structure_cuboid(volume, structured_surfaces, structured_edges,
         else:
             point = diagonal_point
         for p in circular_permutations.values():
-            new_v = map(lambda x: v[x], p)
+            new_v = [v[x] for x in p]
             if new_v[0] == point:
                 surfaces_points[k] = new_v
                 break
@@ -785,7 +791,7 @@ def structure_cuboid(volume, structured_surfaces, structured_edges,
     edges_lengths = get_volume_edges_lengths(volume)
     groups_min_lengths = dict()
     for group, edges in groups_edges.items():
-        lengths = map(lambda x: edges_lengths[x], edges)
+        lengths = [edges_lengths[x] for x in edges]
         groups_min_lengths[group] = min(lengths)
     # pprint(groups_min_lengths)
     min_length = min(groups_min_lengths.values())

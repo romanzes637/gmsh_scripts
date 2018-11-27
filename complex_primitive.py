@@ -4,8 +4,10 @@ from complex import Complex
 
 
 class ComplexPrimitive(Complex):
-    def __init__(self, factory, divide_data, point_data, transform_data=None, curve_types=None, curve_data=None,
-                 transfinite_data=None, transfinite_type=None, physical_name=None):
+    def __init__(self, factory, divide_data, point_data, transform_data=None,
+                 curve_types=None, curve_data=None,
+                 transfinite_data=None, transfinite_type=None,
+                 physical_name=None):
         """
         Primitive object divided into parts for boolean accuracy.
         :param str factory: see Primitive
@@ -56,7 +58,9 @@ class ComplexPrimitive(Complex):
             curve_data = [[]] * 12
         if physical_name is None:
             physical_name = ComplexPrimitive.__name__
-        ps_base_points, ps_curves_points = divide_primitive(divide_data, new_point_data, curve_data)
+        ps_base_points, ps_curves_points = divide_primitive(divide_data,
+                                                            new_point_data,
+                                                            curve_data)
         for i, bps in enumerate(ps_base_points):
             if primitive_lc is not None:
                 new_point_data = [x + [primitive_lc] for x in ps_base_points[i]]
@@ -70,7 +74,8 @@ class ComplexPrimitive(Complex):
                     new_curve_data.append(cps)
             primitives.append(Primitive(
                 factory, new_point_data, transform_data, curve_types,
-                new_curve_data, transfinite_data, transfinite_type, physical_name
+                new_curve_data, transfinite_data, transfinite_type,
+                physical_name
             ))
         Complex.__init__(self, factory, primitives)
 
@@ -97,7 +102,8 @@ def get_primitives_points(x_lines, y_lines, z_lines):
                 z3 = z_lines[j][i + 1][k]
                 z1 = z_lines[j + 1][i][k]
                 z0 = z_lines[j + 1][i + 1][k]
-                primitives_curves.append([x0, x1, x2, x3, y0, y1, y2, y3, z0, z1, z2, z3])
+                primitives_curves.append(
+                    [x0, x1, x2, x3, y0, y1, y2, y3, z0, z1, z2, z3])
     for primitive_curves in primitives_curves:
         p0 = primitive_curves[8][0]
         p1 = primitive_curves[0][0]
@@ -115,7 +121,8 @@ def get_primitives_points(x_lines, y_lines, z_lines):
     return primitives_base_points, primitives_curves_points
 
 
-def get_lines_between_two_surfaces(s0_lines_parts_points_0, s1_lines_parts_points_0, n_parts):
+def get_lines_between_two_surfaces(s0_lines_parts_points_0,
+                                   s1_lines_parts_points_0, n_parts):
     lines_points = []
     for i in range(len(s0_lines_parts_points_0)):
         s0_line_parts_points_0 = s0_lines_parts_points_0[i]
@@ -177,7 +184,8 @@ def divide_line(ps, n_parts):
     return new_ps
 
 
-def get_surface_lines(line_points_0_0, line_points_0_1, line_points_1_0, line_points_1_1):
+def get_surface_lines(line_points_0_0, line_points_0_1, line_points_1_0,
+                      line_points_1_1):
     n_points_0 = len(line_points_0_0)
     n_points_1 = len(line_points_1_0)
     lines_points_0 = []
@@ -202,7 +210,8 @@ def get_surface_lines(line_points_0_0, line_points_0_1, line_points_1_0, line_po
             centroid = centroid_point(ps)
             lines_points_0[i][j][-1] = centroid
             lines_points_1[j][i][-1] = centroid
-            # Change next line part point 0 to corrected current line part point 1
+            # Change next line part point 0
+            # to corrected current line part point 1
             lines_points_0[i][j + 1][0] = centroid
             lines_points_1[j][i + 1][0] = centroid
     return lines_points_0, lines_points_1
@@ -250,17 +259,23 @@ def divide_primitive(divide_data, base_points, curves_points):
         new_lines.append(divide_line(lines[i], nz))
 
     # Surface NX lines
-    nx_y_lines, nx_z_lines = get_surface_lines(new_lines[5], new_lines[6], new_lines[10], new_lines[9])
+    nx_y_lines, nx_z_lines = get_surface_lines(new_lines[5], new_lines[6],
+                                               new_lines[10], new_lines[9])
     # Surface X
-    x_y_lines, x_z_lines = get_surface_lines(new_lines[4], new_lines[7], new_lines[11], new_lines[8])
+    x_y_lines, x_z_lines = get_surface_lines(new_lines[4], new_lines[7],
+                                             new_lines[11], new_lines[8])
     # Surface NY lines
-    ny_x_lines, ny_z_lines = get_surface_lines(new_lines[3], new_lines[2], new_lines[10], new_lines[11])
+    ny_x_lines, ny_z_lines = get_surface_lines(new_lines[3], new_lines[2],
+                                               new_lines[10], new_lines[11])
     # Surface Y lines
-    y_x_lines, y_z_lines_points = get_surface_lines(new_lines[0], new_lines[1], new_lines[9], new_lines[8])
+    y_x_lines, y_z_lines_points = get_surface_lines(new_lines[0], new_lines[1],
+                                                    new_lines[9], new_lines[8])
     # Surface NZ lines
-    nz_x_lines, nz_y_lines = get_surface_lines(new_lines[3], new_lines[0], new_lines[5], new_lines[4])
+    nz_x_lines, nz_y_lines = get_surface_lines(new_lines[3], new_lines[0],
+                                               new_lines[5], new_lines[4])
     # Surface Z lines
-    z_x_lines, z_y_lines = get_surface_lines(new_lines[2], new_lines[1], new_lines[6], new_lines[7])
+    z_x_lines, z_y_lines = get_surface_lines(new_lines[2], new_lines[1],
+                                             new_lines[6], new_lines[7])
 
     # Volume lines
     nx_x_lines = get_lines_between_two_surfaces(nx_y_lines, x_y_lines, nx)
@@ -334,14 +349,16 @@ def divide_primitive(divide_data, base_points, curves_points):
     last_layer_lines.append(new_lines[8])
     z_lines.append(last_layer_lines)
 
-    primitives_base_points, primitives_curves_points = get_primitives_points(x_lines, y_lines, z_lines)
+    primitives_base_points, primitives_curves_points = get_primitives_points(
+        x_lines, y_lines, z_lines)
 
     return primitives_base_points, primitives_curves_points
 
 
 # FIXME bug with divide_data [1, 2, 3]: ny = len(ny_y_lines[0][0])
 def correct_volume_lines(nx_x_lines, ny_y_lines, nz_z_lines):
-    if len(nx_x_lines) == 0 or len(ny_y_lines) == 0 or len(nz_z_lines) == 0:  # FIXME plug to one layer
+    # FIXME plug to one layer
+    if len(nx_x_lines) == 0 or len(ny_y_lines) == 0 or len(nz_z_lines) == 0:
         return
     nx = len(nx_x_lines[0][0])
     ny = len(ny_y_lines[0][0])
@@ -358,7 +375,8 @@ def correct_volume_lines(nx_x_lines, ny_y_lines, nz_z_lines):
                 nx_x_lines[k][j][i][-1] = centroid
                 ny_y_lines[k][i][j][-1] = centroid
                 nz_z_lines[j][i][k][-1] = centroid
-                # Change next line part point 0 to corrected current line part point 1
+                # Change next line part point 0
+                # to corrected curtent line part point 1
                 nx_x_lines[k][j][i + 1][0] = centroid
                 ny_y_lines[k][i][j + 1][0] = centroid
                 nz_z_lines[j][i][k + 1][0] = centroid

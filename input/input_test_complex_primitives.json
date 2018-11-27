@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "ComplexPrimitive",
+    "description": "Test Complex Primitive"
+  },
+  "arguments": {
+    "factory": "occ",
+    "divide_data": [1, 2, 2],
+    "point_data": [5, 10, 15],
+    "transform_data": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "curve_types": null,
+    "curve_data": null,
+    "transfinite_data": [
+      [10, 1, 3],
+      [10, 0, 1],
+      [10, 0, 1.5]
+    ],
+    "transfinite_type": null,
+    "physical_name": "ComplexPrimitive"
+  }
+}

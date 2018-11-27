@@ -5,7 +5,7 @@
     "description": "Trench EBS NKM"
   },
   "arguments": {
-    "factory": "geo",
+    "factory": "occ",
     "simple_boundary": true,
     "env_input_path": "input/input_nkm_environment.json",
     "env_name": "HostRock",
@@ -28,7 +28,7 @@
     "n_levels": 1,
     "n_tunnels": 1,
     "n_trenches": 1,
-    "n_boreholes": 10,
+    "n_boreholes": 1,
     "d_tunnel": 90,
     "d_level": 75,
     "d_trench": 15,
