@@ -1,0 +1,13 @@
+{
+  "metadata": {
+    "type": "gmsh_settings",
+    "description": "gmsh settings"
+  },
+  "arguments": {
+    "factory": "geo",
+    "options": {
+      "Mesh.Algorithm3D": 1,
+      "Geometry.AutoCoherence": 0
+    }
+  }
+}

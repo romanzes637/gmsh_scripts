@@ -1,0 +1,37 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "EleronTwoNkm",
+    "description": "Eleron NKM second proposal"
+  },
+  "arguments": {
+    "factory": "geo",
+    "simple_boundary": true,
+    "env_input_path": "input/input_nkm_environment.json",
+    "env_name": "HostRock",
+    "env_point_data": [
+      1596,
+      1260,
+      975,
+      75
+    ],
+    "env_transform_data": [
+      310.5,
+      142.5,
+      -487.5
+    ],
+    "origin": [
+      0,
+      0,
+      -525
+    ],
+    "n_levels": 3,
+    "n_tunnels": 28,
+    "n_boreholes": 20,
+    "d_tunnel": 23,
+    "d_level": 37.5,
+    "dy_borehole": 15,
+    "dz_borehole": -14,
+    "borehole_input_path": "input/input_borehole_eleron_2_two.json"
+  }
+}

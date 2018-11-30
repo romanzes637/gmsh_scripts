@@ -11,36 +11,31 @@ import gmsh
 import occ_workarounds as occ_ws
 from complex_factory import ComplexFactory
 from io import read_complex_type_2_to_complex_primitives
-from environment import Environment, NestedEnvironment
+from environment import Environment
 from boolean import complex_by_volumes, complex_by_complex, complex_self, \
     sort_object_only_shared_no_tool, sort_object_only_shared_tool_no_shared
-from support import auto_complex_points_sizes_min_curve_in_volume, \
-    auto_volumes_groups_surfaces, auto_points_sizes, \
-    boundary_surfaces_to_six_side_groups, check_file, volumes_groups_surfaces
+from support import auto_complex_points_sizes_min_curve_in_volume, auto_volumes_groups_surfaces, auto_points_sizes, \
+    boundary_surfaces_to_six_side_groups, check_file
 
 
-class TrenchEbsNkm:
+class EleronTwoNkm:
     def __init__(
-            self, factory, simple_boundary,
+            self, factory,
+            simple_boundary,
             env_input_path, env_name, env_point_data, env_transform_data,
-            origin, n_levels, n_tunnels, n_trenches, n_boreholes,
-            d_tunnel, d_level, d_trench, dx_borehole, dz_borehole,
-            borehole_input_path, ebs_ls
-    ):
+            origin, n_levels, n_tunnels, n_boreholes,
+            d_tunnel, d_level, dy_borehole, dz_borehole,
+            borehole_input_path,
+            ):
         """
         NKM model with Intrusions, ILW and HLW Boreholes inside Environment
-        :param list of float ebs_ls: characteristic lengths of EBS layers
         :param str factory: see Primitive
-        :param bool simple_boundary: Make only 6 boundary surfaces:
-         NX, NY, NZ, X, Y, Z (mandatory True for geo factory)
+        :param bool simple_boundary: Make only 6 boundary surfaces: NX, NY, NZ, X, Y, Z (mandatory True for geo factory)
         :param str env_input_path: Environment input path (Complex class child)
         :param str env_name: Environment physical name
-        :param list of float env_point_data: Environment point data
-        (see Primitive)
-        :param list of float env_transform_data: Environment center transform
-        (see Primitive)
-        :param list of float origin: position [x, y, z] of first trench
-        of first tunnel of first level
+        :param list of float env_point_data: Environment point data (see Primitive)
+        :param list of float env_transform_data: Environment center transform (see Primitive)
+        :param list of float origin: position [x, y, z] of first trench of first tunnel of first level 
         """
         print('Read Input')
         print('Boreholes')
@@ -69,8 +64,6 @@ class TrenchEbsNkm:
         self.env_name = env_name
         self.simple_boundary = simple_boundary
         print('Intrusions')
-        print('EBS')
-        self.nenvs = list()
         # start_time = time.time()
         # self.ints = []  # Array of ComplexPrimitive arrays
         # for i, fn in enumerate(int_filenames):
@@ -97,87 +90,16 @@ class TrenchEbsNkm:
             print('Level {0}'.format(z))
             for tunnel in range(n_tunnels):
                 x = x0 + tunnel * d_tunnel
-                for trench in range(n_trenches):
-                    y = y0 + trench * d_trench
-                    # Left side
-                    lbs = list()
-                    rbs = list()
-                    for borehole in range(n_boreholes):
-                        borehole_x = x - 2 * dx_borehole - borehole * dx_borehole
-                        new_transform = self.borehole_input['arguments'][
-                            'transform_data']
-                        new_transform[0] = borehole_x
-                        new_transform[1] = y
-                        new_transform[2] = z + dz_borehole
-                        print(new_transform)
-                        self.borehole_input['arguments'][
-                            'transform_data'] = new_transform
-                        b = ComplexFactory.new(self.borehole_input)
-                        self.boreholes.append(b)
-                        lbs.append(b)
-                        coordinate = [level, tunnel, trench, 0, borehole]
-                        self.boreholes_coordinates.append(coordinate)
-                    # Right side
-                    for borehole in range(n_boreholes):
-                        borehole_x = x + 2 * dx_borehole + borehole * dx_borehole
-                        new_transform = self.borehole_input['arguments'][
-                            'transform_data']
-                        new_transform[0] = borehole_x
-                        new_transform[1] = y
-                        new_transform[2] = z + dz_borehole
-                        self.borehole_input['arguments'][
-                            'transform_data'] = new_transform
-                        b = ComplexFactory.new(self.borehole_input)
-                        self.boreholes.append(b)
-                        rbs.append(b)
-                        coordinate = [level, tunnel, trench, 1, borehole]
-                        self.boreholes_coordinates.append(coordinate)
-
-                    # # !!! FACTORY SYNC !!!
-                    self.synchronize()
-                    for b in lbs:
-                        b.evaluate_coordinates()
-                        b.evaluate_bounding_box()
-                    for b in rbs:
-                        b.evaluate_coordinates()
-                        b.evaluate_bounding_box()
-                    self.remove_duplicates()  # ERROR IF REMOVE
-                    self.synchronize()  # ERROR IF REMOVE
-                    # # !!! FACTORY SYNC !!!
-
-                    # lengths = [
-                    #     (26.700, 1.500, 4.300, 1),
-                    #     (28.000, 2.800, 5.400, 1)]
-                    lengths = [
-                        (26.200, 1.500, 4.100, ebs_ls[0]),
-                        (27.500, 2.800, 5.400, ebs_ls[1])]
-                    physical_names = [
-                        'Concrete',
-                        'Bentonite'
-                    ]
-                    # Left side
-                    inner_volumes = list()
-                    for b in lbs:
-                        inner_volumes.extend(b.get_volumes())
-                    transforms = [
-                        (x - dx_borehole - 13.750, y, z - 2.700),
-                        (x - dx_borehole - 13.750, y, z - 2.700)]
-
-                    nenv = NestedEnvironment(self.factory_str, lengths,
-                                             transforms, inner_volumes,
-                                             physical_names)
-                    self.nenvs.append(nenv)
-                    # Right side
-                    inner_volumes = list()
-                    for b in rbs:
-                        inner_volumes.extend(b.get_volumes())
-                    transforms = [
-                        (x + dx_borehole + 13.750, y, z - 2.700),
-                        (x + dx_borehole + 13.750, y, z - 2.700)]
-                    nenv = NestedEnvironment(self.factory_str, lengths,
-                                             transforms, inner_volumes,
-                                             physical_names)
-                    self.nenvs.append(nenv)
+                for borehole in range(n_boreholes):
+                    y = y0 + borehole * dy_borehole
+                    new_transform = self.borehole_input['arguments']['transform_data']
+                    new_transform[0] = x
+                    new_transform[1] = y
+                    new_transform[2] = z + dz_borehole
+                    self.borehole_input['arguments']['transform_data'] = new_transform
+                    self.boreholes.append(ComplexFactory.new(self.borehole_input))
+                    coordinate = (level, tunnel, borehole)
+                    self.boreholes_coordinates.append(coordinate)
         self.spent_times['Initialize Boreholes'] = time.time() - start_time
         # ilw_n = ilw_nx * ilw_ny
         # est_time = 0
@@ -243,9 +165,7 @@ class TrenchEbsNkm:
         lz = self.env_point_data[2]
         lc = self.env_point_data[3]
         inner_surfaces = auto_volumes_groups_surfaces()
-        self.env = Environment(self.factory_str, lx, ly, lz, lc,
-                               self.env_transform, inner_surfaces,
-                               self.env_name)
+        self.env = Environment(self.factory_str, lx, ly, lz, lc, self.env_transform, inner_surfaces, self.env_name)
         self.spent_times['Environment'] = time.time() - start_time
 
     def evaluate(self):
@@ -290,13 +210,10 @@ class TrenchEbsNkm:
         for i, b in enumerate(self.ilws):
             for j, intrusion in enumerate(self.ints):
                 for k, c in enumerate(intrusion):
-                    print(
-                        'Borehole:{}/{} Intrusion:{}/{} IntrusionPart:{}/{}'.format(
-                            i + 1, len(self.ilws), j + 1, len(self.ints), k + 1,
-                            len(intrusion)))
+                    print('Borehole:{}/{} Intrusion:{}/{} IntrusionPart:{}/{}'.format(
+                        i + 1, len(self.ilws), j + 1, len(self.ints), k + 1, len(intrusion)))
                     b_volumes = c.get_volumes()
-                    complex_by_volumes(self.factory, c, b_volumes,
-                                       remove_tool=False,
+                    complex_by_volumes(self.factory, c, b_volumes, remove_tool=False,
                                        sort_function=sort_object_only_shared_no_tool)
         self.spent_times['Ints By ILW Cut'] = time.time() - start_time
         print('Intrusions By HLW Boreholes')
@@ -304,13 +221,10 @@ class TrenchEbsNkm:
         for i, b in enumerate(self.hlws):
             for j, intrusion in enumerate(self.ints):
                 for k, c in enumerate(intrusion):
-                    print(
-                        'Borehole:{}/{} Intrusion:{}/{} IntrusionPart:{}/{}'.format(
-                            i + 1, len(self.ilws), j + 1, len(self.ints), k + 1,
-                            len(intrusion)))
+                    print('Borehole:{}/{} Intrusion:{}/{} IntrusionPart:{}/{}'.format(
+                        i + 1, len(self.ilws), j + 1, len(self.ints), k + 1, len(intrusion)))
                     b_volumes = c.get_volumes()
-                    complex_by_volumes(self.factory, c, b_volumes,
-                                       remove_tool=False,
+                    complex_by_volumes(self.factory, c, b_volumes, remove_tool=False,
                                        sort_function=sort_object_only_shared_no_tool)
         self.spent_times['Ints By HLW Cut'] = time.time() - start_time
         print('Bool')
@@ -319,10 +233,8 @@ class TrenchEbsNkm:
         for i, b in enumerate(self.ilws):
             for j, intrusion in enumerate(self.ints):
                 for k, c in enumerate(intrusion):
-                    print(
-                        'Borehole:{}/{} Intrusion:{}/{} IntrusionPart:{}/{}'.format(
-                            i + 1, len(self.ilws), j + 1, len(self.ints), k + 1,
-                            len(intrusion)))
+                    print('Borehole:{}/{} Intrusion:{}/{} IntrusionPart:{}/{}'.format(
+                        i + 1, len(self.ilws), j + 1, len(self.ints), k + 1, len(intrusion)))
                     complex_by_complex(self.factory, c, b)
         self.spent_times['Ints By ILW'] = time.time() - start_time
         print('Intrusions By HLW Boreholes')
@@ -330,10 +242,8 @@ class TrenchEbsNkm:
         for i, b in enumerate(self.hlws):
             for j, intrusion in enumerate(self.ints):
                 for k, c in enumerate(intrusion):
-                    print(
-                        'Borehole:{}/{} Intrusion:{}/{} IntrusionPart:{}/{}'.format(
-                            i + 1, len(self.ilws), j + 1, len(self.ints), k + 1,
-                            len(intrusion)))
+                    print('Borehole:{}/{} Intrusion:{}/{} IntrusionPart:{}/{}'.format(
+                        i + 1, len(self.ilws), j + 1, len(self.ints), k + 1, len(intrusion)))
                     complex_by_complex(self.factory, c, b)
         self.spent_times['Ints By HLW'] = time.time() - start_time
 
@@ -344,24 +254,21 @@ class TrenchEbsNkm:
             for i, intrusion in enumerate(self.ints):
                 print('Intrusion:{}/{}'.format(i + 1, len(self.ints)))
                 for c in intrusion:
-                    complex_by_complex(self.factory, c, self.env,
-                                       sort_function=sort_object_only_shared_tool_no_shared,
+                    complex_by_complex(self.factory, c, self.env, sort_function=sort_object_only_shared_tool_no_shared,
                                        pre_boolean=False)
             self.spent_times['Ints By Env'] = time.time() - start_time
             print('ILW Boreholes By Environment')
             start_time = time.time()
             for i, b in enumerate(self.ilws):
                 print('Borehole:{}/{}'.format(i + 1, len(self.ilws)))
-                complex_by_complex(self.factory, b, self.env,
-                                   sort_function=sort_object_only_shared_tool_no_shared,
+                complex_by_complex(self.factory, b, self.env, sort_function=sort_object_only_shared_tool_no_shared,
                                    pre_boolean=False)
             self.spent_times['ILW By Env'] = time.time() - start_time
             print('HLW Boreholes By Environment')
             start_time = time.time()
             for i, b in enumerate(self.hlws):
                 print('Borehole:{}/{}'.format(i + 1, len(self.hlws)))
-                complex_by_complex(self.factory, b, self.env,
-                                   sort_function=sort_object_only_shared_tool_no_shared,
+                complex_by_complex(self.factory, b, self.env, sort_function=sort_object_only_shared_tool_no_shared,
                                    pre_boolean=False)
         else:
             print('Cut')
@@ -371,24 +278,21 @@ class TrenchEbsNkm:
             for i, intrusion in enumerate(self.ints):
                 print('Intrusion:{}/{}'.format(i + 1, len(self.ints)))
                 for c in intrusion:
-                    complex_by_volumes(self.factory, c, e_volumes,
-                                       remove_tool=False,
+                    complex_by_volumes(self.factory, c, e_volumes, remove_tool=False,
                                        sort_function=sort_object_only_shared_no_tool)
             self.spent_times['Env By Ints Cut'] = time.time() - start_time
             print('Environment By ILW Boreholes')
             start_time = time.time()
             for i, b in enumerate(self.ilws):
                 print('Borehole:{}/{}'.format(i + 1, len(self.ilws)))
-                complex_by_volumes(self.factory, b, e_volumes,
-                                   remove_tool=False,
+                complex_by_volumes(self.factory, b, e_volumes, remove_tool=False,
                                    sort_function=sort_object_only_shared_no_tool)
             self.spent_times['Env By Ilw Cut'] = time.time() - start_time
             print('Environment By HLW Boreholes')
             start_time = time.time()
             for i, b in enumerate(self.hlws):
                 print('Borehole:{}/{}'.format(i + 1, len(self.hlws)))
-                complex_by_volumes(self.factory, b, e_volumes,
-                                   remove_tool=False,
+                complex_by_volumes(self.factory, b, e_volumes, remove_tool=False,
                                    sort_function=sort_object_only_shared_no_tool)
             self.spent_times['Env By Hlw Cut'] = time.time() - start_time
             print('Bool')
@@ -466,10 +370,8 @@ class TrenchEbsNkm:
         if len(pss) > 0:
             max_size_key = max(pss.keys(), key=(lambda x: pss[x]))
             min_size_key = min(pss.keys(), key=(lambda x: pss[x]))
-            print('Maximum Point: {0}, Value: {1}'.format(max_size_key,
-                                                          pss[max_size_key]))
-            print('Minimum Point: {0}, Value: {1}'.format(min_size_key,
-                                                          pss[min_size_key]))
+            print('Maximum Point: {0}, Value: {1}'.format(max_size_key, pss[max_size_key]))
+            print('Minimum Point: {0}, Value: {1}'.format(min_size_key, pss[min_size_key]))
         self.spent_times['Set Sizes'] = time.time() - start_time
 
     def smooth(self, dim, n):
@@ -495,8 +397,7 @@ class TrenchEbsNkm:
         start_time = time.time()
         print('Boreholes')
         if len(self.boreholes) > 0:
-            local_names = self.boreholes[
-                0].map_physical_name_to_primitives_indices.keys()
+            local_names = self.boreholes[0].map_physical_name_to_primitives_indices.keys()
             levels_boreholes = dict()
             for i, c in enumerate(self.boreholes_coordinates):
                 levels_boreholes.setdefault(c[0], list()).append(i)
@@ -505,13 +406,11 @@ class TrenchEbsNkm:
                 for level, bs in levels_boreholes.items():
                     vs = set()
                     for b in bs:
-                        bvs = self.boreholes[b].get_volumes_by_physical_name(
-                            local_name)
+                        bvs = self.boreholes[b].get_volumes_by_physical_name(local_name)
                         vs.update(bvs)
                     tag = gmsh.model.addPhysicalGroup(3, list(vs))
                     level_name = 'Level{0}'.format(level)
-                    gmsh.model.setPhysicalName(3, tag, '_'.join(
-                        [local_name, level_name]))
+                    gmsh.model.setPhysicalName(3, tag, '_'.join([local_name, level_name]))
         print('Environment')
         if self.factory == gmsh.model.occ:
             for local_name in self.env.map_physical_name_to_primitives_indices.keys():
@@ -520,25 +419,10 @@ class TrenchEbsNkm:
                 if local_name == '':
                     gmsh.model.setPhysicalName(3, tag, self.env_name)
                 else:
-                    gmsh.model.setPhysicalName(3, tag, '_'.join(
-                        [self.env_name, local_name]))
+                    gmsh.model.setPhysicalName(3, tag, '_'.join([self.env_name, local_name]))
         else:
             tag = gmsh.model.addPhysicalGroup(3, self.env.volumes)
             gmsh.model.setPhysicalName(3, tag, self.env_name)
-        print('EBS')
-        if self.factory == gmsh.model.occ:
-            pass
-        else:
-            n = len(self.nenvs[0].envs)
-            vs_i = dict()
-            for nenv in self.nenvs:
-                nvs = nenv.get_nested_volumes()
-                nns = nenv.get_nested_physical_names()
-                for i, vs in enumerate(nvs):
-                    vs_i.setdefault(nns[i], []).extend(vs)
-            for k, v in vs_i.items():
-                tag = gmsh.model.addPhysicalGroup(3, v)
-                gmsh.model.setPhysicalName(3, tag, k)
         self.spent_times['Physical Volumes'] = time.time() - start_time
 
     def physical_surfaces(self):
@@ -553,8 +437,7 @@ class TrenchEbsNkm:
             for i in self.ints:
                 for c in i:
                     for physical_name in c.map_physical_name_to_primitives_indices:
-                        surfaces = c.get_surfaces_by_physical_name(
-                            physical_name)
+                        surfaces = c.get_surfaces_by_physical_name(physical_name)
                         for s in surfaces:
                             map_surface_to_physical_name[s] = physical_name
             print("ILW Boreholes")
@@ -562,15 +445,13 @@ class TrenchEbsNkm:
                 for physical_name in b.map_physical_name_to_primitives_indices:
                     surfaces = b.get_surfaces_by_physical_name(physical_name)
                     for s in surfaces:
-                        map_surface_to_physical_name[s] = '_'.join(
-                            [self.ilw_name, physical_name])
+                        map_surface_to_physical_name[s] = '_'.join([self.ilw_name, physical_name])
             print("HLW Boreholes")
             for b in self.hlws:
                 for physical_name in b.map_physical_name_to_primitives_indices:
                     surfaces = b.get_surfaces_by_physical_name(physical_name)
                     for s in surfaces:
-                        map_surface_to_physical_name[s] = '_'.join(
-                            [self.hlw_name, physical_name])
+                        map_surface_to_physical_name[s] = '_'.join([self.hlw_name, physical_name])
             print("Environment")
             for physical_name in self.env.map_physical_name_to_primitives_indices:
                 surfaces = self.env.get_surfaces_by_physical_name(physical_name)
@@ -578,18 +459,14 @@ class TrenchEbsNkm:
                     if physical_name == '':
                         map_surface_to_physical_name[s] = self.env_name
                     else:
-                        map_surface_to_physical_name[s] = '_'.join(
-                            [self.env_name, physical_name])
+                        map_surface_to_physical_name[s] = '_'.join([self.env_name, physical_name])
             print('Make Physical Surfaces')
             for i, (name, ss) in enumerate(boundary_surfaces_groups.items()):
                 map_expanded_physical_name_to_surfaces = dict()
                 for s in ss:
-                    physical_name = '_'.join(
-                        [name, map_surface_to_physical_name[s]])
-                    map_expanded_physical_name_to_surfaces.setdefault(
-                        physical_name, list()).append(s)
-                for j, (epn, ess) in enumerate(
-                        map_expanded_physical_name_to_surfaces.items()):
+                    physical_name = '_'.join([name, map_surface_to_physical_name[s]])
+                    map_expanded_physical_name_to_surfaces.setdefault(physical_name, list()).append(s)
+                for j, (epn, ess) in enumerate(map_expanded_physical_name_to_surfaces.items()):
                     tag = gmsh.model.addPhysicalGroup(2, ess)
                     gmsh.model.setPhysicalName(2, tag, epn)
         else:
@@ -599,6 +476,7 @@ class TrenchEbsNkm:
         self.spent_times['Physical Surfaces'] = time.time() - start_time
 
     def recombine(self):
+        print("Recombine")
         for b in self.boreholes:
             b.recombine()
 
@@ -616,9 +494,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', help='input filename', required=True)
     parser.add_argument('-o', '--output', help='output filename')
+    parser.add_argument('-g', '--gmsh_settings', help='gmsh settings filename')
     parser.add_argument('-v', '--verbose', help='verbose', action='store_true')
     parser.add_argument('-t', '--test', help='test mode', action='store_true')
-    parser.add_argument('-g', '--gmsh_settings', help='gmsh settings filename')
     args = parser.parse_args()
     root, extension = os.path.splitext(args.input)
     basename = os.path.basename(root)
@@ -676,8 +554,8 @@ if __name__ == '__main__':
     print('General.Terminal: {}'.format(
         gmsh.option.getNumber('General.Terminal')))
     print('Initialize')
-    nkm = TrenchEbsNkm(**input_nkm['arguments'])
-    # nkm.synchronize()
+    nkm = EleronTwoNkm(**input_nkm['arguments'])
+    nkm.synchronize()
     if not is_test:
         if factory_str == 'occ':
             nkm.evaluate()
@@ -692,9 +570,9 @@ if __name__ == '__main__':
             nkm.physical_volumes()
             nkm.physical_surfaces()
         else:
-            # nkm.evaluate()
-            # nkm.remove_duplicates()
-            # nkm.synchronize()
+            nkm.evaluate()
+            nkm.remove_duplicates()
+            nkm.synchronize()
             nkm.environment()
             nkm.synchronize()
             nkm.correct_and_transfinite()

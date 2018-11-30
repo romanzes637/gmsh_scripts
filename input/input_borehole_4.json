@@ -2,7 +2,7 @@
   "metadata": {
     "type": "class_arguments",
     "class_name": "DividedCylinder",
-    "description": "Borehole with 4 materials: Radioactive Waste (RW), Engineering Barrier System (EBS), Grout and Plug"
+    "description": "Borehole with 4 materials: Radioactive Waste (RW), Engineered Barrier System (EBS), Grout and Plug"
   },
   "arguments": {
     "factory": "occ",

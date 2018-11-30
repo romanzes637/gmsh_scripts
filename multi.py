@@ -88,10 +88,11 @@ for c_i, c in enumerate(args_combinations):
     if not is_test:
         with open(log, 'w+') as f:
             tokens = shlex.split(run_cmd)
-            cmd = ['python']
+            cmd = ['nohup', 'python']
             cmd.extend(tokens)
             print(cmd)
-            process = Popen(cmd, stdout=f, stderr=f)
+            # preexec_fn=os.setpgrp is for nohup correct work
+            process = Popen(cmd, stdout=f, stderr=f, preexec_fn=os.setpgrp)
             pids.append(process.pid)
     else:
         with open(log, 'w+') as f:

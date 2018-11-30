@@ -2,7 +2,7 @@
   "metadata": {
     "type": "class_arguments",
     "class_name": "DividedCylinder",
-    "description": "Borehole with 3 materials: Radioactive Waste (RW), Engineering Barrier System (EBS) and Excavation Disturbed Zone (EDZ)"
+    "description": "Borehole with 3 materials: Radioactive Waste (RW), Engineered Barrier System (EBS) and Excavation Disturbed Zone (EDZ)"
   },
   "arguments": {
     "factory": "occ",

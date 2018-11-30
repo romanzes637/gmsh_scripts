@@ -1,0 +1,46 @@
+{
+  "metadata": {
+    "type": "script_arguments",
+    "script_name": "multi",
+    "description": "Arguments for multi script - multivariate meshing"
+  },
+  "arguments": {
+    "inputs": [
+      {
+        "path": "input/input_nkm_eleron_2.json",
+        "args": [
+          {
+            "borehole_input_path": [
+              "input/input_borehole_eleron_2_two.json"
+            ]
+          },
+          {
+            "env_point_data": [
+              [1596, 1260, 975, 40],
+              [1596, 1260, 975, 60],
+              [1596, 1260, 975, 80]
+            ]
+          }
+        ]
+      },
+      {
+        "path": "input/input_gmsh.json",
+        "args": [
+          {
+            "options": [
+              {
+                "Mesh.Algorithm3D": 1,
+                "Geometry.AutoCoherence": 0
+              },
+              {
+                "Mesh.Algorithm3D": 4,
+                "Geometry.AutoCoherence": 0
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "run_cmd": "/share/home/butovr/gmsh_scripts/nkm_eleron_2.py -i ./input/input_nkm_eleron_2.json -g ./input/input_gmsh.json -v"
+  }
+}
