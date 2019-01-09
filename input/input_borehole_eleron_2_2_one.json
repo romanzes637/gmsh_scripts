@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "DividedCylinder",
+    "description": "Eleron second proposal second variant with one zone: Radioactive Waste (RW)"
+  },
+  "arguments": {
+    "factory": "geo",
+    "radii": [0.785],
+    "heights": [11],
+    "layers_lcs": [
+      [1]
+    ],
+    "transform_data": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "layers_physical_names": [
+      ["RW"]
+    ],
+    "transfinite_r_data": [
+      [3, 0, 1]
+    ],
+    "transfinite_h_data": [
+      [6, 0, 1]
+    ],
+    "transfinite_phi_data": [3, 0, 1],
+    "divide_r_data": [1],
+    "divide_h_data": [1]
+  }
+}

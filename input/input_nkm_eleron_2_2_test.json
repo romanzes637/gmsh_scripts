@@ -26,8 +26,8 @@
       -525
     ],
     "n_levels": 2,
-    "n_tunnels": 40,
-    "n_boreholes": 40,
+    "n_tunnels": 5,
+    "n_boreholes": 5,
     "d_tunnel": 18,
     "d_level": 75,
     "dy_borehole": 7.5,

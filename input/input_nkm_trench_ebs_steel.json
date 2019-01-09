@@ -1,0 +1,40 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "TrenchNKM",
+    "description": "Trench NKM"
+  },
+  "arguments": {
+    "factory": "geo",
+    "simple_boundary": true,
+    "env_input_path": "input/input_nkm_environment.json",
+    "env_name": "HostRock",
+    "env_point_data": [
+      200,
+      200,
+      200,
+      25
+    ],
+    "env_transform_data": [
+      0,
+      0,
+      0
+    ],
+    "origin": [
+      16.25,
+      0,
+      2.7
+    ],
+    "n_levels": 1,
+    "n_tunnels": 1,
+    "n_trenches": 1,
+    "n_boreholes": 10,
+    "d_tunnel": 90,
+    "d_level": 75,
+    "d_trench": 15,
+    "dx_borehole": 2.500,
+    "dz_borehole": -4.400,
+    "borehole_input_path": "input/input_container_mayak.json",
+    "ebs_ls": [0.1, 0.1, 0.1, 0.1]
+  }
+}

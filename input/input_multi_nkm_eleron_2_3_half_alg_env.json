@@ -7,7 +7,7 @@
   "arguments": {
     "inputs": [
       {
-        "path": "input/input_nkm_eleron_2_2.json",
+        "path": "input/input_nkm_eleron_2_3_half.json",
         "args": [
           {
             "borehole_input_path": [
@@ -16,8 +16,9 @@
           },
           {
             "env_point_data": [
-              [1677, 1267.5, 975, 50],
-              [1677, 1267.5, 975, 100]
+              [1596, 1260, 975, 50],
+              [1596, 1260, 975, 60],
+              [1596, 1260, 975, 70]
             ]
           }
         ]
@@ -40,6 +41,6 @@
         ]
       }
     ],
-    "run_cmd": "/share/home/butovr/gmsh_scripts/nkm_eleron_2.py -i ./input/input_nkm_eleron_2_2.json -g ./input/input_gmsh.json -v"
+    "run_cmd": "/share/home/butovr/gmsh_scripts/nkm_eleron_2.py -i ./input/input_nkm_eleron_2_3_half.json -g ./input/input_gmsh.json -v"
   }
 }

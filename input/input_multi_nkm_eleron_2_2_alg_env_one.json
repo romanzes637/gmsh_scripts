@@ -11,12 +11,13 @@
         "args": [
           {
             "borehole_input_path": [
-              "input/input_borehole_eleron_2_2.json"
+              "input/input_borehole_eleron_2_2_one.json"
             ]
           },
           {
             "env_point_data": [
               [1677, 1267.5, 975, 50],
+              [1677, 1267.5, 975, 75],
               [1677, 1267.5, 975, 100]
             ]
           }

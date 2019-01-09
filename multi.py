@@ -2,8 +2,9 @@
     Positional arguments:
         input filename
     Keyword arguments:
-        p or --prefix - prefix to results folder name (default: multi)
-        t or --test - test mode (default: false)
+        p or --prefix -- prefix to results folder name (default multi)
+        t or --test -- test mode (default False)
+        w or --test -- wait for end of all subprocesses (default False)
 """
 
 if __name__ == '__main__':
@@ -14,15 +15,19 @@ if __name__ == '__main__':
     import shlex
     from subprocess import Popen
     from pprint import pprint
+    import platform
 
     from support import check_file
 
-    print('Cmd')
+    print(platform.uname())
     parser = argparse.ArgumentParser()
     parser.add_argument('input', help='input filename')
     parser.add_argument('-p', '--prefix', help='prefix', default='multi')
     parser.add_argument('-t', '--test', help='test mode', action='store_true')
+    parser.add_argument('-w', '--wait', help='wait for end of all subprocesses',
+                        action='store_true')
     cmd_args = parser.parse_args()
+    print('Args')
     pprint(cmd_args)
     input_path = cmd_args.input
     is_test = cmd_args.test
@@ -65,6 +70,7 @@ if __name__ == '__main__':
     args_combinations = itertools.product(*args_indices)
     pids = list()
     logs = list()
+    processes = set()
     for c_i, c in enumerate(args_combinations):
         print('Combination {}'.format(c_i + 1))
         print('Values {}'.format(c))
@@ -99,12 +105,16 @@ if __name__ == '__main__':
         if not is_test:
             with open(log, 'w+') as f:
                 tokens = shlex.split(run_cmd)
-                cmd = ['nohup', 'python']
+                cmd = ['python']
+                # cmd = ['nohup', 'python']  # used with preexec_fn=os.setpgrp
                 cmd.extend(tokens)
                 print(cmd)
                 # preexec_fn=os.setpgrp is for nohup correct work
-                process = Popen(cmd, stdout=f, stderr=f, preexec_fn=os.setpgrp)
+                # bufsize=-1 system ruled (for performance increase)
+                process = Popen(cmd, stdout=f, stderr=f, bufsize=-1)
+                # process = Popen(cmd, stdout=f, stderr=f, preexec_fn=os.setpgrp)
                 pids.append(process.pid)
+                processes.add(process)
         else:
             with open(log, 'w+') as f:
                 pass
@@ -128,3 +138,9 @@ if __name__ == '__main__':
         with open(ps_filename, 'w+') as f:
             json.dump(ps_data, f, indent=2, sort_keys=True)
     os.chdir(os.path.join('..'))
+    if cmd_args.wait:  # Wait for end of all subprocesses
+        print('Waiting')
+        for p in processes:
+            result = p.wait()
+            print('pid: {}, result: {}'.format(p.pid, result))
+    print('End')

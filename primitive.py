@@ -6,14 +6,17 @@ import json
 from pprint import pprint
 
 import gmsh
+import itertools
+
 from occ_workarounds import correct_and_transfinite_primitive
+from support import volumes_groups_surfaces
 
 
 class Primitive:
     def __init__(self, factory, point_data, transform_data=None,
                  curve_types=None, curve_data=None,
                  transfinite_data=None, transfinite_type=None,
-                 physical_name=None):
+                 physical_name=None, inner_volumes=None):
         """
         Base object with six quadrangular surfaces and eight points
         The object (e.g. number of its volumes/surfaces)
@@ -74,6 +77,7 @@ class Primitive:
         :param int transfinite_type: 0, 1, 2 or 4 determines orientation
         of surfaces' tetrahedra at structured volume
         :param str physical_name: primitive's volumes physical name
+        :param list inner_volumes: inner volumes, no effect at 'occ' factory
         """
         if factory == 'occ':
             self.factory = gmsh.model.occ
@@ -206,10 +210,47 @@ class Primitive:
                 tag = self.factory.addSurfaceFilling(tag)
             self.surfaces.append(tag)
         # Volume
-        tag = self.factory.addSurfaceLoop(
-            self.surfaces)  # FIXME always return -1
-        tag = self.factory.addVolume([tag])
-        self.volumes.append(tag)
+        # self.volumes = []
+        # if self.factory == gmsh.model.occ:
+        #     # FIXME bug always return = -1 by default
+        #     out_sl = self.factory.addSurfaceLoop(self.surfaces, 1)
+        #     in_sls = []
+        #     for i, sl in enumerate(inner_surfaces):
+        #         # FIXME bug always return = -1 by default
+        #         in_sls.append(self.factory.addSurfaceLoop(sl, 2 + i))
+        # else:
+        #     out_sl = self.factory.addSurfaceLoop(self.surfaces)
+        #     flatten_in_sls = list(itertools.chain.from_iterable(
+        #         inner_surfaces))  # 2D array to 1D array
+        #     in_sls = [
+        #         self.factory.addSurfaceLoop(flatten_in_sls)]  # one surface loop
+        # sls = list()
+        # sls.append(out_sl)
+        # sls += in_sls
+        # self.volumes.append(self.factory.addVolume(sls))
+        if inner_volumes is None:
+            # FIXME always return tag = -1
+            tag = self.factory.addSurfaceLoop(self.surfaces)
+            tag = self.factory.addVolume([tag])
+            self.volumes.append(tag)
+        else:
+            self.volumes = []
+            gs = volumes_groups_surfaces(inner_volumes)
+            if self.factory == gmsh.model.occ:
+                # FIXME bug always return tag = -1 by default
+                out_sl = self.factory.addSurfaceLoop(self.surfaces, 1)
+                in_sls = []
+                for i, g in enumerate(gs):
+                    # FIXME bug always return tag = -1 by default
+                    in_sls.append(self.factory.addSurfaceLoop(g, 2 + i))
+            else:
+                out_sl = self.factory.addSurfaceLoop(self.surfaces)
+                flatten_in_sls = list(itertools.chain.from_iterable(gs))
+                in_sls = [self.factory.addSurfaceLoop(flatten_in_sls)]
+            sls = list()
+            sls.append(out_sl)
+            sls += in_sls
+            self.volumes.append(self.factory.addVolume(sls))
         self.points_coordinates = []
         self.curves_points_coordinates = []
         self.bounding_box = None

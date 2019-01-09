@@ -11,7 +11,7 @@
         "args": [
           {
             "borehole_input_path": [
-              "input/input_borehole_eleron_2_2.json"
+              "input/input_borehole_eleron_2_2_two_in_one.json"
             ]
           },
           {
