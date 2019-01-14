@@ -1,829 +1,213 @@
-import argparse
 import json
 from pprint import pprint
 
 import gmsh
 
 from complex import Complex
-from complex_factory import ComplexFactory
-from occ_workarounds import correct_and_transfinite_complex
 from primitive import Primitive
-from support import boundary_surfaces_to_six_side_groups, \
-    volumes_groups_surfaces, check_file
+from support import check_file
 
 
-class Matrix:
-    # //    NZ
-    # //  LAYER1
-    # //    NY
-    # // NX    X
-    # //    Y
-    # //  LAYER2
-    # //    NY
-    # // NX    X
-    # //    Y
-    # //  LAYER3
-    # //    NY
-    # // NX    X
-    # //    Y
-    # //    Z
-    def __init__(self, factory, xs, ys, zs, type_map, lcs,
-                 physical_map, physical_names, txs, tys, tzs):
-        self.factory_str = factory
+class Matrix(Complex):
+    def __init__(self, factory, xs, ys, zs, lcs, type_map,
+                 physical_map, physical_names, txs, tys, tzs, inputs):
+        """
+            NZ
+          LAYER1
+            NY
+        NX      X
+            Y
+          LAYER2
+            NY
+        NX      X
+            Y
+          LAYER3
+            NY
+        NX      X
+            Y
+            Z
+        :param factory:
+        :param xs:
+        :param ys:
+        :param zs:
+        :param lcs:
+        :param type_map:
+        :param physical_map:
+        :param physical_names:
+        :param txs:
+        :param tys:
+        :param tzs:
+        :param inputs:
+        """
         if factory == 'occ':
-            self.factory = gmsh.model.occ
+            factory_object = gmsh.model.occ
         else:
-            self.factory = gmsh.model.geo
-        self.cs = list()
-        self.cs_to_evaluate = list()
-        self.cs_to_correct = list()
-        self.xs = xs
-        self.ys = ys
-        self.zs = zs
-        self.txs = txs
-        self.tyz = tys
-        self.tzs = tzs
-        self.lcs = lcs
-        self.type_map = type_map
-        self.physical_names = physical_names
-        self.physical_map = physical_map
-        for k in range(len(xs) - 1):
-            for j in range(len(ys) - 1):
-                for i in range(len(zs) - 1):
-                    new_cs, new_cs_to_evaluate, new_cs_to_correct = \
-                        self.init_factory((i, j, k))
-                    self.cs.extend(new_cs)
-                    self.cs_to_evaluate.extend(new_cs_to_evaluate)
-                    self.cs_to_correct.extend(new_cs_to_correct)
-
-    def init_factory(self, coordinates):
-        i, j, k = coordinates
-        nx = len(self.xs) - 1
-        ny = len(self.ys) - 1
-        nz = len(self.zs) - 1
-        gid = i + nx * j + ny * nx * k
-        x0 = self.xs[i]
-        x1 = self.xs[i + 1]
-        xc = 0.5 * (x0 + x1)
-        print(x0, xc, x1)
-        y0 = self.ys[j]
-        y1 = self.ys[j + 1]
-        yc = 0.5 * (y0 + y1)
-        print(y0, yc, y1)
-        z0 = self.zs[k]
-        z1 = self.zs[k + 1]
-        zc = 0.5 * (z0 + z1)
-        print(z0, zc, z1)
-        print(self.type_map[gid])
-        lc = lcs[gid]
-        cs = list()
-        cs_to_evaluate = list()
-        cs_to_correct = list()
-        t = self.type_map[gid]
-        if t == 1:
-            primitives = list()
-            primitives.append(Primitive(
-                self.factory_str,
-                [
-                    [x1, y1, z0, lc],
-                    [x0, y1, z0, lc],
-                    [x0, y0, z0, lc],
-                    [x1, y0, z0, lc],
-                    [x1, y1, z1, lc],
-                    [x0, y1, z1, lc],
-                    [x0, y0, z1, lc],
-                    [x1, y0, z1, lc],
-                ],
-                [0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [[], [], [], [], [], [], [], [], [], [], [], []],
-                [
-                    self.txs[i],
-                    self.tyz[j],
-                    self.tzs[k]
-                ],
-                0,
-                self.physical_names[self.physical_map[gid]]
-            ))
-            c = Complex(self.factory_str, primitives)
-            cs.append(c)
-            cs_to_evaluate.append(c)
-            cs_to_correct.append(c)
-        elif t == 2:
-            # Internal
-            borehole_input_path = 'input/input_container_mayak_ires.json'
-            result = check_file(borehole_input_path)
-            print(result['path'])
-            with open(result['path']) as f:
-                borehole_input = json.load(f)
-            pprint(borehole_input)
-            n_boreholes = 10
-            x0_borehole = x0 + 1.850
-            dx_borehole = 2.500
-            dz_borehole = -1.700
-            boreholes = []
-            borehole_input['arguments']['factory'] = self.factory_str
-            for borehole_i, borehole in enumerate(range(n_boreholes)):
-                new_transform = borehole_input['arguments']['transform_data']
-                new_transform[0] = x0_borehole + dx_borehole * borehole_i
-                new_transform[1] = yc
-                new_transform[2] = zc + dz_borehole
-                print(new_transform)
-                borehole_input['arguments']['transform_data'] = new_transform
-                b = ComplexFactory.new(borehole_input)
-                boreholes.append(b)
-                cs.append(b)
-                cs_to_correct.append(b)
-            # !!! FACTORY SYNC and EVALUATE !!!
-            self.factory.synchronize()
-            for b in boreholes:
-                b.evaluate_coordinates()
-                b.evaluate_bounding_box()
-            self.factory.removeAllDuplicates()  # ERROR IF REMOVE
-            self.factory.synchronize()  # ERROR IF REMOVE
-            vs = list()
-            for b in boreholes:
-                vs.extend(b.get_volumes())
-            # External
-            primitives = list()
-            primitives.append(Primitive(
-                self.factory_str,
-                [
-                    [x1, y1, z0, lc],
-                    [x0, y1, z0, lc],
-                    [x0, y0, z0, lc],
-                    [x1, y0, z0, lc],
-                    [x1, y1, z1, lc],
-                    [x0, y1, z1, lc],
-                    [x0, y0, z1, lc],
-                    [x1, y0, z1, lc],
-                ],
-                [0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [[], [], [], [], [], [], [], [], [], [], [], []],
-                [
-                    self.txs[i],
-                    self.tyz[j],
-                    self.tzs[k]
-                ],
-                0,
-                self.physical_names[self.physical_map[gid]],
-                vs
-            ))
-            c = Complex(self.factory_str, primitives)
-            cs.append(c)
-            cs_to_evaluate.append(c)
-            cs_to_correct.append(c)
-        return cs, cs_to_evaluate, cs_to_correct
+            factory_object = gmsh.model.geo
+        nx = len(xs) - 1
+        ny = len(ys) - 1
+        nz = len(zs) - 1
+        n = nx * ny * nz
+        if lcs is None:
+            lcs = list()
+            for z in range(nz):
+                for y in range(ny):
+                    for x in range(nx):
+                        lcs.append(1)
+        if type_map is None:
+            for z in range(nz):
+                for y in range(ny):
+                    for x in range(nx):
+                        type_map.append(1)
+        if physical_map is None:
+            physical_map = list()
+            for z in range(nz):
+                for y in range(ny):
+                    for x in range(nx):
+                        physical_map.append(0)
+        if physical_names is None:
+            physical_names = ['Matrix']
+        primitives = list()
+        for k in range(nx):
+            for j in range(ny):
+                for i in range(nz):
+                    gi = i + nx * j + ny * nx * k
+                    # print('{}/{}'.format(gi + 1, n))
+                    x0 = xs[i]
+                    x1 = xs[i + 1]
+                    xc = 0.5 * (x0 + x1)
+                    y0 = ys[j]
+                    y1 = ys[j + 1]
+                    yc = 0.5 * (y0 + y1)
+                    z0 = zs[k]
+                    z1 = zs[k + 1]
+                    zc = 0.5 * (z0 + z1)
+                    lc = lcs[gi]
+                    t = type_map[gi]
+                    pn = physical_names[physical_map[gi]]
+                    tx = txs[i]
+                    ty = tys[j]
+                    tz = tzs[k]
+                    kwargs = locals()
+                    type_factory[t](factory_object, primitives, kwargs)
+                    Complex.__init__(self, factory, primitives)
 
 
-if __name__ == '__main__':
-    # print('Python: {0}'.format(sys.executable))
-    # print('Script: {0}'.format(__file__))
-    # print('Working Directory: {0}'.format(os.getcwd()))
-    # print('Host: {}'.format(socket.gethostname()))
-    # print('PID: {}'.format(os.getpid()))
-    # print('Arguments')
-    parser = argparse.ArgumentParser()
-    # parser.add_argument('-i', '--input', help='input filename', required=True)
-    parser.add_argument('-o', '--output', help='output filename')
-    parser.add_argument('-v', '--verbose', help='verbose', action='store_true')
-    parser.add_argument('-t', '--test', help='test mode', action='store_true')
-    parser.add_argument('-r', '--recombine', help='recombine',
-                        action='store_true')
-    args = parser.parse_args()
-    print(args)
-    # root, extension = os.path.splitext(args.input)
-    # basename = os.path.basename(root)
-    # if args.output is None:
-    #     output_path = basename
-    # else:
-    #     output_path = args.output
-    # is_verbose = args.verbose
-    # model_name = basename
-    gmsh.initialize()
-    if args.verbose:
-        gmsh.option.setNumber("General.Terminal", 1)
-    else:
-        gmsh.option.setNumber("General.Terminal", 0)
-    gmsh.option.setNumber('Geometry.AutoCoherence', 0)  # occ factory no effect
-    gmsh.model.add('Matrix')
-    # print('Input')
-    # with open(input_path) as f:
-    #     input_data = json.load(f)
-    # pprint(input_data)
-    print('Initialize')
-    # xs = [-30, -10, 10, 30]
-    # ys = [-30, -10, 10, 30]
-    # zs = [-30, -10, 10, 30]
-    # lcs = [
-    #     1, 2, 3,
-    #     4, 5, 6,
-    #     7, 8, 9,
-    #
-    #     10, 11, 12,
-    #     13, 14, 15,
-    #     16, 17, 18,
-    #
-    #     19, 20, 21,
-    #     22, 23, 24,
-    #     25, 26, 27,
-    # ]
-    # type_map = [
-    #     1, 1, 1,
-    #     1, 1, 1,
-    #     1, 1, 1,
-    #
-    #     1, 1, 1,
-    #     1, 2, 1,
-    #     1, 1, 1,
-    #
-    #     1, 1, 1,
-    #     1, 1, 1,
-    #     1, 1, 1,
-    # ]
-    # physical_map = [
-    #     1, 1, 1,
-    #     1, 1, 1,
-    #     1, 1, 1,
-    #
-    #     1, 1, 1,
-    #     1, 2, 1,
-    #     1, 1, 1,
-    #
-    #     1, 1, 1,
-    #     1, 1, 1,
-    #     1, 1, 1,
-    # ]
-    # nxs = [[5, 0, 1], [5, 0, 1], [5, 0, 1]]
-    # nys = [[5, 0, 1], [5, 0, 1], [5, 0, 1]]
-    # nzs = [[5, 0, 1], [5, 0, 1], [5, 0, 1]]
-    # physical_names = ['None', 'Rock', 'SteelExt', 'Concrete', 'SteelInt',
-    #                   'Bentonite']
-    # xs = [-50.000, -13.755, -13.750, -13.105, -13.100, -11.000,
-    #       11.000, 13.100, 13.105, 13.750, 13.755, 50.000]
-    # ys = [-50.000, -1.405, -1.400, -0.755, -0.750, -0.500,
-    #       0.500, 0.750, 0.755, 1.400, 1.405, 50.000]
-    # zs = [-50.000, -2.705, -2.700, -2.055, -2.050, -1.900,
-    #       1.900, 2.050, 2.055, 2.700, 2.705, 50.000]
-    # nxs = [[11, 0, 1 / 1.15], [5, 0, 1], [5, 0, 1], [5, 0, 1], [5, 0, 1],
-    #        [21, 0, 1],
-    #        [5, 0, 1], [5, 0, 1], [5, 0, 1], [5, 0, 1], [11, 0, 1.15]]
-    # nys = [[11, 0, 1 / 1.15], [5, 0, 1], [5, 0, 1], [5, 0, 1], [5, 0, 1],
-    #        [5, 0, 1],
-    #        [5, 0, 1], [5, 0, 1], [5, 0, 1], [5, 0, 1], [11, 0, 1.15]]
-    # nzs = [[11, 0, 1 / 1.15], [5, 0, 1], [5, 0, 1], [5, 0, 1], [5, 0, 1],
-    #        [9, 0, 1],
-    #        [5, 0, 1], [5, 0, 1], [5, 0, 1], [5, 0, 1], [11, 0, 1.15]]
-    # ts = list()
-    # lcs = list()
-    # physical_names = ['Rock', 'SteelExt', 'Concrete', 'SteelInt', 'Bentonite',
-    #                   'RW']
-    # physical_map = [
-    #     # 0
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     # 1
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     # 2
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     # 3
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 2, 3, 3, 3, 3, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 3, 3, 3, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 3, 3, 3, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 3, 3, 3, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 3, 3, 3, 3, 2, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     # 4
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 2, 3, 3, 3, 3, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 4, 4, 4, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 4, 4, 4, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 4, 4, 4, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 3, 3, 3, 3, 2, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     # 5 Center
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 2, 3, 3, 3, 3, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 4, 4, 4, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 4, 4, 4, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 3, 3, 3, 3, 2, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     # 4
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 2, 3, 3, 3, 3, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 4, 4, 4, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 4, 4, 4, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 4, 4, 4, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 3, 3, 3, 3, 2, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     # 3
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 2, 3, 3, 3, 3, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 3, 3, 3, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 3, 3, 3, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 3, 3, 3, 3, 2, 1, 0,
-    #     0, 1, 2, 3, 3, 3, 3, 3, 2, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     # 2
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     # 1
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     # 0
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    #     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    # ]
-    # type_map = [
-    #     # 0
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     # 1
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     # 2
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     # 3
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     # 4
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     # 5 Center
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     # 4
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     # 3
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     # 2
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     # 1
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     # 0
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    #     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-    # ]
-    xs = [-50.000, -13.755, -13.750, -13.105, -13.100,
-          13.100, 13.105, 13.750, 13.755, 50.000]
-    ys = [-50.000, -1.405, -1.400, -0.755, -0.750,
-          0.750, 0.755, 1.400, 1.405, 50.000]
-    zs = [-50.000, -2.705, -2.700, -2.055, -2.050,
-          2.050, 2.055, 2.700, 2.705, 50.000]
-    nxs = [[11, 0, 1 / 1.15], [5, 0, 1], [5, 0, 1], [5, 0, 1],
-           [81, 0, 1],
-           [5, 0, 1], [5, 0, 1], [5, 0, 1], [11, 0, 1.15]]
-    nys = [[11, 0, 1 / 1.15], [5, 0, 1], [5, 0, 1], [5, 0, 1],
-           [21, 0, 1],
-           [5, 0, 1], [5, 0, 1], [5, 0, 1], [11, 0, 1.15]]
-    nzs = [[11, 0, 1 / 1.15], [5, 0, 1], [5, 0, 1], [5, 0, 1],
-           [21, 0, 1],
-           [5, 0, 1], [5, 0, 1], [5, 0, 1], [11, 0, 1.15]]
-    ts = list()
-    lcs = list()
-    physical_names = ['Rock', 'SteelExt', 'Concrete', 'SteelInt', 'Bentonite']
-    physical_map = [
-        # 0
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        # 1
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        # 2
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 2, 2, 2, 2, 2, 1, 0,
-        0, 1, 2, 2, 2, 2, 2, 1, 0,
-        0, 1, 2, 2, 2, 2, 2, 1, 0,
-        0, 1, 2, 2, 2, 2, 2, 1, 0,
-        0, 1, 2, 2, 2, 2, 2, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        # 3
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 2, 2, 2, 2, 2, 1, 0,
-        0, 1, 2, 3, 3, 3, 2, 1, 0,
-        0, 1, 2, 3, 3, 3, 2, 1, 0,
-        0, 1, 2, 3, 3, 3, 2, 1, 0,
-        0, 1, 2, 2, 2, 2, 2, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        # 4 Center
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 2, 2, 2, 2, 2, 1, 0,
-        0, 1, 2, 3, 3, 3, 2, 1, 0,
-        0, 1, 2, 3, 4, 3, 2, 1, 0,
-        0, 1, 2, 3, 3, 3, 2, 1, 0,
-        0, 1, 2, 2, 2, 2, 2, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        # 3
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 2, 2, 2, 2, 2, 1, 0,
-        0, 1, 2, 3, 3, 3, 2, 1, 0,
-        0, 1, 2, 3, 3, 3, 2, 1, 0,
-        0, 1, 2, 3, 3, 3, 2, 1, 0,
-        0, 1, 2, 2, 2, 2, 2, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        # 2
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 2, 2, 2, 2, 2, 1, 0,
-        0, 1, 2, 2, 2, 2, 2, 1, 0,
-        0, 1, 2, 2, 2, 2, 2, 1, 0,
-        0, 1, 2, 2, 2, 2, 2, 1, 0,
-        0, 1, 2, 2, 2, 2, 2, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        # 1
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        # 0
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-    ]
-    type_map = [
-        # 0
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        # 1
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        # 2
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        # 3
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        # 4 Center
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 2, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        # 5 Center
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        # 4
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        # 3
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        # 2
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        # 1
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        # 0
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-    ]
-    for z in range(len(zs) - 1):
-        for y in range(len(ys) - 1):
-            for x in range(len(zs) - 1):
-                lcs.append(1)
-                ts.append(1)
-    m = Matrix('geo', xs, ys, zs, type_map, lcs, physical_map, physical_names,
-               nxs, nys, nzs)
-    factory = m.factory
-    print('Synchronize')
-    factory.synchronize()
-    if not args.test:
-        print('Evaluate')
-        for c in m.cs_to_evaluate:
-            c.evaluate_coordinates()  # for correct and transfinite
-            c.evaluate_bounding_box()  # for boolean
-        print('Remove Duplicates')
-        factory.removeAllDuplicates()
-        print('Synchronize')
-        factory.synchronize()
-        print('Correct and Transfinite')
-        ss = set()
-        cs = set()
-        for c in m.cs_to_correct:
-            correct_and_transfinite_complex(c, ss, cs)
-        if args.recombine:
-            print('Recombine')
-            for c in m.cs:
-                c.recombine()
-        print('Physical')
-        print("Volumes")
-        pns = set()
-        for c in m.cs:
-            c_pns = c.map_physical_name_to_primitives_indices.keys()
-            pns.update(set(c_pns))
-        print(pns)
-        for name in pns:
-            nvs = list()
-            for c in m.cs:
-                vs = c.get_volumes_by_physical_name(name)
-                nvs.extend(vs)
-            print(name)
-            # print(nvs)
-            tag = gmsh.model.addPhysicalGroup(3, nvs)
-            gmsh.model.setPhysicalName(3, tag, name)
-        print("Surfaces")
-        boundary_surfaces_groups = boundary_surfaces_to_six_side_groups()
-        for i, (name, ss) in enumerate(boundary_surfaces_groups.items()):
-            tag = gmsh.model.addPhysicalGroup(2, ss)
-            gmsh.model.setPhysicalName(2, tag, name)
-        print("Mesh")
-        gmsh.model.mesh.generate(3)
-        gmsh.model.mesh.removeDuplicateNodes()
-        print("Write")
-        gmsh.write('matrix' + '.msh')
-    else:
-        print("Write")
-        gmsh.write('matrix' + '.brep')
-    gmsh.finalize()
+def type_0(factory_object, primitives, kwargs):
+    pass
+
+
+def type_1(factory_object, primitives, kwargs):
+    # Args
+    x0 = kwargs['x0']
+    x1 = kwargs['x1']
+    y0 = kwargs['y0']
+    y1 = kwargs['y1']
+    z0 = kwargs['z0']
+    z1 = kwargs['z1']
+    lc = kwargs['lc']
+    tx = kwargs['tx']
+    ty = kwargs['ty']
+    tz = kwargs['tz']
+    pn = kwargs['pn']
+    factory_str = kwargs['factory']
+    primitives.append(Primitive(
+        factory_str,
+        [
+            [x1, y1, z0, lc],
+            [x0, y1, z0, lc],
+            [x0, y0, z0, lc],
+            [x1, y0, z0, lc],
+            [x1, y1, z1, lc],
+            [x0, y1, z1, lc],
+            [x0, y0, z1, lc],
+            [x1, y0, z1, lc],
+        ],
+        [0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [[], [], [], [], [], [], [], [], [], [], [], []],
+        [tx, ty, tz],
+        0,
+        pn
+    ))
+
+
+def type_2(factory_object, primitives, kwargs):
+    from complex_factory import ComplexFactory
+    # Args
+    x0 = kwargs['x0']
+    x1 = kwargs['x1']
+    y0 = kwargs['y0']
+    yc = kwargs['yc']
+    y1 = kwargs['y1']
+    z0 = kwargs['z0']
+    zc = kwargs['zc']
+    z1 = kwargs['z1']
+    lc = kwargs['lc']
+    tx = kwargs['tx']
+    ty = kwargs['ty']
+    tz = kwargs['tz']
+    pn = kwargs['pn']
+    inputs = kwargs['inputs']
+    factory = kwargs['factory']
+    # Internal
+    borehole_input_path = inputs[0]
+    result = check_file(borehole_input_path)
+    with open(result['path']) as f:
+        borehole_input = json.load(f)
+    # pprint(borehole_input)
+    n_boreholes = 10
+    x0_borehole = x0 + 1.850
+    dx_borehole = 2.500
+    dz_borehole = -1.700
+    boreholes = list()
+    borehole_input['arguments']['factory'] = factory
+    for borehole_i, borehole in enumerate(
+            range(n_boreholes)):
+        new_transform = borehole_input['arguments'][
+            'transform_data']
+        new_transform[
+            0] = x0_borehole + dx_borehole * borehole_i
+        new_transform[1] = yc
+        new_transform[2] = zc + dz_borehole
+        borehole_input['arguments'][
+            'transform_data'] = new_transform
+        b = ComplexFactory.new(borehole_input)
+        boreholes.append(b)
+        primitives.extend(b.primitives)
+    # !!! FACTORY SYNC and EVALUATE !!!
+    factory_object.synchronize()
+    for b in boreholes:
+        b.evaluate_coordinates()
+    factory_object.removeAllDuplicates()  # ERROR IF REMOVE
+    factory_object.synchronize()  # ERROR IF REMOVE
+    inner_volumes = list()
+    for b in boreholes:
+        inner_volumes.extend(b.get_volumes())
+    # External
+    primitives.append(Primitive(
+        factory,
+        [
+            [x1, y1, z0, lc],
+            [x0, y1, z0, lc],
+            [x0, y0, z0, lc],
+            [x1, y0, z0, lc],
+            [x1, y1, z1, lc],
+            [x0, y1, z1, lc],
+            [x0, y0, z1, lc],
+            [x1, y0, z1, lc],
+        ],
+        [0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [[], [], [], [], [], [], [], [], [], [], [], []],
+        [tx, ty, tz],
+        0,
+        pn,
+        inner_volumes
+    ))
+
+
+type_factory = {
+    0: type_0,
+    1: type_1,
+    2: type_2
+}

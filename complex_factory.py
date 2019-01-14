@@ -6,9 +6,11 @@ from pprint import pprint
 import sys
 
 import gmsh
+
 from complex_primitive import ComplexPrimitive
 from cylinder import Cylinder
 from divided_cylinder import DividedCylinder
+from matrix import Matrix
 from occ_workarounds import correct_and_transfinite_complex
 from support import boundary_surfaces_to_six_side_groups
 
@@ -34,7 +36,8 @@ class ComplexFactory:
             return Cylinder(**kwargs)
         if class_name == DividedCylinder.__name__:
             return DividedCylinder(**kwargs)
-
+        if class_name == Matrix.__name__:
+            return Matrix(**kwargs)
 
 if __name__ == '__main__':
     print('Python: {0}'.format(sys.executable))
@@ -44,7 +47,7 @@ if __name__ == '__main__':
     print('PID: {}'.format(os.getpid()))
     print('Arguments')
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', help='input filename', required=True)
+    parser.add_argument('input', help='input filename')
     parser.add_argument('-o', '--output', help='output filename')
     parser.add_argument('-v', '--verbose', help='verbose', action='store_true')
     parser.add_argument('-t', '--test', help='test mode', action='store_true')
@@ -67,7 +70,7 @@ if __name__ == '__main__':
         gmsh.option.setNumber("General.Terminal", 1)
     else:
         gmsh.option.setNumber("General.Terminal", 0)
-    gmsh.option.setNumber('Geometry.AutoCoherence', 0)  # No effect at gmsh.model.occ factory
+    gmsh.option.setNumber('Geometry.AutoCoherence', 0)  # No effect at occ
     gmsh.model.add(model_name)
     print('Input')
     with open(input_path) as f:
@@ -92,8 +95,7 @@ if __name__ == '__main__':
         correct_and_transfinite_complex(c, ss, cs)
         if is_recombine:
             print('Recombine')
-            for p in c.primitives:
-                p.recombine()
+            c.recombine()
         print('Physical')
         print("Volumes")
         for name in c.map_physical_name_to_primitives_indices.keys():

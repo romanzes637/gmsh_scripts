@@ -254,6 +254,7 @@ class Primitive:
         self.points_coordinates = []
         self.curves_points_coordinates = []
         self.bounding_box = None
+        self.coordinates_evaluated = False
         # [x_min, y_min, z_min, x_max, y_max, z_max]
         # Call self.evaluate_bounding_box() to init
 
@@ -376,15 +377,17 @@ class Primitive:
         return result
 
     def evaluate_coordinates(self):
-        for point in self.points:
-            bb = gmsh.model.getBoundingBox(0, point)
-            self.points_coordinates.append([bb[0], bb[1], bb[2]])
-        for curve_points in self.curves_points:
-            cs = []
-            for point in curve_points:
+        if not self.coordinates_evaluated:
+            for point in self.points:
                 bb = gmsh.model.getBoundingBox(0, point)
-                cs.append([bb[0], bb[1], bb[2]])
-            self.curves_points_coordinates.append(cs)
+                self.points_coordinates.append([bb[0], bb[1], bb[2]])
+            for curve_points in self.curves_points:
+                cs = []
+                for point in curve_points:
+                    bb = gmsh.model.getBoundingBox(0, point)
+                    cs.append([bb[0], bb[1], bb[2]])
+                self.curves_points_coordinates.append(cs)
+            self.coordinates_evaluated = True
 
     def evaluate_bounding_box(self):
         if len(self.volumes) > 0:
