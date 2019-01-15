@@ -1,0 +1,16 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Experiment",
+    "description": "Experiment"
+  },
+  "arguments": {
+    "factory": "occ",
+    "inputs": [
+      "input/input_environment_experiment.json",
+      "input/input_borehole_experiment_1.json",
+      "input/input_borehole_experiment_2.json",
+      "input/input_tunnel_experiment.json"
+    ]
+  }
+}

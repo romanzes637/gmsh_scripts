@@ -193,8 +193,13 @@ class Primitive:
                                     0, 0, 1, transform_data[8])
         # Curves
         for i in range(12):
-            tag = self.add_curve[curve_types[i]](self, i)
-            self.curves.append(tag)
+            # FIXME Workaround for OCC factory
+            if self.factory != gmsh.model.occ:
+                tag = self.add_curve[curve_types[i]](self, i)
+                self.curves.append(tag)
+            else:
+                tag = self.add_curve[curve_types[i] + 6](self, i)
+                self.curves.append(tag)
         # Surfaces
         for i in range(6):
             if self.factory == gmsh.model.geo:
@@ -482,6 +487,7 @@ class Primitive:
             "Bump",
             self.transfinite_data[i][2]
         ),
+        # FIXME Workaround for GEO factory
         2: lambda self, i: gmsh.model.geo.mesh.setTransfiniteCurve(
             self.curves[i],
             self.transfinite_data[i][0],
@@ -517,6 +523,7 @@ class Primitive:
             "AlternateRight",
             [self.points[x] for x in self.surfaces_local_points[i]]
         ),
+        # FIXME Workaround for GEO factory
         4: lambda self, i: gmsh.model.geo.mesh.setTransfiniteSurface(
             self.surfaces[i],
             "Left",
@@ -568,6 +575,7 @@ class Primitive:
                 self.points[7], self.points[4], self.points[5], self.points[6]
             ]
         ),
+        # FIXME Workaround for GEO factory
         4: lambda self, i: gmsh.model.geo.mesh.setTransfiniteVolume(
             self.volumes[i],
             [
@@ -613,7 +621,7 @@ class Primitive:
             self.curves_points[i][0],
             self.curves_points[i][1],
             self.points[self.curves_local_points[i][1]],
-        ),  # FIXME implement occ ellipse
+        ),
         3: lambda self, i: self.factory.addSpline(
             [self.points[self.curves_local_points[i][0]]] +
             self.curves_points[i] +
@@ -625,6 +633,36 @@ class Primitive:
             [self.points[self.curves_local_points[i][1]]]
         ),
         5: lambda self, i: self.factory.addBezier(
+            [self.points[self.curves_local_points[i][0]]] +
+            self.curves_points[i] +
+            [self.points[self.curves_local_points[i][1]]]
+        ),
+        # FIXME Workaround for OCC factory (for 8 - EllipseArc)
+        6: lambda self, i: self.factory.addLine(
+            self.points[self.curves_local_points[i][0]],
+            self.points[self.curves_local_points[i][1]]
+        ),
+        7: lambda self, i: self.factory.addCircleArc(
+            self.points[self.curves_local_points[i][0]],
+            self.curves_points[i][0],
+            self.points[self.curves_local_points[i][1]]
+        ),
+        8: lambda self, i: self.factory.addEllipseArc(
+            self.points[self.curves_local_points[i][0]],
+            self.curves_points[i][0],
+            self.points[self.curves_local_points[i][1]],
+        ),
+        9: lambda self, i: self.factory.addSpline(
+            [self.points[self.curves_local_points[i][0]]] +
+            self.curves_points[i] +
+            [self.points[self.curves_local_points[i][1]]]
+        ),
+        10: lambda self, i: self.factory.addBSpline(
+            [self.points[self.curves_local_points[i][0]]] +
+            self.curves_points[i] +
+            [self.points[self.curves_local_points[i][1]]]
+        ),
+        11: lambda self, i: self.factory.addBezier(
             [self.points[self.curves_local_points[i][0]]] +
             self.curves_points[i] +
             [self.points[self.curves_local_points[i][1]]]

@@ -89,7 +89,7 @@ class Matrix(Complex):
                     tz = tzs[k]
                     kwargs = locals()
                     type_factory[t](factory_object, primitives, kwargs)
-                    Complex.__init__(self, factory, primitives)
+        Complex.__init__(self, factory, primitives)
 
 
 def type_0(factory_object, primitives, kwargs):

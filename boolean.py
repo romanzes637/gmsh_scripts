@@ -46,6 +46,21 @@ def sort_object_only_shared_no_tool(
     return shared_volumes, set(), shared_volumes
 
 
+def sort_object_no_shared_no_tool_no_shared(
+        factory, object_volumes, tool_volumes, shared_volumes):
+    # FIXME workaround OCC bug: if number of objects and tools = 1
+    # and there is no shared volumes, OCC doesn't renumber volumes idxs,
+    # it follows to removing existing tool volume
+    if len(object_volumes) == 1 and len(tool_volumes) == 1 \
+            and len(shared_volumes) == 0:
+        pass
+    else:
+        volumes_to_delete = shared_volumes | tool_volumes  # shared and tool
+        volumes_dim_tags = [(3, x) for x in volumes_to_delete]
+        factory.remove(volumes_dim_tags, recursive=True)
+    return object_volumes - shared_volumes, set(), set()
+
+
 @timing
 def sorted_fragment(
         factory, object_volumes, tool_volumes,

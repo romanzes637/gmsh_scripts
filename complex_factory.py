@@ -7,12 +7,15 @@ import sys
 
 import gmsh
 
+from boolean import complex_self
 from complex_primitive import ComplexPrimitive
 from cylinder import Cylinder
 from divided_cylinder import DividedCylinder
+from experiment import Experiment
 from matrix import Matrix
+from tunnel import Tunnel
 from occ_workarounds import correct_and_transfinite_complex
-from support import boundary_surfaces_to_six_side_groups
+from support import boundary_surfaces_to_six_side_groups, get_boundary_surfaces
 
 
 class ComplexFactory:
@@ -22,9 +25,12 @@ class ComplexFactory:
     @staticmethod
     def new(input_data):
         """
-        Complex's child objects factory by item 'class_name':'Complex's child class name' in input_data['metadata'].
-        :param dict input_data: dict should have at least two items: 'metadata':dict and 'arguments':dict,
-        'metadata' dict should be 'class_name' item and 'arguments' dict should coincide with child object __init__
+        Complex's child objects factory by item 'class_name':
+        'Complex's child class name' in input_data['metadata'].
+        :param dict input_data: dict should have at least two items:
+        'metadata':dict and 'arguments':dict,
+        'metadata' dict should be 'class_name' item and 'arguments' dict
+        should coincide with child object __init__
         method arguments
         :return: Complex
         """
@@ -38,13 +44,17 @@ class ComplexFactory:
             return DividedCylinder(**kwargs)
         if class_name == Matrix.__name__:
             return Matrix(**kwargs)
+        if class_name == Tunnel.__name__:
+            return Tunnel(**kwargs)
+        if class_name == Experiment.__name__:
+            return Experiment(**kwargs)
 
 if __name__ == '__main__':
     print('Python: {0}'.format(sys.executable))
     print('Script: {0}'.format(__file__))
     print('Working Directory: {0}'.format(os.getcwd()))
-    print('Host: {}'.format(socket.gethostname()))
-    print('PID: {}'.format(os.getpid()))
+    print('Host: {0}'.format(socket.gethostname()))
+    print('PID: {0}'.format(os.getpid()))
     print('Arguments')
     parser = argparse.ArgumentParser()
     parser.add_argument('input', help='input filename')
@@ -52,6 +62,8 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', help='verbose', action='store_true')
     parser.add_argument('-t', '--test', help='test mode', action='store_true')
     parser.add_argument('-r', '--recombine', help='recombine', action='store_true')
+    parser.add_argument('-b', '--boolean', help='boolean', action='store_true')
+    parser.add_argument('-a', '--all_boundaries', help='all_boundaries', action='store_true')
     args = parser.parse_args()
     print(args)
     root, extension = os.path.splitext(args.input)
@@ -65,6 +77,8 @@ if __name__ == '__main__':
     input_path = args.input
     model_name = basename
     is_recombine = args.recombine
+    is_boolean = args.boolean
+    is_all_boundaries = args.all_boundaries
     gmsh.initialize()
     if is_verbose:
         gmsh.option.setNumber("General.Terminal", 1)
@@ -85,6 +99,9 @@ if __name__ == '__main__':
         print('Evaluate')
         c.evaluate_coordinates()  # for correct and transfinite
         c.evaluate_bounding_box()  # for boolean
+        if is_boolean:
+            print("Boolean")
+            complex_self(factory, c)
         print('Remove Duplicates')
         factory.removeAllDuplicates()
         print('Synchronize')
@@ -103,10 +120,19 @@ if __name__ == '__main__':
             tag = gmsh.model.addPhysicalGroup(3, vs)
             gmsh.model.setPhysicalName(3, tag, name)
         print("Surfaces")
-        boundary_surfaces_groups = boundary_surfaces_to_six_side_groups()
-        for i, (name, ss) in enumerate(boundary_surfaces_groups.items()):
-            tag = gmsh.model.addPhysicalGroup(2, ss)
-            gmsh.model.setPhysicalName(2, tag, name)
+        if is_all_boundaries:
+            print("All surfaces")
+            boundary_surfaces = get_boundary_surfaces()
+            for i, s in enumerate(boundary_surfaces):
+                name = 'S{0}'.format(i)
+                tag = gmsh.model.addPhysicalGroup(2, [s])
+                gmsh.model.setPhysicalName(2, tag, name)
+        else:
+            print("6 surfaces")
+            boundary_surfaces_groups = boundary_surfaces_to_six_side_groups()
+            for i, (name, ss) in enumerate(boundary_surfaces_groups.items()):
+                tag = gmsh.model.addPhysicalGroup(2, ss)
+                gmsh.model.setPhysicalName(2, tag, name)
         print("Mesh")
         gmsh.model.mesh.generate(3)
         gmsh.model.mesh.removeDuplicateNodes()
