@@ -2,12 +2,12 @@
   "metadata": {
     "type": "class_arguments",
     "class_name": "ComplexPrimitive",
-    "description": "Environment for Experiment"
+    "description": "Environment for Experiment Intrusion"
   },
   "arguments": {
     "factory": "occ",
     "divide_data": [1, 1, 1],
-    "point_data": [30, 30, 30, 1],
+    "point_data": [5, 5, 5, 0.1],
     "transform_data": [0, 0, 0, 0, 0, 0, 0, 0, 0],
     "curve_types": null,
     "curve_data": null,

@@ -1,0 +1,20 @@
+{
+  "metadata": {
+    "type": "function_arguments",
+    "function_name": "support.physical_surfaces",
+    "description": "Arguments for support.physical_surfaces function for Experiment"
+  },
+  "arguments": {
+    "name_surfaces_map": {
+      "Floor": [50, 6, 41, 44, 37, 33, 28, 22, 19, 15, 11],
+      "Roof": [52],
+      "Walls": [51, 53],
+      "X": [54],
+      "Y": [48],
+      "Z": [49],
+      "NX": [45],
+      "NY": [47],
+      "NZ": [46]
+    }
+  }
+}

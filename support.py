@@ -592,6 +592,12 @@ def boundary_surfaces_to_six_side_groups():
     return surfaces_groups
 
 
+def physical_surfaces(name_surfaces_map):
+    for name, surfaces in name_surfaces_map.items():
+        tag = gmsh.model.addPhysicalGroup(2, surfaces)
+        gmsh.model.setPhysicalName(2, tag, name)
+
+
 def volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces):
     """
     For Environment object. For each distinct inner volume in Environment

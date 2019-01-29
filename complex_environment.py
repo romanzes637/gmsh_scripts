@@ -1,60 +1,19 @@
-import json
-import os
 import argparse
+import json
 import socket
 from pprint import pprint
-import sys
 
 import gmsh
+import os
 
-from boolean import complex_self
-from complex_primitive import ComplexPrimitive
-from complex_union import ComplexUnion
-from cylinder import Cylinder
-from divided_cylinder import DividedCylinder
-from experiment import Experiment
-from matrix import Matrix
-from tunnel import Tunnel
-from occ_workarounds import correct_and_transfinite_complex, \
-    correct_and_transfinite_and_recombine_complex
-from support import boundary_surfaces_to_six_side_groups, \
-    get_boundary_surfaces, check_file, physical_surfaces, \
+import sys
+
+from boolean import complex_by_complex
+from complex_factory import ComplexFactory
+from occ_workarounds import correct_and_transfinite_complex
+from support import check_file, physical_surfaces, get_boundary_surfaces, \
+    boundary_surfaces_to_six_side_groups, \
     auto_complex_points_sizes_min_curve_in_volume
-
-
-class ComplexFactory:
-    def __init__(self):
-        pass
-
-    @staticmethod
-    def new(input_data):
-        """
-        Complex's child objects factory by item 'class_name':
-        'Complex's child class name' in input_data['metadata'].
-        :param dict input_data: dict should have at least two items:
-        'metadata':dict and 'arguments':dict,
-        'metadata' dict should be 'class_name' item and 'arguments' dict
-        should coincide with child object __init__
-        method arguments
-        :return: Complex
-        """
-        class_name = input_data['metadata']['class_name']
-        kwargs = input_data['arguments']
-        if class_name == ComplexPrimitive.__name__:
-            return ComplexPrimitive(**kwargs)
-        if class_name == Cylinder.__name__:
-            return Cylinder(**kwargs)
-        if class_name == DividedCylinder.__name__:
-            return DividedCylinder(**kwargs)
-        if class_name == Matrix.__name__:
-            return Matrix(**kwargs)
-        if class_name == Tunnel.__name__:
-            return Tunnel(**kwargs)
-        if class_name == Experiment.__name__:
-            return Experiment(**kwargs)
-        if class_name == ComplexUnion.__name__:
-            return ComplexUnion(**kwargs)
-
 
 if __name__ == '__main__':
     print('Python: {0}'.format(sys.executable))
@@ -97,13 +56,7 @@ if __name__ == '__main__':
     if args.physical_surfaces is None:
         is_physical_surfaces = False
     else:
-        print("Input for support.physical_surfaces")
         is_physical_surfaces = True
-        result = check_file(args.physical_surfaces)
-        with open(result['path']) as f:
-            physical_surfaces_input = json.load(f)
-        pprint(physical_surfaces_input)
-        physical_surfaces_kwargs = physical_surfaces_input['arguments']
     gmsh.initialize()
     # gmsh options
     if is_verbose:
@@ -115,42 +68,68 @@ if __name__ == '__main__':
     # 9: R-tree, 10: HXT
     gmsh.option.setNumber('Mesh.Algorithm3D', 1)
     gmsh.model.add(model_name)
-    # Input
-    print('Input')
-    with open(input_path) as f:
+    print('Input Complex Environment')
+    result = check_file(input_path)
+    with open(result['path']) as f:
         input_data = json.load(f)
     pprint(input_data)
+    print('Input Environment')
+    result = check_file(input_data['arguments']['environment'])
+    with open(result['path']) as f:
+        e_data = json.load(f)
+        e_data['arguments']['factory'] = input_data['arguments']['factory']
+    pprint(e_data)
+    print('Input Complex')
+    result = check_file(input_data['arguments']['complex'])
+    with open(result['path']) as f:
+        c_data = json.load(f)
+        c_data['arguments']['factory'] = input_data['arguments']['factory']
+    pprint(c_data)
     print('Initialize')
-    c = ComplexFactory.new(input_data)
-    factory = c.factory
+    print('Environment')
+    e = ComplexFactory.new(e_data)
+    print('Complex')
+    c = ComplexFactory.new(c_data)
+    if input_data['arguments']['factory'] == 'occ':
+        factory = gmsh.model.occ
+    else:
+        factory = gmsh.model.geo
     print('Synchronize')
     factory.synchronize()
     if not is_test:
         print('Evaluate')
+        e.evaluate_coordinates()  # for correct and transfinite
         c.evaluate_coordinates()  # for correct and transfinite
-        c.evaluate_bounding_box()  # for boolean
         if is_boolean:
             print("Boolean")
-            complex_self(factory, c)
+            e.evaluate_bounding_box()  # for boolean
+            c.evaluate_bounding_box()  # for boolean
+            complex_by_complex(factory, e, c)
         print('Remove Duplicates')
         factory.removeAllDuplicates()
         print('Synchronize')
         factory.synchronize()
-        # Primitive/Complex Correction
+        print('Correct and Transfinite')
         ss = set()
         cs = set()
-        if is_recombine:
-            print('Correct and Transfinite')
-            correct_and_transfinite_and_recombine_complex(c, ss, cs)
-        else:
-            print('Correct and Transfinite and Recombine')
-            correct_and_transfinite_complex(c, ss, cs)
+        correct_and_transfinite_complex(e, ss, cs)
+        correct_and_transfinite_complex(c, ss, cs)
         if size is not None:
             print('Set Size')
             pss = dict()
             auto_complex_points_sizes_min_curve_in_volume(c, pss, size)
+        if is_recombine:
+            print('Recombine')
+            e.recombine()
+            c.recombine()
         print('Physical')
         print("Volumes")
+        print('Environment')
+        for name in e.map_physical_name_to_primitives_indices.keys():
+            vs = e.get_volumes_by_physical_name(name)
+            tag = gmsh.model.addPhysicalGroup(3, vs)
+            gmsh.model.setPhysicalName(3, tag, name)
+        print('Complex')
         for name in c.map_physical_name_to_primitives_indices.keys():
             vs = c.get_volumes_by_physical_name(name)
             tag = gmsh.model.addPhysicalGroup(3, vs)
@@ -158,6 +137,12 @@ if __name__ == '__main__':
         print("Surfaces")
         if is_physical_surfaces:
             print("By support.physical_surfaces")
+            print("Input for support.physical_surfaces")
+            result = check_file(args.physical_surfaces)
+            with open(result['path']) as f:
+                physical_surfaces_input = json.load(f)
+            # pprint(physical_surfaces_input)
+            physical_surfaces_kwargs = physical_surfaces_input['arguments']
             physical_surfaces(**physical_surfaces_kwargs)
         else:
             if is_all_boundaries:

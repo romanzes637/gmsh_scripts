@@ -2,21 +2,21 @@
   "metadata": {
     "type": "class_arguments",
     "class_name": "ComplexPrimitive",
-    "description": "Environment for Experiment"
+    "description": "Intrusion 3 for Experiment Intrusion"
   },
   "arguments": {
     "factory": "occ",
-    "divide_data": [1, 1, 1],
-    "point_data": [30, 30, 30, 1],
-    "transform_data": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "divide_data": [1, 1, 11],
+    "point_data": [0.01, 2, 2, 1],
+    "transform_data": [0.5, 0, 0.5, 0, 0.52, 0],
     "curve_types": null,
     "curve_data": null,
     "transfinite_data": [
-      [10, 0, 1],
-      [10, 0, 1],
+      [3, 0, 1],
+      [161, 0, 1],
       [10, 0, 1]
     ],
     "transfinite_type": null,
-    "physical_name": "Rock"
+    "physical_name": "Crack"
   }
 }
