@@ -14,12 +14,15 @@ from cylinder import Cylinder
 from divided_cylinder import DividedCylinder
 from experiment import Experiment
 from matrix import Matrix
+from polygon import Polygon
 from tunnel import Tunnel
 from occ_workarounds import correct_and_transfinite_complex, \
     correct_and_transfinite_and_recombine_complex
 from support import boundary_surfaces_to_six_side_groups, \
     get_boundary_surfaces, check_file, physical_surfaces, \
-    auto_complex_points_sizes_min_curve_in_volume
+    auto_complex_points_sizes_min_curve_in_volume, set_boundary_points_sizes, \
+    auto_boundary_points_sizes, auto_boundary_points_sizes_min_edge_in_surface, \
+    set_points_sizes
 
 
 class ComplexFactory:
@@ -54,6 +57,8 @@ class ComplexFactory:
             return Experiment(**kwargs)
         if class_name == ComplexUnion.__name__:
             return ComplexUnion(**kwargs)
+        if class_name == Polygon.__name__:
+            return Polygon(**kwargs)
 
 
 if __name__ == '__main__':
@@ -75,9 +80,18 @@ if __name__ == '__main__':
                         action='store_true')
     parser.add_argument('-p', '--physical_surfaces',
                         help='support.physical_surfaces input filename')
-    parser.add_argument('-s', '--size', type=float, metavar=0.1,
-                        help='mesh auto sizing with size factor (default: 1.0)',
+    parser.add_argument('-s', '--auto_size', type=float, metavar=0.1,
+                        help='mesh auto size factor (default: 1.0)',
                         default=None, nargs='?', const=1.0)
+    parser.add_argument('-S', '--size', type=float, metavar=10.0,
+                        help='points mesh size',
+                        default=None)
+    parser.add_argument('-z', '--boundary_auto_size', type=float, metavar=0.1,
+                        help='boundary mesh auto size factor (default: 1.0)',
+                        default=None, nargs='?', const=1.0)
+    parser.add_argument('-Z', '--boundary_size', type=float, metavar=10.0,
+                        help='boundary points mesh size',
+                        default=None)
     args = parser.parse_args()
     print(args)
     root, extension = os.path.splitext(args.input)
@@ -93,7 +107,10 @@ if __name__ == '__main__':
     is_recombine = args.recombine
     is_boolean = args.boolean
     is_all_boundaries = args.all_boundaries
+    auto_size = args.auto_size
     size = args.size
+    boundary_size = args.boundary_size
+    boundary_auto_size = args.boundary_auto_size
     if args.physical_surfaces is None:
         is_physical_surfaces = False
     else:
@@ -111,9 +128,8 @@ if __name__ == '__main__':
     else:
         gmsh.option.setNumber("General.Terminal", 0)
     gmsh.option.setNumber('Geometry.AutoCoherence', 0)  # No effect at occ
-    # 1: Delaunay, 4: Frontal, 5: Frontal Delaunay, 6: Frontal Hex, 7: MMG3D,
-    # 9: R-tree, 10: HXT
-    gmsh.option.setNumber('Mesh.Algorithm3D', 1)
+    gmsh.option.setNumber('Mesh.Algorithm3D', 1)  # 1: Delaunay, 4: Frontal,
+    # 5: Frontal Delaunay, 6: Frontal Hex, 7: MMG3D, 9: R-tree, 10: HXT
     gmsh.model.add(model_name)
     # Input
     print('Input')
@@ -140,15 +156,24 @@ if __name__ == '__main__':
         ss = set()
         cs = set()
         if is_recombine:
-            print('Correct and Transfinite')
+            print('Correct and Transfinite and Recombine')
             correct_and_transfinite_and_recombine_complex(c, ss, cs)
         else:
-            print('Correct and Transfinite and Recombine')
+            print('Correct and Transfinite')
             correct_and_transfinite_complex(c, ss, cs)
+        if auto_size is not None:
+            print('Auto Size')
+            pss = dict()
+            auto_complex_points_sizes_min_curve_in_volume(c, pss, auto_size)
         if size is not None:
             print('Set Size')
-            pss = dict()
-            auto_complex_points_sizes_min_curve_in_volume(c, pss, size)
+            set_points_sizes(size)
+        if boundary_auto_size is not None:
+            print('Boundary Auto Size')
+            auto_boundary_points_sizes_min_edge_in_surface(boundary_auto_size)
+        if boundary_size is not None:
+            print('Set Boundary Size')
+            set_boundary_points_sizes(boundary_size)
         print('Physical')
         print("Volumes")
         for name in c.map_physical_name_to_primitives_indices.keys():

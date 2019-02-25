@@ -4,6 +4,7 @@ from pprint import pprint
 
 import gmsh
 
+
 # FIXME Bug with this approach:
 # File "/share/home/butovr/gmsh_scripts/support.py", line 14,
 # in get_volume_points_edges_data
@@ -397,6 +398,86 @@ def auto_points_sizes(c=1.0):
     return points_sizes
 
 
+def auto_boundary_points_sizes(c=1.0):
+    volumes_dim_tags = gmsh.model.getEntities(3)
+    # Get boundary surfaces
+    surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags)
+    # Get boundary surfaces edges
+    edges_dim_tags = gmsh.model.getBoundary(surfaces_dim_tags, combined=False,
+                                            oriented=False)
+    # Points' edges and edges
+    points_edges = dict()
+    edges = dict()
+    for dim_tag in edges_dim_tags:
+        dim, tag = dim_tag
+        points_dim_tags = gmsh.model.getBoundary([dim_tag])
+        edges[tag] = tuple(x[1] for x in points_dim_tags)
+        for p in edges[tag]:
+            points_edges.setdefault(p, set()).add(tag)
+    # Calculate edges lengths
+    edges_lengths = dict()
+    for edge, points in edges.items():
+        bb0 = gmsh.model.getBoundingBox(0, points[0])
+        bb1 = gmsh.model.getBoundingBox(0, points[1])
+        cs0 = [bb0[0], bb0[1], bb0[2]]
+        cs1 = [bb1[0], bb1[1], bb1[2]]
+        vector = [cs1[0] - cs0[0], cs1[1] - cs0[1], cs1[2] - cs0[2]]
+        length = math.sqrt(
+            vector[0] * vector[0] + vector[1] * vector[1] + vector[2] *
+            vector[2])
+        edges_lengths[edge] = length
+    points_sizes = dict()
+    for point, edges in points_edges.items():
+        lengths = [edges_lengths[x] for x in edges]
+        points_sizes[point] = min(lengths) * c
+    print(points_sizes)
+    for point, size in points_sizes.items():
+        gmsh.model.mesh.setSize([(0, point)], size)
+
+
+def auto_boundary_points_sizes_min_edge_in_surface(c=1.0):
+    points_sizes = dict()
+    volumes_dim_tags = gmsh.model.getEntities(3)
+    # Get boundary surfaces
+    surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags)
+    for surface_dim_tag in surfaces_dim_tags:
+        # Get boundary surface edges
+        edges_dim_tags = gmsh.model.getBoundary([surface_dim_tag],
+                                                combined=False,
+                                                oriented=False)
+        # Edges and points' edges
+        edges = dict()
+        points_edges = dict()
+        for dim_tag in edges_dim_tags:
+            dim, tag = dim_tag
+            points_dim_tags = gmsh.model.getBoundary([dim_tag])
+            edges[tag] = tuple(x[1] for x in points_dim_tags)
+            for p in edges[tag]:
+                points_edges.setdefault(p, set()).add(tag)
+        # Calculate edges lengths
+        edges_lengths = dict()
+        for edge, points in edges.items():
+            bb0 = gmsh.model.getBoundingBox(0, points[0])
+            bb1 = gmsh.model.getBoundingBox(0, points[1])
+            cs0 = [bb0[0], bb0[1], bb0[2]]
+            cs1 = [bb1[0], bb1[1], bb1[2]]
+            vector = [cs1[0] - cs0[0], cs1[1] - cs0[1], cs1[2] - cs0[2]]
+            length = math.sqrt(
+                vector[0] * vector[0] + vector[1] * vector[1] + vector[2] *
+                vector[2])
+            edges_lengths[edge] = length
+        for point, edges in points_edges.items():
+            lengths = [edges_lengths[x] for x in edges]
+            new_size = min(lengths) * c
+            old_size = points_sizes.get(point, None)
+            if old_size is not None:
+                points_sizes[point] = min(new_size, old_size)
+            else:
+                points_sizes[point] = new_size
+    for point, size in points_sizes.items():
+        gmsh.model.mesh.setSize([(0, point)], size)
+
+
 def auto_primitive_points_sizes_min_curve(primitive_obj, points_sizes_dict,
                                           c=1.0):
     for v in primitive_obj.volumes:
@@ -445,6 +526,17 @@ def auto_complex_points_sizes_min_curve_in_volume(complex_obj,
                                                   points_sizes_dict, k=1.0):
     for p in complex_obj.primitives:
         auto_primitive_points_sizes_min_curve_in_volume(p, points_sizes_dict, k)
+
+
+def set_boundary_points_sizes(size):
+    volumes_dim_tags = gmsh.model.getEntities(3)
+    points_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, recursive=True)
+    gmsh.model.mesh.setSize(points_dim_tags, size)
+
+
+def set_points_sizes(size):
+    points_dim_tags = gmsh.model.getEntities(0)
+    gmsh.model.mesh.setSize(points_dim_tags, size)
 
 
 def get_bounding_box_by_boundary_surfaces(boundary_surfaces):

@@ -5,7 +5,7 @@ factory = model.geo
 gmsh.initialize()
 gmsh.option.setNumber("General.Terminal", 1)
 model.add("hex_pyramid_tet_cylinder")
-lc = 1
+lc = 3
 r = 150
 a = r / 3
 # Points
@@ -45,8 +45,8 @@ factory.addPlaneSurface([5], 5)
 # Center surface -> quad mesh
 factory.mesh.setRecombine(2, 1)
 # Extrude
-h = 3
-n = 3
+h = 30
+n = 10
 out_dim_tags_1 = factory.extrude([(2, 1)], 0, 0, h,
                                  numElements=[n], heights=[1], recombine=True)
 out_dim_tags_2 = factory.extrude([(2, 2)], 0, 0, h,

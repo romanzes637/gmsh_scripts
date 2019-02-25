@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Polygon",
+    "description": "Polygons from micromine"
+  },
+  "arguments": {
+    "factory": "occ",
+    "inputs": [
+      "data/Test_iil.txt"
+    ],
+    "reader": "micromine",
+    "reader_kwargs": {},
+    "physical_names": [
+      "Test_iil_volume"
+    ],
+    "coordinates_transform": [-25549, -32339, 503, 1],
+    "mesh_size_coefficients": [
+      10000
+    ]
+  }
+}

@@ -5,7 +5,7 @@ factory = model.geo
 gmsh.initialize()
 gmsh.option.setNumber("General.Terminal", 1)
 model.add("prism_cylinder")
-lc = 1
+lc = 3
 r = 150
 factory.addPoint(0, 0, 0, lc, 1)
 factory.addPoint(r, 0, 0, lc, 2)
@@ -18,8 +18,8 @@ factory.addCircleArc(4, 1, 5, 3)
 factory.addCircleArc(5, 1, 2, 4)
 factory.addCurveLoop([1, 2, 3, 4], 1)
 factory.addPlaneSurface([1], 1)
-h = 3
-n = 3
+h = 30
+n = 10
 out_dim_tags = factory.extrude([(2, 1)], 0, 0, h, [n], [1], recombine=True)
 model.addPhysicalGroup(dim=2, tags=[1], tag=1)
 model.setPhysicalName(2, 1, "Bottom")

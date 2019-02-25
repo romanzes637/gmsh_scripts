@@ -20,7 +20,7 @@ class Experiment(Complex):
             input_data = json.load(f)
         e = ComplexFactory.new(input_data)
         # Tunnel
-        result = check_file(inputs[3])
+        result = check_file(inputs[-1])
         with open(result['path']) as f:
             input_data = json.load(f)
         t = ComplexFactory.new(input_data)
@@ -32,14 +32,15 @@ class Experiment(Complex):
         t.evaluate_coordinates()
         t.evaluate_bounding_box()
         print('Boolean')
+        # Environment by Tunnel
         complex_by_complex(
             factory_object, e, t,
             sort_function=sort_object_no_shared_no_tool_no_shared)
         primitives = list()
         primitives.extend(e.primitives)
         # Boreholes
-        for i in range(1, 3):
-            result = check_file(inputs[i])
+        for i in inputs[1:-1]:
+            result = check_file(i)
             with open(result['path']) as f:
                 input_data = json.load(f)
             c = ComplexFactory.new(input_data)
