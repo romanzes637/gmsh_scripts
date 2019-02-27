@@ -1,0 +1,29 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Pool",
+    "description": "Test Pool"
+  },
+  "arguments": {
+    "factory": "geo",
+    "indices": [
+      [0, 0, 0],
+      [1, 0, 0],
+      [0, 1, 0],
+      [1, 1, 0]
+    ],
+    "transform_data": [0, 0, 0],
+    "complex_origins": [
+      [0, 0, 0],
+      [2, 0, 0],
+      [1, 2, 0],
+      [3, 2, 0]
+    ],
+    "complex_inputs_paths": [
+      "input/input_pool_cell.json",
+      "input/input_pool_cell.json",
+      "input/input_pool_cell.json",
+      "input/input_pool_cell.json"
+    ]
+  }
+}

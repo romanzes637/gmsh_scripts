@@ -2,8 +2,10 @@ from cylinder import Cylinder
 
 
 class DividedCylinder(Cylinder):
-    def __init__(self, factory, radii, heights, layers_lcs, transform_data, layers_physical_names,
-                 transfinite_r_data, transfinite_h_data, transfinite_phi_data, divide_r_data, divide_h_data):
+    def __init__(self, factory, radii, heights, layers_lcs, transform_data,
+                 layers_physical_names, transfinite_r_data, transfinite_h_data,
+                 transfinite_phi_data, divide_r_data, divide_h_data,
+                 straight_boundary=None):
         """
         Divided multilayer cylinder for boolean operations
         :param str factory: see Cylinder
@@ -15,8 +17,11 @@ class DividedCylinder(Cylinder):
         :param list of list of float transfinite_r_data: see Cylinder
         :param list of list of float transfinite_h_data: see Cylinder
         :param list of float transfinite_phi_data: see Cylinder
-        :param list of int divide_r_data: [number of r1 parts, number of r2 parts, ..., number of rN parts]
-        :param list of int divide_h_data: [number of h1 parts, number of h2 parts, ..., number of hM parts]
+        :param list of int divide_r_data: [number of r1 parts,
+        number of r2 parts, ..., number of rN parts]
+        :param list of int divide_h_data: [number of h1 parts,
+        number of h2 parts, ..., number of hM parts]
+        :param list of int straight_boundary: See Cylinder
         :return None
         """
         new_radii = list()
@@ -85,6 +90,8 @@ class DividedCylinder(Cylinder):
         # print(new_primitives_lcs)
         # print(new_transfinite_r_data)
         # print(new_transfinite_h_data)
-        Cylinder.__init__(self, factory, new_radii, new_heights, new_primitives_lcs, transform_data,
-                          new_layers_physical_names, new_transfinite_r_data, new_transfinite_h_data,
-                          transfinite_phi_data)
+        Cylinder.__init__(self, factory, new_radii, new_heights,
+                          new_primitives_lcs, transform_data,
+                          new_layers_physical_names, new_transfinite_r_data,
+                          new_transfinite_h_data, transfinite_phi_data,
+                          straight_boundary)

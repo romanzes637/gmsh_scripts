@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "type": "script_arguments",
+    "class_name": "ComplexFactory",
+    "description": "ComplexFactory script input file example"
+  },
+  "arguments": {
+    "input_path": "input/input_experiment_micromine.json",
+    "output_path": null,
+    "verbose": true,
+    "test": false,
+    "recombine": true,
+    "boolean": true,
+    "boundary_type": "input/input_physical_surfaces_experiment_micromine.json",
+    "auto_size": null,
+    "size": null,
+    "boundary_auto_size": null,
+    "boundary_size": null,
+    "mesh_algorithm": 1
+  }
+}
