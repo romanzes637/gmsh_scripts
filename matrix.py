@@ -209,56 +209,43 @@ def type_2(factory_object, primitives, kwargs):
     ))
 
 
-# def type_3(factory_object, primitives, kwargs):
-#     from complex_factory import ComplexFactory
-#     # Args
-#     x0 = kwargs['x0']
-#     x1 = kwargs['x1']
-#     y0 = kwargs['y0']
-#     yc = kwargs['yc']
-#     y1 = kwargs['y1']
-#     z0 = kwargs['z0']
-#     zc = kwargs['zc']
-#     z1 = kwargs['z1']
-#     lc = kwargs['lc']
-#     tx = kwargs['tx']
-#     ty = kwargs['ty']
-#     tz = kwargs['tz']
-#     pn = kwargs['pn']
-#     inputs = kwargs['inputs']
-#     factory = kwargs['factory']
-#     print(i)
-#     print(index)
-#     complex_origin = complex_origins[i]
-#     x = transform_data[0] + complex_origin[0]
-#     y = transform_data[1] + complex_origin[1]
-#     z = transform_data[2] + complex_origin[2]
-#     path = complex_inputs_paths[i]
-#     result = check_file(path)
-#     with open(result['path']) as f:
-#         input_data = json.load(f)
-#     complex_type = input_data['metadata']['class_name']
-#     input_data['arguments']['factory'] = factory
-#     if complex_type in [Cylinder.__name__,
-#                         DividedCylinder.__name__,
-#                         ComplexPrimitive.__name__,
-#                         Matrix.__name__
-#                         ]:
-#         complex_transform_data = input_data['arguments'][
-#             'transform_data']
-#         if complex_transform_data is not None:
-#             complex_transform_data[0] = x
-#             complex_transform_data[1] = y
-#             complex_transform_data[2] = z
-#         else:
-#             complex_transform_data = [x, y, z]
-#         input_data['arguments'][
-#             'transform_data'] = complex_transform_data
-#     c = ComplexFactory.new(input_data)
+def type_3(factory_object, primitives, kwargs):
+    from complex_factory import ComplexFactory
+    # Args
+    x0 = kwargs['x0']
+    x1 = kwargs['x1']
+    xc = kwargs['xc']
+    y0 = kwargs['y0']
+    yc = kwargs['yc']
+    y1 = kwargs['y1']
+    z0 = kwargs['z0']
+    zc = kwargs['zc']
+    z1 = kwargs['z1']
+    lc = kwargs['lc']
+    tx = kwargs['tx']
+    ty = kwargs['ty']
+    tz = kwargs['tz']
+    pn = kwargs['pn']
+    # Do
+    inputs = kwargs['inputs']
+    factory = kwargs['factory']
+    input_path = inputs[0]
+    result = check_file(input_path)
+    with open(result['path']) as f:
+        input_data = json.load(f)
+    input_data['arguments']['factory'] = factory
+    new_transform = input_data['arguments']['transform_data']
+    new_transform[0] = xc
+    new_transform[1] = yc
+    new_transform[2] = z0
+    input_data['arguments']['transform_data'] = new_transform
+    c = ComplexFactory.new(input_data)
+    primitives.extend(c.primitives)
 
 
 type_factory = {
     0: type_0,
     1: type_1,
-    2: type_2
+    2: type_2,
+    3: type_3
 }

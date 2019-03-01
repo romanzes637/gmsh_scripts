@@ -1,0 +1,43 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "DividedCylinder",
+    "description": "Mayak cell core"
+  },
+  "arguments": {
+    "factory": "geo",
+    "radii": [0.315, 0.340, 0.62225396744416182147274303],
+    "heights": [0.025, 10.2, 0.025, 0.100, 0.010],
+    "layers_lcs": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "layers_physical_names": [
+      ["EBS", "EBS", "Air"],
+      ["RW", "EBS", "Air"],
+      ["EBS", "EBS","Air"],
+      ["Air", "Air", "Air"],
+      ["Steel", "Steel", "Steel"]
+    ],
+    "transfinite_h_data": [
+      [5, 0, 1],
+      [201, 0, 1],
+      [5, 0, 1],
+      [5, 0, 1],
+      [5, 0, 1]
+    ],
+    "transfinite_phi_data": [18, 0, 1],
+    "transfinite_r_data": [
+      [7, 0, 1],
+      [5, 0, 1],
+      [7, 0, 1]
+    ], 
+    "transform_data": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "divide_h_data": [1, 1, 1, 1, 1],
+    "divide_r_data": [1, 1, 1],
+    "straight_boundary": [1, 3, 2]
+  }
+}

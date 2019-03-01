@@ -12,10 +12,10 @@
     "recombine": true,
     "boolean": true,
     "boundary_type": "input/input_physical_surfaces_experiment_micromine.json",
-    "auto_size": null,
+    "auto_size": 100000,
     "size": null,
     "boundary_auto_size": null,
-    "boundary_size": null,
+    "boundary_size": 10,
     "mesh_algorithm": 1
   }
 }
