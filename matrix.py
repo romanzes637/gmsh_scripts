@@ -11,7 +11,7 @@ from support import check_file
 class Matrix(Complex):
     def __init__(self, factory, xs, ys, zs, lcs, type_map,
                  physical_map, physical_names, txs, tys, tzs, inputs,
-                 transform_data=None):
+                 transform_data=None, surfaces_map=None, surfaces_names=None):
         """
             NZ
           LAYER1
@@ -65,10 +65,18 @@ class Matrix(Complex):
                 for y in range(ny):
                     for x in range(nx):
                         physical_map.append(0)
+        if surfaces_map is None:
+            surfaces_map = list()
+            for z in range(nz):
+                for y in range(ny):
+                    for x in range(nx):
+                        surfaces_map.append(0)
         if physical_names is None:
             physical_names = ['Matrix']
         if transform_data is None:
             transform_data = [0, 0, 0]
+        if surfaces_names is None:
+            surfaces_names = [['NX', 'X', 'NY', 'Y', 'NZ', 'Z']]
         primitives = list()
         for k in range(nz):
             for j in range(ny):
@@ -87,6 +95,7 @@ class Matrix(Complex):
                     lc = lcs[gi]
                     t = type_map[gi]
                     pn = physical_names[physical_map[gi]]
+                    sns = surfaces_names[surfaces_map[gi]]
                     tx = txs[i]
                     ty = tys[j]
                     tz = tzs[k]
@@ -112,6 +121,7 @@ def type_1(factory_object, primitives, kwargs):
     ty = kwargs['ty']
     tz = kwargs['tz']
     pn = kwargs['pn']
+    sns = kwargs['sns']
     factory_str = kwargs['factory']
     primitives.append(Primitive(
         factory_str,
@@ -130,7 +140,8 @@ def type_1(factory_object, primitives, kwargs):
         [[], [], [], [], [], [], [], [], [], [], [], []],
         [tx, ty, tz],
         0,
-        pn
+        physical_name=pn,
+        surfaces_names=sns
     ))
 
 

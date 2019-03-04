@@ -6,7 +6,8 @@ class Complex:
         """
         Object consisting of primitives
         :param str factory: see Primitive Factory
-        :param list of Primitive primitives: [primitive 1, primitive 2, ..., primitive N]
+        :param list of Primitive primitives: [primitive 1, primitive 2, ...,
+         primitive N]
         """
         if factory == 'occ':
             self.factory = gmsh.model.occ
@@ -51,6 +52,14 @@ class Complex:
             for i in primitive_idxs:
                 ss.extend(self.primitives[i].get_surfaces(combined))
         return ss
+
+    def get_map_surface_to_primitives_indices(self):
+        s_to_is = dict()
+        for i, p in enumerate(self.primitives):
+            ss = p.get_surfaces()
+            for s in ss:
+                s_to_is.setdefault(s, list()).append(i)
+        return s_to_is
 
     def evaluate_coordinates(self):
         for p in self.primitives:

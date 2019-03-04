@@ -7,7 +7,7 @@ class ComplexPrimitive(Complex):
     def __init__(self, factory, divide_data, point_data, transform_data=None,
                  curve_types=None, curve_data=None,
                  transfinite_data=None, transfinite_type=None,
-                 physical_name=None):
+                 physical_name=None, inner_volumes=None, surfaces_names=None):
         """
         Primitive object divided into parts for boolean accuracy.
         :param str factory: see Primitive
@@ -19,6 +19,8 @@ class ComplexPrimitive(Complex):
         :param list of list of float transfinite_data: see Primitive
         :param int transfinite_type: see Primitive
         :param str physical_name: see Primitive
+        :param list of int inner_volumes: see Primitive
+        :param list of str surfaces_names: see Primitive
         """
         primitives = list()
         if len(point_data) == 3:
@@ -75,7 +77,7 @@ class ComplexPrimitive(Complex):
             primitives.append(Primitive(
                 factory, new_point_data, transform_data, curve_types,
                 new_curve_data, transfinite_data, transfinite_type,
-                physical_name
+                physical_name, inner_volumes, surfaces_names
             ))
         Complex.__init__(self, factory, primitives)
 

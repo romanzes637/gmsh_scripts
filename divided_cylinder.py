@@ -5,7 +5,8 @@ class DividedCylinder(Cylinder):
     def __init__(self, factory, radii, heights, layers_lcs, transform_data,
                  layers_physical_names, transfinite_r_data, transfinite_h_data,
                  transfinite_phi_data, divide_r_data, divide_h_data,
-                 straight_boundary=None):
+                 straight_boundary=None, layers_surfaces_names=None,
+                 surfaces_names=None):
         """
         Divided multilayer cylinder for boolean operations
         :param str factory: see Cylinder
@@ -22,6 +23,8 @@ class DividedCylinder(Cylinder):
         :param list of int divide_h_data: [number of h1 parts,
         number of h2 parts, ..., number of hM parts]
         :param list of int straight_boundary: See Cylinder
+        :param list of list of int layers_surfaces_names: See Cylinder
+        :param list of str surfaces_names: See Cylinder
         :return None
         """
         new_radii = list()
@@ -94,4 +97,5 @@ class DividedCylinder(Cylinder):
                           new_primitives_lcs, transform_data,
                           new_layers_physical_names, new_transfinite_r_data,
                           new_transfinite_h_data, transfinite_phi_data,
-                          straight_boundary)
+                          straight_boundary, layers_surfaces_names,
+                          surfaces_names)

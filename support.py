@@ -580,7 +580,8 @@ def get_boundary_surfaces():
 
 def boundary_surfaces_to_six_side_groups():
     """
-    Try group boundary surfaces them into 6 groups by sides of cuboid (NX, NY, NZ, X, Y, Z)
+    Try group boundary surfaces them into 6 groups by sides of cuboid:
+    NX, NY, NZ, X, Y, Z
     :return: dict surfaces_groups
     """
     boundary_surfaces = get_boundary_surfaces()
@@ -923,7 +924,8 @@ def check_file(path):
     0. If file at absolute path
     1. Else if file at relative to current working directory path
     2. Else if file at relative to running script directory path
-    3. Else if file at relative to real running script directory path (with eliminating all symbolics links)
+    3. Else if file at relative to real running script directory path
+    (with eliminating all symbolics links)
     -1. Else no file
     :param str path:
     :return dict: {'type': int, 'path': str}

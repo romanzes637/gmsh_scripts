@@ -9,7 +9,7 @@ class Primitive:
     def __init__(self, factory, point_data=None, transform_data=None,
                  curve_types=None, curve_data=None,
                  transfinite_data=None, transfinite_type=None,
-                 physical_name=None, inner_volumes=None):
+                 physical_name=None, inner_volumes=None, surfaces_names=None):
         """
         Base object with six quadrangular surfaces and eight points
         The object (e.g. number of its volumes/surfaces)
@@ -70,8 +70,11 @@ class Primitive:
         :param int transfinite_type: 0, 1, 2 or 4 determines orientation
         of surfaces' tetrahedra at structured volume
         :param str physical_name: primitive's volumes physical name
-        :param list inner_volumes: inner volumes, no effect at 'occ' factory or
-        if point_data is None wrap these volumes as Primitive.volumes
+        :param list of int inner_volumes: inner volumes,
+        no effect at 'occ' factory, if point_data is None wrap these volumes
+        as Primitive.volumes
+        :param list of str surfaces_names: names of boundary surfaces in order:
+        NX, X, NY, Y, NZ, Z.
         """
         if factory == 'occ':
             self.factory = gmsh.model.occ
@@ -95,6 +98,10 @@ class Primitive:
             self.physical_name = Primitive.__name__
         else:
             self.physical_name = physical_name
+        if surfaces_names is None:
+            self.surfaces_names = ['NX', 'X', 'NY', 'Y', 'NZ', 'Z']
+        else:
+            self.surfaces_names = surfaces_names
         self.points = list()
         self.curves_points = list()
         self.curves = list()
@@ -408,15 +415,6 @@ class Primitive:
                                                    combined=combined)
         surfaces = map(lambda x: x[1], surfaces_dim_tags)
         return surfaces
-
-    surfaces_names = {
-        0: "NX",
-        1: "X",
-        2: "NY",
-        3: "Y",
-        4: "NZ",
-        5: "Z"
-    }
 
     curves_local_points = [
         [1, 0], [5, 4], [6, 7], [2, 3],

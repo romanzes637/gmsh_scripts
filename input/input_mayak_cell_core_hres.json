@@ -22,6 +22,17 @@
       ["Air", "Air", "Air"],
       ["Steel", "Steel", "Steel"]
     ],
+    "surfaces_names": [
+      ["NX", "X", "NY", "Y", "NZ", "Z"],
+      ["NX", "X", "NY", "Y", "AirIn", "Z"]
+    ],
+    "layers_surfaces_names": [
+      [0, 0, 1],
+      [0, 0, 0],
+      [0, 0, 0],
+      [0, 0, 0],
+      [0, 0, 0]
+    ],
     "transfinite_h_data": [
       [5, 0, 1],
       [201, 0, 1],

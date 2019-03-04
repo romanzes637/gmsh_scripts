@@ -6,7 +6,7 @@
   },
   "arguments": {
     "factory": "occ",
-    "divide_data": [1, 2, 2],
+    "divide_data": [2, 2, 2],
     "point_data": [5, 10, 15],
     "transform_data": [0, 0, 0, 0, 0, 0, 0, 0, 0],
     "curve_types": null,
@@ -17,6 +17,8 @@
       [10, 0, 1.5]
     ],
     "transfinite_type": null,
-    "physical_name": "ComplexPrimitive"
+    "physical_name": "TestComplexPrimitive",
+    "surfaces_names": ["NX_Left", "X_Right", "NY_Back", "Y_Forward", "NZ_Bottom",
+    "Z_Top"]
   }
 }

@@ -6,7 +6,8 @@ from primitive import Primitive
 class Cylinder(Complex):
     def __init__(self, factory, radii, heights, layers_lcs, transform_data,
                  layers_physical_names, transfinite_r_data, transfinite_h_data,
-                 transfinite_phi_data, straight_boundary=None):
+                 transfinite_phi_data, straight_boundary=None,
+                 layers_surfaces_names=None, surfaces_names=None):
         """
         Multilayer cylinder
         Used for axisymmetric objects
@@ -44,12 +45,18 @@ class Cylinder(Complex):
         1 - |)
         2 - )|
         3 - ))
+        :param list of list of int layers_surfaces_names:
+        :param list of list of str surfaces_names:
         :return None
         """
         primitives = []
         k = 1 / 3.0  # inner quadrangle part of the first layer radius
         transfinite_types = [0, 0, 0, 1, 3]
         h_cnt = 0.0  # height counter
+        if surfaces_names is None:
+            surfaces_names = [['NX', 'X', 'NY', 'Y', 'NZ', 'Z']]
+        if layers_surfaces_names is None:
+            layers_surfaces_names = [[0 for _ in radii] for _ in heights]
         for i, h in enumerate(heights):
             c = radii[0] / math.sqrt(2.0)
             kc = k * radii[0] / math.sqrt(2.0)
@@ -79,7 +86,8 @@ class Cylinder(Complex):
                         transfinite_h_data[i]
                     ],
                     transfinite_types[0],
-                    layers_physical_names[i][0]
+                    layers_physical_names[i][0],
+                    surfaces_names=surfaces_names[layers_surfaces_names[i][0]]
                 ))
                 # Core X
                 primitives.append(Primitive(
@@ -107,7 +115,8 @@ class Cylinder(Complex):
                         transfinite_h_data[i]
                     ],
                     transfinite_types[1],
-                    layers_physical_names[i][0]
+                    layers_physical_names[i][0],
+                    surfaces_names=surfaces_names[layers_surfaces_names[i][0]]
                 ))
                 # Core Y
                 primitives.append(Primitive(
@@ -135,7 +144,8 @@ class Cylinder(Complex):
                         transfinite_h_data[i],
                     ],
                     transfinite_types[2],
-                    layers_physical_names[i][0]
+                    layers_physical_names[i][0],
+                    surfaces_names=surfaces_names[layers_surfaces_names[i][0]]
                 ))
                 # Core NX
                 if transfinite_r_data[0][1] == 0:  # If type is Progression then reverse coefficient
@@ -167,7 +177,8 @@ class Cylinder(Complex):
                         transfinite_h_data[i]
                     ],
                     transfinite_types[3],
-                    layers_physical_names[i][0]
+                    layers_physical_names[i][0],
+                    surfaces_names=surfaces_names[layers_surfaces_names[i][0]]
                 ))
                 # Core NY
                 if transfinite_r_data[0][1] == 0:  # If type is Progression then reverse coefficient
@@ -199,7 +210,8 @@ class Cylinder(Complex):
                         transfinite_h_data[i],
                     ],
                     transfinite_types[4],
-                    layers_physical_names[i][0]
+                    layers_physical_names[i][0],
+                    surfaces_names=surfaces_names[layers_surfaces_names[i][0]]
                 ))
                 # Layers
                 for j in range(1, len(radii)):
@@ -234,7 +246,9 @@ class Cylinder(Complex):
                             transfinite_h_data[i]
                         ],
                         transfinite_types[1],
-                        layers_physical_names[i][j]
+                        layers_physical_names[i][j],
+                        surfaces_names=surfaces_names[
+                            layers_surfaces_names[i][j]]
                     ))
                     # Layer Y
                     primitives.append(Primitive(
@@ -265,7 +279,9 @@ class Cylinder(Complex):
                             transfinite_h_data[i]
                         ],
                         transfinite_types[2],
-                        layers_physical_names[i][j]
+                        layers_physical_names[i][j],
+                        surfaces_names=surfaces_names[
+                            layers_surfaces_names[i][j]]
                     ))
                     # Layer NX
                     if transfinite_r_data[j][1] == 0:  # If type is Progression then reverse coefficient
@@ -300,7 +316,9 @@ class Cylinder(Complex):
                             transfinite_h_data[i]
                         ],
                         transfinite_types[3],
-                        layers_physical_names[i][j]
+                        layers_physical_names[i][j],
+                        surfaces_names=surfaces_names[
+                            layers_surfaces_names[i][j]]
                     ))
                     # Layer NY
                     if transfinite_r_data[j][1] == 0:  # If type is Progression then reverse coefficient
@@ -335,7 +353,9 @@ class Cylinder(Complex):
                             transfinite_h_data[i]
                         ],
                         transfinite_types[4],
-                        layers_physical_names[i][j]
+                        layers_physical_names[i][j],
+                        surfaces_names=surfaces_names[
+                            layers_surfaces_names[i][j]]
                     ))
             else:
                 if straight_boundary[0] == 0:
@@ -401,7 +421,8 @@ class Cylinder(Complex):
                         transfinite_h_data[i]
                     ],
                     transfinite_types[0],
-                    layers_physical_names[i][0]
+                    layers_physical_names[i][0],
+                    surfaces_names=surfaces_names[layers_surfaces_names[i][0]]
                 ))
                 # Core X
                 primitives.append(Primitive(
@@ -432,7 +453,9 @@ class Cylinder(Complex):
                         transfinite_h_data[i]
                     ],
                     transfinite_types[1],
-                    layers_physical_names[i][0]
+                    layers_physical_names[i][0],
+                    surfaces_names=surfaces_names[
+                        layers_surfaces_names[i][0]]
                 ))
                 # Core Y
                 primitives.append(Primitive(
@@ -463,7 +486,8 @@ class Cylinder(Complex):
                         transfinite_h_data[i],
                     ],
                     transfinite_types[2],
-                    layers_physical_names[i][0]
+                    layers_physical_names[i][0],
+                    surfaces_names=surfaces_names[layers_surfaces_names[i][0]]
                 ))
                 # Core NX
                 if transfinite_r_data[0][
@@ -500,7 +524,8 @@ class Cylinder(Complex):
                         transfinite_h_data[i]
                     ],
                     transfinite_types[3],
-                    layers_physical_names[i][0]
+                    layers_physical_names[i][0],
+                    surfaces_names=surfaces_names[layers_surfaces_names[i][0]]
                 ))
                 # Core NY
                 if transfinite_r_data[0][
@@ -537,7 +562,8 @@ class Cylinder(Complex):
                         transfinite_h_data[i],
                     ],
                     transfinite_types[4],
-                    layers_physical_names[i][0]
+                    layers_physical_names[i][0],
+                    surfaces_names=surfaces_names[layers_surfaces_names[i][0]]
                 ))
                 # Layers
                 for j in range(1, len(radii)):
@@ -600,7 +626,8 @@ class Cylinder(Complex):
                             transfinite_h_data[i]
                         ],
                         transfinite_types[1],
-                        layers_physical_names[i][j]
+                        layers_physical_names[i][j],
+                        surfaces_names=surfaces_names[layers_surfaces_names[i][j]]
                     ))
                     # Layer Y
                     primitives.append(Primitive(
@@ -631,7 +658,9 @@ class Cylinder(Complex):
                             transfinite_h_data[i]
                         ],
                         transfinite_types[2],
-                        layers_physical_names[i][j]
+                        layers_physical_names[i][j],
+                        surfaces_names=surfaces_names[
+                            layers_surfaces_names[i][j]]
                     ))
                     # Layer NX
                     if transfinite_r_data[j][1] == 0:  # If type is Progression then reverse coefficient
@@ -667,7 +696,9 @@ class Cylinder(Complex):
                             transfinite_h_data[i]
                         ],
                         transfinite_types[3],
-                        layers_physical_names[i][j]
+                        layers_physical_names[i][j],
+                        surfaces_names=surfaces_names[
+                            layers_surfaces_names[i][j]]
                     ))
                     # Layer NY
                     if transfinite_r_data[j][1] == 0:  # If type is Progression then reverse coefficient
@@ -703,6 +734,8 @@ class Cylinder(Complex):
                             transfinite_h_data[i]
                         ],
                         transfinite_types[4],
-                        layers_physical_names[i][j]
+                        layers_physical_names[i][j],
+                        surfaces_names=surfaces_names[
+                            layers_surfaces_names[i][j]]
                     ))
         Complex.__init__(self, factory, primitives)
