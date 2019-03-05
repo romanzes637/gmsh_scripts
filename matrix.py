@@ -9,98 +9,129 @@ from support import check_file
 
 
 class Matrix(Complex):
-    def __init__(self, factory, xs, ys, zs, lcs, type_map,
-                 physical_map, physical_names, txs, tys, tzs, inputs,
-                 transform_data=None, surfaces_map=None, surfaces_names=None):
+    def __init__(self, factory, xs, ys, zs, lcs=None, coordinates_type=None,
+                 transform_data=None, txs=None, tys=None, tzs=None,
+                 type_map=None, inputs=None,
+                 volumes_map=None, volumes_names=None,
+                 surfaces_map=None, surfaces_names=None,
+                 ):
         """
-            NZ
-          LAYER1
-            NY
-        NX      X
-            Y
-          LAYER2
-            NY
-        NX      X
-            Y
-          LAYER3
-            NY
-        NX      X
-            Y
-            Z
+        Z0:
+        Y0: X0 X1 .. XN
+        Y1: X0 X1 .. XN
+        YM: X0 X1 .. XN
+        Z2:
+        Y0: X0 X1 .. XN
+        Y1: X0 X1 .. XN
+        YM: X0 X1 .. XN
+        ZP:
+        Y0: X0 X1 .. XN
+        Y1: X0 X1 .. XN
+        YM: X0 X1 .. XN
         :param factory:
         :param xs:
         :param ys:
         :param zs:
         :param lcs:
-        :param type_map:
-        :param physical_map:
-        :param physical_names:
+        :param str coordinates_type: direct or delta
+        :param transform_data:
         :param txs:
         :param tys:
         :param tzs:
+        :param type_map:
         :param inputs:
+        :param volumes_map:
+        :param volumes_names:
+        :param surfaces_map:
+        :param surfaces_names:
         """
         if factory == 'occ':
             factory_object = gmsh.model.occ
         else:
             factory_object = gmsh.model.geo
-        nx = len(xs) - 1
-        ny = len(ys) - 1
-        nz = len(zs) - 1
+        if coordinates_type is None or coordinates_type == 'direct':
+            nx = len(xs) - 1
+            ny = len(ys) - 1
+            nz = len(zs) - 1
+        elif coordinates_type == 'delta':
+            nx = len(xs)
+            ny = len(ys)
+            nz = len(zs)
+        else:
+            raise ValueError('coordinates_type: {}'.format(coordinates_type))
         n = nx * ny * nz
-        if lcs is None:
-            lcs = list()
-            for z in range(nz):
-                for y in range(ny):
-                    for x in range(nx):
-                        lcs.append(1)
-        if type_map is None:
-            for z in range(nz):
-                for y in range(ny):
-                    for x in range(nx):
-                        type_map.append(1)
-        if physical_map is None:
-            physical_map = list()
-            for z in range(nz):
-                for y in range(ny):
-                    for x in range(nx):
-                        physical_map.append(0)
-        if surfaces_map is None:
-            surfaces_map = list()
-            for z in range(nz):
-                for y in range(ny):
-                    for x in range(nx):
-                        surfaces_map.append(0)
-        if physical_names is None:
-            physical_names = ['Matrix']
         if transform_data is None:
             transform_data = [0, 0, 0]
+        if txs is None:
+            txs = [[3, 0, 1] for _ in range(nx)]
+        if tys is None:
+            tys = [[3, 0, 1] for _ in range(ny)]
+        if tzs is None:
+            tzs = [[3, 0, 1] for _ in range(nz)]
+        if lcs is None:
+            lcs = [1 for _ in range(n)]
+        if type_map is None:
+            type_map = [1 for _ in range(n)]
+        if volumes_names is None:
+            volumes_names = ['Matrix']
         if surfaces_names is None:
             surfaces_names = [['NX', 'X', 'NY', 'Y', 'NZ', 'Z']]
+        if volumes_map is None:
+            volumes_map = [0 for _ in range(n)]
+        if surfaces_map is None:
+            surfaces_map = [0 for _ in range(n)]
         primitives = list()
-        for k in range(nz):
-            for j in range(ny):
-                for i in range(nx):
-                    gi = i + nx * j + ny * nx * k
-                    # print('{}/{}'.format(gi + 1, n))
-                    x0 = xs[i] + transform_data[0]
-                    x1 = xs[i + 1] + transform_data[0]
-                    xc = 0.5 * (x0 + x1)
-                    y0 = ys[j] + transform_data[1]
-                    y1 = ys[j + 1] + transform_data[1]
-                    yc = 0.5 * (y0 + y1)
-                    z0 = zs[k] + transform_data[2]
-                    z1 = zs[k + 1] + transform_data[2]
-                    zc = 0.5 * (z0 + z1)
-                    lc = lcs[gi]
-                    t = type_map[gi]
-                    pn = physical_names[physical_map[gi]]
-                    sns = surfaces_names[surfaces_map[gi]]
-                    tx = txs[i]
-                    ty = tys[j]
-                    tz = tzs[k]
-                    kwargs = locals()
-                    type_factory[t](factory_object, primitives, kwargs)
+        if coordinates_type is None or coordinates_type == 'direct':
+            for k in range(nz):
+                for j in range(ny):
+                    for i in range(nx):
+                        gi = i + nx * j + ny * nx * k
+                        # print('{}/{}'.format(gi + 1, n))
+                        x0 = xs[i] + transform_data[0]
+                        x1 = xs[i + 1] + transform_data[0]
+                        xc = 0.5 * (x0 + x1)
+                        y0 = ys[j] + transform_data[1]
+                        y1 = ys[j + 1] + transform_data[1]
+                        yc = 0.5 * (y0 + y1)
+                        z0 = zs[k] + transform_data[2]
+                        z1 = zs[k + 1] + transform_data[2]
+                        zc = 0.5 * (z0 + z1)
+                        lc = lcs[gi]
+                        t = type_map[gi]
+                        pn = volumes_names[volumes_map[gi]]
+                        sns = surfaces_names[surfaces_map[gi]]
+                        tx = txs[i]
+                        ty = tys[j]
+                        tz = tzs[k]
+                        kwargs = locals()
+                        type_factory[t](factory_object, primitives, kwargs)
+        elif coordinates_type == 'delta':
+            primitives = list()
+            for k in range(nz):
+                for j in range(ny):
+                    for i in range(nx):
+                        gi = i + nx * j + ny * nx * k
+                        # print('{}/{}'.format(gi + 1, n))
+                        x0 = sum(xs[:i]) + transform_data[0]
+                        x1 = sum(xs[:i + 1]) + transform_data[0]
+                        xc = 0.5 * (x0 + x1)
+                        y0 = sum(ys[:j]) + transform_data[1]
+                        y1 = sum(ys[:j + 1]) + transform_data[1]
+                        yc = 0.5 * (y0 + y1)
+                        z0 = sum(zs[:k]) + transform_data[2]
+                        z1 = sum(zs[:k + 1]) + transform_data[2]
+                        zc = 0.5 * (z0 + z1)
+                        lc = lcs[gi]
+                        t = type_map[gi]
+                        pn = volumes_names[volumes_map[gi]]
+                        sns = surfaces_names[surfaces_map[gi]]
+                        tx = txs[i]
+                        ty = tys[j]
+                        tz = tzs[k]
+                        kwargs = locals()
+                        type_factory[t](factory_object, primitives, kwargs)
+        else:
+            raise ValueError('coordinates_type: {}'.format(coordinates_type))
         Complex.__init__(self, factory, primitives)
 
 
@@ -245,10 +276,11 @@ def type_3(factory_object, primitives, kwargs):
     with open(result['path']) as f:
         input_data = json.load(f)
     input_data['arguments']['factory'] = factory
-    new_transform = input_data['arguments']['transform_data']
-    new_transform[0] = xc
-    new_transform[1] = yc
-    new_transform[2] = z0
+    old_transform = input_data['arguments'].get('transform_data', [0, 0, 0])
+    new_transform = old_transform
+    new_transform[0] = old_transform[0] + xc
+    new_transform[1] = old_transform[1] + yc
+    new_transform[2] = old_transform[2] + z0
     input_data['arguments']['transform_data'] = new_transform
     c = ComplexFactory.new(input_data)
     primitives.extend(c.primitives)

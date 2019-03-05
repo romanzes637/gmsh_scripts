@@ -2,12 +2,12 @@
   "metadata": {
     "type": "script_arguments",
     "class_name": "ComplexFactory",
-    "description": "ComplexFactory script input Mayak cell"
+    "description": "ComplexFactory script input Mayak 6 cells"
   },
   "arguments": {
-    "input_path": "input/input_mayak_cell_hres.json",
-    "output_path": "mayak_cell_hres.msh2",
-    "verbose": true,
+    "input_path": "input/input_mayak_cell_6.json",
+    "output_path": "mayak_cell_6.msh2",
+    "verbose": false,
     "test": false,
     "recombine": true,
     "boolean": false,

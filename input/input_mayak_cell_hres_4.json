@@ -1,0 +1,30 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Matrix",
+    "description": "Mayak 4 cells"
+  },
+  "arguments": {
+    "factory": "geo",
+    "inputs": [
+        "input/input_mayak_cell_hres.json"
+    ],
+    "volumes_names": null,
+    "surfaces_names": null,
+    "transform_data": null,
+    "coordinates_type": "delta",
+    "xs": [1.080, 1.080],
+    "ys": [1.080, 1.080],
+    "zs": [0],
+    "lcs": null,
+    "txs": null,
+    "tys": null,
+    "tzs": null,
+    "type_map": [
+      3, 3,
+      3, 3
+    ],
+    "volumes_map": null,
+    "surfaces_map": null
+  }
+}

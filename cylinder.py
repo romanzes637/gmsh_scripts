@@ -7,7 +7,8 @@ class Cylinder(Complex):
     def __init__(self, factory, radii, heights, layers_lcs, transform_data,
                  layers_physical_names, transfinite_r_data, transfinite_h_data,
                  transfinite_phi_data, straight_boundary=None,
-                 layers_surfaces_names=None, surfaces_names=None):
+                 layers_surfaces_names=None, surfaces_names=None,
+                 volumes_names=None):
         """
         Multilayer cylinder
         Used for axisymmetric objects
@@ -47,16 +48,23 @@ class Cylinder(Complex):
         3 - ))
         :param list of list of int layers_surfaces_names:
         :param list of list of str surfaces_names:
+        :param list of str volumes_names:
         :return None
         """
         primitives = []
         k = 1 / 3.0  # inner quadrangle part of the first layer radius
         transfinite_types = [0, 0, 0, 1, 3]
         h_cnt = 0.0  # height counter
+        if layers_lcs is None:
+            layers_lcs = [[1 for _ in radii] for _ in heights]
         if surfaces_names is None:
             surfaces_names = [['NX', 'X', 'NY', 'Y', 'NZ', 'Z']]
         if layers_surfaces_names is None:
             layers_surfaces_names = [[0 for _ in radii] for _ in heights]
+        if volumes_names is not None:
+            new_layers_physical_names = [[volumes_names[x] for x in y]
+                                         for y in layers_physical_names]
+            layers_physical_names = new_layers_physical_names
         for i, h in enumerate(heights):
             c = radii[0] / math.sqrt(2.0)
             kc = k * radii[0] / math.sqrt(2.0)
@@ -148,7 +156,8 @@ class Cylinder(Complex):
                     surfaces_names=surfaces_names[layers_surfaces_names[i][0]]
                 ))
                 # Core NX
-                if transfinite_r_data[0][1] == 0:  # If type is Progression then reverse coefficient
+                if transfinite_r_data[0][
+                    1] == 0:  # If type is Progression then reverse coefficient
                     rc = 1.0 / transfinite_r_data[0][2]
                 else:
                     rc = transfinite_r_data[0][2]
@@ -172,7 +181,8 @@ class Cylinder(Complex):
                         [], [], [], []
                     ],
                     [
-                        [transfinite_r_data[0][0], transfinite_r_data[0][1], rc],
+                        [transfinite_r_data[0][0], transfinite_r_data[0][1],
+                         rc],
                         transfinite_phi_data,
                         transfinite_h_data[i]
                     ],
@@ -181,7 +191,8 @@ class Cylinder(Complex):
                     surfaces_names=surfaces_names[layers_surfaces_names[i][0]]
                 ))
                 # Core NY
-                if transfinite_r_data[0][1] == 0:  # If type is Progression then reverse coefficient
+                if transfinite_r_data[0][
+                    1] == 0:  # If type is Progression then reverse coefficient
                     rc = 1.0 / transfinite_r_data[0][2]
                 else:
                     rc = transfinite_r_data[0][2]
@@ -206,7 +217,8 @@ class Cylinder(Complex):
                     ],
                     [
                         transfinite_phi_data,
-                        [transfinite_r_data[0][0], transfinite_r_data[0][1], rc],
+                        [transfinite_r_data[0][0], transfinite_r_data[0][1],
+                         rc],
                         transfinite_h_data[i],
                     ],
                     transfinite_types[4],
@@ -284,7 +296,8 @@ class Cylinder(Complex):
                             layers_surfaces_names[i][j]]
                     ))
                     # Layer NX
-                    if transfinite_r_data[j][1] == 0:  # If type is Progression then reverse coefficient
+                    if transfinite_r_data[j][
+                        1] == 0:  # If type is Progression then reverse coefficient
                         rc = 1.0 / transfinite_r_data[j][2]
                     else:
                         rc = transfinite_r_data[j][2]
@@ -311,7 +324,8 @@ class Cylinder(Complex):
                             [], [], [], []
                         ],
                         [
-                            [transfinite_r_data[j][0], transfinite_r_data[j][1], rc],
+                            [transfinite_r_data[j][0], transfinite_r_data[j][1],
+                             rc],
                             transfinite_phi_data,
                             transfinite_h_data[i]
                         ],
@@ -321,7 +335,8 @@ class Cylinder(Complex):
                             layers_surfaces_names[i][j]]
                     ))
                     # Layer NY
-                    if transfinite_r_data[j][1] == 0:  # If type is Progression then reverse coefficient
+                    if transfinite_r_data[j][
+                        1] == 0:  # If type is Progression then reverse coefficient
                         rc = 1.0 / transfinite_r_data[j][2]
                     else:
                         rc = transfinite_r_data[j][2]
@@ -349,7 +364,8 @@ class Cylinder(Complex):
                         ],
                         [
                             transfinite_phi_data,
-                            [transfinite_r_data[j][0], transfinite_r_data[j][1], rc],
+                            [transfinite_r_data[j][0], transfinite_r_data[j][1],
+                             rc],
                             transfinite_h_data[i]
                         ],
                         transfinite_types[4],
@@ -627,7 +643,8 @@ class Cylinder(Complex):
                         ],
                         transfinite_types[1],
                         layers_physical_names[i][j],
-                        surfaces_names=surfaces_names[layers_surfaces_names[i][j]]
+                        surfaces_names=surfaces_names[
+                            layers_surfaces_names[i][j]]
                     ))
                     # Layer Y
                     primitives.append(Primitive(
@@ -663,7 +680,8 @@ class Cylinder(Complex):
                             layers_surfaces_names[i][j]]
                     ))
                     # Layer NX
-                    if transfinite_r_data[j][1] == 0:  # If type is Progression then reverse coefficient
+                    if transfinite_r_data[j][
+                        1] == 0:  # If type is Progression then reverse coefficient
                         rc = 1.0 / transfinite_r_data[j][2]
                     else:
                         rc = transfinite_r_data[j][2]
@@ -701,7 +719,8 @@ class Cylinder(Complex):
                             layers_surfaces_names[i][j]]
                     ))
                     # Layer NY
-                    if transfinite_r_data[j][1] == 0:  # If type is Progression then reverse coefficient
+                    if transfinite_r_data[j][
+                        1] == 0:  # If type is Progression then reverse coefficient
                         rc = 1.0 / transfinite_r_data[j][2]
                     else:
                         rc = transfinite_r_data[j][2]

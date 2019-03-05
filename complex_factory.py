@@ -209,40 +209,37 @@ if __name__ == '__main__':
         if args['boundary_size'] is not None:
             print('Set Boundary Size: {}'.format(args['boundary_size']))
             set_boundary_points_sizes(args['boundary_size'])
-        print('Physical')
-        print("Volumes")
-        for name in c.map_physical_name_to_primitives_indices.keys():
-            vs = c.get_volumes_by_physical_name(name)
+        print("Physical Volumes")
+        ns_to_vs = c.get_map_names_to_volumes()
+        for n, vs in ns_to_vs.items():
             tag = gmsh.model.addPhysicalGroup(3, vs)
-            gmsh.model.setPhysicalName(3, tag, name)
-        print("Surfaces")
+            gmsh.model.setPhysicalName(3, tag, n)
+        print("Physical Surfaces")
         if args['boundary_type'] == '6':
             print("6 surfaces")
             boundary_surfaces_groups = boundary_surfaces_to_six_side_groups()
-            for i, (name, ss) in enumerate(
-                    boundary_surfaces_groups.items()):
+            for n, ss in boundary_surfaces_groups.items():
                 tag = gmsh.model.addPhysicalGroup(2, ss)
-                gmsh.model.setPhysicalName(2, tag, name)
+                gmsh.model.setPhysicalName(2, tag, n)
         elif args['boundary_type'] == 'primitive':
+            map_names_to_surfaces = dict()
             boundary_surfaces_groups = boundary_surfaces_to_six_side_groups()
             s_to_is = c.get_map_surface_to_primitives_indices()
-            map_physical_name_to_surfaces = dict()
             map_boundary_name_to_primitive_surface_index = {
                 'NX': 0, 'X': 1, 'NY': 2, 'Y': 3, 'NZ': 4, 'Z': 5}
-            for name, ss in boundary_surfaces_groups.items():
-                surface_index = map_boundary_name_to_primitive_surface_index[
-                    name]
+            for n, ss in boundary_surfaces_groups.items():
+                surface_index = map_boundary_name_to_primitive_surface_index[n]
                 for s in ss:
                     primitives_indices = s_to_is.get(s, None)
                     if primitives_indices is not None:
                         index = primitives_indices[0]
                         surface_name = c.primitives[index].surfaces_names[
                             surface_index]
-                        map_physical_name_to_surfaces.setdefault(
+                        map_names_to_surfaces.setdefault(
                             surface_name, list()).append(s)
-            for name, ss in map_physical_name_to_surfaces.items():
+            for n, ss in map_names_to_surfaces.items():
                 tag = gmsh.model.addPhysicalGroup(2, ss)
-                gmsh.model.setPhysicalName(2, tag, name)
+                gmsh.model.setPhysicalName(2, tag, n)
         elif args['boundary_type'] == 'all':
             print("All surfaces")
             boundary_surfaces = get_boundary_surfaces()
