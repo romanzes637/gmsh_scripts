@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "type": "script_arguments",
+    "class_name": "ComplexFactory",
+    "description": "ComplexFactory script input Mayak 6 cells"
+  },
+  "arguments": {
+    "input_path": "input/input_mayak_cell_5x5.json",
+    "output_path": "mayak_cell_5x5.msh2",
+    "verbose": false,
+    "test": false,
+    "recombine": true,
+    "boolean": false,
+    "boundary_type": "primitive",
+    "auto_size": null,
+    "size": null,
+    "boundary_auto_size": null,
+    "boundary_size": null,
+    "mesh_algorithm": 1
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "DividedCylinder",
+    "description": "Mayak cell core"
+  },
+  "arguments": {
+    "factory": "geo",
+    "radii": [0.2875, 0.315, 0.325, 0.4949747468305832670805910534733943274993851563819318256118],
+    "heights": [0.010, 10.200, 0.010, 0.100, 0.010],
+    "layers_lcs": null,
+    "volumes_names": ["RW", "EBS", "Air", "Concrete", "Steel"],
+    "layers_physical_names": [
+      [1, 1, 2, 3],
+      [0, 1, 2, 3],
+      [1, 1, 2, 3],
+      [2, 2, 2, 2],
+      [4, 4, 4, 4]
+    ],
+    "surfaces_names": [
+      ["NX", "X", "NY", "Y", "NZ", "Z"],
+      ["NX", "X", "NY", "Y", "AirIn", "Z"]
+    ],
+    "layers_surfaces_names": [
+      [0, 0, 1, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0]
+    ],
+    "transfinite_h_data": [
+      [5, 0, 1],
+      [101, 0, 1],
+      [5, 0, 1],
+      [5, 0, 1],
+      [5, 0, 1]
+    ],
+    "transfinite_phi_data": [9, 0, 1],
+    "transfinite_r_data": [
+      [5, 0, 1],
+      [5, 0, 1],
+      [5, 0, 1],
+      [5, 0, 1]
+    ], 
+    "transform_data": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "divide_h_data": null,
+    "divide_r_data": null,
+    "straight_boundary": [1, 3, 3, 2]
+  }
+}

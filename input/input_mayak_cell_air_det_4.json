@@ -7,7 +7,7 @@
   "arguments": {
     "factory": "geo",
     "inputs": [
-        "input/input_mayak_cell_det.json"
+        "input/input_mayak_cell_air_det.json"
     ],
     "volumes_names": null,
     "surfaces_names": null,
