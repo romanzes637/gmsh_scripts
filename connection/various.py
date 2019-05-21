@@ -2,10 +2,10 @@ import json
 from pprint import pprint
 import os
 
-from complex_primitive import ComplexPrimitive
-from primitive import Primitive
-from complex import Complex
-from support import get_volumes_geometry, get_geometry, check_geometry, initialize_geometry
+# from complex_primitive import ComplexPrimitive
+# from primitive import Primitive
+# from complex import Complex
+# from support import get_volumes_geometry, get_geometry, check_geometry, initialize_geometry
 
 
 def read_complex_type_1(factory, path, transform_data, curve_type, transfinite_data, physical_tag, lc):

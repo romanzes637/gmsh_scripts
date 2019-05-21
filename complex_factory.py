@@ -7,16 +7,18 @@ import sys
 
 import gmsh
 
+import complex
+import complex_primitive
+import complex_union
+import cylinder
+import divided_cylinder
+import experiment
+import matrix
+import pool
+import polygon
+import tunnel
+import nkm_eleron_2
 from boolean import complex_self
-from complex_primitive import ComplexPrimitive
-from complex_union import ComplexUnion
-from cylinder import Cylinder
-from divided_cylinder import DividedCylinder
-from experiment import Experiment
-from matrix import Matrix
-from pool import Pool
-from polygon import Polygon
-from tunnel import Tunnel
 from occ_workarounds import correct_and_transfinite_complex, \
     correct_and_transfinite_and_recombine_complex
 from support import boundary_surfaces_to_six_side_groups, \
@@ -27,6 +29,31 @@ from support import boundary_surfaces_to_six_side_groups, \
 
 
 class ComplexFactory:
+    constructor_map = {
+        complex.Complex.__name__: getattr(
+            complex, complex.Complex.__name__),
+        matrix.Matrix.__name__: getattr(
+            matrix, matrix.Matrix.__name__),
+        complex_primitive.ComplexPrimitive.__name__: getattr(
+            complex_primitive, complex_primitive.ComplexPrimitive.__name__),
+        complex_union.ComplexUnion.__name__: getattr(
+            complex_union, complex_union.ComplexUnion.__name__),
+        cylinder.Cylinder.__name__: getattr(
+            cylinder, cylinder.Cylinder.__name__),
+        divided_cylinder.DividedCylinder.__name__: getattr(
+            divided_cylinder, divided_cylinder.DividedCylinder.__name__),
+        polygon.Polygon.__name__: getattr(
+            polygon, polygon.Polygon.__name__),
+        tunnel.Tunnel.__name__: getattr(
+            tunnel, tunnel.Tunnel.__name__),
+        pool.Pool.__name__: getattr(
+            pool, pool.Pool.__name__),
+        experiment.Experiment.__name__: getattr(
+            experiment, experiment.Experiment.__name__),
+        nkm_eleron_2.NkmEleron2.__name__: getattr(
+            nkm_eleron_2, nkm_eleron_2.NkmEleron2.__name__)
+    }
+
     def __init__(self):
         pass
 
@@ -44,24 +71,7 @@ class ComplexFactory:
         """
         class_name = input_data['metadata']['class_name']
         kwargs = input_data['arguments']
-        if class_name == ComplexPrimitive.__name__:
-            return ComplexPrimitive(**kwargs)
-        if class_name == Cylinder.__name__:
-            return Cylinder(**kwargs)
-        if class_name == DividedCylinder.__name__:
-            return DividedCylinder(**kwargs)
-        if class_name == Matrix.__name__:
-            return Matrix(**kwargs)
-        if class_name == Tunnel.__name__:
-            return Tunnel(**kwargs)
-        if class_name == Experiment.__name__:
-            return Experiment(**kwargs)
-        if class_name == ComplexUnion.__name__:
-            return ComplexUnion(**kwargs)
-        if class_name == Polygon.__name__:
-            return Polygon(**kwargs)
-        if class_name == Pool.__name__:
-            return Pool(**kwargs)
+        return ComplexFactory.constructor_map[class_name](**kwargs)
 
 
 if __name__ == '__main__':
@@ -253,6 +263,7 @@ if __name__ == '__main__':
         print("Mesh")
         gmsh.model.mesh.generate(3)
         gmsh.model.mesh.removeDuplicateNodes()
+        print('Nodes: {0}'.format(len(gmsh.model.mesh.getNodes()[0])))
     print("Write: {}".format(args['output_path']))
     gmsh.write(args['output_path'])
     gmsh.finalize()

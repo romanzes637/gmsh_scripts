@@ -1,0 +1,18 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "ComplexPrimitive",
+    "description": "NKM Eleron second proposal Environment"
+  },
+  "arguments": {
+    "factory": "occ",
+    "physical_name": "HostRock",
+    "point_data": [1596, 1260, 975, 75],
+    "transform_data": [310.5, 142.5, -487.5],
+    "divide_data": [1, 1, 1],
+    "curve_types": null,
+    "curve_data": null,
+    "transfinite_data": null,
+    "transfinite_type": null
+  }
+}

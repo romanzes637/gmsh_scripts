@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "type": "script_arguments",
+    "class_name": "ComplexFactory",
+    "description": "ComplexFactory script input file example"
+  },
+  "arguments": {
+    "input_path": "input/input_nkm_eleron_2_2.json",
+    "output_path": "nkm_eleron_2_2.msh2",
+    "verbose": false,
+    "test": false,
+    "recombine": true,
+    "boolean": false,
+    "boundary_type": "6",
+    "auto_size": null,
+    "size": 15,
+    "boundary_auto_size": null,
+    "boundary_size": 15,
+    "mesh_algorithm": 1
+  }
+}
