@@ -5,8 +5,8 @@
     "description": "ComplexFactory script input file example"
   },
   "arguments": {
-    "input_path": "input/input_nkm_eleron_2_2.json",
-    "output_path": "nkm_eleron_2_2.msh2",
+    "input_path": "input/input_nkm_eleron_2.json",
+    "output_path": "nkm_eleron_2.msh2",
     "verbose": true,
     "test": false,
     "recombine": true,

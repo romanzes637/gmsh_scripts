@@ -1,8 +1,8 @@
 {
   "metadata": {
     "type": "class_arguments",
-    "class_name": "EleronTwoNkm",
-    "description": "Eleron NKM second proposal"
+    "class_name": "NkmEleron2",
+    "description": "Eleron NKM second proposal 3 layers 28 tunnels 20 boreholes"
   },
   "arguments": {
     "factory": "geo",

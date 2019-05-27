@@ -7,7 +7,7 @@
   "arguments": {
     "factory": "occ",
     "physical_name": "HostRock",
-    "point_data": [1677, 1267.5, 975, 50],
+    "point_data": [1677, 1267.5, 975, 100],
     "transform_data": [351, 146.25, -487.5],
     "divide_data": [1, 1, 1],
     "curve_types": null,
