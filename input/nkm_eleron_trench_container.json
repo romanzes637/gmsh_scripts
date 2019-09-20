@@ -1,0 +1,68 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "DividedCylinder",
+    "description": "Container for middle section of NKM eleron trench"
+  },
+  "arguments": {
+    "factory": "geo",
+    "radii": [0.315, 1.767766952966368811002110905262122598212089844221185091470],
+    "heights": [0.005, 0.645, 0.005, 0.350, 3.400, 0.350, 0.005, 0.645, 0.005],
+    "layers_lcs": [
+      [1, 1],
+      [1, 1],
+      [1, 1],
+      [1, 1],
+      [1, 1],
+      [1, 1],
+      [1, 1],
+      [1, 1],
+      [1, 1]
+    ],
+    "layers_physical_names": [
+      ["SteelExt", "SteelExt"],
+      ["Concrete", "Concrete"],
+      ["SteelInt", "SteelInt"],
+      ["Bentonite", "Bentonite"],
+      ["RW", "Bentonite"],
+      ["Bentonite", "Bentonite"],
+      ["SteelInt", "SteelInt"],
+      ["Concrete", "Concrete"],
+      ["SteelExt", "SteelExt"]
+    ],
+    "surfaces_names": [
+      ["NX", "X", "NY", "Y", "NZ", "Z"]
+    ],
+    "layers_surfaces_names": [
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0]
+    ],
+    "transfinite_h_data": [
+      [3, 0, 1],
+      [3, 0, 1],
+      [3, 0, 1],
+      [3, 0, 1],
+      [5, 0, 1],
+      [3, 0, 1],
+      [3, 0, 1],
+      [3, 0, 1],
+      [3, 0, 1]
+    ],
+    "transfinite_phi_data": [3, 0, 1],
+    "transfinite_r_data": [
+      [3, 0, 1],
+      [3, 0, 1]
+    ],
+    "transform_data": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "divide_h_data": [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    "divide_r_data": [1, 1],
+    "straight_boundary": [1, 2]
+  }
+}

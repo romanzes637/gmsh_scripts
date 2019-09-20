@@ -5,18 +5,18 @@
     "description": "ComplexFactory script input file example"
   },
   "arguments": {
-    "input_path": "input/input_experiment.json",
-    "output_path": "exp.msh2",
+    "input_path": "input/nkm_eleron_trench_repository.json",
+    "output_path": "nkm_eleron_trench_repository_sections.msh2",
     "verbose": false,
     "test": false,
-    "recombine": true,
-    "boolean": true,
+    "recombine": false,
+    "boolean": false,
+    "optimize": false,
     "boundary_type": "6",
     "auto_size": null,
-    "size": 15,
+    "size": 100,
     "boundary_auto_size": null,
-    "boundary_size": 15,
-    "mesh_algorithm": 1,
-    "optimize": true
+    "boundary_size": 100,
+    "mesh_algorithm": 1
   }
 }

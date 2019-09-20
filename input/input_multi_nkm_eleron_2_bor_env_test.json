@@ -2,7 +2,7 @@
   "metadata": {
     "type": "script_arguments",
     "script_name": "multi",
-    "description": "Arguments for multi script - multivariate meshing"
+    "description": "Eleron second proposal 3 28 20"
   },
   "arguments": {
     "inputs": [
@@ -13,13 +13,10 @@
             "recombine": [false]
           },
           {
-            "optimize": [false]
+            "size": [50, 75, 100]
           },
           {
-            "size": [null]
-          },
-          {
-            "boundary_size": [50]
+            "boundary_size": [50, 75, 100]
           },
           {
             "auto_size": [null]
@@ -33,10 +30,15 @@
         "path": "input/input_nkm_eleron_2.json",
         "args": [
           {
-            "n_levels": [3]
+            "origin": [
+              [0, 0, -525]
+            ]
           },
           {
-            "n_tunnels": [28]
+            "n_levels": [1]
+          },
+          {
+            "n_tunnels": [1]
           },
           {
             "n_boreholes": [20]
@@ -48,24 +50,31 @@
         "args": [
           {
             "transfinite_phi_data": [
-              [5, 0, 1]
+              [9, 0, 1]
             ]
           },
           {
             "transfinite_r_data": [
-              [[4, 0, 1], [4, 0, 1]]
+              [[9, 0, 1], [9, 0, 1]]
             ]
           },
           {
           "transfinite_h_data": [
-              [[3, 0, 1], [7, 0, 1], [3, 0, 1]]
+              [[9, 0, 1], [11, 0, 1], [9, 0, 1]]
             ]
           }
         ]
       },
       {
         "path": "input/input_nkm_eleron_2_environment.json",
-        "args": []
+        "args": [
+          {
+            "point_data": [[1596, 1260, 975, 25]]
+          },
+          {
+            "transform_data": [[310.5, 142.5, -487.5]]
+          }
+        ]
       }
     ],
     "run_cmd": "/share/home/butovr/gmsh_scripts/complex_factory.py ./input/input_complex_factory_nkm_eleron_2.json"

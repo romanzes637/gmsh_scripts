@@ -13,7 +13,7 @@ class Matrix(Complex):
                  transform_data=None, txs=None, tys=None, tzs=None,
                  type_map=None, inputs=None,
                  volumes_map=None, volumes_names=None,
-                 surfaces_map=None, surfaces_names=None,
+                 surfaces_map=None, surfaces_names=None, inputs_map=None
                  ):
         """
         Z0:
@@ -72,8 +72,14 @@ class Matrix(Complex):
             lcs = [1 for _ in range(n)]
         if type_map is None:
             type_map = [1 for _ in range(n)]
+        elif not isinstance(type_map, list):
+            type_map = [type_map for _ in range(n)]
         if volumes_names is None:
             volumes_names = ['Matrix']
+        if inputs is None:
+            inputs = ['input/input_test_complex_primitive.json']
+        if inputs_map is None:
+            inputs_map = [0 for _ in range(n)]
         if surfaces_names is None:
             surfaces_names = [['NX', 'X', 'NY', 'Y', 'NZ', 'Z']]
         if volumes_map is None:
@@ -100,6 +106,7 @@ class Matrix(Complex):
                         t = type_map[gi]
                         pn = volumes_names[volumes_map[gi]]
                         sns = surfaces_names[surfaces_map[gi]]
+                        inp = inputs[inputs_map[gi]]
                         tx = txs[i]
                         ty = tys[j]
                         tz = tzs[k]
@@ -125,6 +132,7 @@ class Matrix(Complex):
                         t = type_map[gi]
                         pn = volumes_names[volumes_map[gi]]
                         sns = surfaces_names[surfaces_map[gi]]
+                        inp = inputs[inputs_map[gi]]
                         tx = txs[i]
                         ty = tys[j]
                         tz = tzs[k]
@@ -254,25 +262,13 @@ def type_2(factory_object, primitives, kwargs):
 def type_3(factory_object, primitives, kwargs):
     from complex_factory import ComplexFactory
     # Args
-    x0 = kwargs['x0']
-    x1 = kwargs['x1']
     xc = kwargs['xc']
-    y0 = kwargs['y0']
     yc = kwargs['yc']
-    y1 = kwargs['y1']
     z0 = kwargs['z0']
-    zc = kwargs['zc']
-    z1 = kwargs['z1']
-    lc = kwargs['lc']
-    tx = kwargs['tx']
-    ty = kwargs['ty']
-    tz = kwargs['tz']
-    pn = kwargs['pn']
+    inp = kwargs['inp']
     # Do
-    inputs = kwargs['inputs']
     factory = kwargs['factory']
-    input_path = inputs[0]
-    result = check_file(input_path)
+    result = check_file(inp)
     with open(result['path']) as f:
         input_data = json.load(f)
     input_data['arguments']['factory'] = factory
@@ -286,9 +282,33 @@ def type_3(factory_object, primitives, kwargs):
     primitives.extend(c.primitives)
 
 
+def type_4(factory_object, primitives, kwargs):
+    from complex_factory import ComplexFactory
+    # Args
+    x0 = kwargs['x0']
+    yc = kwargs['yc']
+    z0 = kwargs['z0']
+    inp = kwargs['inp']
+    # Do
+    factory = kwargs['factory']
+    result = check_file(inp)
+    with open(result['path']) as f:
+        input_data = json.load(f)
+    input_data['arguments']['factory'] = factory
+    old_transform = input_data['arguments'].get('transform_data', [0, 0, 0])
+    new_transform = old_transform
+    new_transform[0] = old_transform[0] + x0
+    new_transform[1] = old_transform[1] + yc
+    new_transform[2] = old_transform[2] + z0
+    input_data['arguments']['transform_data'] = new_transform
+    c = ComplexFactory.new(input_data)
+    primitives.extend(c.primitives)
+
+
 type_factory = {
     0: type_0,
     1: type_1,
     2: type_2,
-    3: type_3
+    3: type_3,
+    4: type_4
 }

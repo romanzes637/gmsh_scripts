@@ -18,6 +18,7 @@ import pool
 import polygon
 import tunnel
 import nkm_eleron_2
+import nkm_eleron_trench
 from boolean import complex_self
 from occ_workarounds import correct_and_transfinite_complex, \
     correct_and_transfinite_and_recombine_complex
@@ -51,7 +52,9 @@ class ComplexFactory:
         experiment.Experiment.__name__: getattr(
             experiment, experiment.Experiment.__name__),
         nkm_eleron_2.NkmEleron2.__name__: getattr(
-            nkm_eleron_2, nkm_eleron_2.NkmEleron2.__name__)
+            nkm_eleron_2, nkm_eleron_2.NkmEleron2.__name__),
+        nkm_eleron_trench.NkmEleronTrench.__name__: getattr(
+            nkm_eleron_trench, nkm_eleron_trench.NkmEleronTrench.__name__)
     }
 
     def __init__(self):
@@ -104,6 +107,9 @@ if __name__ == '__main__':
     parser.add_argument('-Z', '--boundary_size', type=float, metavar=10.0,
                         help='boundary points mesh size',
                         default=None)
+    parser.add_argument('-O', '--optimize',
+                        help='optimize mesh after generation',
+                        action='store_true')
     parser.add_argument('-m', '--mesh_algorithm', type=int, default=1,
                         help='gmsh mesh algorithm: 1: Delaunay, 4: Frontal,'
                              ' 5: Frontal Delaunay, 6: Frontal Hex, 7: MMG3D,'
@@ -131,6 +137,7 @@ if __name__ == '__main__':
         args['boundary_size'] = config_args.get('boundary_size', None)
         args['boundary_auto_size'] = config_args.get('boundary_auto_size', None)
         args['boundary_type'] = config_args.get('boundary_type', '6')
+        args['optimize'] = config_args.get('optimize', True)
         args['mesh_algorithm'] = config_args.get('mesh_algorithm', 1)
     else:
         args['input_path'] = cmd_args.input_path
@@ -144,6 +151,7 @@ if __name__ == '__main__':
         args['boundary_size'] = cmd_args.boundary_size
         args['boundary_auto_size'] = cmd_args.boundary_auto_size
         args['boundary_type'] = cmd_args.boundary_type
+        args['optimize'] = cmd_args.optimize
         args['mesh_algorithm'] = cmd_args.mesh_algorithm
     root, extension = os.path.splitext(args['input_path'])
     basename = os.path.basename(root)
@@ -175,6 +183,10 @@ if __name__ == '__main__':
     else:
         gmsh.option.setNumber("General.Terminal", 0)
     gmsh.option.setNumber('Geometry.AutoCoherence', 0)  # No effect at occ
+    if args['optimize']:
+        gmsh.option.setNumber('Mesh.Optimize', 1)
+    else:
+        gmsh.option.setNumber('Mesh.Optimize', 0)
     gmsh.option.setNumber('Mesh.Algorithm3D', args['mesh_algorithm'])
     print('Model')
     model_name = basename

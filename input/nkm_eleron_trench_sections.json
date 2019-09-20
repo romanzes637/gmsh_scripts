@@ -1,0 +1,35 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Matrix",
+    "description": "NKM eleron trench made of sections"
+  },
+  "arguments": {
+    "factory": "geo",
+    "inputs": [
+        "input/nkm_eleron_trench_section_middle.json",
+        "input/nkm_eleron_trench_section_left.json",
+        "input/nkm_eleron_trench_section_right.json"
+    ],
+    "transform_data": [0, 0, 0],
+    "surfaces_names": null,
+    "surfaces_map": null,
+    "coordinates_type": "delta",
+    "volumes_names": null,
+    "xs": [
+      0.655,
+      2.500, 2.500, 2.500, 2.500, 2.500,
+      2.500, 2.500, 2.500, 2.500, 2.500,
+      0.655
+    ],
+    "ys": [1],
+    "zs": [1],
+    "lcs": null,
+    "txs": null,
+    "tys": null,
+    "tzs": null,
+    "type_map": [4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4],
+    "volumes_map": null,
+    "inputs_map": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
+  }
+}

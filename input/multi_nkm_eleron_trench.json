@@ -1,0 +1,55 @@
+{
+  "metadata": {
+    "type": "script_arguments",
+    "script_name": "multi",
+    "description": "Arguments for multi script - multivariate meshing"
+  },
+  "arguments": {
+    "inputs": [
+      {
+        "path": "input/complex_factory_nkm_eleron_trench.json",
+        "args": [
+          {
+            "recombine": [false]
+          },
+          {
+            "optimize": [false]
+          },
+          {
+            "size": [null]
+          },
+          {
+            "boundary_size": [75, 100]
+          },
+          {
+            "auto_size": [null]
+          },
+          {
+            "boundary_auto_size": [null]
+          }
+        ]
+      },
+      {
+        "path": "input/nkm_eleron_trench_repository.json",
+        "args": [
+        ]
+      },
+      {
+        "path": "input/nkm_eleron_trench_low.json",
+        "args": [
+        ]
+      },
+      {
+        "path": "input/input_container_mayak_low.json",
+        "args": [
+        ]
+      },
+      {
+        "path": "input/nkm_eleron_trench_environment.json",
+        "args": [
+        ]
+      }
+    ],
+    "run_cmd": "/share/home/butovr/gmsh_scripts/complex_factory.py ./input/complex_factory_nkm_eleron_trench.json"
+  }
+}

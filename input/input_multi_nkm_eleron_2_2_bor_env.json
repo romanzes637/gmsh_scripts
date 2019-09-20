@@ -8,7 +8,11 @@
     "inputs": [
       {
         "path": "input/input_complex_factory_nkm_eleron_2_2.json",
-        "args": []
+        "args": [
+          {
+            "recombine": [false]
+          }
+        ]
       },
       {
         "path": "input/input_nkm_eleron_2_2.json",
@@ -19,33 +23,27 @@
         "args": [
           {
             "transfinite_phi_data": [
-              [3, 0, 1],
-              [5, 0, 1]
+              [7, 0, 1],
+              [9, 0, 1]
             ]
           },
           {
             "transfinite_r_data": [
-              [[3, 0, 1], [3, 0, 1]],
-              [[5, 0, 1], [5, 0, 1]]
+              [[7, 0, 1], [7, 0, 1]],
+              [[9, 0, 1], [9, 0, 1]]
             ]
           },
           {
           "transfinite_h_data": [
-              [[3, 0, 1], [5, 0, 1], [3, 0, 1], [5, 0, 1], [3, 0, 1]]
+              [[5, 0, 1], [7, 0, 1], [5, 0, 1], [7, 0, 1], [5, 0, 1]],
+              [[7, 0, 1], [9, 0, 1], [7, 0, 1], [9, 0, 1], [7, 0, 1]]
             ]
           }
         ]
       },
       {
         "path": "input/input_nkm_eleron_2_2_environment.json",
-        "args": [
-          {
-            "point_data": [
-              [1677, 1267.5, 975, 50],
-              [1677, 1267.5, 975, 100]
-            ]
-          }
-        ]
+        "args": []
       }
     ],
     "run_cmd": "/share/home/butovr/gmsh_scripts/complex_factory.py ./input/input_complex_factory_nkm_eleron_2_2.json"
