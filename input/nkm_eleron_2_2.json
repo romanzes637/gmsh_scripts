@@ -2,11 +2,11 @@
   "metadata": {
     "type": "class_arguments",
     "class_name": "NkmEleron2",
-    "description": "Eleron NKM second proposal second variant 2 layers 40 tunnels 40 boreholes"
+    "description": "Eleron NKM 2 proposal, 2 variant, 2 layers, 40 tunnels, 40 boreholes"
   },
   "arguments": {
     "factory": "geo",
-    "env_input_path": "input/input_nkm_eleron_2_2_environment.json",
+    "env_input_path": "input/nkm_eleron_2_2_environment.json",
     "origin": [
       0,
       0,
@@ -19,6 +19,6 @@
     "d_level": 75,
     "dy_borehole": 7.5,
     "dz_borehole": -11,
-    "borehole_input_path": "input/input_borehole_eleron_2_2.json"
+    "borehole_input_path": "input/nkm_eleron_borehole_2_2.json"
   }
 }

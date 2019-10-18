@@ -7,19 +7,19 @@
   "arguments": {
     "inputs": [
       {
-        "path": "input/complex_factory_nkm_eleron_trench.json",
+        "path": "input/nkm_eleron_trench_complex_factory.json",
         "args": [
           {
             "recombine": [false]
           },
           {
-            "optimize": [false]
+            "optimize": [true]
           },
           {
             "size": [null]
           },
           {
-            "boundary_size": [75, 100]
+            "boundary_size": [50]
           },
           {
             "auto_size": [null]
@@ -35,12 +35,7 @@
         ]
       },
       {
-        "path": "input/nkm_eleron_trench_low.json",
-        "args": [
-        ]
-      },
-      {
-        "path": "input/input_container_mayak_low.json",
+        "path": "input/nkm_eleron_trench_container.json",
         "args": [
         ]
       },
@@ -50,6 +45,6 @@
         ]
       }
     ],
-    "run_cmd": "/share/home/butovr/gmsh_scripts/complex_factory.py ./input/complex_factory_nkm_eleron_trench.json"
+    "run_cmd": "/share/home/butovr/gmsh_scripts/complex_factory.py ./input/nkm_eleron_trench_complex_factory.json"
   }
 }

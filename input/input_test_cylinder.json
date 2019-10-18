@@ -5,7 +5,7 @@
     "description": "Test Cylinder"
   },
     "arguments": {
-    "factory": "occ",
+    "factory": "geo",
     "radii": [10, 20, 30],
     "heights": [5, 10, 15],
     "layers_lcs": [
@@ -13,7 +13,7 @@
       [6, 7, 8],
       [9, 10, 11]
     ],
-    "transform_data": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "transform_data": [1, -1, 4, 0, 0, 0, 0, 0, 0],
     "layers_physical_names": [
       ["r1h1", "r2h1", "r3h1"],
       ["r1h2", "r2h2", "r3h2"],

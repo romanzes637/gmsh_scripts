@@ -1,0 +1,55 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Matrix",
+    "description": "Test Matrix"
+  },
+  "arguments": {
+    "factory": "geo",
+    "inputs": null,
+    "transform_data": [0, 0, 0],
+    "surfaces_names": null,
+    "surfaces_map": null,
+    "coordinates_type": "direct",
+    "volumes_names": ["Rock", "SteelExt", "Concrete", "SteelInt", "Bentonite"],
+    "xs": [-13.105, -13.100, 13.100, 13.105],
+    "ys": [-0.755, -0.750, 0.750, 0.755],
+    "zs": [-2.055, -2.050, 2.050, 2.055],
+    "lcs": null,
+    "txs": [
+        [11, 0, 0.87], [5, 0, 1], [5, 0, 1]
+    ],
+    "tys": [
+        [11, 0, 0.87], [5, 0, 1], [5, 0, 1]
+    ],
+    "tzs": [
+        [11, 0, 0.87], [5, 0, 1], [5, 0, 1]
+    ],
+    "type_map": [
+        1, 1, 1,
+        1, 1, 1,
+        1, 1, 1,
+
+        1, 1, 1,
+        1, 1, 1,
+        1, 1, 1,
+
+        1, 1, 1,
+        1, 1, 1,
+        1, 1, 1
+    ],
+    "volumes_map": [
+        0, 0, 0,
+        0, 0, 0,
+        0, 0, 0,
+
+        1, 1, 1,
+        1, 1, 1,
+        1, 1, 1,
+
+        2, 2, 2,
+        2, 2, 2,
+        2, 2, 2
+    ]
+  }
+}

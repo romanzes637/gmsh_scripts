@@ -7,7 +7,7 @@
   "arguments": {
     "inputs": [
       {
-        "path": "input/input_complex_factory_nkm_eleron_2_2.json",
+        "path": "input/nkm_eleron_complex_factory_2_3.json",
         "args": [
           {
             "recombine": [false]
@@ -15,37 +15,35 @@
         ]
       },
       {
-        "path": "input/input_nkm_eleron_2_2.json",
+        "path": "input/nkm_eleron_2_3.json",
         "args": []
       },
       {
-        "path": "input/input_borehole_eleron_2_2.json",
+        "path": "input/nkm_eleron_borehole_2_2.json",
         "args": [
           {
             "transfinite_phi_data": [
-              [7, 0, 1],
-              [9, 0, 1]
+              [13, 0, 1]
             ]
           },
           {
             "transfinite_r_data": [
-              [[7, 0, 1], [7, 0, 1]],
-              [[9, 0, 1], [9, 0, 1]]
+              [[11, 0, 1], [11, 0, 1]],
+              [[13, 0, 1], [13, 0, 1]]
             ]
           },
           {
           "transfinite_h_data": [
-              [[5, 0, 1], [7, 0, 1], [5, 0, 1], [7, 0, 1], [5, 0, 1]],
-              [[7, 0, 1], [9, 0, 1], [7, 0, 1], [9, 0, 1], [7, 0, 1]]
+              [[13, 0, 1], [15, 0, 1], [13, 0, 1], [15, 0, 1], [13, 0, 1]]
             ]
           }
         ]
       },
       {
-        "path": "input/input_nkm_eleron_2_2_environment.json",
+        "path": "input/nkm_eleron_2_environment.json",
         "args": []
       }
     ],
-    "run_cmd": "/share/home/butovr/gmsh_scripts/complex_factory.py ./input/input_complex_factory_nkm_eleron_2_2.json"
+    "run_cmd": "/share/home/butovr/gmsh_scripts/complex_factory.py ./input/nkm_eleron_complex_factory_2_3.json"
   }
 }

@@ -9,7 +9,7 @@
     "inputs": [
         "input/input_container_mayak_ires.json"
     ],
-    "transform_data": null,
+    "transform_data": [0, 0, 0],
     "surfaces_names": null,
     "surfaces_map": null,
     "coordinates_type": "direct",

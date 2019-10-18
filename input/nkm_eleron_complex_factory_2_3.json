@@ -2,11 +2,11 @@
   "metadata": {
     "type": "script_arguments",
     "class_name": "ComplexFactory",
-    "description": "ComplexFactory script input file example"
+    "description": "Eleron NKM 2 proposal, 3 variant, 2 layers, 28 tunnels, 20 boreholes"
   },
   "arguments": {
-    "input_path": "input/input_nkm_eleron_2_2.json",
-    "output_path": "nkm_eleron_2_2.msh2",
+    "input_path": "input/nkm_eleron_2_3.json",
+    "output_path": "nkm_eleron_2_3.msh2",
     "verbose": true,
     "test": false,
     "recombine": true,
