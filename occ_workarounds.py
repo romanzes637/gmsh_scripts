@@ -132,6 +132,20 @@ def correct_and_transfinite_complex(complex_obj, ss, cs):
     return transfinite_rs
 
 
+def transfinite_complex(complex_obj, ss, cs):
+    """
+    Correct Complex's Primitives then if Primitive corrected => transfinite it
+    :param complex_obj: Complex object
+    :param ss: set() - already transfinited surfaces
+    :param cs: set() - already transfinited curves
+    """
+    transfinite_rs = []
+    for i, p in enumerate(complex_obj.primitives):
+        result = p.transfinite(ss, cs)
+        transfinite_rs.append(result)
+    return transfinite_rs
+
+
 def correct_and_transfinite_and_recombine_complex(complex_obj, ss, cs):
     """
     Correct Complex's Primitives then if Primitive corrected =>

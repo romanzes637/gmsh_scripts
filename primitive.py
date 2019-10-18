@@ -1,8 +1,12 @@
 import gmsh
 import itertools
+from collections import deque
+from itertools import permutations
+from pprint import pprint
 
 from occ_workarounds import correct_and_transfinite_primitive
-from support import volumes_groups_surfaces
+from support import volumes_groups_surfaces, volumes_groups_surfaces_registry
+import registry
 
 
 class Primitive:
@@ -76,6 +80,178 @@ class Primitive:
         :param list of str surfaces_names: names of boundary surfaces in order:
         NX, X, NY, Y, NZ, Z.
         """
+        # print(physical_name)
+        # if factory == 'occ':
+        #     self.factory = gmsh.model.occ
+        # else:
+        #     self.factory = gmsh.model.geo
+        # if transfinite_data is not None:
+        #     if len(transfinite_data) == 3:
+        #         self.transfinite_data = list()
+        #         self.transfinite_data.extend([transfinite_data[0]] * 4)
+        #         self.transfinite_data.extend([transfinite_data[1]] * 4)
+        #         self.transfinite_data.extend([transfinite_data[2]] * 4)
+        #     else:
+        #         self.transfinite_data = transfinite_data
+        # else:
+        #     self.transfinite_data = transfinite_data
+        # if transfinite_type is None:
+        #     self.transfinite_type = 0
+        # else:
+        #     self.transfinite_type = transfinite_type
+        # if physical_name is None:
+        #     self.physical_name = Primitive.__name__
+        # else:
+        #     self.physical_name = physical_name
+        # if surfaces_names is None:
+        #     self.surfaces_names = ['NX', 'X', 'NY', 'Y', 'NZ', 'Z']
+        # else:
+        #     self.surfaces_names = surfaces_names
+        # self.points = list()
+        # self.curves_points = list()
+        # self.curves = list()
+        # self.surfaces = list()
+        # self.volumes = list()
+        # self.points_coordinates = list()
+        # self.curves_points_coordinates = list()
+        # self.bounding_box = None
+        # self.coordinates_evaluated = False
+        # if point_data is not None:
+        #     if len(point_data) == 3:
+        #         half_lx = point_data[0] / 2.0
+        #         half_ly = point_data[1] / 2.0
+        #         half_lz = point_data[2] / 2.0
+        #         new_point_data = [
+        #             [half_lx, half_ly, -half_lz],
+        #             [-half_lx, half_ly, -half_lz],
+        #             [-half_lx, -half_ly, -half_lz],
+        #             [half_lx, -half_ly, -half_lz],
+        #             [half_lx, half_ly, half_lz],
+        #             [-half_lx, half_ly, half_lz],
+        #             [-half_lx, -half_ly, half_lz],
+        #             [half_lx, -half_ly, half_lz]
+        #         ]
+        #     elif len(point_data) == 4:
+        #         half_lx = point_data[0] / 2.0
+        #         half_ly = point_data[1] / 2.0
+        #         half_lz = point_data[2] / 2.0
+        #         lc = point_data[3]
+        #         new_point_data = [
+        #             [half_lx, half_ly, -half_lz, lc],
+        #             [-half_lx, half_ly, -half_lz, lc],
+        #             [-half_lx, -half_ly, -half_lz, lc],
+        #             [half_lx, -half_ly, -half_lz, lc],
+        #             [half_lx, half_ly, half_lz, lc],
+        #             [-half_lx, half_ly, half_lz, lc],
+        #             [-half_lx, -half_ly, half_lz, lc],
+        #             [half_lx, -half_ly, half_lz, lc]
+        #         ]
+        #     else:
+        #         new_point_data = point_data
+        #     if curve_types is None:
+        #         curve_types = [0] * 12
+        #     if curve_data is None:
+        #         curve_data = [[]] * 12
+        #     # Points
+        #     for i in range(len(new_point_data)):
+        #         tag = self.factory.addPoint(*new_point_data[i])
+        #         self.points.append(tag)
+        #     for i in range(len(curve_data)):
+        #         ps = list()
+        #         for j in range(len(curve_data[i])):
+        #             tag = self.factory.addPoint(*curve_data[i][j])
+        #             ps.append(tag)
+        #         self.curves_points.append(ps)
+        #     # Transform
+        #     if transform_data is not None:
+        #         dim_tags = [(0, x) for x in self.points]
+        #         for curve_points in self.curves_points:
+        #             dim_tags += [(0, x) for x in curve_points]
+        #         self.factory.translate(dim_tags, transform_data[0],
+        #                                transform_data[1], transform_data[2])
+        #         if len(transform_data) == 6:
+        #             self.factory.rotate(dim_tags,
+        #                                 transform_data[0], transform_data[1],
+        #                                 transform_data[2],
+        #                                 1, 0, 0, transform_data[3])
+        #             self.factory.rotate(dim_tags,
+        #                                 transform_data[0], transform_data[1],
+        #                                 transform_data[2],
+        #                                 0, 1, 0, transform_data[4])
+        #             self.factory.rotate(dim_tags,
+        #                                 transform_data[0], transform_data[1],
+        #                                 transform_data[2],
+        #                                 0, 0, 1, transform_data[5])
+        #         elif len(transform_data) == 7:
+        #             self.factory.rotate(dim_tags,
+        #                                 transform_data[0], transform_data[1],
+        #                                 transform_data[2],
+        #                                 transform_data[3], transform_data[4],
+        #                                 transform_data[5],
+        #                                 transform_data[6])
+        #         elif len(transform_data) == 9:
+        #             self.factory.rotate(dim_tags,
+        #                                 transform_data[3], transform_data[4],
+        #                                 transform_data[5],
+        #                                 1, 0, 0, transform_data[6])
+        #             self.factory.rotate(dim_tags,
+        #                                 transform_data[3], transform_data[4],
+        #                                 transform_data[5],
+        #                                 0, 1, 0, transform_data[7])
+        #             self.factory.rotate(dim_tags,
+        #                                 transform_data[3], transform_data[4],
+        #                                 transform_data[5],
+        #                                 0, 0, 1, transform_data[8])
+        #     # Curves
+        #     for i in range(12):
+        #         # FIXME Workaround for OCC factory
+        #         if self.factory != gmsh.model.occ:
+        #             tag = self.add_curve[curve_types[i]](self, i)
+        #             self.curves.append(tag)
+        #         else:
+        #             tag = self.add_curve[curve_types[i] + 6](self, i)
+        #             self.curves.append(tag)
+        #     # Surfaces
+        #     for i in range(6):
+        #         if self.factory == gmsh.model.geo:
+        #             tag = self.factory.addCurveLoop(
+        #                 map(lambda x, y: y * self.curves[x],
+        #                     self.surfaces_local_curves[i],
+        #                     self.surfaces_local_curves_signs[i]))
+        #             tag = self.factory.addSurfaceFilling([tag])
+        #         else:
+        #             tag = self.factory.addCurveLoop(
+        #                 map(lambda x: self.curves[x],
+        #                     self.surfaces_local_curves[i]))
+        #             tag = self.factory.addSurfaceFilling(tag)
+        #         self.surfaces.append(tag)
+        #     # Volume
+        #     if inner_volumes is None:
+        #         # FIXME always return tag = -1
+        #         tag = self.factory.addSurfaceLoop(self.surfaces)
+        #         tag = self.factory.addVolume([tag])
+        #         self.volumes.append(tag)
+        #     else:
+        #         gs = volumes_groups_surfaces(inner_volumes)
+        #         if self.factory == gmsh.model.occ:
+        #             # FIXME bug always return tag = -1 by default
+        #             out_sl = self.factory.addSurfaceLoop(self.surfaces, 1)
+        #             in_sls = list()
+        #             for i, g in enumerate(gs):
+        #                 # FIXME bug always return tag = -1 by default
+        #                 in_sls.append(self.factory.addSurfaceLoop(g, 2 + i))
+        #         else:
+        #             out_sl = self.factory.addSurfaceLoop(self.surfaces)
+        #             flatten_in_sls = list(itertools.chain.from_iterable(gs))
+        #             in_sls = [self.factory.addSurfaceLoop(flatten_in_sls)]
+        #         sls = list()
+        #         sls.append(out_sl)
+        #         sls += in_sls
+        #         self.volumes.append(self.factory.addVolume(sls))
+        # else:
+        #     if inner_volumes is not None:
+        #         self.volumes = inner_volumes
+        # with registry
         if factory == 'occ':
             self.factory = gmsh.model.occ
         else:
@@ -148,86 +324,264 @@ class Primitive:
             if curve_data is None:
                 curve_data = [[]] * 12
             # Points
-            for i in range(len(new_point_data)):
-                tag = self.factory.addPoint(*new_point_data[i])
+            for d in new_point_data:
+                # print(d)
+                if transform_data is not None:
+                    d[0] += transform_data[0]
+                    d[1] += transform_data[1]
+                    d[2] += transform_data[2]
+                    # TODO rotation
+                    # if len(transform_data) == 6:
+                    #     self.factory.rotate(dim_tags,
+                    #                         transform_data[0],
+                    #                         transform_data[1],
+                    #                         transform_data[2],
+                    #                         1, 0, 0, transform_data[3])
+                    #     self.factory.rotate(dim_tags,
+                    #                         transform_data[0],
+                    #                         transform_data[1],
+                    #                         transform_data[2],
+                    #                         0, 1, 0, transform_data[4])
+                    #     self.factory.rotate(dim_tags,
+                    #                         transform_data[0],
+                    #                         transform_data[1],
+                    #                         transform_data[2],
+                    #                         0, 0, 1, transform_data[5])
+                    # elif len(transform_data) == 7:
+                    #     self.factory.rotate(dim_tags,
+                    #                         transform_data[0],
+                    #                         transform_data[1],
+                    #                         transform_data[2],
+                    #                         transform_data[3],
+                    #                         transform_data[4],
+                    #                         transform_data[5],
+                    #                         transform_data[6])
+                    # elif len(transform_data) == 9:
+                    #     self.factory.rotate(dim_tags,
+                    #                         transform_data[3],
+                    #                         transform_data[4],
+                    #                         transform_data[5],
+                    #                         1, 0, 0, transform_data[6])
+                    #     self.factory.rotate(dim_tags,
+                    #                         transform_data[3],
+                    #                         transform_data[4],
+                    #                         transform_data[5],
+                    #                         0, 1, 0, transform_data[7])
+                    #     self.factory.rotate(dim_tags,
+                    #                         transform_data[3],
+                    #                         transform_data[4],
+                    #                         transform_data[5],
+                    #                         0, 0, 1, transform_data[8])
+                d[0] = round(d[0], registry.point_tol)
+                d[1] = round(d[1], registry.point_tol)
+                d[2] = round(d[2], registry.point_tol)
+                cs = tuple(d[:3])  # x, y and z coordinates
+                # print(cs)
+                tag = registry.coord_point_map.get(cs, None)
+                if tag is None:
+                    tag = self.factory.addPoint(*d)
+                    registry.coord_point_map[cs] = tag
+                else:
+                    pass
+                    # print(tag, cs, len(registry.coord_point_map), 'point')
                 self.points.append(tag)
             for i in range(len(curve_data)):
                 ps = list()
                 for j in range(len(curve_data[i])):
-                    tag = self.factory.addPoint(*curve_data[i][j])
+                    # print(curve_data[i][j])
+                    if transform_data is not None:
+                        curve_data[i][j][0] += transform_data[0]
+                        curve_data[i][j][1] += transform_data[1]
+                        curve_data[i][j][2] += transform_data[2]
+                        # TODO rotation
+                        # if len(transform_data) == 6:
+                        #     self.factory.rotate(dim_tags,
+                        #                         transform_data[0],
+                        #                         transform_data[1],
+                        #                         transform_data[2],
+                        #                         1, 0, 0, transform_data[3])
+                        #     self.factory.rotate(dim_tags,
+                        #                         transform_data[0],
+                        #                         transform_data[1],
+                        #                         transform_data[2],
+                        #                         0, 1, 0, transform_data[4])
+                        #     self.factory.rotate(dim_tags,
+                        #                         transform_data[0],
+                        #                         transform_data[1],
+                        #                         transform_data[2],
+                        #                         0, 0, 1, transform_data[5])
+                        # elif len(transform_data) == 7:
+                        #     self.factory.rotate(dim_tags,
+                        #                         transform_data[0],
+                        #                         transform_data[1],
+                        #                         transform_data[2],
+                        #                         transform_data[3],
+                        #                         transform_data[4],
+                        #                         transform_data[5],
+                        #                         transform_data[6])
+                        # elif len(transform_data) == 9:
+                        #     self.factory.rotate(dim_tags,
+                        #                         transform_data[3],
+                        #                         transform_data[4],
+                        #                         transform_data[5],
+                        #                         1, 0, 0, transform_data[6])
+                        #     self.factory.rotate(dim_tags,
+                        #                         transform_data[3],
+                        #                         transform_data[4],
+                        #                         transform_data[5],
+                        #                         0, 1, 0, transform_data[7])
+                        #     self.factory.rotate(dim_tags,
+                        #                         transform_data[3],
+                        #                         transform_data[4],
+                        #                         transform_data[5],
+                        #                         0, 0, 1, transform_data[8])
+                    curve_data[i][j][0] = round(curve_data[i][j][0], registry.point_tol)
+                    curve_data[i][j][1] = round(curve_data[i][j][1], registry.point_tol)
+                    curve_data[i][j][2] = round(curve_data[i][j][2], registry.point_tol)
+                    cs = tuple(curve_data[i][j][:3])  # x, y and z coordinates
+                    # print(cs)
+                    tag = registry.coord_point_map.get(cs, None)
+                    if tag is None:
+                        tag = self.factory.addPoint(*curve_data[i][j])
+                        registry.coord_point_map[cs] = tag
+                    else:
+                        pass
+                        # print(tag, len(registry.coord_point_map), 'curve_point')
                     ps.append(tag)
+                # print(ps, registry.coord_point_map)
                 self.curves_points.append(ps)
+            # print(self.points)
+            # print(self.curves_points)
             # Transform
-            if transform_data is not None:
-                dim_tags = [(0, x) for x in self.points]
-                for curve_points in self.curves_points:
-                    dim_tags += [(0, x) for x in curve_points]
-                self.factory.translate(dim_tags, transform_data[0],
-                                       transform_data[1], transform_data[2])
-                if len(transform_data) == 6:
-                    self.factory.rotate(dim_tags,
-                                        transform_data[0], transform_data[1],
-                                        transform_data[2],
-                                        1, 0, 0, transform_data[3])
-                    self.factory.rotate(dim_tags,
-                                        transform_data[0], transform_data[1],
-                                        transform_data[2],
-                                        0, 1, 0, transform_data[4])
-                    self.factory.rotate(dim_tags,
-                                        transform_data[0], transform_data[1],
-                                        transform_data[2],
-                                        0, 0, 1, transform_data[5])
-                elif len(transform_data) == 7:
-                    self.factory.rotate(dim_tags,
-                                        transform_data[0], transform_data[1],
-                                        transform_data[2],
-                                        transform_data[3], transform_data[4],
-                                        transform_data[5],
-                                        transform_data[6])
-                elif len(transform_data) == 9:
-                    self.factory.rotate(dim_tags,
-                                        transform_data[3], transform_data[4],
-                                        transform_data[5],
-                                        1, 0, 0, transform_data[6])
-                    self.factory.rotate(dim_tags,
-                                        transform_data[3], transform_data[4],
-                                        transform_data[5],
-                                        0, 1, 0, transform_data[7])
-                    self.factory.rotate(dim_tags,
-                                        transform_data[3], transform_data[4],
-                                        transform_data[5],
-                                        0, 0, 1, transform_data[8])
+            # if transform_data is not None:
+            #     dim_tags = [(0, x) for x in self.points]
+            #     for curve_points in self.curves_points:
+            #         dim_tags += [(0, x) for x in curve_points]
+            # self.factory.translate(dim_tags, transform_data[0],
+            #                        transform_data[1], transform_data[2])
+            # if len(transform_data) == 6:
+            #     self.factory.rotate(dim_tags,
+            #                         transform_data[0], transform_data[1],
+            #                         transform_data[2],
+            #                         1, 0, 0, transform_data[3])
+            #     self.factory.rotate(dim_tags,
+            #                         transform_data[0], transform_data[1],
+            #                         transform_data[2],
+            #                         0, 1, 0, transform_data[4])
+            #     self.factory.rotate(dim_tags,
+            #                         transform_data[0], transform_data[1],
+            #                         transform_data[2],
+            #                         0, 0, 1, transform_data[5])
+            # elif len(transform_data) == 7:
+            #     self.factory.rotate(dim_tags,
+            #                         transform_data[0], transform_data[1],
+            #                         transform_data[2],
+            #                         transform_data[3], transform_data[4],
+            #                         transform_data[5],
+            #                         transform_data[6])
+            # elif len(transform_data) == 9:
+            #     self.factory.rotate(dim_tags,
+            #                         transform_data[3], transform_data[4],
+            #                         transform_data[5],
+            #                         1, 0, 0, transform_data[6])
+            #     self.factory.rotate(dim_tags,
+            #                         transform_data[3], transform_data[4],
+            #                         transform_data[5],
+            #                         0, 1, 0, transform_data[7])
+            #     self.factory.rotate(dim_tags,
+            #                         transform_data[3], transform_data[4],
+            #                         transform_data[5],
+            #                         0, 0, 1, transform_data[8])
             # Curves
             for i in range(12):
                 # FIXME Workaround for OCC factory
-                if self.factory != gmsh.model.occ:
-                    tag = self.add_curve[curve_types[i]](self, i)
-                    self.curves.append(tag)
+                ct = [curve_types[i]]
+                if ct[0] == 0:
+                    ps = [self.points[self.curves_local_points[i][0]],
+                          self.points[self.curves_local_points[i][1]]]
                 else:
-                    tag = self.add_curve[curve_types[i] + 6](self, i)
-                    self.curves.append(tag)
+                    ps = [self.points[self.curves_local_points[i][0]]] + \
+                         self.curves_points[i] + \
+                         [self.points[self.curves_local_points[i][1]]]
+                psr = list(reversed(ps))
+                # print(ct)
+                # print(ps)
+                # print(psr)
+                cs1 = tuple(ct + ps)
+                cs2 = tuple(ct + psr)
+                # print(ct, ps)
+                # print(cs2)
+                tag = registry.curves.get(cs1, None)
+                if tag is None:
+                    if self.factory != gmsh.model.occ:
+                        tag = self.add_curve[curve_types[i]](self, i)
+                    else:
+                        tag = self.add_curve[curve_types[i] + 6](self, i)
+                    registry.curves[cs1] = tag
+                    registry.curves[cs2] = -tag
+                else:
+                    pass
+                    # print(tag, cs1, len(registry.curves), 'curve')
+                self.curves.append(tag)
+            # pprint(registry.curves)
+            # print('curves: {}'.format(len(registry.curves)))
             # Surfaces
             for i in range(6):
-                if self.factory == gmsh.model.geo:
-                    tag = self.factory.addCurveLoop(
-                        map(lambda x, y: y * self.curves[x],
-                            self.surfaces_local_curves[i],
-                            self.surfaces_local_curves_signs[i]))
-                    tag = self.factory.addSurfaceFilling([tag])
+                cs = list(map(lambda x, y: y * self.curves[x],
+                              self.surfaces_local_curves[i],
+                              self.surfaces_local_curves_signs[i]))
+                # print(cs)
+                deq = deque(cs)
+                # print(deq)
+                css = []
+                for _ in range(len(deq)):
+                    deq.rotate(1)
+                    css.append(tuple(deq))
+                deqr = deque([-1 * x for x in reversed(cs)])
+                for _ in range(len(deqr)):
+                    deqr.rotate(1)
+                    css.append(tuple(deqr))
+                # print(css)
+                tag = None
+                for c in css:
+                    tag = registry.surfaces.get(c, None)
+                    if tag is not None:
+                        break
+                if tag is None:
+                    if self.factory == gmsh.model.geo:
+                        tag = self.factory.addCurveLoop(
+                            map(lambda x, y: y * self.curves[x],
+                                self.surfaces_local_curves[i],
+                                self.surfaces_local_curves_signs[i]))
+                        tag = self.factory.addSurfaceFilling([tag])
+                    else:
+                        tag = self.factory.addCurveLoop(
+                            map(lambda x: self.curves[x],
+                                self.surfaces_local_curves[i]))
+                        tag = self.factory.addSurfaceFilling(tag)
+                    for c in css:
+                        registry.surfaces[c] = tag
                 else:
-                    tag = self.factory.addCurveLoop(
-                        map(lambda x: self.curves[x],
-                            self.surfaces_local_curves[i]))
-                    tag = self.factory.addSurfaceFilling(tag)
+                    pass
+                    # print(set(registry.surfaces.values()))
+                    # print(tag, css, len(registry.surfaces), 'surface')
                 self.surfaces.append(tag)
+            # print('surfaces: {}'.format(len(registry.curves)))
+            # print(len(self.surfaces))
             # Volume
             if inner_volumes is None:
+                # gs = volumes_groups_surfaces_registry(list(registry.volumes),
+                #                                       registry.volumes)
+                # print(gs)
+                # print(len(gs))
                 # FIXME always return tag = -1
                 tag = self.factory.addSurfaceLoop(self.surfaces)
                 tag = self.factory.addVolume([tag])
-                self.volumes.append(tag)
+                registry.volumes[tag] = self.surfaces
             else:
-                gs = volumes_groups_surfaces(inner_volumes)
+                # gs = volumes_groups_surfaces(inner_volumes)
+                gs = volumes_groups_surfaces_registry(inner_volumes, registry.volumes)
+                print(len(gs))
                 if self.factory == gmsh.model.occ:
                     # FIXME bug always return tag = -1 by default
                     out_sl = self.factory.addSurfaceLoop(self.surfaces, 1)
@@ -242,10 +596,13 @@ class Primitive:
                 sls = list()
                 sls.append(out_sl)
                 sls += in_sls
-                self.volumes.append(self.factory.addVolume(sls))
+                tag = self.factory.addVolume(sls)
+                registry.volumes[tag] = sls
+            self.volumes.append(tag)
         else:
             if inner_volumes is not None:
                 self.volumes = inner_volumes
+        # pprint(registry.coord_point_map)
 
     def recombine(self):
         volumes_dim_tags = [(3, x) for x in self.volumes]
@@ -292,6 +649,7 @@ class Primitive:
         result = False
         # Check
         check = False
+        # print(len(self.volumes))
         if len(self.volumes) == 1:  # First
             volumes_dim_tags = [(3, x) for x in self.volumes]
             surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags,
@@ -363,6 +721,7 @@ class Primitive:
                                                        i] + 4
                             self.transfinite_volume[transfinite_type](self, i)
                 result = True
+        # print(check, result)
         return result
 
     def evaluate_coordinates(self):
@@ -432,21 +791,23 @@ class Primitive:
     ]
 
     surfaces_local_curves = [
-        [5, 9, 6, 10],
-        [4, 11, 7, 8],
-        [3, 10, 2, 11],
-        [0, 8, 1, 9],
-        [0, 5, 3, 4],
-        [1, 7, 2, 6]
+        [5, 9, 6, 10],  # NX
+        [4, 11, 7, 8],  # X
+        # [3, 10, 2, 11],  # NY
+        [11, 2, 10, 3],  # NY
+        [0, 8, 1, 9],  # Y
+        [0, 5, 3, 4],  # NZ
+        [1, 7, 2, 6],  # Z
     ]
 
     surfaces_local_curves_signs = [
-        [1, 1, -1, -1],
-        [-1, 1, 1, -1],
-        [-1, 1, 1, -1],
-        [1, 1, -1, -1],
-        [-1, -1, 1, 1],
-        [1, -1, -1, 1]
+        [1, 1, -1, -1],  # NX
+        [-1, 1, 1, -1],  # X
+        # [-1, 1, 1, -1],  # NY
+        [1, -1, -1, 1],  # NY
+        [1, 1, -1, -1],  # Y
+        [-1, -1, 1, 1],  # NZ
+        [1, -1, -1, 1],  # Z
     ]
 
     transfinite_curve = {

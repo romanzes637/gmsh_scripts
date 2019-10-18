@@ -1,4 +1,5 @@
 import json
+import time
 from pprint import pprint
 import itertools
 
@@ -58,6 +59,7 @@ class NkmEleronTrench(Complex):
                     input_data['arguments']['transform_data'] = new_transform
                     t = ComplexFactory.new(input_data)
                     complexes.append(t)
+                    # t0 = time.time()
                     # print('Synchronize')
                     # factory_object.synchronize()
                     # print('Evaluate')
@@ -67,16 +69,19 @@ class NkmEleronTrench(Complex):
                     # factory_object.removeAllDuplicates()
                     # print('Synchronize')
                     # factory_object.synchronize()
+                    # print(time.time() - t0)
                     # Left
                     cnt += 1
                     print('{0}/{1} Level {2} Tunnel {3} Trench {4} Left'.format(
                         cnt, n_bs, z, x, y))
+                    new_transform = input_data['arguments']['transform_data']
                     new_transform[0] = x - 13.155 - 2.500
                     new_transform[1] = y
                     new_transform[2] = z - 4.400
                     input_data['arguments']['transform_data'] = new_transform
                     t2 = ComplexFactory.new(input_data)
                     complexes.append(t2)
+                    # t0 = time.time()
                     # print('Synchronize')
                     # factory_object.synchronize()
                     # print('Evaluate')
@@ -84,15 +89,20 @@ class NkmEleronTrench(Complex):
                     #     c.evaluate_coordinates()
                     # print('Remove Duplicates')
                     # factory_object.removeAllDuplicates()
-        print('Synchronize')
-        factory_object.synchronize()
-        print('Evaluate')
-        for c in complexes:
-            c.evaluate_coordinates()
-        print('Remove Duplicates')
-        factory_object.removeAllDuplicates()
-        print('Synchronize')
-        factory_object.synchronize()
+                    # print('Synchronize')
+                    # factory_object.synchronize()
+                    # print(time.time() - t0)
+        # t0 = time.time()
+        # print('Synchronize')
+        # factory_object.synchronize()
+        # print('Evaluate')
+        # for c in complexes:
+        #     c.evaluate_coordinates()
+        # print('Remove Duplicates')
+        # factory_object.removeAllDuplicates()
+        # print('Synchronize')
+        # factory_object.synchronize()
+        # print(time.time() - t0)
         print('Environment')
         result = check_file(env_input_path)
         print(result)

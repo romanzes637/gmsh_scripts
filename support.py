@@ -700,27 +700,46 @@ def volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces):
     :return: volumes_groups_surfaces [[vg1_s1, ..., vg1_si], ...]
     """
     vs_indexes = set(range(len(volumes_surfaces)))
+    # gs = list()
+    # gs_out = list()
+    # for i, ss in enumerate(volumes_surfaces):
+    #     new_group = True
+    #     for j, g in enumerate(gs):
+    #         for s in ss:
+    #             if s in g:
+    #                 gs[j].update(ss)
+    #                 gs_out[j].symmetric_difference_update(ss)
+    #                 new_group = False
+    #     if new_group:
+    #         gs.append(set(ss))
+    #         gs_out.append(set(ss))
+    # print(gs)
+    # if len(gs) > 1:
+    #     print(gs[0].intersection(gs[1]))
+    # if len(gs) > 2:
+    #     print(gs[1].intersection(gs[2]))
+    #     print(gs[2].intersection(gs[0]))
     while len(vs_indexes) != 0:
         current_index = list(vs_indexes)[0]
         current_surfaces = set(volumes_surfaces[current_index])
-        other_vs_indexes = {x for x in vs_indexes if x != current_index}
+        other_indexes = {x for x in vs_indexes if x != current_index}
         is_intersection = True
         while is_intersection:
             is_intersection = False
-            new_other_vs_indexes = {x for x in other_vs_indexes}
-            for index in other_vs_indexes:
-                surfaces_i = set(volumes_surfaces[index])
+            new_other_indexes = {x for x in other_indexes}
+            for i in other_indexes:
+                surfaces_i = set(volumes_surfaces[i])
                 intersection = current_surfaces.intersection(surfaces_i)
                 if len(intersection) > 0:
                     is_intersection = True
                     # Update current
                     current_surfaces.symmetric_difference_update(surfaces_i)
-                    new_other_vs_indexes.remove(index)
-                    vs_indexes.remove(index)
+                    new_other_indexes.remove(i)
+                    vs_indexes.remove(i)
                     # Update global
                     volumes_surfaces[current_index] = list(current_surfaces)
-                    volumes_surfaces[index] = list()
-            other_vs_indexes = new_other_vs_indexes
+                    volumes_surfaces[i] = list()
+            other_indexes = new_other_indexes
         vs_indexes.remove(current_index)
     volumes_surfaces_groups = [x for x in volumes_surfaces if len(x) != 0]
     return volumes_surfaces_groups
@@ -743,6 +762,11 @@ def volumes_groups_surfaces(volumes):
         surfaces_dim_tags = gmsh.model.getBoundary([vdt], oriented=False)
         ss = [x[1] for x in surfaces_dim_tags]
         volumes_surfaces.append(ss)
+    return volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces)
+
+
+def volumes_groups_surfaces_registry(volumes, registry_volumes):
+    volumes_surfaces = [registry_volumes[x] for x in volumes]
     return volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces)
 
 

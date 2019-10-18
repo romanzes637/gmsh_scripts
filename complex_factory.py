@@ -21,7 +21,7 @@ import nkm_eleron_2
 import nkm_eleron_trench
 from boolean import complex_self
 from occ_workarounds import correct_and_transfinite_complex, \
-    correct_and_transfinite_and_recombine_complex
+    correct_and_transfinite_and_recombine_complex, transfinite_complex
 from support import boundary_surfaces_to_six_side_groups, \
     get_boundary_surfaces, check_file, physical_surfaces, \
     auto_complex_points_sizes_min_curve_in_volume, set_boundary_points_sizes, \
@@ -203,10 +203,10 @@ if __name__ == '__main__':
         if args['boolean']:
             print("Boolean")
             complex_self(factory, c)
-        print('Remove Duplicates')
-        factory.removeAllDuplicates()
-        print('Synchronize')
-        factory.synchronize()
+        # print('Remove Duplicates')
+        # factory.removeAllDuplicates()
+        # print('Synchronize')
+        # factory.synchronize()
         # Primitive/Complex Correction
         ss = set()
         cs = set()
@@ -215,7 +215,8 @@ if __name__ == '__main__':
             correct_and_transfinite_and_recombine_complex(c, ss, cs)
         else:
             print('Correct and Transfinite')
-            correct_and_transfinite_complex(c, ss, cs)
+            # correct_and_transfinite_complex(c, ss, cs)
+            transfinite_complex(c, ss, cs)
         if args['auto_size'] is not None:
             print('Auto Size: {}'.format(args['auto_size']))
             pss = dict()
