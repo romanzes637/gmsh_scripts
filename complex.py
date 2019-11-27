@@ -20,11 +20,12 @@ class Complex:
             p.set_size(size)
 
     def transfinite(self, transfinited_surfaces, transfinited_curves):
-        results = list()
+        # results = list()
         for p in self.primitives:
-            result = p.transfinite(transfinited_surfaces, transfinited_curves)
-            results.append(result)
-        return results
+            p.transfinite(transfinited_surfaces, transfinited_curves)
+            # result = p.transfinite(transfinited_surfaces, transfinited_curves)
+            # results.append(result)
+        # return results
 
     def get_volumes(self):
         vs = list()

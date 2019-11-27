@@ -13,7 +13,8 @@ class Primitive:
     def __init__(self, factory, point_data=None, transform_data=None,
                  curve_types=None, curve_data=None,
                  transfinite_data=None, transfinite_type=None,
-                 physical_name=None, inner_volumes=None, surfaces_names=None):
+                 physical_name=None, inner_volumes=None, surfaces_names=None,
+                 rec=None, trans=None):
         """
         Base object with six quadrangular surfaces and eight points
         The object (e.g. number of its volumes/surfaces)
@@ -550,9 +551,9 @@ class Primitive:
                 if tag is None:
                     if self.factory == gmsh.model.geo:
                         tag = self.factory.addCurveLoop(
-                            map(lambda x, y: y * self.curves[x],
+                            list(map(lambda x, y: y * self.curves[x],
                                 self.surfaces_local_curves[i],
-                                self.surfaces_local_curves_signs[i]))
+                                self.surfaces_local_curves_signs[i])))
                         tag = self.factory.addSurfaceFilling([tag])
                     else:
                         tag = self.factory.addCurveLoop(
@@ -603,16 +604,19 @@ class Primitive:
             if inner_volumes is not None:
                 self.volumes = inner_volumes
         # pprint(registry.coord_point_map)
+        self.rec = rec if rec is not None else True
+        self.trans = trans if trans is not None else True
 
     def recombine(self):
-        volumes_dim_tags = [(3, x) for x in self.volumes]
-        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags,
-                                                   combined=False)
-        for dt in surfaces_dim_tags:
-            if self.factory == gmsh.model.occ:
-                gmsh.model.mesh.setRecombine(dt[0], dt[1])
-            else:
-                self.factory.mesh.setRecombine(dt[0], dt[1])
+        if self.rec:
+            volumes_dim_tags = [(3, x) for x in self.volumes]
+            surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags,
+                                                       combined=False)
+            for dt in surfaces_dim_tags:
+                if self.factory == gmsh.model.occ:
+                    gmsh.model.mesh.setRecombine(dt[0], dt[1])
+                else:
+                    self.factory.mesh.setRecombine(dt[0], dt[1])
 
     def smooth(self, dim, n):
         """
@@ -646,83 +650,84 @@ class Primitive:
         :param transfinited_curves: set() of already transfinite curves
         (workaround for double transfinite issue)
         """
-        result = False
-        # Check
-        check = False
-        # print(len(self.volumes))
-        if len(self.volumes) == 1:  # First
-            volumes_dim_tags = [(3, x) for x in self.volumes]
-            surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags,
-                                                       combined=False)
-            if len(surfaces_dim_tags) == 6:  # Second
-                points_dim_tags = gmsh.model.getBoundary(volumes_dim_tags,
-                                                         combined=False,
-                                                         recursive=True)
-                if len(points_dim_tags) == 8:  # Third
-                    surfaces_points = []
-                    for dim_tag in surfaces_dim_tags:
-                        points_dim_tags = gmsh.model.getBoundary(
-                            [(dim_tag[0], dim_tag[1])], combined=False,
-                            recursive=True)
-                        surfaces_points.append(
-                            map(lambda x: x[1], points_dim_tags))
-                    is_4_points = True
-                    for surface_points in surfaces_points:
-                        if len(surface_points) != 4:  # Fourth
-                            is_4_points = False
-                            break
-                    if is_4_points:
-                        check = True
-        # Transfinite
-        if check:
-            if self.transfinite_type == 0:
-                transfinite_surface_data = [1, 1, 1, 1, 1, 1]
-                transfinite_volume_data = [0]
-            elif self.transfinite_type == 1:
-                transfinite_surface_data = [1, 1, 0, 0, 0, 0]
-                transfinite_volume_data = [1]
-            elif self.transfinite_type == 2:
-                transfinite_surface_data = [0, 0, 0, 0, 1, 1]
-                transfinite_volume_data = [2]
-            elif self.transfinite_type == 3:
-                transfinite_surface_data = [0, 0, 1, 1, 0, 0]
-                transfinite_volume_data = [3]
-            else:
-                transfinite_surface_data = None
-                transfinite_volume_data = None
-            if self.transfinite_data is not None:
-                for i, c in enumerate(self.curves):
-                    if c not in transfinited_curves:
-                        # FIXME Workaround for GEO factory
-                        if self.factory != gmsh.model.geo:
-                            transfinite_type = self.transfinite_data[i][1]
-                        else:
-                            transfinite_type = self.transfinite_data[i][1] + 2
-                        self.transfinite_curve[transfinite_type](self, i)
-                        transfinited_curves.add(c)
-                if transfinite_surface_data is not None:
-                    for i, s in enumerate(self.surfaces):
-                        if s not in transfinited_surfaces:
+        if self.trans:
+            result = False
+            # Check
+            check = False
+            # print(len(self.volumes))
+            if len(self.volumes) == 1:  # First
+                volumes_dim_tags = [(3, x) for x in self.volumes]
+                surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags,
+                                                           combined=False)
+                if len(surfaces_dim_tags) == 6:  # Second
+                    points_dim_tags = gmsh.model.getBoundary(volumes_dim_tags,
+                                                             combined=False,
+                                                             recursive=True)
+                    if len(points_dim_tags) == 8:  # Third
+                        surfaces_points = []
+                        for dim_tag in surfaces_dim_tags:
+                            points_dim_tags = gmsh.model.getBoundary(
+                                [(dim_tag[0], dim_tag[1])], combined=False,
+                                recursive=True)
+                            surfaces_points.append(
+                                list(map(lambda x: x[1], points_dim_tags)))
+                        is_4_points = True
+                        for surface_points in surfaces_points:
+                            if len(surface_points) != 4:  # Fourth
+                                is_4_points = False
+                                break
+                        if is_4_points:
+                            check = True
+            # Transfinite
+            if check:
+                if self.transfinite_type == 0:
+                    transfinite_surface_data = [1, 1, 1, 1, 1, 1]
+                    transfinite_volume_data = [0]
+                elif self.transfinite_type == 1:
+                    transfinite_surface_data = [1, 1, 0, 0, 0, 0]
+                    transfinite_volume_data = [1]
+                elif self.transfinite_type == 2:
+                    transfinite_surface_data = [0, 0, 0, 0, 1, 1]
+                    transfinite_volume_data = [2]
+                elif self.transfinite_type == 3:
+                    transfinite_surface_data = [0, 0, 1, 1, 0, 0]
+                    transfinite_volume_data = [3]
+                else:
+                    transfinite_surface_data = None
+                    transfinite_volume_data = None
+                if self.transfinite_data is not None:
+                    for i, c in enumerate(self.curves):
+                        if c not in transfinited_curves:
                             # FIXME Workaround for GEO factory
                             if self.factory != gmsh.model.geo:
-                                transfinite_type = transfinite_surface_data[i]
+                                transfinite_type = self.transfinite_data[i][1]
                             else:
-                                transfinite_type = transfinite_surface_data[
-                                                       i] + 4
-                            self.transfinite_surface[transfinite_type](self, i)
-                            transfinited_surfaces.add(s)
-                    if transfinite_volume_data is not None:
-                        for i in range(len(self.volumes)):
-                            # FIXME Workaround for GEO factory
-                            if self.factory != gmsh.model.geo:
-                                transfinite_type = transfinite_volume_data[i]
-                            else:
-                                transfinite_type = transfinite_volume_data[
-                                                       i] + 4
-                            self.transfinite_volume[transfinite_type](self, i)
-                result = True
-        # print(check, result)
-        return result
+                                transfinite_type = self.transfinite_data[i][1] + 2
+                            self.transfinite_curve[transfinite_type](self, i)
+                            transfinited_curves.add(c)
+                    if transfinite_surface_data is not None:
+                        for i, s in enumerate(self.surfaces):
+                            if s not in transfinited_surfaces:
+                                # FIXME Workaround for GEO factory
+                                if self.factory != gmsh.model.geo:
+                                    transfinite_type = transfinite_surface_data[i]
+                                else:
+                                    transfinite_type = transfinite_surface_data[
+                                                           i] + 4
+                                self.transfinite_surface[transfinite_type](self, i)
+                                transfinited_surfaces.add(s)
+                        if transfinite_volume_data is not None:
+                            for i in range(len(self.volumes)):
+                                # FIXME Workaround for GEO factory
+                                if self.factory != gmsh.model.geo:
+                                    transfinite_type = transfinite_volume_data[i]
+                                else:
+                                    transfinite_type = transfinite_volume_data[
+                                                           i] + 4
+                                self.transfinite_volume[transfinite_type](self, i)
+                    result = True
+            # print(check, result)
+            return result
 
     def evaluate_coordinates(self):
         if not self.coordinates_evaluated:

@@ -4,6 +4,7 @@ import argparse
 import socket
 from pprint import pprint
 import sys
+import time
 
 import gmsh
 
@@ -20,8 +21,6 @@ import tunnel
 import nkm_eleron_2
 import nkm_eleron_trench
 from boolean import complex_self
-from occ_workarounds import correct_and_transfinite_complex, \
-    correct_and_transfinite_and_recombine_complex, transfinite_complex
 from support import boundary_surfaces_to_six_side_groups, \
     get_boundary_surfaces, check_file, physical_surfaces, \
     auto_complex_points_sizes_min_curve_in_volume, set_boundary_points_sizes, \
@@ -183,14 +182,15 @@ if __name__ == '__main__':
     else:
         gmsh.option.setNumber("General.Terminal", 0)
     gmsh.option.setNumber('Geometry.AutoCoherence', 0)  # No effect at occ
-    if args['optimize']:
-        gmsh.option.setNumber('Mesh.Optimize', 1)
-    else:
-        gmsh.option.setNumber('Mesh.Optimize', 0)
+    # if args['optimize']:
+    #     gmsh.option.setNumber('Mesh.Optimize', 1)
+    # else:
+    gmsh.option.setNumber('Mesh.Optimize', 0)  # resolving further
     gmsh.option.setNumber('Mesh.Algorithm3D', args['mesh_algorithm'])
     print('Model')
     model_name = basename
     gmsh.model.add(model_name)
+    t00 = time.time()
     print('Initialize')
     c = ComplexFactory.new(input_data)
     factory = c.factory
@@ -203,20 +203,36 @@ if __name__ == '__main__':
         if args['boolean']:
             print("Boolean")
             complex_self(factory, c)
+        # print(len(gmsh.model.getEntities(0)))
+        # print(len(gmsh.model.getEntities(1)))
+        # print(len(gmsh.model.getEntities(2)))
+        # print(len(gmsh.model.getEntities(3)))
         # print('Remove Duplicates')
+        # t0 = time.time()
         # factory.removeAllDuplicates()
+        # print(time.time() - t0)
         # print('Synchronize')
+        # t0 = time.time()
         # factory.synchronize()
+        # print(time.time() - t0)
+        # print(len(gmsh.model.getEntities(0)))
+        # print(len(gmsh.model.getEntities(1)))
+        # print(len(gmsh.model.getEntities(2)))
+        # print(len(gmsh.model.getEntities(3)))
         # Primitive/Complex Correction
-        ss = set()
-        cs = set()
+        ss = set()  # transfinited surfaces
+        cs = set()  # transfinited curves
         if args['recombine']:
             print('Correct and Transfinite and Recombine')
-            correct_and_transfinite_and_recombine_complex(c, ss, cs)
+            c.transfinite(ss, cs)
+            c.recombine()
+            # correct_and_transfinite_and_recombine_complex(c, ss, cs)
+            # transfinite_and_recombine_complex(c, ss, cs)
         else:
             print('Correct and Transfinite')
+            c.transfinite(ss, cs)
             # correct_and_transfinite_complex(c, ss, cs)
-            transfinite_complex(c, ss, cs)
+            # transfinite_complex(c, ss, cs)
         if args['auto_size'] is not None:
             print('Auto Size: {}'.format(args['auto_size']))
             pss = dict()
@@ -274,9 +290,21 @@ if __name__ == '__main__':
             print("By support.physical_surfaces")
             physical_surfaces(**physical_surfaces_kwargs)
         print("Mesh")
+        t0 = time.time()
         gmsh.model.mesh.generate(3)
-        gmsh.model.mesh.removeDuplicateNodes()
+        print(time.time() - t0)
         print('Nodes: {0}'.format(len(gmsh.model.mesh.getNodes()[0])))
+        t0 = time.time()
+        # gmsh.model.mesh.removeDuplicateNodes()
+        print(time.time() - t0)
+        print('Nodes: {0}'.format(len(gmsh.model.mesh.getNodes()[0])))
+        # es = gmsh.model.mesh.getElements()
+        if args['optimize']:
+            print("Optimize Mesh")
+            t0 = time.time()
+            gmsh.model.mesh.optimize('Optimize', True)
+            print(time.time() - t0)
     print("Write: {}".format(args['output_path']))
     gmsh.write(args['output_path'])
     gmsh.finalize()
+    print('Time spent: {}s'.format(time.time() - t00))

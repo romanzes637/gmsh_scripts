@@ -1,0 +1,49 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "DividedCylinder",
+    "description": "Cylinder for testing"
+  },
+  "arguments": {
+    "factory": "geo",
+    "radii": [1, 3],
+    "heights": [1, 3],
+    "layers_lcs": [
+      [1, 1],
+      [1, 1]
+    ],
+    "volumes_names": ["Internal", "External"],
+    "layers_physical_names": [
+      [0, 1],
+      [0, 1]
+    ],
+    "surfaces_names": [
+      ["NX", "X", "NY", "Y", "NZ", "Z"]
+    ],
+    "layers_surfaces_names": [
+      [0, 0],
+      [0, 0]
+    ],
+    "transfinite_h_data": [
+      [5, 0, 1],
+      [5, 0, 1]
+    ],
+    "transfinite_phi_data": [5, 0, 1],
+    "transfinite_r_data": [
+      [5, 0, 1],
+      [5, 0, 1]
+    ],
+    "transform_data": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "divide_h_data": null,
+    "divide_r_data": null,
+    "straight_boundary": [1, 3],
+    "layers_recs": [
+      [1, 0],
+      [1, 0]
+    ],
+    "layers_trans": [
+      [1, 0],
+      [1, 0]
+    ]
+  }
+}
