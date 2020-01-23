@@ -8,7 +8,8 @@ class Cylinder(Complex):
                  layers_physical_names, transfinite_r_data, transfinite_h_data,
                  transfinite_phi_data, straight_boundary=None,
                  layers_surfaces_names=None, surfaces_names=None,
-                 volumes_names=None, layers_recs=None, layers_trans=None):
+                 volumes_names=None, layers_recs=None, layers_trans=None,
+                 k=None):
         """
         Multilayer cylinder
         Used for axisymmetric objects
@@ -51,10 +52,12 @@ class Cylinder(Complex):
         :param list of str volumes_names: Names for use in layers_physical_names
         :param list if list of int layers_recs: Recombine primitives? 1 - yes, 0 - no
         :param list if list of int layers_trans: Transfinite primitives? 1 - yes, 0 - no
+        :param float k: quadrangle part of first layer radius
         :return None
         """
         primitives = []
-        k = 1 / 3.0  # inner quadrangle part of the first layer radius
+        if k is None:
+            k = 1 / 3.0  # inner quadrangle part of the first layer radius
         transfinite_types = [0, 0, 0, 1, 3]
         h_cnt = 0.0  # height counter
         if layers_lcs is None:

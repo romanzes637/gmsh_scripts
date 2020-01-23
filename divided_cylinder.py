@@ -7,7 +7,7 @@ class DividedCylinder(Cylinder):
                  transfinite_phi_data, divide_r_data, divide_h_data,
                  straight_boundary=None, layers_surfaces_names=None,
                  surfaces_names=None, volumes_names=None,
-                 layers_recs=None, layers_trans=None):
+                 layers_recs=None, layers_trans=None, k=None):
         """
         Divided multilayer cylinder for boolean operations
         :param str factory: see Cylinder
@@ -125,4 +125,4 @@ class DividedCylinder(Cylinder):
                           new_transfinite_h_data, transfinite_phi_data,
                           straight_boundary, layers_surfaces_names,
                           surfaces_names, volumes_names,
-                          new_primitive_recs, new_primitive_trans)
+                          new_primitive_recs, new_primitive_trans, k)
