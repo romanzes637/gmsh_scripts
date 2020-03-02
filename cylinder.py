@@ -4,12 +4,30 @@ from primitive import Primitive
 
 
 class Cylinder(Complex):
+    surfaces_names_map = {
+        ('C', 4): [0, 0, 0, 0, 2, 3],
+        ('NX', 4): [1, 0, 0, 0, 2, 3],
+        ('X', 4): [0, 1, 0, 0, 2, 3],
+        ('NY', 4): [0, 0, 1, 0, 2, 3],
+        ('Y', 4): [0, 0, 0, 1, 2, 3],
+        ('C', 6): [0, 1, 2, 3, 4, 5],
+        ('NX', 6): [0, 1, 2, 3, 4, 5],
+        ('X', 6): [0, 1, 2, 3, 4, 5],
+        ('NY', 6): [0, 1, 2, 3, 4, 5],
+        ('Y', 6): [0, 1, 2, 3, 4, 5],
+        ('C', 10): [0, 0, 0, 0, 8, 9],
+        ('NX', 10): [4, 0, 0, 0, 8, 9],
+        ('X', 10): [1, 5, 0, 0, 8, 9],
+        ('NY', 10): [0, 0, 6, 2, 8, 9],
+        ('Y', 10): [0, 0, 3, 7, 8, 9],
+    }
+
     def __init__(self, factory, radii, heights, layers_lcs, transform_data,
                  layers_physical_names, transfinite_r_data, transfinite_h_data,
                  transfinite_phi_data, straight_boundary=None,
                  layers_surfaces_names=None, surfaces_names=None,
                  volumes_names=None, layers_recs=None, layers_trans=None,
-                 k=None):
+                 k=None, layers_exists=None):
         """
         Multilayer cylinder
         Used for axisymmetric objects
@@ -53,19 +71,21 @@ class Cylinder(Complex):
         :param list if list of int layers_recs: Recombine primitives? 1 - yes, 0 - no
         :param list if list of int layers_trans: Transfinite primitives? 1 - yes, 0 - no
         :param float k: quadrangle part of first layer radius
+        :param list if list of int layers_exists: Create primitives?
         :return None
         """
         primitives = []
         if k is None:
             k = 1 / 3.0  # inner quadrangle part of the first layer radius
         transfinite_types = [0, 0, 0, 1, 3]
-        h_cnt = 0.0  # height counter
         if layers_lcs is None:
             layers_lcs = [[1 for _ in radii] for _ in heights]
         if layers_recs is None:
             layers_recs = [[1 for _ in radii] for _ in heights]
         if layers_trans is None:
             layers_trans = [[1 for _ in radii] for _ in heights]
+        if layers_exists is None:
+            layers_exists = [[1 for _ in radii] for _ in heights]
         if surfaces_names is None:
             surfaces_names = [['NX', 'X', 'NY', 'Y', 'NZ', 'Z']]
         if layers_surfaces_names is None:
@@ -74,333 +94,343 @@ class Cylinder(Complex):
             new_layers_physical_names = [[volumes_names[x] for x in y]
                                          for y in layers_physical_names]
             layers_physical_names = new_layers_physical_names
+        if straight_boundary is None:
+            straight_boundary = [1]
+            for _ in range(len(radii) - 1):
+                straight_boundary.append(3)
+        c = radii[0] / math.sqrt(2.0)
+        kc = k * radii[0] / math.sqrt(2.0)
+        h_cnt = 0.0  # height counter
         for i, h in enumerate(heights):
-            c = radii[0] / math.sqrt(2.0)
-            kc = k * radii[0] / math.sqrt(2.0)
             bottom_h = h_cnt  # primitive bottom h
             top_h = h_cnt + h  # primitive top h
             h_cnt += h
-            if straight_boundary is None:
-                # Core center
-                primitives.append(Primitive(
-                    factory,
-                    [
-                        [kc, kc, bottom_h, layers_lcs[i][0]],
-                        [-kc, kc, bottom_h, layers_lcs[i][0]],
-                        [-kc, -kc, bottom_h, layers_lcs[i][0]],
-                        [kc, -kc, bottom_h, layers_lcs[i][0]],
-                        [kc, kc, top_h, layers_lcs[i][0]],
-                        [-kc, kc, top_h, layers_lcs[i][0]],
-                        [-kc, -kc, top_h, layers_lcs[i][0]],
-                        [kc, -kc, top_h, layers_lcs[i][0]]
-                    ],
-                    transform_data,
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [[], [], [], [], [], [], [], [], [], [], [], []],
-                    [
-                        transfinite_phi_data,
-                        transfinite_phi_data,
-                        transfinite_h_data[i]
-                    ],
-                    transfinite_types[0],
-                    layers_physical_names[i][0],
-                    surfaces_names=surfaces_names[layers_surfaces_names[i][0]],
-                    rec=layers_recs[i][0],
-                    trans=layers_trans[i][0]
-                ))
-                # Core X
-                primitives.append(Primitive(
-                    factory,
-                    [
-                        [c, c, bottom_h, layers_lcs[i][0]],
-                        [kc, kc, bottom_h, layers_lcs[i][0]],
-                        [kc, -kc, bottom_h, layers_lcs[i][0]],
-                        [c, -c, bottom_h, layers_lcs[i][0]],
-                        [c, c, top_h, layers_lcs[i][0]],
-                        [kc, kc, top_h, layers_lcs[i][0]],
-                        [kc, -kc, top_h, layers_lcs[i][0]],
-                        [c, -c, top_h, layers_lcs[i][0]]
-                    ],
-                    transform_data,
-                    [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
-                    [
-                        [], [], [], [],
-                        [[0, 0, bottom_h, 1]], [], [], [[0, 0, top_h, 1]],
-                        [], [], [], []
-                    ],
-                    [
-                        transfinite_r_data[0],
-                        transfinite_phi_data,
-                        transfinite_h_data[i]
-                    ],
-                    transfinite_types[1],
-                    layers_physical_names[i][0],
-                    surfaces_names=surfaces_names[layers_surfaces_names[i][0]],
-                    rec=layers_recs[i][0],
-                    trans=layers_trans[i][0]
-                ))
-                # Core Y
-                primitives.append(Primitive(
-                    factory,
-                    [
-                        [c, c, bottom_h, layers_lcs[i][0]],
-                        [-c, c, bottom_h, layers_lcs[i][0]],
-                        [-kc, kc, bottom_h, layers_lcs[i][0]],
-                        [kc, kc, bottom_h, layers_lcs[i][0]],
-                        [c, c, top_h, layers_lcs[i][0]],
-                        [-c, c, top_h, layers_lcs[i][0]],
-                        [-kc, kc, top_h, layers_lcs[i][0]],
-                        [kc, kc, top_h, layers_lcs[i][0]]
-                    ],
-                    transform_data,
-                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [
-                        [[0, 0, bottom_h, 1]], [[0, 0, top_h, 1]], [], [],
-                        [], [], [], [],
-                        [], [], [], []
-                    ],
-                    [
-                        transfinite_phi_data,
-                        transfinite_r_data[0],
-                        transfinite_h_data[i],
-                    ],
-                    transfinite_types[2],
-                    layers_physical_names[i][0],
-                    surfaces_names=surfaces_names[layers_surfaces_names[i][0]],
-                    rec=layers_recs[i][0],
-                    trans=layers_trans[i][0]
-                ))
-                # Core NX
-                if transfinite_r_data[0][
-                    1] == 0:  # If type is Progression then reverse coefficient
-                    rc = 1.0 / transfinite_r_data[0][2]
-                else:
-                    rc = transfinite_r_data[0][2]
-                primitives.append(Primitive(
-                    factory,
-                    [
-                        [-kc, kc, bottom_h, layers_lcs[i][0]],
-                        [-c, c, bottom_h, layers_lcs[i][0]],
-                        [-c, -c, bottom_h, layers_lcs[i][0]],
-                        [-kc, -kc, bottom_h, layers_lcs[i][0]],
-                        [-kc, kc, top_h, layers_lcs[i][0]],
-                        [-c, c, top_h, layers_lcs[i][0]],
-                        [-c, -c, top_h, layers_lcs[i][0]],
-                        [-kc, -kc, top_h, layers_lcs[i][0]]
-                    ],
-                    transform_data,
-                    [0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
-                    [
-                        [], [], [], [],
-                        [], [[0, 0, bottom_h, 1]], [[0, 0, top_h, 1]], [],
-                        [], [], [], []
-                    ],
-                    [
-                        [transfinite_r_data[0][0], transfinite_r_data[0][1],
-                         rc],
-                        transfinite_phi_data,
-                        transfinite_h_data[i]
-                    ],
-                    transfinite_types[3],
-                    layers_physical_names[i][0],
-                    surfaces_names=surfaces_names[layers_surfaces_names[i][0]],
-                    rec=layers_recs[i][0],
-                    trans=layers_trans[i][0]
-                ))
-                # Core NY
-                if transfinite_r_data[0][
-                    1] == 0:  # If type is Progression then reverse coefficient
-                    rc = 1.0 / transfinite_r_data[0][2]
-                else:
-                    rc = transfinite_r_data[0][2]
-                primitives.append(Primitive(
-                    factory,
-                    [
-                        [kc, -kc, bottom_h, layers_lcs[i][0]],
-                        [-kc, -kc, bottom_h, layers_lcs[i][0]],
-                        [-c, -c, bottom_h, layers_lcs[i][0]],
-                        [c, -c, bottom_h, layers_lcs[i][0]],
-                        [kc, -kc, top_h, layers_lcs[i][0]],
-                        [-kc, -kc, top_h, layers_lcs[i][0]],
-                        [-c, -c, top_h, layers_lcs[i][0]],
-                        [c, -c, top_h, layers_lcs[i][0]]
-                    ],
-                    transform_data,
-                    [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [
-                        [], [], [[0, 0, top_h, 1]], [[0, 0, bottom_h, 1]],
-                        [], [], [], [],
-                        [], [], [], []
-                    ],
-                    [
-                        transfinite_phi_data,
-                        [transfinite_r_data[0][0], transfinite_r_data[0][1],
-                         rc],
-                        transfinite_h_data[i],
-                    ],
-                    transfinite_types[4],
-                    layers_physical_names[i][0],
-                    surfaces_names=surfaces_names[layers_surfaces_names[i][0]],
-                    rec=layers_recs[i][0],
-                    trans=layers_trans[i][0]
-                ))
-                # Layers
-                for j in range(1, len(radii)):
-                    c1 = radii[j - 1] / math.sqrt(2.0)
-                    c2 = radii[j] / math.sqrt(2.0)
-                    # Layer X
-                    primitives.append(Primitive(
-                        factory,
-                        [
-                            [c2, c2, bottom_h, layers_lcs[i][j]],
-                            [c1, c1, bottom_h, layers_lcs[i][j]],
-                            [c1, -c1, bottom_h, layers_lcs[i][j]],
-                            [c2, -c2, bottom_h, layers_lcs[i][j]],
-                            [c2, c2, top_h, layers_lcs[i][j]],
-                            [c1, c1, top_h, layers_lcs[i][j]],
-                            [c1, -c1, top_h, layers_lcs[i][j]],
-                            [c2, -c2, top_h, layers_lcs[i][j]]
-                        ],
-                        transform_data,
-                        [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
-                        [
-                            [], [], [], [],
-                            [[0, 0, bottom_h, 1]],
-                            [[0, 0, bottom_h, 1]],
-                            [[0, 0, top_h, 1]],
-                            [[0, 0, top_h, 1]],
-                            [], [], [], []
-                        ],
-                        [
-                            transfinite_r_data[j],
-                            transfinite_phi_data,
-                            transfinite_h_data[i]
-                        ],
-                        transfinite_types[1],
-                        layers_physical_names[i][j],
-                        surfaces_names=surfaces_names[
-                            layers_surfaces_names[i][j]],
-                        rec=layers_recs[i][j],
-                        trans=layers_trans[i][j]
-                    ))
-                    # Layer Y
-                    primitives.append(Primitive(
-                        factory,
-                        [
-                            [c2, c2, bottom_h, layers_lcs[i][j]],
-                            [-c2, c2, bottom_h, layers_lcs[i][j]],
-                            [-c1, c1, bottom_h, layers_lcs[i][j]],
-                            [c1, c1, bottom_h, layers_lcs[i][j]],
-                            [c2, c2, top_h, layers_lcs[i][j]],
-                            [-c2, c2, top_h, layers_lcs[i][j]],
-                            [-c1, c1, top_h, layers_lcs[i][j]],
-                            [c1, c1, top_h, layers_lcs[i][j]]
-                        ],
-                        transform_data,
-                        [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [
-                            [[0, 0, bottom_h, 1]],
-                            [[0, 0, top_h, 1]],
-                            [[0, 0, top_h, 1]],
-                            [[0, 0, bottom_h, 1]],
-                            [], [], [], [],
-                            [], [], [], []
-                        ],
-                        [
-                            transfinite_phi_data,
-                            transfinite_r_data[j],
-                            transfinite_h_data[i]
-                        ],
-                        transfinite_types[2],
-                        layers_physical_names[i][j],
-                        surfaces_names=surfaces_names[
-                            layers_surfaces_names[i][j]],
-                        rec=layers_recs[i][j],
-                        trans=layers_trans[i][j]
-                    ))
-                    # Layer NX
-                    if transfinite_r_data[j][
-                        1] == 0:  # If type is Progression then reverse coefficient
-                        rc = 1.0 / transfinite_r_data[j][2]
-                    else:
-                        rc = transfinite_r_data[j][2]
-                    primitives.append(Primitive(
-                        factory,
-                        [
-                            [-c1, c1, bottom_h, layers_lcs[i][j]],
-                            [-c2, c2, bottom_h, layers_lcs[i][j]],
-                            [-c2, -c2, bottom_h, layers_lcs[i][j]],
-                            [-c1, -c1, bottom_h, layers_lcs[i][j]],
-                            [-c1, c1, top_h, layers_lcs[i][j]],
-                            [-c2, c2, top_h, layers_lcs[i][j]],
-                            [-c2, -c2, top_h, layers_lcs[i][j]],
-                            [-c1, -c1, top_h, layers_lcs[i][j]]
-                        ],
-                        transform_data,
-                        [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
-                        [
-                            [], [], [], [],
-                            [[0, 0, bottom_h, 1]],
-                            [[0, 0, bottom_h, 1]],
-                            [[0, 0, top_h, 1]],
-                            [[0, 0, top_h, 1]],
-                            [], [], [], []
-                        ],
-                        [
-                            [transfinite_r_data[j][0], transfinite_r_data[j][1],
-                             rc],
-                            transfinite_phi_data,
-                            transfinite_h_data[i]
-                        ],
-                        transfinite_types[3],
-                        layers_physical_names[i][j],
-                        surfaces_names=surfaces_names[
-                            layers_surfaces_names[i][j]],
-                        rec=layers_recs[i][j],
-                        trans=layers_trans[i][j]
-                    ))
-                    # Layer NY
-                    if transfinite_r_data[j][
-                        1] == 0:  # If type is Progression then reverse coefficient
-                        rc = 1.0 / transfinite_r_data[j][2]
-                    else:
-                        rc = transfinite_r_data[j][2]
-                    primitives.append(Primitive(
-                        factory,
-                        [
-                            [c1, -c1, bottom_h, layers_lcs[i][j]],
-                            [-c1, -c1, bottom_h, layers_lcs[i][j]],
-                            [-c2, -c2, bottom_h, layers_lcs[i][j]],
-                            [c2, -c2, bottom_h, layers_lcs[i][j]],
-                            [c1, -c1, top_h, layers_lcs[i][j]],
-                            [-c1, -c1, top_h, layers_lcs[i][j]],
-                            [-c2, -c2, top_h, layers_lcs[i][j]],
-                            [c2, -c2, top_h, layers_lcs[i][j]]
-                        ],
-                        transform_data,
-                        [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [
-                            [[0, 0, bottom_h, 1]],
-                            [[0, 0, top_h, 1]],
-                            [[0, 0, top_h, 1]],
-                            [[0, 0, bottom_h, 1]],
-                            [], [], [], [],
-                            [], [], [], []
-                        ],
-                        [
-                            transfinite_phi_data,
-                            [transfinite_r_data[j][0], transfinite_r_data[j][1],
-                             rc],
-                            transfinite_h_data[i]
-                        ],
-                        transfinite_types[4],
-                        layers_physical_names[i][j],
-                        surfaces_names=surfaces_names[
-                            layers_surfaces_names[i][j]],
-                        rec=layers_recs[i][j],
-                        trans=layers_trans[i][j]
-                    ))
-            else:
+            # if straight_boundary is None:
+            #     if layers_physical_names[i][0] > 0:
+            #         # Core center
+            #         primitives.append(Primitive(
+            #             factory,
+            #             [
+            #                 [kc, kc, bottom_h, layers_lcs[i][0]],
+            #                 [-kc, kc, bottom_h, layers_lcs[i][0]],
+            #                 [-kc, -kc, bottom_h, layers_lcs[i][0]],
+            #                 [kc, -kc, bottom_h, layers_lcs[i][0]],
+            #                 [kc, kc, top_h, layers_lcs[i][0]],
+            #                 [-kc, kc, top_h, layers_lcs[i][0]],
+            #                 [-kc, -kc, top_h, layers_lcs[i][0]],
+            #                 [kc, -kc, top_h, layers_lcs[i][0]]
+            #             ],
+            #             transform_data,
+            #             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            #             [[], [], [], [], [], [], [], [], [], [], [], []],
+            #             [
+            #                 transfinite_phi_data,
+            #                 transfinite_phi_data,
+            #                 transfinite_h_data[i]
+            #             ],
+            #             transfinite_types[0],
+            #             layers_physical_names[i][0],
+            #             surfaces_names=surfaces_names[layers_surfaces_names[i][0]],
+            #             rec=layers_recs[i][0],
+            #             trans=layers_trans[i][0]
+            #         ))
+            #         # Core X
+            #         primitives.append(Primitive(
+            #             factory,
+            #             [
+            #                 [c, c, bottom_h, layers_lcs[i][0]],
+            #                 [kc, kc, bottom_h, layers_lcs[i][0]],
+            #                 [kc, -kc, bottom_h, layers_lcs[i][0]],
+            #                 [c, -c, bottom_h, layers_lcs[i][0]],
+            #                 [c, c, top_h, layers_lcs[i][0]],
+            #                 [kc, kc, top_h, layers_lcs[i][0]],
+            #                 [kc, -kc, top_h, layers_lcs[i][0]],
+            #                 [c, -c, top_h, layers_lcs[i][0]]
+            #             ],
+            #             transform_data,
+            #             [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+            #             [
+            #                 [], [], [], [],
+            #                 [[0, 0, bottom_h, 1]], [], [], [[0, 0, top_h, 1]],
+            #                 [], [], [], []
+            #             ],
+            #             [
+            #                 transfinite_r_data[0],
+            #                 transfinite_phi_data,
+            #                 transfinite_h_data[i]
+            #             ],
+            #             transfinite_types[1],
+            #             layers_physical_names[i][0],
+            #             surfaces_names=surfaces_names[layers_surfaces_names[i][0]],
+            #             rec=layers_recs[i][0],
+            #             trans=layers_trans[i][0]
+            #         ))
+            #         # Core Y
+            #         primitives.append(Primitive(
+            #             factory,
+            #             [
+            #                 [c, c, bottom_h, layers_lcs[i][0]],
+            #                 [-c, c, bottom_h, layers_lcs[i][0]],
+            #                 [-kc, kc, bottom_h, layers_lcs[i][0]],
+            #                 [kc, kc, bottom_h, layers_lcs[i][0]],
+            #                 [c, c, top_h, layers_lcs[i][0]],
+            #                 [-c, c, top_h, layers_lcs[i][0]],
+            #                 [-kc, kc, top_h, layers_lcs[i][0]],
+            #                 [kc, kc, top_h, layers_lcs[i][0]]
+            #             ],
+            #             transform_data,
+            #             [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            #             [
+            #                 [[0, 0, bottom_h, 1]], [[0, 0, top_h, 1]], [], [],
+            #                 [], [], [], [],
+            #                 [], [], [], []
+            #             ],
+            #             [
+            #                 transfinite_phi_data,
+            #                 transfinite_r_data[0],
+            #                 transfinite_h_data[i],
+            #             ],
+            #             transfinite_types[2],
+            #             layers_physical_names[i][0],
+            #             surfaces_names=surfaces_names[layers_surfaces_names[i][0]],
+            #             rec=layers_recs[i][0],
+            #             trans=layers_trans[i][0]
+            #         ))
+            #         # Core NX
+            #         if transfinite_r_data[0][
+            #             1] == 0:  # If type is Progression then reverse coefficient
+            #             rc = 1.0 / transfinite_r_data[0][2]
+            #         else:
+            #             rc = transfinite_r_data[0][2]
+            #         primitives.append(Primitive(
+            #             factory,
+            #             [
+            #                 [-kc, kc, bottom_h, layers_lcs[i][0]],
+            #                 [-c, c, bottom_h, layers_lcs[i][0]],
+            #                 [-c, -c, bottom_h, layers_lcs[i][0]],
+            #                 [-kc, -kc, bottom_h, layers_lcs[i][0]],
+            #                 [-kc, kc, top_h, layers_lcs[i][0]],
+            #                 [-c, c, top_h, layers_lcs[i][0]],
+            #                 [-c, -c, top_h, layers_lcs[i][0]],
+            #                 [-kc, -kc, top_h, layers_lcs[i][0]]
+            #             ],
+            #             transform_data,
+            #             [0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+            #             [
+            #                 [], [], [], [],
+            #                 [], [[0, 0, bottom_h, 1]], [[0, 0, top_h, 1]], [],
+            #                 [], [], [], []
+            #             ],
+            #             [
+            #                 [transfinite_r_data[0][0], transfinite_r_data[0][1],
+            #                  rc],
+            #                 transfinite_phi_data,
+            #                 transfinite_h_data[i]
+            #             ],
+            #             transfinite_types[3],
+            #             layers_physical_names[i][0],
+            #             surfaces_names=surfaces_names[layers_surfaces_names[i][0]],
+            #             rec=layers_recs[i][0],
+            #             trans=layers_trans[i][0]
+            #         ))
+            #         # Core NY
+            #         if transfinite_r_data[0][
+            #             1] == 0:  # If type is Progression then reverse coefficient
+            #             rc = 1.0 / transfinite_r_data[0][2]
+            #         else:
+            #             rc = transfinite_r_data[0][2]
+            #         primitives.append(Primitive(
+            #             factory,
+            #             [
+            #                 [kc, -kc, bottom_h, layers_lcs[i][0]],
+            #                 [-kc, -kc, bottom_h, layers_lcs[i][0]],
+            #                 [-c, -c, bottom_h, layers_lcs[i][0]],
+            #                 [c, -c, bottom_h, layers_lcs[i][0]],
+            #                 [kc, -kc, top_h, layers_lcs[i][0]],
+            #                 [-kc, -kc, top_h, layers_lcs[i][0]],
+            #                 [-c, -c, top_h, layers_lcs[i][0]],
+            #                 [c, -c, top_h, layers_lcs[i][0]]
+            #             ],
+            #             transform_data,
+            #             [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            #             [
+            #                 [], [], [[0, 0, top_h, 1]], [[0, 0, bottom_h, 1]],
+            #                 [], [], [], [],
+            #                 [], [], [], []
+            #             ],
+            #             [
+            #                 transfinite_phi_data,
+            #                 [transfinite_r_data[0][0], transfinite_r_data[0][1],
+            #                  rc],
+            #                 transfinite_h_data[i],
+            #             ],
+            #             transfinite_types[4],
+            #             layers_physical_names[i][0],
+            #             surfaces_names=surfaces_names[layers_surfaces_names[i][0]],
+            #             rec=layers_recs[i][0],
+            #             trans=layers_trans[i][0]
+            #         ))
+            #     # Layers
+            #     for j in range(1, len(radii)):
+            #         if layers_physical_names[i][j] > 0:
+            #             c1 = radii[j - 1] / math.sqrt(2.0)
+            #             c2 = radii[j] / math.sqrt(2.0)
+            #             # Layer X
+            #             primitives.append(Primitive(
+            #                 factory,
+            #                 [
+            #                     [c2, c2, bottom_h, layers_lcs[i][j]],
+            #                     [c1, c1, bottom_h, layers_lcs[i][j]],
+            #                     [c1, -c1, bottom_h, layers_lcs[i][j]],
+            #                     [c2, -c2, bottom_h, layers_lcs[i][j]],
+            #                     [c2, c2, top_h, layers_lcs[i][j]],
+            #                     [c1, c1, top_h, layers_lcs[i][j]],
+            #                     [c1, -c1, top_h, layers_lcs[i][j]],
+            #                     [c2, -c2, top_h, layers_lcs[i][j]]
+            #                 ],
+            #                 transform_data,
+            #                 [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
+            #                 [
+            #                     [], [], [], [],
+            #                     [[0, 0, bottom_h, 1]],
+            #                     [[0, 0, bottom_h, 1]],
+            #                     [[0, 0, top_h, 1]],
+            #                     [[0, 0, top_h, 1]],
+            #                     [], [], [], []
+            #                 ],
+            #                 [
+            #                     transfinite_r_data[j],
+            #                     transfinite_phi_data,
+            #                     transfinite_h_data[i]
+            #                 ],
+            #                 transfinite_types[1],
+            #                 layers_physical_names[i][j],
+            #                 surfaces_names=surfaces_names[
+            #                     layers_surfaces_names[i][j]],
+            #                 rec=layers_recs[i][j],
+            #                 trans=layers_trans[i][j]
+            #             ))
+            #             # Layer Y
+            #             primitives.append(Primitive(
+            #                 factory,
+            #                 [
+            #                     [c2, c2, bottom_h, layers_lcs[i][j]],
+            #                     [-c2, c2, bottom_h, layers_lcs[i][j]],
+            #                     [-c1, c1, bottom_h, layers_lcs[i][j]],
+            #                     [c1, c1, bottom_h, layers_lcs[i][j]],
+            #                     [c2, c2, top_h, layers_lcs[i][j]],
+            #                     [-c2, c2, top_h, layers_lcs[i][j]],
+            #                     [-c1, c1, top_h, layers_lcs[i][j]],
+            #                     [c1, c1, top_h, layers_lcs[i][j]]
+            #                 ],
+            #                 transform_data,
+            #                 [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            #                 [
+            #                     [[0, 0, bottom_h, 1]],
+            #                     [[0, 0, top_h, 1]],
+            #                     [[0, 0, top_h, 1]],
+            #                     [[0, 0, bottom_h, 1]],
+            #                     [], [], [], [],
+            #                     [], [], [], []
+            #                 ],
+            #                 [
+            #                     transfinite_phi_data,
+            #                     transfinite_r_data[j],
+            #                     transfinite_h_data[i]
+            #                 ],
+            #                 transfinite_types[2],
+            #                 layers_physical_names[i][j],
+            #                 surfaces_names=surfaces_names[
+            #                     layers_surfaces_names[i][j]],
+            #                 rec=layers_recs[i][j],
+            #                 trans=layers_trans[i][j]
+            #             ))
+            #             # Layer NX
+            #             if transfinite_r_data[j][
+            #                 1] == 0:  # If type is Progression then reverse coefficient
+            #                 rc = 1.0 / transfinite_r_data[j][2]
+            #             else:
+            #                 rc = transfinite_r_data[j][2]
+            #             primitives.append(Primitive(
+            #                 factory,
+            #                 [
+            #                     [-c1, c1, bottom_h, layers_lcs[i][j]],
+            #                     [-c2, c2, bottom_h, layers_lcs[i][j]],
+            #                     [-c2, -c2, bottom_h, layers_lcs[i][j]],
+            #                     [-c1, -c1, bottom_h, layers_lcs[i][j]],
+            #                     [-c1, c1, top_h, layers_lcs[i][j]],
+            #                     [-c2, c2, top_h, layers_lcs[i][j]],
+            #                     [-c2, -c2, top_h, layers_lcs[i][j]],
+            #                     [-c1, -c1, top_h, layers_lcs[i][j]]
+            #                 ],
+            #                 transform_data,
+            #                 [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
+            #                 [
+            #                     [], [], [], [],
+            #                     [[0, 0, bottom_h, 1]],
+            #                     [[0, 0, bottom_h, 1]],
+            #                     [[0, 0, top_h, 1]],
+            #                     [[0, 0, top_h, 1]],
+            #                     [], [], [], []
+            #                 ],
+            #                 [
+            #                     [transfinite_r_data[j][0], transfinite_r_data[j][1],
+            #                      rc],
+            #                     transfinite_phi_data,
+            #                     transfinite_h_data[i]
+            #                 ],
+            #                 transfinite_types[3],
+            #                 layers_physical_names[i][j],
+            #                 surfaces_names=surfaces_names[
+            #                     layers_surfaces_names[i][j]],
+            #                 rec=layers_recs[i][j],
+            #                 trans=layers_trans[i][j]
+            #             ))
+            #             # Layer NY
+            #             if transfinite_r_data[j][
+            #                 1] == 0:  # If type is Progression then reverse coefficient
+            #                 rc = 1.0 / transfinite_r_data[j][2]
+            #             else:
+            #                 rc = transfinite_r_data[j][2]
+            #             primitives.append(Primitive(
+            #                 factory,
+            #                 [
+            #                     [c1, -c1, bottom_h, layers_lcs[i][j]],
+            #                     [-c1, -c1, bottom_h, layers_lcs[i][j]],
+            #                     [-c2, -c2, bottom_h, layers_lcs[i][j]],
+            #                     [c2, -c2, bottom_h, layers_lcs[i][j]],
+            #                     [c1, -c1, top_h, layers_lcs[i][j]],
+            #                     [-c1, -c1, top_h, layers_lcs[i][j]],
+            #                     [-c2, -c2, top_h, layers_lcs[i][j]],
+            #                     [c2, -c2, top_h, layers_lcs[i][j]]
+            #                 ],
+            #                 transform_data,
+            #                 [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            #                 [
+            #                     [[0, 0, bottom_h, 1]],
+            #                     [[0, 0, top_h, 1]],
+            #                     [[0, 0, top_h, 1]],
+            #                     [[0, 0, bottom_h, 1]],
+            #                     [], [], [], [],
+            #                     [], [], [], []
+            #                 ],
+            #                 [
+            #                     transfinite_phi_data,
+            #                     [transfinite_r_data[j][0], transfinite_r_data[j][1],
+            #                      rc],
+            #                     transfinite_h_data[i]
+            #                 ],
+            #                 transfinite_types[4],
+            #                 layers_physical_names[i][j],
+            #                 surfaces_names=surfaces_names[
+            #                     layers_surfaces_names[i][j]],
+            #                 rec=layers_recs[i][j],
+            #                 trans=layers_trans[i][j]
+            #             ))
+            # else:
+            # Core
+            if layers_exists[i][0]:
+                ss_ns = surfaces_names[layers_surfaces_names[i][0]]
                 if straight_boundary[0] == 0:
                     curve_types = {
                         'C': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -465,7 +495,8 @@ class Cylinder(Complex):
                     ],
                     transfinite_types[0],
                     layers_physical_names[i][0],
-                    surfaces_names=surfaces_names[layers_surfaces_names[i][0]],
+                    surfaces_names=[ss_ns[x] for x in self.surfaces_names_map[
+                        ('C', len(ss_ns))]],
                     rec=layers_recs[i][0],
                     trans=layers_trans[i][0]
                 ))
@@ -499,8 +530,8 @@ class Cylinder(Complex):
                     ],
                     transfinite_types[1],
                     layers_physical_names[i][0],
-                    surfaces_names=surfaces_names[
-                        layers_surfaces_names[i][0]],
+                    surfaces_names=[ss_ns[x] for x in self.surfaces_names_map[
+                        ('X', len(ss_ns))]],
                     rec=layers_recs[i][0],
                     trans=layers_trans[i][0]
                 ))
@@ -534,7 +565,8 @@ class Cylinder(Complex):
                     ],
                     transfinite_types[2],
                     layers_physical_names[i][0],
-                    surfaces_names=surfaces_names[layers_surfaces_names[i][0]],
+                    surfaces_names=[ss_ns[x] for x in self.surfaces_names_map[
+                        ('Y', len(ss_ns))]],
                     rec=layers_recs[i][0],
                     trans=layers_trans[i][0]
                 ))
@@ -574,7 +606,8 @@ class Cylinder(Complex):
                     ],
                     transfinite_types[3],
                     layers_physical_names[i][0],
-                    surfaces_names=surfaces_names[layers_surfaces_names[i][0]],
+                    surfaces_names=[ss_ns[x] for x in self.surfaces_names_map[
+                        ('NX', len(ss_ns))]],
                     rec=layers_recs[i][0],
                     trans=layers_trans[i][0]
                 ))
@@ -614,12 +647,15 @@ class Cylinder(Complex):
                     ],
                     transfinite_types[4],
                     layers_physical_names[i][0],
-                    surfaces_names=surfaces_names[layers_surfaces_names[i][0]],
+                    surfaces_names=[ss_ns[x] for x in self.surfaces_names_map[
+                        ('NY', len(ss_ns))]],
                     rec=layers_recs[i][0],
                     trans=layers_trans[i][0]
                 ))
-                # Layers
-                for j in range(1, len(radii)):
+            # Layers
+            for j in range(1, len(radii)):
+                if layers_exists[i][j]:
+                    ss_ns = surfaces_names[layers_surfaces_names[i][j]]
                     if straight_boundary[j] == 0:
                         curve_types = {
                             'X': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -680,8 +716,9 @@ class Cylinder(Complex):
                         ],
                         transfinite_types[1],
                         layers_physical_names[i][j],
-                        surfaces_names=surfaces_names[
-                            layers_surfaces_names[i][j]],
+                        surfaces_names=[ss_ns[x] for x in
+                                        self.surfaces_names_map[
+                                            ('X', len(ss_ns))]],
                         rec=layers_recs[i][j],
                         trans=layers_trans[i][j]
                     ))
@@ -715,8 +752,9 @@ class Cylinder(Complex):
                         ],
                         transfinite_types[2],
                         layers_physical_names[i][j],
-                        surfaces_names=surfaces_names[
-                            layers_surfaces_names[i][j]],
+                        surfaces_names=[ss_ns[x] for x in
+                                        self.surfaces_names_map[
+                                            ('Y', len(ss_ns))]],
                         rec=layers_recs[i][j],
                         trans=layers_trans[i][j]
                     ))
@@ -756,8 +794,9 @@ class Cylinder(Complex):
                         ],
                         transfinite_types[3],
                         layers_physical_names[i][j],
-                        surfaces_names=surfaces_names[
-                            layers_surfaces_names[i][j]],
+                        surfaces_names=[ss_ns[x] for x in
+                                        self.surfaces_names_map[
+                                            ('NX', len(ss_ns))]],
                         rec=layers_recs[i][j],
                         trans=layers_trans[i][j]
                     ))
@@ -797,8 +836,9 @@ class Cylinder(Complex):
                         ],
                         transfinite_types[4],
                         layers_physical_names[i][j],
-                        surfaces_names=surfaces_names[
-                            layers_surfaces_names[i][j]],
+                        surfaces_names=[ss_ns[x] for x in
+                                        self.surfaces_names_map[
+                                            ('NY', len(ss_ns))]],
                         rec=layers_recs[i][j],
                         trans=layers_trans[i][j]
                     ))

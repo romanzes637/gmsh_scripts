@@ -777,7 +777,7 @@ class Primitive:
         volumes_dim_tags = [(3, x) for x in self.volumes]
         surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags,
                                                    combined=combined)
-        surfaces = map(lambda x: x[1], surfaces_dim_tags)
+        surfaces = [x[1] for x in surfaces_dim_tags]
         return surfaces
 
     curves_local_points = [

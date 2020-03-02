@@ -7,7 +7,8 @@ class DividedCylinder(Cylinder):
                  transfinite_phi_data, divide_r_data, divide_h_data,
                  straight_boundary=None, layers_surfaces_names=None,
                  surfaces_names=None, volumes_names=None,
-                 layers_recs=None, layers_trans=None, k=None):
+                 layers_recs=None, layers_trans=None, k=None,
+                 layers_exists=None):
         """
         Divided multilayer cylinder for boolean operations
         :param str factory: see Cylinder
@@ -29,6 +30,7 @@ class DividedCylinder(Cylinder):
         :param list of str volumes_names: See Cylinder
         :param list if list of int layers_recs: See Cylinder
         :param list if list of int layers_trans: See Cylinder
+        :param list if list of int layers_exists: See Cylinder
         :return None
         """
         new_radii = list()
@@ -57,6 +59,8 @@ class DividedCylinder(Cylinder):
             layers_recs = [[1 for _ in radii] for _ in heights]
         if layers_trans is None:
             layers_trans = [[1 for _ in radii] for _ in heights]
+        if layers_exists is None:
+            layers_exists = [[1 for _ in radii] for _ in heights]
         # Evaluate new radii
         for i, n in enumerate(divide_r_data):
             map_old_to_new_r[i] = list()
@@ -125,4 +129,5 @@ class DividedCylinder(Cylinder):
                           new_transfinite_h_data, transfinite_phi_data,
                           straight_boundary, layers_surfaces_names,
                           surfaces_names, volumes_names,
-                          new_primitive_recs, new_primitive_trans, k)
+                          new_primitive_recs, new_primitive_trans, k,
+                          layers_exists)

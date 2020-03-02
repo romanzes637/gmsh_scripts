@@ -11,7 +11,7 @@
     "test": false,
     "recombine": false,
     "boolean": false,
-    "optimize": true,
+    "optimize": false,
     "boundary_type": "6",
     "auto_size": null,
     "size": 100,
