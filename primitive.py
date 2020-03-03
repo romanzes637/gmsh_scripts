@@ -557,8 +557,8 @@ class Primitive:
                         tag = self.factory.addSurfaceFilling([tag])
                     else:
                         tag = self.factory.addCurveLoop(
-                            map(lambda x: self.curves[x],
-                                self.surfaces_local_curves[i]))
+                            list(map(lambda x: self.curves[x],
+                                self.surfaces_local_curves[i])))
                         tag = self.factory.addSurfaceFilling(tag)
                     for c in css:
                         registry.surfaces[c] = tag

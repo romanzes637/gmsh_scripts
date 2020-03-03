@@ -7,6 +7,8 @@
   "arguments": {
     "factory": "geo",
     "k": 0.5,
+    "kxs": [1, 1, 1.5],
+    "kys": [1, 1, 0.75],
     "radii": [1, 3, 5],
     "heights": [1, 3, 5],
     "layers_lcs": [
@@ -15,7 +17,7 @@
       [0.3, 0.7, 1]
     ],
     "volumes_names": ["Internal", "External"],
-    "layers_physical_names": [
+    "layers_volumes_names": [
       [0, 1, 1],
       [0, 1, 1],
       [0, 1, 1]

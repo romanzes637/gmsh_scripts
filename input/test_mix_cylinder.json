@@ -14,7 +14,7 @@
       [0.3, 1]
     ],
     "volumes_names": ["Internal", "External"],
-    "layers_physical_names": [
+    "layers_volumes_names": [
       [0, 1],
       [0, 1]
     ],

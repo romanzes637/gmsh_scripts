@@ -93,8 +93,8 @@ if __name__ == '__main__':
                         action='store_true')
     parser.add_argument('-b', '--boolean', help='boolean', action='store_true')
     parser.add_argument('-B', '--boundary_type', help='boundary',
-                        default='6', choices=['6', 'primitive', 'all',
-                                              'path_to_file'])
+                        default='primitive', choices=['6', 'primitive', 'all',
+                                                      'path_to_file'])
     parser.add_argument('-s', '--auto_size', type=float, metavar=1.0,
                         help='mesh auto size factor', default=None,
                         nargs='?', const=1.0)

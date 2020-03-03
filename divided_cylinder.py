@@ -3,12 +3,12 @@ from cylinder import Cylinder
 
 class DividedCylinder(Cylinder):
     def __init__(self, factory, radii, heights, layers_lcs, transform_data,
-                 layers_physical_names, transfinite_r_data, transfinite_h_data,
+                 layers_volumes_names, transfinite_r_data, transfinite_h_data,
                  transfinite_phi_data, divide_r_data, divide_h_data,
                  straight_boundary=None, layers_surfaces_names=None,
                  surfaces_names=None, volumes_names=None,
                  layers_recs=None, layers_trans=None, k=None,
-                 layers_exists=None):
+                 layers_exists=None, kxs=None, kys=None):
         """
         Divided multilayer cylinder for boolean operations
         :param str factory: see Cylinder
@@ -16,7 +16,7 @@ class DividedCylinder(Cylinder):
         :param list of float heights: see Cylinder
         :param list of list of float layers_lcs: see Cylinder
         :param list of float transform_data: see Cylinder
-        :param list of list of str layers_physical_names: see Cylinder
+        :param list of list of str layers_volumes_names: see Cylinder
         :param list of list of float transfinite_r_data: see Cylinder
         :param list of list of float transfinite_h_data: see Cylinder
         :param list of float transfinite_phi_data: see Cylinder
@@ -31,11 +31,13 @@ class DividedCylinder(Cylinder):
         :param list if list of int layers_recs: See Cylinder
         :param list if list of int layers_trans: See Cylinder
         :param list if list of int layers_exists: See Cylinder
+        :param list of int kxs: See cylinder
+        :param list of int kys: See cylinder
         :return None
         """
         new_radii = list()
         new_heights = list()
-        new_layers_physical_names = list()
+        new_layers_volumes_names = list()
         new_primitives_lcs = list()
         new_primitive_recs = list()
         new_primitive_trans = list()
@@ -55,12 +57,24 @@ class DividedCylinder(Cylinder):
             divide_h_data = [1 for _ in heights]
         if layers_lcs is None:
             layers_lcs = [[1 for _ in radii] for _ in heights]
+        elif not isinstance(layers_lcs, list):
+            layers_lcs = [[layers_lcs for _ in radii] for _ in heights]
         if layers_recs is None:
             layers_recs = [[1 for _ in radii] for _ in heights]
+        elif not isinstance(layers_recs, list):
+            layers_recs = [[layers_recs for _ in radii] for _ in heights]
         if layers_trans is None:
             layers_trans = [[1 for _ in radii] for _ in heights]
+        elif not isinstance(layers_trans, list):
+            layers_trans = [[layers_trans for _ in radii] for _ in heights]
         if layers_exists is None:
             layers_exists = [[1 for _ in radii] for _ in heights]
+        elif not isinstance(layers_exists, list):
+            layers_exists = [[layers_exists for _ in radii] for _ in heights]
+        if kxs is None:
+            kxs = [1 for _ in radii]
+        if kys is None:
+            kys = [1 for _ in radii]
         # Evaluate new radii
         for i, n in enumerate(divide_r_data):
             map_old_to_new_r[i] = list()
@@ -110,24 +124,24 @@ class DividedCylinder(Cylinder):
                 radii_lcs.append(layers_lcs[old_i][old_j])
                 radii_recs.append(layers_recs[old_i][old_j])
                 radii_trans.append(layers_trans[old_i][old_j])
-                radii_physical_names.append(layers_physical_names[old_i][old_j])
+                radii_physical_names.append(layers_volumes_names[old_i][old_j])
             new_primitives_lcs.append(radii_lcs)
             new_primitive_recs.append(radii_recs)
             new_primitive_trans.append(radii_trans)
-            new_layers_physical_names.append(radii_physical_names)
+            new_layers_volumes_names.append(radii_physical_names)
         # pprint(map_old_to_new_r)
         # pprint(map_old_to_new_h)
         # print(new_radii)
         # print(new_heights)
-        # print(new_layers_physical_names)
+        # print(new_layers_volumes_names)
         # print(new_primitives_lcs)
         # print(new_transfinite_r_data)
         # print(new_transfinite_h_data)
         Cylinder.__init__(self, factory, new_radii, new_heights,
                           new_primitives_lcs, transform_data,
-                          new_layers_physical_names, new_transfinite_r_data,
+                          new_layers_volumes_names, new_transfinite_r_data,
                           new_transfinite_h_data, transfinite_phi_data,
                           straight_boundary, layers_surfaces_names,
                           surfaces_names, volumes_names,
                           new_primitive_recs, new_primitive_trans, k,
-                          layers_exists)
+                          layers_exists, kxs, kys)
