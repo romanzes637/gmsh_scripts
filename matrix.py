@@ -259,6 +259,7 @@ def type_2(factory_object, primitives, kwargs):
     ))
 
 
+# Bottom center
 def type_3(factory_object, primitives, kwargs):
     from complex_factory import ComplexFactory
     # Args
