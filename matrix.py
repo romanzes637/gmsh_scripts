@@ -9,47 +9,57 @@ from support import check_file
 
 
 class Matrix(Complex):
-    def __init__(self, factory, xs, ys, zs, lcs=None, coordinates_type=None,
-                 transform_data=None, txs=None, tys=None, tzs=None,
-                 type_map=None, inputs=None,
-                 volumes_map=None, volumes_names=None,
-                 surfaces_map=None, surfaces_names=None, inputs_map=None
-                 ):
+    def __init__(self, factory, xs, ys, zs, coordinates_type='direct',
+                 lcs=None, transform_data=None, txs=None, tys=None, tzs=None,
+                 type_map=None,
+                 inputs=None, inputs_map=None,
+                 volumes_names=None, volumes_map=None,
+                 surfaces_names=None, surfaces_map=None,
+                 recs_map=None, trans_map=None):
         """
-        Z0:
-        Y0: X0 X1 .. XN
-        Y1: X0 X1 .. XN
-        YM: X0 X1 .. XN
-        Z2:
-        Y0: X0 X1 .. XN
-        Y1: X0 X1 .. XN
-        YM: X0 X1 .. XN
-        ZP:
-        Y0: X0 X1 .. XN
-        Y1: X0 X1 .. XN
-        YM: X0 X1 .. XN
-        :param factory:
-        :param xs:
-        :param ys:
-        :param zs:
-        :param lcs:
-        :param str coordinates_type: direct or delta
-        :param transform_data:
-        :param txs:
-        :param tys:
-        :param tzs:
-        :param type_map:
-        :param inputs:
-        :param volumes_map:
-        :param volumes_names:
-        :param surfaces_map:
-        :param surfaces_names:
+        Primitives, Complexes and Complex descendants
+        as items of 3D matrix structure
+        Items data structure (1D array):
+        [Z0_Y0_X0, Z0_Y0_X1, ..., Z0_Y0_XN,
+         Z0_Y1_X0, Z0_Y1_X1, ..., Z0_Y1_XN,
+         ...
+         Z0_YM_X0, Z0_YM_X1, ..., Z0_YM_XN,
+         Z1_Y0_X0, Z1_Y0_X1, ..., Z1_Y0_XN,
+         Z1_Y1_X0, Z1_Y1_X1, ..., Z1_Y1_XN,
+         ...
+         Z1_YM_X0, Z1_YM_X1, ..., Z1_YM_XN,
+         ...
+         ...
+         ZP_YM_X0, Z0_YM_X1, ..., ZP_YM_XN]
+        X0, X1, ..., XN - X layers, where N - number of X layers
+        Y0, Y1, ..., YM - Y layers, where M - number of Y layers
+        Z0, Z1, ..., ZP - Z layers, where P - number of Z layers
+        :param str factory: see Primitive
+        :param list of float xs: X axis coordinates
+        :param list of float ys: Y axis coordinates
+        :param list of float zs: Z axis coordinates
+        :param str coordinates_type: 'direct' - exact coordinates or
+        'delta' - coordinates differences
+        :param list of float lcs: see Primitive
+        :param list of float transform_data: see Primitive
+        :param list of float txs: X axis transfinite_data (see Primitive)
+        :param list of float tys: Y axis transfinite_data (see Primitive)
+        :param list of float tzs: Z axis transfinite_data (see Primitive)
+        :param list of int type_map: matrix item type (see type_factory below)
+        :param list of str inputs: input files
+        :param list of int inputs_map: item - input file map
+        :param list of str volumes_names: names for items volumes
+        :param list of int volumes_map: item - volume name map
+        :param list of str surfaces_names: names for items surfaces
+        :param list of int surfaces_map: item - surface names map
+        :param list of int recs_map: see Primitive
+        :param list of int trans_map: see Primitive
         """
         if factory == 'occ':
             factory_object = gmsh.model.occ
         else:
             factory_object = gmsh.model.geo
-        if coordinates_type is None or coordinates_type == 'direct':
+        if coordinates_type == 'direct':
             nx = len(xs) - 1
             ny = len(ys) - 1
             nz = len(zs) - 1
@@ -59,7 +69,7 @@ class Matrix(Complex):
             nz = len(zs)
         else:
             raise ValueError('coordinates_type: {}'.format(coordinates_type))
-        n = nx * ny * nz
+        n = nx * ny * nz  # number of matrix items
         if transform_data is None:
             transform_data = [0, 0, 0]
         if txs is None:
@@ -74,20 +84,27 @@ class Matrix(Complex):
             type_map = [1 for _ in range(n)]
         elif not isinstance(type_map, list):
             type_map = [type_map for _ in range(n)]
-        if volumes_names is None:
-            volumes_names = ['Matrix']
         if inputs is None:
-            inputs = ['input/input_test_complex_primitive.json']
+            inputs = ['input/matrix_item.json']
         if inputs_map is None:
             inputs_map = [0 for _ in range(n)]
-        if surfaces_names is None:
-            surfaces_names = [['NX', 'X', 'NY', 'Y', 'NZ', 'Z']]
+        if volumes_names is None:
+            volumes_names = ['Matrix']
         if volumes_map is None:
             volumes_map = [0 for _ in range(n)]
+        if surfaces_names is None:
+            surfaces_names = [['NX', 'X', 'NY', 'Y', 'NZ', 'Z']]
         if surfaces_map is None:
             surfaces_map = [0 for _ in range(n)]
+        if recs_map is None:
+            recs_map = [1 for _ in range(n)]
+        if trans_map is None:
+            trans_map = [1 for _ in range(n)]
+        # x0, y0, z0 - item start X, Y, Z
+        # x1, y1, z1 - item end X, Y, Z
+        # xc, yc, zc - item center X, Y, Z
         primitives = list()
-        if coordinates_type is None or coordinates_type == 'direct':
+        if coordinates_type == 'direct':
             for k in range(nz):
                 for j in range(ny):
                     for i in range(nx):
@@ -110,6 +127,8 @@ class Matrix(Complex):
                         tx = txs[i]
                         ty = tys[j]
                         tz = tzs[k]
+                        trans = trans_map[gi]
+                        rec = recs_map[gi]
                         kwargs = locals()
                         type_factory[t](factory_object, primitives, kwargs)
         elif coordinates_type == 'delta':
@@ -136,6 +155,8 @@ class Matrix(Complex):
                         tx = txs[i]
                         ty = tys[j]
                         tz = tzs[k]
+                        trans = trans_map[gi]
+                        rec = recs_map[gi]
                         kwargs = locals()
                         type_factory[t](factory_object, primitives, kwargs)
         else:
@@ -143,10 +164,12 @@ class Matrix(Complex):
         Complex.__init__(self, factory, primitives)
 
 
+# Empty
 def type_0(factory_object, primitives, kwargs):
     pass
 
 
+# Primitive
 def type_1(factory_object, primitives, kwargs):
     # Args
     x0 = kwargs['x0']
@@ -161,6 +184,8 @@ def type_1(factory_object, primitives, kwargs):
     tz = kwargs['tz']
     pn = kwargs['pn']
     sns = kwargs['sns']
+    trans = kwargs['trans']
+    rec = kwargs['rec']
     factory_str = kwargs['factory']
     primitives.append(Primitive(
         factory_str,
@@ -180,7 +205,9 @@ def type_1(factory_object, primitives, kwargs):
         [tx, ty, tz],
         0,
         physical_name=pn,
-        surfaces_names=sns
+        surfaces_names=sns,
+        rec=rec,
+        trans=trans
     ))
 
 
@@ -200,6 +227,8 @@ def type_2(factory_object, primitives, kwargs):
     ty = kwargs['ty']
     tz = kwargs['tz']
     pn = kwargs['pn']
+    trans = kwargs['trans']
+    rec = kwargs['rec']
     inputs = kwargs['inputs']
     factory = kwargs['factory']
     # Internal
@@ -255,11 +284,12 @@ def type_2(factory_object, primitives, kwargs):
         [tx, ty, tz],
         0,
         pn,
-        inner_volumes
+        inner_volumes,
+        rec=rec,
+        trans=trans
     ))
 
 
-# Bottom center
 def type_3(factory_object, primitives, kwargs):
     from complex_factory import ComplexFactory
     # Args
@@ -278,6 +308,7 @@ def type_3(factory_object, primitives, kwargs):
     new_transform[0] = old_transform[0] + xc
     new_transform[1] = old_transform[1] + yc
     new_transform[2] = old_transform[2] + z0
+    print(new_transform)
     input_data['arguments']['transform_data'] = new_transform
     c = ComplexFactory.new(input_data)
     primitives.extend(c.primitives)
@@ -307,9 +338,9 @@ def type_4(factory_object, primitives, kwargs):
 
 
 type_factory = {
-    0: type_0,
-    1: type_1,
-    2: type_2,
-    3: type_3,
-    4: type_4
+    0: type_0,  # Empty
+    1: type_1,  # Primitive
+    2: type_2,  # Borehole
+    3: type_3,  # Complex at (xc, yc, z0)
+    4: type_4   # Complex at (x0, yc, z0)
 }

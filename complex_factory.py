@@ -15,6 +15,7 @@ import cylinder
 import divided_cylinder
 import experiment
 import matrix
+import regular_matrix
 import pool
 import polygon
 import tunnel
@@ -34,6 +35,8 @@ class ComplexFactory:
             complex, complex.Complex.__name__),
         matrix.Matrix.__name__: getattr(
             matrix, matrix.Matrix.__name__),
+        regular_matrix.RegularMatrix.__name__: getattr(
+            regular_matrix, regular_matrix.RegularMatrix.__name__),
         complex_primitive.ComplexPrimitive.__name__: getattr(
             complex_primitive, complex_primitive.ComplexPrimitive.__name__),
         complex_union.ComplexUnion.__name__: getattr(

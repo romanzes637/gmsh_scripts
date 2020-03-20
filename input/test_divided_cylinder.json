@@ -16,7 +16,7 @@
       [1, 1, 1]
     ],
     "volumes_names": ["RW", "EBS", "Air", "Steel"],
-    "layers_physical_names": [
+    "layers_volumes_names": [
       [1, 1, 2],
       [0, 1, 2],
       [1, 1, 2],

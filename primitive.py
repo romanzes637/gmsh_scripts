@@ -80,6 +80,8 @@ class Primitive:
         as Primitive.volumes
         :param list of str surfaces_names: names of boundary surfaces in order:
         NX, X, NY, Y, NZ, Z.
+        :param int rec: Recombine Primitive?
+        :param int trans: Transfinite Primitive?
         """
         # print(physical_name)
         # if factory == 'occ':
