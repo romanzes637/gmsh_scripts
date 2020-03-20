@@ -70,6 +70,7 @@ class Matrix(Complex):
         else:
             raise ValueError('coordinates_type: {}'.format(coordinates_type))
         n = nx * ny * nz  # number of matrix items
+        # print(nx, ny, nz, n)
         if transform_data is None:
             transform_data = [0, 0, 0]
         if txs is None:
@@ -308,7 +309,6 @@ def type_3(factory_object, primitives, kwargs):
     new_transform[0] = old_transform[0] + xc
     new_transform[1] = old_transform[1] + yc
     new_transform[2] = old_transform[2] + z0
-    print(new_transform)
     input_data['arguments']['transform_data'] = new_transform
     c = ComplexFactory.new(input_data)
     primitives.extend(c.primitives)
