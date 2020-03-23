@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Matrix",
+    "description": "Part of NKM as RegularBoundMatrix"
+  },
+  "arguments": {
+    "factory": "geo",
+    "inputs": null,
+    "coordinates_type": "delta",
+    "transform_data": [-225, -225, 0],
+    "volumes_names": ["Rock"],
+    "surfaces_names": null,
+    "xs": [450],
+    "ys": [450],
+    "zs": [0.575, 450],
+    "lcs": null,
+    "txs": [[12, 0, 0.8]],
+    "tys": [[12, 0, 1.25]],
+    "tzs": [[3, 0, 1], [24, 0, 1.25]],
+    "type_map": 1,
+    "inputs_map": null,
+    "volumes_map": null,
+    "surfaces_map": null,
+    "recs_map": null,
+    "trans_map": null
+  }
+}

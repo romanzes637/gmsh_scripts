@@ -99,8 +99,12 @@ class Matrix(Complex):
             surfaces_map = [0 for _ in range(n)]
         if recs_map is None:
             recs_map = [1 for _ in range(n)]
+        elif not isinstance(recs_map, list):
+            recs_map = [recs_map for _ in range(n)]
         if trans_map is None:
             trans_map = [1 for _ in range(n)]
+        elif not isinstance(trans_map, list):
+            trans_map = [trans_map for _ in range(n)]
         # x0, y0, z0 - item start X, Y, Z
         # x1, y1, z1 - item end X, Y, Z
         # xc, yc, zc - item center X, Y, Z
@@ -304,7 +308,9 @@ def type_3(factory_object, primitives, kwargs):
     with open(result['path']) as f:
         input_data = json.load(f)
     input_data['arguments']['factory'] = factory
-    old_transform = input_data['arguments'].get('transform_data', [0, 0, 0])
+    old_transform = input_data['arguments'].get('transform_data', None)
+    if old_transform is None:
+        old_transform = [0, 0, 0]
     new_transform = old_transform
     new_transform[0] = old_transform[0] + xc
     new_transform[1] = old_transform[1] + yc

@@ -54,6 +54,7 @@ class RegularBoundMatrix(Matrix):
             (-1, 1, 1): x0_y1_z1,
             (0, 1, 1): xi_y1_z1,
             (1, 1, 1): x1_y1_z1}
+        inputs = [] if inputs is None else inputs
         inputs_map, type_map = [], []
         for k in range(-1, nzk + 2 - 1):
             for j in range(-1, nyj + 2 - 1):
@@ -62,7 +63,11 @@ class RegularBoundMatrix(Matrix):
                     # print(gi)
                     item = global_index_map[gi]
                     if item is not None:
-                        inputs_map.append(item[0])
+                        if isinstance(item[0], str):
+                            inputs.append(item[0])
+                            inputs_map.append(len(inputs) - 1)
+                        else:
+                            inputs_map.append(item[0])
                         type_map.append(item[1])
                     else:
                         inputs_map.append(0)
