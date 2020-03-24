@@ -1,5 +1,6 @@
 import json
 from pprint import pprint
+import time 
 
 import gmsh
 
@@ -318,7 +319,6 @@ def type_3(factory_object, primitives, kwargs):
     input_data['arguments']['transform_data'] = new_transform
     c = ComplexFactory.new(input_data)
     primitives.extend(c.primitives)
-
 
 def type_4(factory_object, primitives, kwargs):
     from complex_factory import ComplexFactory

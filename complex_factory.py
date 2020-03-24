@@ -198,14 +198,20 @@ if __name__ == '__main__':
     gmsh.model.add(model_name)
     t00 = time.time()
     print('Initialize')
+    t0 = time.time()
     c = ComplexFactory.new(input_data)
     factory = c.factory
+    print(time.time() - t0)
     print('Synchronize')
+    t0 = time.time()
     factory.synchronize()
+    print(time.time() - t0)
     if not args['test']:
         print('Evaluate')
+        t0 = time.time()
         c.evaluate_coordinates()  # for correct and transfinite
         c.evaluate_bounding_box()  # for boolean
+        print(time.time() - t0)
         if args['boolean']:
             print("Boolean")
             complex_self(factory, c)
@@ -226,6 +232,7 @@ if __name__ == '__main__':
         # print(len(gmsh.model.getEntities(2)))
         # print(len(gmsh.model.getEntities(3)))
         # Primitive/Complex Correction
+        t0 = time.time()
         ss = set()  # transfinited surfaces
         cs = set()  # transfinited curves
         if args['recombine']:
@@ -239,6 +246,9 @@ if __name__ == '__main__':
             c.transfinite(ss, cs)
             # correct_and_transfinite_complex(c, ss, cs)
             # transfinite_complex(c, ss, cs)
+        print(time.time() - t0)
+        print('Autosize')
+        t0 = time.time()
         if args['auto_size'] is not None:
             print('Auto Size: {}'.format(args['auto_size']))
             pss = dict()
@@ -254,12 +264,16 @@ if __name__ == '__main__':
         if args['boundary_size'] is not None:
             print('Set Boundary Size: {}'.format(args['boundary_size']))
             set_boundary_points_sizes(args['boundary_size'])
+        print(time.time() - t0)
         print("Physical Volumes")
+        t0 = time.time()
         ns_to_vs = c.get_map_names_to_volumes()
         for n, vs in ns_to_vs.items():
             tag = gmsh.model.addPhysicalGroup(3, vs)
             gmsh.model.setPhysicalName(3, tag, n)
+        print(time.time() - t0)
         print("Physical Surfaces")
+        t0 = time.time()
         if args['boundary_type'] == '6':
             print("6 surfaces")
             boundary_surfaces_groups = boundary_surfaces_to_six_side_groups()
@@ -290,15 +304,16 @@ if __name__ == '__main__':
         else:
             print("By support.physical_surfaces")
             physical_surfaces(**physical_surfaces_kwargs)
+        print(time.time() - t0)
         print("Mesh")
         t0 = time.time()
         gmsh.model.mesh.generate(3)
         print(time.time() - t0)
         print('Nodes: {0}'.format(len(gmsh.model.mesh.getNodes()[0])))
-        t0 = time.time()
+        # t0 = time.time()
         # gmsh.model.mesh.removeDuplicateNodes()
-        print(time.time() - t0)
-        print('Nodes: {0}'.format(len(gmsh.model.mesh.getNodes()[0])))
+        # print(time.time() - t0)
+        # print('Nodes: {0}'.format(len(gmsh.model.mesh.getNodes()[0])))
         # es = gmsh.model.mesh.getElements()
         if args['optimize']:
             print("Optimize Mesh")
@@ -306,6 +321,8 @@ if __name__ == '__main__':
             gmsh.model.mesh.optimize('Optimize', True)
             print(time.time() - t0)
     print("Write: {}".format(args['output_path']))
+    t0 = time.time()
     gmsh.write(args['output_path'])
+    print(time.time() - t0)
     gmsh.finalize()
     print('Time spent: {}s'.format(time.time() - t00))
