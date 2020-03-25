@@ -6,7 +6,7 @@
   },
   "arguments": {
     "factory": "geo",
-    "transform_data": [1, -1, 0],
+    "transform_data": [0, 0, 0],
     "dx": 2,
     "dy": 3,
     "dz": 4,
@@ -19,7 +19,7 @@
     "tz": [4, 0, 0.4],
     "trans": 1,
     "rec": 1,
-    "item_input": "input/regular_matrix_item.json",
+    "item_input": "input/test_matrix_item.json",
     "item_type": 1
   }
 }

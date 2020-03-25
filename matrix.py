@@ -320,6 +320,7 @@ def type_3(factory_object, primitives, kwargs):
     c = ComplexFactory.new(input_data)
     primitives.extend(c.primitives)
 
+
 def type_4(factory_object, primitives, kwargs):
     from complex_factory import ComplexFactory
     # Args
@@ -343,10 +344,66 @@ def type_4(factory_object, primitives, kwargs):
     primitives.extend(c.primitives)
 
 
+def type_5(factory_object, primitives, kwargs):
+    from complex_factory import ComplexFactory
+    # Args
+    x0, x1, xc = kwargs['x0'], kwargs['x1'], kwargs['xc']
+    y0, y1, yc = kwargs['y0'], kwargs['y1'], kwargs['yc']
+    z0, z1, zc = kwargs['z0'], kwargs['z1'], kwargs['zc']
+    lc = kwargs['lc']
+    tx = kwargs['tx']
+    ty = kwargs['ty']
+    tz = kwargs['tz']
+    pn = kwargs['pn']
+    sns = kwargs['sns']
+    trans = kwargs['trans']
+    rec = kwargs['rec']
+    inp = kwargs['inp']
+    factory = kwargs['factory']
+    # Internal
+    result = check_file(inp)
+    with open(result['path']) as f:
+        input_data = json.load(f)
+    input_data['arguments']['factory'] = factory
+    old_transform = input_data['arguments'].get('transform_data', [0, 0, 0])
+    new_transform = old_transform
+    new_transform[0] = old_transform[0] + xc
+    new_transform[1] = old_transform[1] + yc
+    new_transform[2] = old_transform[2] + zc
+    input_data['arguments']['transform_data'] = new_transform
+    c = ComplexFactory.new(input_data)
+    primitives.extend(c.primitives)
+    # External
+    primitives.append(Primitive(
+        factory,
+        [
+            [x1, y1, z0, lc],
+            [x0, y1, z0, lc],
+            [x0, y0, z0, lc],
+            [x1, y0, z0, lc],
+            [x1, y1, z1, lc],
+            [x0, y1, z1, lc],
+            [x0, y0, z1, lc],
+            [x1, y0, z1, lc],
+        ],
+        [0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [[], [], [], [], [], [], [], [], [], [], [], []],
+        [tx, ty, tz],
+        0,
+        physical_name=pn,
+        inner_volumes=c.get_volumes(),
+        surfaces_names=sns,
+        rec=rec,
+        trans=trans
+    ))
+
+
 type_factory = {
     0: type_0,  # Empty
     1: type_1,  # Primitive
     2: type_2,  # Borehole
     3: type_3,  # Complex at (xc, yc, z0)
-    4: type_4   # Complex at (x0, yc, z0)
+    4: type_4,   # Complex at (x0, yc, z0)
+    5: type_5   # Complex in primitive at xc, yc, zc
 }

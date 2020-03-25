@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Matrix",
+    "description": "NKM mixed mesh"
+  },
+  "arguments": {
+    "factory": "geo",
+    "inputs": ["input/nkm_03_2020_core_lres.json"],
+    "coordinates_type": "delta",
+    "transform_data": [0, 0, 0],
+    "volumes_names": ["Rock"],
+    "surfaces_names": null,
+    "xs": [1429],
+    "ys": [1200],
+    "zs": [975],
+    "lcs": [75],
+    "txs": [[3, 0, 1.25]],
+    "tys": [[4, 0, 0.8]],
+    "tzs": [[5, 0, 1]],
+    "type_map": [5],
+    "inputs_map": [0],
+    "volumes_map": [0],
+    "surfaces_map": null,
+    "recs_map": null,
+    "trans_map": null
+  }
+}
