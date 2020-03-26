@@ -1,0 +1,30 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Matrix",
+    "description": "NKM with HLW and ILW zones"
+  },
+  "arguments": {
+    "factory": "geo",
+    "inputs": [
+      "input/nkm_03_2020_hlw_ilw_core_lres.json"
+    ],
+    "coordinates_type": "delta",
+    "transform_data": [-461.5, -457.5, -975],
+    "volumes_names": ["Rock"],
+    "surfaces_names": null,
+    "xs": [1567],
+    "ys": [1238],
+    "zs": [975],
+    "lcs": [100],
+    "txs": null,
+    "tys": null,
+    "tzs": null,
+    "type_map": [5],
+    "inputs_map": [0],
+    "volumes_map": null,
+    "surfaces_map": null,
+    "recs_map": null,
+    "trans_map": null
+  }
+}

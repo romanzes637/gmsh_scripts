@@ -2,12 +2,12 @@
   "metadata": {
     "type": "class_arguments",
     "class_name": "RegularBoundMatrix",
-    "description": "RegularBoundMatrix example"
+    "description": "NKM ILW CORE"
   },
   "arguments": {
     "factory": "geo",
-    "transform_data": [-264.5, -150, -72.5],
-    "nxi": 23,
+    "transform_data": [-161, -150, 0],
+    "nxi": 14,
     "nyj": 20,
     "nzk": 35,
     "dxi": 23,
@@ -23,7 +23,7 @@
     "xi_y0_z0": null,
     "x1_y0_z0": null,
     "x0_yj_z0": null,
-    "xi_yj_z0": ["input/nkm_03_2020_xiyjz0_mix_lres.json", 3],
+    "xi_yj_z0": ["input/nkm_03_2020_xiyjz0_ilw_mix_lres.json", 3],
     "x1_yj_z0": null,
     "x0_y1_z0": null,
     "xi_y1_z0": null,
@@ -32,7 +32,7 @@
     "xi_y0_zk": null,
     "x1_y0_zk": null,
     "x0_yj_zk": null,
-    "xi_yj_zk": ["input/nkm_03_2020_xiyjzk_lres.json", 3],
+    "xi_yj_zk": ["input/nkm_03_2020_xiyjzk_ilw_lres.json", 3],
     "x1_yj_zk": null,
     "x0_y1_zk": null,
     "xi_y1_zk": null,
@@ -41,7 +41,7 @@
     "xi_y0_z1": null,
     "x1_y0_z1": null,
     "x0_yj_z1": null,
-    "xi_yj_z1": ["input/nkm_03_2020_xiyjz1_mix_lres.json", 3],
+    "xi_yj_z1": ["input/nkm_03_2020_xiyjz1_ilw_mix_lres.json", 3],
     "x1_yj_z1": null,
     "x0_y1_z1": null,
     "xi_y1_z1": null,
