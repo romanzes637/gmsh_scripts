@@ -19,7 +19,7 @@
     "dx1": 3,
     "dy1": 11,
     "dz1": 13,
-    "inputs": ["input/regular_matrix_item.json"],
+    "inputs": ["input/test_regular_matrix_item.json"],
     "x0_y0_z0": [0, 3],
     "xi_y0_z0": [0, 3],
     "x1_y0_z0": [0, 3],

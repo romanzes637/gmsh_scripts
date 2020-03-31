@@ -819,13 +819,13 @@ class Primitive:
 
     transfinite_curve = {
         0: lambda self, i: gmsh.model.mesh.setTransfiniteCurve(
-            self.curves[i],
+            abs(self.curves[i]),
             self.transfinite_data[i][0],
             "Progression",
             self.transfinite_data[i][2]
         ),
         1: lambda self, i: gmsh.model.mesh.setTransfiniteCurve(
-            self.curves[i],
+            abs(self.curves[i]),
             self.transfinite_data[i][0],
             "Bump",
             self.transfinite_data[i][2]
@@ -980,7 +980,6 @@ class Primitive:
             self.curves_points[i] +
             [self.points[self.curves_local_points[i][1]]]
         ),
-        # FIXME Workaround for OCC factory (for 8 - EllipseArc)
         6: lambda self, i: self.factory.addLine(
             self.points[self.curves_local_points[i][0]],
             self.points[self.curves_local_points[i][1]]
@@ -990,7 +989,8 @@ class Primitive:
             self.curves_points[i][0],
             self.points[self.curves_local_points[i][1]]
         ),
-        8: lambda self, i: self.factory.addEllipseArc(
+        # FIXME Workaround for OCC factory: addEllipseArc -> addCircleArc
+        8: lambda self, i: self.factory.addCircleArc(
             self.points[self.curves_local_points[i][0]],
             self.curves_points[i][0],
             self.points[self.curves_local_points[i][1]],

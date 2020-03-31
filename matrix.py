@@ -1,6 +1,6 @@
 import json
 from pprint import pprint
-import time 
+import time
 
 import gmsh
 
@@ -16,7 +16,8 @@ class Matrix(Complex):
                  inputs=None, inputs_map=None,
                  volumes_names=None, volumes_map=None,
                  surfaces_names=None, surfaces_map=None,
-                 recs_map=None, trans_map=None):
+                 recs_map=None, trans_map=None,
+                 kwargs=None, kwargs_map=None):
         """
         Primitives, Complexes and Complex descendants
         as items of 3D matrix structure
@@ -60,350 +61,417 @@ class Matrix(Complex):
             factory_object = gmsh.model.occ
         else:
             factory_object = gmsh.model.geo
-        if coordinates_type == 'direct':
-            nx = len(xs) - 1
-            ny = len(ys) - 1
-            nz = len(zs) - 1
-        elif coordinates_type == 'delta':
-            nx = len(xs)
-            ny = len(ys)
-            nz = len(zs)
+        if coordinates_type == 'delta':
+            pass
+        elif coordinates_type == 'direct':  # convert to delta
+            xs = [xs[i] - xs[i - 1] for i in range(1, len(xs))]
+            ys = [ys[i] - ys[i - 1] for i in range(1, len(ys))]
+            zs = [zs[i] - zs[i - 1] for i in range(1, len(zs))]
         else:
             raise ValueError('coordinates_type: {}'.format(coordinates_type))
-        n = nx * ny * nz  # number of matrix items
-        # print(nx, ny, nz, n)
+        nx = len(xs)
+        ny = len(ys)
+        nz = len(zs)
+        ni = nx * ny * nz  # number of matrix items
+        # print(nx, ny, nz, ni)
         if transform_data is None:
             transform_data = [0, 0, 0]
         if txs is None:
             txs = [[3, 0, 1] for _ in range(nx)]
+        elif isinstance(txs, list) and not isinstance(txs[0], list):
+            txs = [txs for _ in range(nx)]
         if tys is None:
             tys = [[3, 0, 1] for _ in range(ny)]
+        elif isinstance(tys, list) and not isinstance(tys[0], list):
+            tys = [tys for _ in range(ny)]
         if tzs is None:
             tzs = [[3, 0, 1] for _ in range(nz)]
+        elif isinstance(tzs, list) and not isinstance(tzs[0], list):
+            tzs = [tzs for _ in range(nz)]
         if lcs is None:
-            lcs = [1 for _ in range(n)]
+            lcs = [1 for _ in range(ni)]
+        elif not isinstance(lcs, list):
+            lcs = [lcs for _ in range(ni)]
         if type_map is None:
-            type_map = [1 for _ in range(n)]
+            type_map = [1 for _ in range(ni)]
         elif not isinstance(type_map, list):
-            type_map = [type_map for _ in range(n)]
+            type_map = [type_map for _ in range(ni)]
         if inputs is None:
-            inputs = ['input/matrix_item.json']
+            inputs = ['input/test_matrix_item.json']
         if inputs_map is None:
-            inputs_map = [0 for _ in range(n)]
+            inputs_map = [0 for _ in range(ni)]
         if volumes_names is None:
-            volumes_names = ['Matrix']
+            volumes_names = ['V']
         if volumes_map is None:
-            volumes_map = [0 for _ in range(n)]
+            volumes_map = [0 for _ in range(ni)]
         if surfaces_names is None:
             surfaces_names = [['NX', 'X', 'NY', 'Y', 'NZ', 'Z']]
         if surfaces_map is None:
-            surfaces_map = [0 for _ in range(n)]
+            surfaces_map = [0 for _ in range(ni)]
         if recs_map is None:
-            recs_map = [1 for _ in range(n)]
+            recs_map = [1 for _ in range(ni)]
         elif not isinstance(recs_map, list):
-            recs_map = [recs_map for _ in range(n)]
+            recs_map = [recs_map for _ in range(ni)]
         if trans_map is None:
-            trans_map = [1 for _ in range(n)]
+            trans_map = [1 for _ in range(ni)]
         elif not isinstance(trans_map, list):
-            trans_map = [trans_map for _ in range(n)]
+            trans_map = [trans_map for _ in range(ni)]
+        inputs_datas = []
+        for inp in inputs:
+            result = check_file(inp)
+            with open(result['path']) as f:
+                d = json.load(f)
+            inputs_datas.append(d)
         # x0, y0, z0 - item start X, Y, Z
         # x1, y1, z1 - item end X, Y, Z
         # xc, yc, zc - item center X, Y, Z
-        primitives = list()
-        if coordinates_type == 'direct':
-            for k in range(nz):
-                for j in range(ny):
-                    for i in range(nx):
-                        gi = i + nx * j + ny * nx * k
-                        # print('{}/{}'.format(gi + 1, n))
-                        x0 = xs[i] + transform_data[0]
-                        x1 = xs[i + 1] + transform_data[0]
-                        xc = 0.5 * (x0 + x1)
-                        y0 = ys[j] + transform_data[1]
-                        y1 = ys[j + 1] + transform_data[1]
-                        yc = 0.5 * (y0 + y1)
-                        z0 = zs[k] + transform_data[2]
-                        z1 = zs[k + 1] + transform_data[2]
-                        zc = 0.5 * (z0 + z1)
-                        lc = lcs[gi]
-                        t = type_map[gi]
-                        pn = volumes_names[volumes_map[gi]]
-                        sns = surfaces_names[surfaces_map[gi]]
-                        inp = inputs[inputs_map[gi]]
-                        tx = txs[i]
-                        ty = tys[j]
-                        tz = tzs[k]
-                        trans = trans_map[gi]
-                        rec = recs_map[gi]
-                        kwargs = locals()
-                        type_factory[t](factory_object, primitives, kwargs)
-        elif coordinates_type == 'delta':
-            primitives = list()
-            for k in range(nz):
-                for j in range(ny):
-                    for i in range(nx):
-                        gi = i + nx * j + ny * nx * k
-                        # print('{}/{}'.format(gi + 1, n))
-                        x0 = sum(xs[:i]) + transform_data[0]
-                        x1 = sum(xs[:i + 1]) + transform_data[0]
-                        xc = 0.5 * (x0 + x1)
-                        y0 = sum(ys[:j]) + transform_data[1]
-                        y1 = sum(ys[:j + 1]) + transform_data[1]
-                        yc = 0.5 * (y0 + y1)
-                        z0 = sum(zs[:k]) + transform_data[2]
-                        z1 = sum(zs[:k + 1]) + transform_data[2]
-                        zc = 0.5 * (z0 + z1)
-                        lc = lcs[gi]
-                        t = type_map[gi]
-                        pn = volumes_names[volumes_map[gi]]
-                        sns = surfaces_names[surfaces_map[gi]]
-                        inp = inputs[inputs_map[gi]]
-                        tx = txs[i]
-                        ty = tys[j]
-                        tz = tzs[k]
-                        trans = trans_map[gi]
-                        rec = recs_map[gi]
-                        kwargs = locals()
-                        type_factory[t](factory_object, primitives, kwargs)
-        else:
-            raise ValueError('coordinates_type: {}'.format(coordinates_type))
+        primitives = []
+        for k in range(nz):
+            for j in range(ny):
+                for i in range(nx):
+                    gi = i + nx * j + ny * nx * k
+                    # print('{}/{}'.format(gi + 1, n))
+                    x0 = sum(xs[:i]) + transform_data[0]
+                    x1 = sum(xs[:i + 1]) + transform_data[0]
+                    xc = 0.5 * (x0 + x1)
+                    y0 = sum(ys[:j]) + transform_data[1]
+                    y1 = sum(ys[:j + 1]) + transform_data[1]
+                    yc = 0.5 * (y0 + y1)
+                    z0 = sum(zs[:k]) + transform_data[2]
+                    z1 = sum(zs[:k + 1]) + transform_data[2]
+                    zc = 0.5 * (z0 + z1)
+                    type_factory[type_map[gi]](**locals())
         Complex.__init__(self, factory, primitives)
 
 
 # Empty
-def type_0(factory_object, primitives, kwargs):
+def type_0(**kwargs):
     pass
 
 
 # Primitive
-def type_1(factory_object, primitives, kwargs):
-    # Args
-    x0 = kwargs['x0']
-    x1 = kwargs['x1']
-    y0 = kwargs['y0']
-    y1 = kwargs['y1']
-    z0 = kwargs['z0']
-    z1 = kwargs['z1']
-    lc = kwargs['lc']
-    tx = kwargs['tx']
-    ty = kwargs['ty']
-    tz = kwargs['tz']
-    pn = kwargs['pn']
-    sns = kwargs['sns']
-    trans = kwargs['trans']
-    rec = kwargs['rec']
-    factory_str = kwargs['factory']
+def type_1(primitives, i, j, k, gi, factory,
+           x0, x1, y0, y1, z0, z1, lcs, txs, tys, tzs,
+           volumes_names, volumes_map, surfaces_names, surfaces_map,
+           recs_map, trans_map, **kwargs):
     primitives.append(Primitive(
-        factory_str,
-        [
-            [x1, y1, z0, lc],
-            [x0, y1, z0, lc],
-            [x0, y0, z0, lc],
-            [x1, y0, z0, lc],
-            [x1, y1, z1, lc],
-            [x0, y1, z1, lc],
-            [x0, y0, z1, lc],
-            [x1, y0, z1, lc],
+        factory=factory,
+        point_data=[
+            [x1, y1, z0, lcs[gi]],
+            [x0, y1, z0, lcs[gi]],
+            [x0, y0, z0, lcs[gi]],
+            [x1, y0, z0, lcs[gi]],
+            [x1, y1, z1, lcs[gi]],
+            [x0, y1, z1, lcs[gi]],
+            [x0, y0, z1, lcs[gi]],
+            [x1, y0, z1, lcs[gi]],
         ],
-        [0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [[], [], [], [], [], [], [], [], [], [], [], []],
-        [tx, ty, tz],
-        0,
-        physical_name=pn,
-        surfaces_names=sns,
-        rec=rec,
-        trans=trans
+        transfinite_data=[txs[i], tys[j], tzs[k]],
+        physical_name=volumes_names[volumes_map[gi]],
+        surfaces_names=surfaces_names[surfaces_map[gi]],
+        rec=recs_map[gi],
+        trans=trans_map[gi]
     ))
 
 
-def type_2(factory_object, primitives, kwargs):
+# Complex at (xc, yc, zc)
+def type_2(primitives, gi, factory,
+           xc, yc, zc, inputs_datas, inputs_map, **kwargs):
+    input_data = inputs_datas[inputs_map[gi]]
+    transform_data = input_data['arguments'].setdefault('transform_data',
+                                                        [0, 0, 0])
+    transform_data[0] += xc
+    transform_data[1] += yc
+    transform_data[2] += zc
+    input_data['arguments']['factory'] = factory
     from complex_factory import ComplexFactory
-    # Args
-    x0 = kwargs['x0']
-    x1 = kwargs['x1']
-    y0 = kwargs['y0']
-    yc = kwargs['yc']
-    y1 = kwargs['y1']
-    z0 = kwargs['z0']
-    zc = kwargs['zc']
-    z1 = kwargs['z1']
-    lc = kwargs['lc']
-    tx = kwargs['tx']
-    ty = kwargs['ty']
-    tz = kwargs['tz']
-    pn = kwargs['pn']
-    trans = kwargs['trans']
-    rec = kwargs['rec']
-    inputs = kwargs['inputs']
-    factory = kwargs['factory']
-    # Internal
-    borehole_input_path = inputs[0]
-    result = check_file(borehole_input_path)
-    with open(result['path']) as f:
-        borehole_input = json.load(f)
-    # pprint(borehole_input)
-    n_boreholes = 10
-    x0_borehole = x0 + 1.850
-    dx_borehole = 2.500
-    dz_borehole = -1.700
-    boreholes = list()
-    borehole_input['arguments']['factory'] = factory
-    for borehole_i, borehole in enumerate(
-            range(n_boreholes)):
-        new_transform = borehole_input['arguments'][
-            'transform_data']
-        new_transform[
-            0] = x0_borehole + dx_borehole * borehole_i
-        new_transform[1] = yc
-        new_transform[2] = zc + dz_borehole
-        borehole_input['arguments'][
-            'transform_data'] = new_transform
-        b = ComplexFactory.new(borehole_input)
-        boreholes.append(b)
-        primitives.extend(b.primitives)
-    # !!! FACTORY SYNC and EVALUATE !!!
-    factory_object.synchronize()
-    for b in boreholes:
-        b.evaluate_coordinates()
-    factory_object.removeAllDuplicates()  # ERROR IF REMOVE
-    factory_object.synchronize()  # ERROR IF REMOVE
-    inner_volumes = list()
-    for b in boreholes:
-        inner_volumes.extend(b.get_volumes())
-    # External
+    c = ComplexFactory.new(input_data)
+    primitives.extend(c.primitives)
+
+
+# Complex at (xc, yc, z0)
+def type_3(primitives, gi, factory,
+           xc, yc, z0, inputs_datas, inputs_map, **kwargs):
+    input_data = inputs_datas[inputs_map[gi]]
+    transform_data = input_data['arguments'].setdefault('transform_data',
+                                                        [0, 0, 0])
+    transform_data[0] += xc
+    transform_data[1] += yc
+    transform_data[2] += z0
+    input_data['arguments']['factory'] = factory
+    from complex_factory import ComplexFactory
+    c = ComplexFactory.new(input_data)
+    primitives.extend(c.primitives)
+
+
+# Complex at (x0, yc, z0)
+def type_4(primitives, gi, factory,
+           x0, yc, z0, inputs_datas, inputs_map, **kwargs):
+    input_data = inputs_datas[inputs_map[gi]]
+    transform_data = input_data['arguments'].setdefault('transform_data',
+                                                        [0, 0, 0])
+    transform_data[0] += x0
+    transform_data[1] += yc
+    transform_data[2] += z0
+    input_data['arguments']['factory'] = factory
+    from complex_factory import ComplexFactory
+    c = ComplexFactory.new(input_data)
+    primitives.extend(c.primitives)
+
+
+# Complex in Primitive at (xc, yc, zc)
+def type_5(primitives, i, j, k, gi, factory,
+           x0, x1, xc, y0, y1, yc, z0, z1, zc, lcs, txs, tys, tzs,
+           volumes_names, volumes_map, surfaces_names, surfaces_map,
+           recs_map, trans_map, inputs_datas, inputs_map, **kwargs):
+    input_data = inputs_datas[inputs_map[gi]]
+    transform_data = input_data['arguments'].setdefault('transform_data',
+                                                        [0, 0, 0])
+    transform_data[0] += xc
+    transform_data[1] += yc
+    transform_data[2] += zc
+    input_data['arguments']['factory'] = factory
+    from complex_factory import ComplexFactory
+    c = ComplexFactory.new(input_data)
+    primitives.extend(c.primitives)
     primitives.append(Primitive(
-        factory,
-        [
-            [x1, y1, z0, lc],
-            [x0, y1, z0, lc],
-            [x0, y0, z0, lc],
-            [x1, y0, z0, lc],
-            [x1, y1, z1, lc],
-            [x0, y1, z1, lc],
-            [x0, y0, z1, lc],
-            [x1, y0, z1, lc],
+        factory=factory,
+        point_data=[
+            [x1, y1, z0, lcs[gi]],
+            [x0, y1, z0, lcs[gi]],
+            [x0, y0, z0, lcs[gi]],
+            [x1, y0, z0, lcs[gi]],
+            [x1, y1, z1, lcs[gi]],
+            [x0, y1, z1, lcs[gi]],
+            [x0, y0, z1, lcs[gi]],
+            [x1, y0, z1, lcs[gi]],
         ],
-        [0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [[], [], [], [], [], [], [], [], [], [], [], []],
-        [tx, ty, tz],
-        0,
-        pn,
-        inner_volumes,
-        rec=rec,
-        trans=trans
-    ))
-
-
-def type_3(factory_object, primitives, kwargs):
-    from complex_factory import ComplexFactory
-    # Args
-    xc = kwargs['xc']
-    yc = kwargs['yc']
-    z0 = kwargs['z0']
-    inp = kwargs['inp']
-    # Do
-    factory = kwargs['factory']
-    result = check_file(inp)
-    with open(result['path']) as f:
-        input_data = json.load(f)
-    input_data['arguments']['factory'] = factory
-    old_transform = input_data['arguments'].get('transform_data', None)
-    if old_transform is None:
-        old_transform = [0, 0, 0]
-    new_transform = old_transform
-    new_transform[0] = old_transform[0] + xc
-    new_transform[1] = old_transform[1] + yc
-    new_transform[2] = old_transform[2] + z0
-    input_data['arguments']['transform_data'] = new_transform
-    c = ComplexFactory.new(input_data)
-    primitives.extend(c.primitives)
-
-
-def type_4(factory_object, primitives, kwargs):
-    from complex_factory import ComplexFactory
-    # Args
-    x0 = kwargs['x0']
-    yc = kwargs['yc']
-    z0 = kwargs['z0']
-    inp = kwargs['inp']
-    # Do
-    factory = kwargs['factory']
-    result = check_file(inp)
-    with open(result['path']) as f:
-        input_data = json.load(f)
-    input_data['arguments']['factory'] = factory
-    old_transform = input_data['arguments'].get('transform_data', [0, 0, 0])
-    new_transform = old_transform
-    new_transform[0] = old_transform[0] + x0
-    new_transform[1] = old_transform[1] + yc
-    new_transform[2] = old_transform[2] + z0
-    input_data['arguments']['transform_data'] = new_transform
-    c = ComplexFactory.new(input_data)
-    primitives.extend(c.primitives)
-
-
-def type_5(factory_object, primitives, kwargs):
-    from complex_factory import ComplexFactory
-    # Args
-    x0, x1, xc = kwargs['x0'], kwargs['x1'], kwargs['xc']
-    y0, y1, yc = kwargs['y0'], kwargs['y1'], kwargs['yc']
-    z0, z1, zc = kwargs['z0'], kwargs['z1'], kwargs['zc']
-    lc = kwargs['lc']
-    tx = kwargs['tx']
-    ty = kwargs['ty']
-    tz = kwargs['tz']
-    pn = kwargs['pn']
-    sns = kwargs['sns']
-    trans = kwargs['trans']
-    rec = kwargs['rec']
-    inp = kwargs['inp']
-    factory = kwargs['factory']
-    # Internal
-    result = check_file(inp)
-    with open(result['path']) as f:
-        input_data = json.load(f)
-    input_data['arguments']['factory'] = factory
-    old_transform = input_data['arguments'].get('transform_data', [0, 0, 0])
-    new_transform = old_transform
-    new_transform[0] = old_transform[0] + xc
-    new_transform[1] = old_transform[1] + yc
-    new_transform[2] = old_transform[2] + zc
-    input_data['arguments']['transform_data'] = new_transform
-    c = ComplexFactory.new(input_data)
-    primitives.extend(c.primitives)
-    # External
-    primitives.append(Primitive(
-        factory,
-        [
-            [x1, y1, z0, lc],
-            [x0, y1, z0, lc],
-            [x0, y0, z0, lc],
-            [x1, y0, z0, lc],
-            [x1, y1, z1, lc],
-            [x0, y1, z1, lc],
-            [x0, y0, z1, lc],
-            [x1, y0, z1, lc],
-        ],
-        [0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [[], [], [], [], [], [], [], [], [], [], [], []],
-        [tx, ty, tz],
-        0,
-        physical_name=pn,
+        transfinite_data=[txs[i], tys[j], tzs[k]],
+        physical_name=volumes_names[volumes_map[gi]],
         inner_volumes=c.get_volumes(),
-        surfaces_names=sns,
-        rec=rec,
-        trans=trans
+        surfaces_names=surfaces_names[surfaces_map[gi]],
+        rec=recs_map[gi],
+        trans=trans_map[gi]
+    ))
+
+
+def type_20(primitives, i, j, k, gi, factory,
+            x0, x1, xc, y0, y1, yc, z0, z1, zc, lcs, txs, tys, tzs,
+            volumes_names, volumes_map, surfaces_names, surfaces_map,
+            recs_map, trans_map, xs, ys, transform_data, **kwargs):
+    cxi = len(xs) // 2
+    cyi = len(ys) // 2
+    cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
+    cy = sum(ys[:cyi]) + ys[cyi] / 2 + transform_data[1]
+    r1 = abs(x1 - cx)
+    r1y1 = sum(ys[cyi:j + 2]) - ys[cyi] / 2
+    r1y0 = sum(ys[:cyi]) + ys[cyi] / 2
+    k1y1 = r1y1 / r1
+    k1y0 = r1y0 / r1
+    print(r1, r1y1, k1y1)
+    print(r1, r1y0, k1y0)
+    if k1y1 == 0 and k1y0 == 0:
+        cts = [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]
+        cd = [
+            [], [], [], [],
+            [[cx, cy, z0, lcs[gi]]],
+            [], [],
+            [[cx, cy, z1, lcs[gi]]],
+            [], [], [], []
+        ]
+    else:
+        cts = [0, 0, 0, 0, 3, 0, 0, 3, 0, 0, 0, 0]
+        cd = [
+            [], [], [], [],
+            [[x1, cy, z0, lcs[gi]]],
+            [], [],
+            [[x1, cy, z1, lcs[gi]]],
+            [], [], [], []
+        ]
+    primitives.append(Primitive(
+        factory=factory,
+        point_data=[
+            [cx + r1 / 2 ** 0.5, cy + k1y1 * r1 / 2 ** 0.5, z0, lcs[gi]],
+            [x0, y1, z0, lcs[gi]],
+            [x0, y0, z0, lcs[gi]],
+            [cx + r1 / 2 ** 0.5, cy - k1y0 * r1 / 2 ** 0.5, z0, lcs[gi]],
+            [cx + r1 / 2 ** 0.5, cy + k1y1 * r1 / 2 ** 0.5, z1, lcs[gi]],
+            [x0, y1, z1, lcs[gi]],
+            [x0, y0, z1, lcs[gi]],
+            [cx + r1 / 2 ** 0.5, cy - k1y0 * r1 / 2 ** 0.5, z1, lcs[gi]]
+        ],
+        curve_types=cts,
+        curve_data=cd,
+        transfinite_data=[txs[i], tys[j], tzs[k]],
+        transfinite_type=0,
+        physical_name=volumes_names[volumes_map[gi]],
+        surfaces_names=surfaces_names[surfaces_map[gi]],
+        rec=recs_map[gi],
+        trans=trans_map[gi]
+    ))
+
+
+def type_21(primitives, i, j, k, gi, factory,
+            x0, x1, xc, y0, y1, yc, z0, z1, zc, lcs, txs, tys, tzs,
+            volumes_names, volumes_map, surfaces_names, surfaces_map,
+            recs_map, trans_map, xs, ys, transform_data, **kwargs):
+    cxi = len(xs) // 2
+    cyi = len(ys) // 2
+    cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
+    cy = sum(ys[:cyi]) + ys[cyi] / 2 + transform_data[1]
+    r1 = abs(y1 - cy)
+    r1x1 = sum(xs[i:i + 2]) - xs[i] / 2
+    k1x1 = r1x1 / r1
+    if r1 == r1x1:
+        cts = [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        cd = [
+            [[cx, cy, z0, 1]], [[cx, cy, z1, 1]], [], [],
+            [], [], [], [],
+            [], [], [], []
+        ]
+    else:
+        cts = [3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        cd = [
+            [[cx, y1, z0, 1]], [[cx, y1, z1, 1]], [], [],
+            [], [], [], [],
+            [], [], [], []
+        ]
+    primitives.append(Primitive(
+        factory=factory,
+        point_data=[
+            [xc + k1x1 * r1 / 2 ** 0.5, cy + r1 / 2 ** 0.5, z0, lcs[gi]],
+            [xc - r1 / 2 ** 0.5, cy + r1 / 2 ** 0.5, z0, lcs[gi]],
+            [x0, y0, z0, lcs[gi]],
+            [x1, y0, z0, lcs[gi]],
+            [xc + k1x1 * r1 / 2 ** 0.5, cy + r1 / 2 ** 0.5, z1, lcs[gi]],
+            [xc - r1 / 2 ** 0.5, cy + r1 / 2 ** 0.5, z1, lcs[gi]],
+            [x0, y0, z1, lcs[gi]],
+            [x1, y0, z1, lcs[gi]]
+        ],
+        curve_types=cts,
+        curve_data=cd,
+        transfinite_data=[txs[i], tys[j], tzs[k]],
+        transfinite_type=0,
+        physical_name=volumes_names[volumes_map[gi]],
+        surfaces_names=surfaces_names[surfaces_map[gi]],
+        rec=recs_map[gi],
+        trans=trans_map[gi]
+    ))
+
+
+def type_22(primitives, i, j, k, gi, factory,
+            x0, x1, xc, y0, y1, yc, z0, z1, zc, lcs, txs, tys, tzs,
+            volumes_names, volumes_map, surfaces_names, surfaces_map,
+            recs_map, trans_map, xs, ys, transform_data, **kwargs):
+    cxi = len(xs) // 2
+    cyi = len(ys) // 2
+    cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
+    cy = sum(ys[:cyi]) + ys[cyi] / 2 + transform_data[1]
+    r1 = abs(x1 - cx)
+    r1y1 = sum(ys[cyi:j + 2]) - ys[cyi] / 2
+    r1y0 = sum(ys[:cyi]) + ys[cyi] / 2
+    k1y1 = r1y1 / r1
+    k1y0 = r1y0 / r1
+    print(r1, r1y1, k1y1)
+    print(r1, r1y0, k1y0)
+    if k1y1 == 0 and k1y0 == 0:
+        cts = [0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0]
+        cd = [
+            [], [], [], [],
+            [], [[0, 0, z0, 1], [0, 0, z0, 1]],
+            [[0, 0, z1, 1], [0, 0, z1, 1]], [],
+            [], [], [], []
+        ]
+    else:
+        cts = [0, 0, 0, 0, 3, 0, 0, 3, 0, 0, 0, 0]
+        cd = [
+            [], [], [], [],
+            [[x1, cy, z0, lcs[gi]]],
+            [], [],
+            [[x1, cy, z1, lcs[gi]]],
+            [], [], [], []
+        ]
+    primitives.append(Primitive(
+        factory=factory,
+        point_data=[
+            [x1, y1, z0, lcs[gi]],
+            [x0 / 2 ** 0.5, -ky1 * x0 / 2 ** 0.5, z0, lcs[gi]],
+            [x0 / 2 ** 0.5, ky0 * x0 / 2 ** 0.5, z0, lcs[gi]],
+            [x1, y0, z0, lcs[gi]],
+            [x1, y1, z1, lcs[gi]],
+            [x0 / 2 ** 0.5, -ky1 * x0 / 2 ** 0.5, z1, lcs[gi]],
+            [x0 / 2 ** 0.5, ky0 * x0 / 2 ** 0.5, z1, lcs[gi]],
+            [x1, y0, z1, lcs[gi]]
+        ],
+        curve_types=cts,
+        curve_data=cd,
+        transfinite_data=[txs[i], tys[j], tzs[k]],
+        transfinite_type=1,
+        physical_name=volumes_names[volumes_map[gi]],
+        surfaces_names=surfaces_names[surfaces_map[gi]],
+        rec=recs_map[gi],
+        trans=trans_map[gi]
+    ))
+
+
+def type_23(primitives, i, j, k, gi, factory,
+            x0, x1, xc, y0, y1, yc, z0, z1, zc, lcs, txs, tys, tzs,
+            volumes_names, volumes_map, surfaces_names, surfaces_map,
+            recs_map, trans_map, xs, ys, transform_data, **kwargs):
+    cxi = len(xs) // 2
+    cyi = len(ys) // 2
+    cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
+    cy = sum(ys[:cyi]) + ys[cyi] / 2 + transform_data[1]
+    r1 = abs(y0 - cy)
+    r1x1 = sum(xs[i:i + 2]) - xs[i] / 2
+    k1x1 = r1x1 / r1
+    print(r1, r1x1, k1x1)
+    if k1x1 == 0:
+        cts = [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+        cd = [
+            [], [], [[cx, cy, z1, 1]], [[cx, cy, z0, 1]],
+            [], [], [], [],
+            [], [], [], []
+        ]
+    else:
+        cts = [0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0]
+        cd = [
+            [], [], [[cx, y0, z1, 1]], [[cx, y0, z0, 1]],
+            [], [], [], [],
+            [], [], [], []
+        ]
+    primitives.append(Primitive(
+        factory=factory,
+        point_data=[
+            [x1, y1, z0, lcs[gi]],
+            [x0, y1, z0, lcs[gi]],
+            [cx - r1 / 2 ** 0.5, cy - r1 / 2 ** 0.5, z0, lcs[gi]],
+            [cx + k1x1 * r1 / 2 ** 0.5, cy - r1 / 2 ** 0.5, z0, lcs[gi]],
+            [x1, y1, z1, lcs[gi]],
+            [x0, y1, z1, lcs[gi]],
+            [cx - r1 / 2 ** 0.5, cy - r1 / 2 ** 0.5, z1, lcs[gi]],
+            [cx + k1x1 * r1 / 2 ** 0.5, cy - r1 / 2 ** 0.5, z1, lcs[gi]]
+        ],
+        curve_types=cts,
+        curve_data=cd,
+        transfinite_data=[txs[i], tys[j], tzs[k]],
+        transfinite_type=3,
+        physical_name=volumes_names[volumes_map[gi]],
+        surfaces_names=surfaces_names[surfaces_map[gi]],
+        rec=recs_map[gi],
+        trans=trans_map[gi]
     ))
 
 
 type_factory = {
     0: type_0,  # Empty
     1: type_1,  # Primitive
-    2: type_2,  # Borehole
+    2: type_2,  # Complex at (xc, yc, zc)
     3: type_3,  # Complex at (xc, yc, z0)
-    4: type_4,   # Complex at (x0, yc, z0)
-    5: type_5   # Complex in primitive at xc, yc, zc
+    4: type_4,  # Complex at (x0, yc, z0)
+    5: type_5,  # Complex in Primitive at (xc, yc, zc)
+    20: type_20,  # Cylinder X|)
+    21: type_21,  # Cylinder Y|)
+    22: type_22,  # Cylinder NX|)
+    23: type_23  # Cylinder NY|)
 }
