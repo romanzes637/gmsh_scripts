@@ -137,22 +137,26 @@ class Matrix(Complex):
         # x0, y0, z0 - item start X, Y, Z
         # x1, y1, z1 - item end X, Y, Z
         # xc, yc, zc - item center X, Y, Z
-        primitives = []
+        gis = {}
+        x0s, x1s, xcs = [], [], []
+        y0s, y1s, ycs = [], [], []
+        z0s, z1s, zcs = [], [], []
         for k in range(nz):
             for j in range(ny):
                 for i in range(nx):
-                    gi = i + nx * j + ny * nx * k
-                    # print('{}/{}'.format(gi + 1, n))
-                    x0 = sum(xs[:i]) + transform_data[0]
-                    x1 = sum(xs[:i + 1]) + transform_data[0]
-                    xc = 0.5 * (x0 + x1)
-                    y0 = sum(ys[:j]) + transform_data[1]
-                    y1 = sum(ys[:j + 1]) + transform_data[1]
-                    yc = 0.5 * (y0 + y1)
-                    z0 = sum(zs[:k]) + transform_data[2]
-                    z1 = sum(zs[:k + 1]) + transform_data[2]
-                    zc = 0.5 * (z0 + z1)
-                    type_factory[type_map[gi]](**locals())
+                    gis[(i, j, k)] = i + nx * j + ny * nx * k
+                    x0s.append(sum(xs[:i]) + transform_data[0])
+                    x1s.append(sum(xs[:i + 1]) + transform_data[0])
+                    xcs.append(0.5 * (x0s[-1] + x1s[-1]))
+                    y0s.append(sum(ys[:j]) + transform_data[1])
+                    y1s.append(sum(ys[:j + 1]) + transform_data[1])
+                    ycs.append(0.5 * (y0s[-1] + y1s[-1]))
+                    z0s.append(sum(zs[:k]) + transform_data[2])
+                    z1s.append(sum(zs[:k + 1]) + transform_data[2])
+                    zcs.append(0.5 * (z0s[-1] + z1s[-1]))
+        primitives = []
+        for ci, gi in gis.items():
+            type_factory[type_map[gi]](**locals())
         Complex.__init__(self, factory, primitives)
 
 
@@ -162,21 +166,22 @@ def type_0(**kwargs):
 
 
 # Primitive
-def type_1(primitives, i, j, k, gi, factory,
-           x0, x1, y0, y1, z0, z1, lcs, txs, tys, tzs,
+def type_1(primitives, ci, gi, factory,
+           x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
            volumes_names, volumes_map, surfaces_names, surfaces_map,
            recs_map, trans_map, **kwargs):
+    i, j, k = ci
     primitives.append(Primitive(
         factory=factory,
         point_data=[
-            [x1, y1, z0, lcs[gi]],
-            [x0, y1, z0, lcs[gi]],
-            [x0, y0, z0, lcs[gi]],
-            [x1, y0, z0, lcs[gi]],
-            [x1, y1, z1, lcs[gi]],
-            [x0, y1, z1, lcs[gi]],
-            [x0, y0, z1, lcs[gi]],
-            [x1, y0, z1, lcs[gi]],
+            [x1s[gi], y1s[gi], z0s[gi], lcs[gi]],
+            [x0s[gi], y1s[gi], z0s[gi], lcs[gi]],
+            [x0s[gi], y0s[gi], z0s[gi], lcs[gi]],
+            [x1s[gi], y0s[gi], z0s[gi], lcs[gi]],
+            [x1s[gi], y1s[gi], z1s[gi], lcs[gi]],
+            [x0s[gi], y1s[gi], z1s[gi], lcs[gi]],
+            [x0s[gi], y0s[gi], z1s[gi], lcs[gi]],
+            [x1s[gi], y0s[gi], z1s[gi], lcs[gi]],
         ],
         transfinite_data=[txs[i], tys[j], tzs[k]],
         physical_name=volumes_names[volumes_map[gi]],
@@ -188,13 +193,13 @@ def type_1(primitives, i, j, k, gi, factory,
 
 # Complex at (xc, yc, zc)
 def type_2(primitives, gi, factory,
-           xc, yc, zc, inputs_datas, inputs_map, **kwargs):
+           xcs, ycs, zcs, inputs_datas, inputs_map, **kwargs):
     input_data = inputs_datas[inputs_map[gi]]
     transform_data = input_data['arguments'].setdefault('transform_data',
                                                         [0, 0, 0])
-    transform_data[0] += xc
-    transform_data[1] += yc
-    transform_data[2] += zc
+    transform_data[0] += xcs[gi]
+    transform_data[1] += ycs[gi]
+    transform_data[2] += zcs[gi]
     input_data['arguments']['factory'] = factory
     from complex_factory import ComplexFactory
     c = ComplexFactory.new(input_data)
@@ -203,13 +208,13 @@ def type_2(primitives, gi, factory,
 
 # Complex at (xc, yc, z0)
 def type_3(primitives, gi, factory,
-           xc, yc, z0, inputs_datas, inputs_map, **kwargs):
+           xcs, ycs, z0s, inputs_datas, inputs_map, **kwargs):
     input_data = inputs_datas[inputs_map[gi]]
     transform_data = input_data['arguments'].setdefault('transform_data',
                                                         [0, 0, 0])
-    transform_data[0] += xc
-    transform_data[1] += yc
-    transform_data[2] += z0
+    transform_data[0] += xcs[gi]
+    transform_data[1] += ycs[gi]
+    transform_data[2] += z0s[gi]
     input_data['arguments']['factory'] = factory
     from complex_factory import ComplexFactory
     c = ComplexFactory.new(input_data)
@@ -218,13 +223,13 @@ def type_3(primitives, gi, factory,
 
 # Complex at (x0, yc, z0)
 def type_4(primitives, gi, factory,
-           x0, yc, z0, inputs_datas, inputs_map, **kwargs):
+           x0s, ycs, z0s, inputs_datas, inputs_map, **kwargs):
     input_data = inputs_datas[inputs_map[gi]]
     transform_data = input_data['arguments'].setdefault('transform_data',
                                                         [0, 0, 0])
-    transform_data[0] += x0
-    transform_data[1] += yc
-    transform_data[2] += z0
+    transform_data[0] += x0s[gi]
+    transform_data[1] += ycs[gi]
+    transform_data[2] += z0s[gi]
     input_data['arguments']['factory'] = factory
     from complex_factory import ComplexFactory
     c = ComplexFactory.new(input_data)
@@ -232,16 +237,17 @@ def type_4(primitives, gi, factory,
 
 
 # Complex in Primitive at (xc, yc, zc)
-def type_5(primitives, i, j, k, gi, factory,
-           x0, x1, xc, y0, y1, yc, z0, z1, zc, lcs, txs, tys, tzs,
+def type_5(primitives, ci, gi, factory,
+           x0s, x1s, xcs, y0s, y1s, ycs, z0s, z1s, zcs, lcs, txs, tys, tzs,
            volumes_names, volumes_map, surfaces_names, surfaces_map,
            recs_map, trans_map, inputs_datas, inputs_map, **kwargs):
+    i, j, k = ci
     input_data = inputs_datas[inputs_map[gi]]
     transform_data = input_data['arguments'].setdefault('transform_data',
                                                         [0, 0, 0])
-    transform_data[0] += xc
-    transform_data[1] += yc
-    transform_data[2] += zc
+    transform_data[0] += xcs[gi]
+    transform_data[1] += ycs[gi]
+    transform_data[2] += zcs[gi]
     input_data['arguments']['factory'] = factory
     from complex_factory import ComplexFactory
     c = ComplexFactory.new(input_data)
@@ -249,14 +255,14 @@ def type_5(primitives, i, j, k, gi, factory,
     primitives.append(Primitive(
         factory=factory,
         point_data=[
-            [x1, y1, z0, lcs[gi]],
-            [x0, y1, z0, lcs[gi]],
-            [x0, y0, z0, lcs[gi]],
-            [x1, y0, z0, lcs[gi]],
-            [x1, y1, z1, lcs[gi]],
-            [x0, y1, z1, lcs[gi]],
-            [x0, y0, z1, lcs[gi]],
-            [x1, y0, z1, lcs[gi]],
+            [x1s[gi], y1s[gi], z0s[gi], lcs[gi]],
+            [x0s[gi], y1s[gi], z0s[gi], lcs[gi]],
+            [x0s[gi], y0s[gi], z0s[gi], lcs[gi]],
+            [x1s[gi], y0s[gi], z0s[gi], lcs[gi]],
+            [x1s[gi], y1s[gi], z1s[gi], lcs[gi]],
+            [x0s[gi], y1s[gi], z1s[gi], lcs[gi]],
+            [x0s[gi], y0s[gi], z1s[gi], lcs[gi]],
+            [x1s[gi], y0s[gi], z1s[gi], lcs[gi]],
         ],
         transfinite_data=[txs[i], tys[j], tzs[k]],
         physical_name=volumes_names[volumes_map[gi]],
@@ -267,109 +273,62 @@ def type_5(primitives, i, j, k, gi, factory,
     ))
 
 
-# Cylinder X|)
-def type_20(primitives, i, j, k, gi, factory,
+# Primitive
+def type_19(primitives, ci, gi, factory,
             x0, x1, y0, y1, z0, z1, lcs, txs, tys, tzs,
             volumes_names, volumes_map, surfaces_names, surfaces_map,
             recs_map, trans_map, xs, ys, transform_data,
             kws, kws_map, **kwargs):
+    i, j, k = ci
     cxi = len(xs) // 2
     cyi = len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
     cy = sum(ys[:cyi]) + ys[cyi] / 2 + transform_data[1]
-    r1 = abs(x1 - cx)
     r1y1 = sum(ys[cyi:j + 2]) - ys[cyi] / 2
     r1y0 = sum(ys[:cyi]) + ys[cyi] / 2
-    k1y1 = r1y1 / r1
-    k1y0 = r1y0 / r1
-    # print(r1, r1y1, k1y1)
-    # print(r1, r1y0, k1y0)
-    if k1y1 == 1 and k1y0 == 1:
-        cts = [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]
-        cd = [
-            [], [], [], [],
-            [[cx, cy, z0, lcs[gi]]],
-            [], [],
-            [[cx, cy, z1, lcs[gi]]],
-            [], [], [], []
-        ]
-    else:
-        t = kws[kws_map[gi]].get('ct', 3)
-        cts = [0, 0, 0, 0, t, 0, 0, t, 0, 0, 0, 0]
-        cd = [
-            [], [], [], [],
-            [[x1, cy, z0, lcs[gi]]],
-            [], [],
-            [[x1, cy, z1, lcs[gi]]],
-            [], [], [], []
-        ]
-    primitives.append(Primitive(
-        factory=factory,
-        point_data=[
-            [cx + r1 / 2 ** 0.5, cy + k1y1 * r1 / 2 ** 0.5, z0, lcs[gi]],
-            [x0, y1, z0, lcs[gi]],
-            [x0, y0, z0, lcs[gi]],
-            [cx + r1 / 2 ** 0.5, cy - k1y0 * r1 / 2 ** 0.5, z0, lcs[gi]],
-            [cx + r1 / 2 ** 0.5, cy + k1y1 * r1 / 2 ** 0.5, z1, lcs[gi]],
-            [x0, y1, z1, lcs[gi]],
-            [x0, y0, z1, lcs[gi]],
-            [cx + r1 / 2 ** 0.5, cy - k1y0 * r1 / 2 ** 0.5, z1, lcs[gi]]
-        ],
-        curve_types=cts,
-        curve_data=cd,
-        transfinite_data=[txs[i], tys[j], tzs[k]],
-        transfinite_type=0,
-        physical_name=volumes_names[volumes_map[gi]],
-        surfaces_names=surfaces_names[surfaces_map[gi]],
-        rec=recs_map[gi],
-        trans=trans_map[gi]
-    ))
-
-
-# Cylinder Y|)
-def type_21(primitives, i, j, k, gi, factory,
-            x0, x1, y0, y1, z0, z1, lcs, txs, tys, tzs,
-            volumes_names, volumes_map, surfaces_names, surfaces_map,
-            recs_map, trans_map, xs, ys, transform_data,
-            kws, kws_map, **kwargs):
-    cxi = len(xs) // 2
-    cyi = len(ys) // 2
-    cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
-    cy = sum(ys[:cyi]) + ys[cyi] / 2 + transform_data[1]
-    r1 = abs(y1 - cy)
     r1x1 = sum(xs[i:i + 2]) - xs[i] / 2
     r1x0 = sum(xs[:i]) + xs[i] / 2
-    k1x1 = r1x1 / r1
-    k1x0 = r1x0 / r1
-    # print(r1, r1x1, r1x1)
-    # print(r1, r1x0, k1x0)
-    if k1x1 == 1 and k1x0 == 1:
-        cts = [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        cd = [
-            [[cx, cy, z0, 1]], [[cx, cy, z1, 1]], [], [],
-            [], [], [], [],
-            [], [], [], []
-        ]
-    else:
-        t = kws[kws_map[gi]].get('ct', 3)
-        cts = [t, t, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        cd = [
-            [[cx, y1, z0, 1]], [[cx, y1, z1, 1]], [], [],
-            [], [], [], [],
-            [], [], [], []
-        ]
-    primitives.append(Primitive(
-        factory=factory,
-        point_data=[
-            [cx + k1x1 * r1 / 2 ** 0.5, cy + r1 / 2 ** 0.5, z0, lcs[gi]],
-            [cx - k1x0 * r1 / 2 ** 0.5, cy + r1 / 2 ** 0.5, z0, lcs[gi]],
+    a = kws[kws_map[gi]].get('angle', 'prop')
+    if a == 'prop':
+        dx1r1 = r1x1 / 2 ** 0.5
+        dx0r1 = r1x0 / 2 ** 0.5
+        dy1r1 = r1y1 / 2 ** 0.5
+        dy0r1 = r1y0 / 2 ** 0.5
+        pd = [
+            [x1, y1, z0, lcs[gi]],
+            [x0, y1, z0, lcs[gi]],
             [x0, y0, z0, lcs[gi]],
             [x1, y0, z0, lcs[gi]],
-            [cx + k1x1 * r1 / 2 ** 0.5, cy + r1 / 2 ** 0.5, z1, lcs[gi]],
-            [cx - k1x0 * r1 / 2 ** 0.5, cy + r1 / 2 ** 0.5, z1, lcs[gi]],
-            [x0, y0, z1, lcs[gi]],
-            [x1, y0, z1, lcs[gi]]
-        ],
+            [cx + dx1r1, cy + dy1r1, z1, lcs[gi]],
+            [cx - dx0r1, cy + dy1r1, z1, lcs[gi]],
+            [cx - dx0r1, cy - dy0r1, z1, lcs[gi]],
+            [cx + dx1r1, cy - dy0r1, z1, lcs[gi]]
+        ]
+    elif a == 'equal':
+        dx1dy1 = r1x1 * r1y1 / (r1x1 ** 2 + r1y1 ** 2) ** 0.5
+        dx0dy1 = r1x0 * r1y1 / (r1x0 ** 2 + r1y1 ** 2) ** 0.5
+        dx0dy0 = r1x0 * r1y0 / (r1x0 ** 2 + r1y0 ** 2) ** 0.5
+        dx1dy0 = r1x1 * r1y0 / (r1x1 ** 2 + r1y0 ** 2) ** 0.5
+        pd = [
+            [x1, y1, z0, lcs[gi]],
+            [x0, y1, z0, lcs[gi]],
+            [x0, y0, z0, lcs[gi]],
+            [x1, y0, z0, lcs[gi]],
+            [cx + dx1dy1, cy + dx1dy1, z1, lcs[gi]],
+            [cx - dx0dy1, cy + dx0dy1, z1, lcs[gi]],
+            [cx - dx0dy0, cy - dx0dy0, z1, lcs[gi]],
+            [cx + dx1dy0, cy - dx1dy0, z1, lcs[gi]]
+        ]
+    ct = kws[kws_map[gi]].get('ct', 3)
+    cts = [0, ct, ct, 0, 0, 0, ct, ct, 0, 0, 0, 0]
+    cd = [
+        [], [[cx, cy + r1y1, z1, lcs[gi]]], [[cx, cy - r1y0, z1, lcs[gi]]], [],
+        [], [], [[cx - r1x0, cy, z1, lcs[gi]]], [[cx + r1x1, cy, z1, lcs[gi]]],
+        [], [], [], []
+    ]
+    primitives.append(Primitive(
+        factory=factory,
+        point_data=pd,
         curve_types=cts,
         curve_data=cd,
         transfinite_data=[txs[i], tys[j], tzs[k]],
@@ -381,50 +340,321 @@ def type_21(primitives, i, j, k, gi, factory,
     ))
 
 
-# Cylinder NX|)
-def type_22(primitives, i, j, k, gi, factory,
-            x0, x1, y0, y1, z0, z1, lcs, txs, tys, tzs,
+# Cylinder X
+def type_6(primitives, ci, gi, gis, factory,
+            x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
             volumes_names, volumes_map, surfaces_names, surfaces_map,
-            recs_map, trans_map, xs, ys, transform_data,
+            recs_map, trans_map, xs, ys, zs, transform_data,
             kws, kws_map, **kwargs):
-    cxi = len(xs) // 2
-    cyi = len(ys) // 2
+    i, j, k = ci
+    cxi, cyj = len(xs) // 2, len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
-    cy = sum(ys[:cyi]) + ys[cyi] / 2 + transform_data[1]
-    r1 = abs(x0 - cx)
-    r1y1 = sum(ys[cyi:j + 2]) - ys[cyi] / 2
-    r1y0 = sum(ys[:cyi]) + ys[cyi] / 2
-    k1y1 = r1y1 / r1
-    k1y0 = r1y0 / r1
-    # print(r1, r1y1, k1y1)
-    # print(r1, r1y0, k1y0)
-    if k1y1 == 1 and k1y0 == 1:
-        cts = [0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0]
+    cy = sum(ys[:cyj]) + ys[cyj] / 2 + transform_data[1]
+    giy0, giy1 = gis[(i, j - (i - cxi), k)], gis[(i, j + (i - cxi), k)]
+    r0, r1 = abs(x0s[gi] - cx), abs(x1s[gi] - cx)
+    r1y0, r1y1 = abs(y0s[giy0] - cy), abs(y1s[giy1] - cy)
+    r0y0, r0y1 = abs(y1s[giy0] - cy), abs(y0s[giy1] - cy)
+    ct0 = kws[kws_map[gi]].get('ct0', 0)
+    ct1 = kws[kws_map[gi]].get('ct1', 0)
+    ct = kws[kws_map[gi]].get('ct', 3)
+    if ct1 and ct0:
+        dxr1 = r1 / 2 ** 0.5
+        dxr0 = r0 / 2 ** 0.5
+        dyr1y1 = r1y1 / 2 ** 0.5
+        dyr1y0 = -r1y0 / 2 ** 0.5
+        dyr0y1 = r0y1 / 2 ** 0.5
+        dyr0y0 = -r0y0 / 2 ** 0.5
+    elif ct0:
+        dxr1 = r1
+        dxr0 = r0 / 2 ** 0.5
+        dyr1y1 = r1y1
+        dyr1y0 = -r1y0
+        dyr0y1 = r0y1 / 2 ** 0.5
+        dyr0y0 = -r0y0 / 2 ** 0.5
+    elif ct1:
+        dxr1 = r1 / 2 ** 0.5
+        dxr0 = r0
+        dyr1y1 = r1y1 / 2 ** 0.5
+        dyr1y0 = -r1y0 / 2 ** 0.5
+        dyr0y1 = r0y1
+        dyr0y0 = -r0y0
+    else:
+        dxr1 = r1
+        dxr0 = r0
+        dyr1y1 = r1y1
+        dyr1y0 = -r1y0
+        dyr0y1 = r0y1
+        dyr0y0 = -r0y0
+    pd = [
+        [cx + dxr1, cy + dyr1y1, z0s[gi], lcs[gi]],
+        [cx + dxr0, cy + dyr0y1, z0s[gi], lcs[gi]],
+        [cx + dxr0, cy + dyr0y0, z0s[gi], lcs[gi]],
+        [cx + dxr1, cy + dyr1y0, z0s[gi], lcs[gi]],
+        [cx + dxr1, cy + dyr1y1, z1s[gi], lcs[gi]],
+        [cx + dxr0, cy + dyr0y1, z1s[gi], lcs[gi]],
+        [cx + dxr0, cy + dyr0y0, z1s[gi], lcs[gi]],
+        [cx + dxr1, cy + dyr1y0, z1s[gi], lcs[gi]]
+    ]
+    if r1 == r1y1 == r1y0 and r0 == r0y1 == r0y0:
+        cts = [0, 0, 0, 0, ct1, ct0, ct0, ct1, 0, 0, 0, 0]
         cd = [
             [], [], [], [],
-            [], [[cx, cy, z0, 1]], [[cx, cy, z1, 1]], [],
+            [[cx, cy, z0s[gi], lcs[gi]]],
+            [[cx, cy, z0s[gi], lcs[gi]]],
+            [[cx, cy, z1s[gi], lcs[gi]]],
+            [[cx, cy, z1s[gi], lcs[gi]]],
+            [], [], [], []
+        ]
+    elif r1 == r1y1 == r1y0:
+        cts = [0, 0, 0, 0, ct1, ct, ct, ct1, 0, 0, 0, 0]
+        cd = [
+            [], [], [], [],
+            [[cx, cy, z0s[gi], lcs[gi]]],
+            [[x0s[gi], cy, z0s[gi], lcs[gi]]],
+            [[x0s[gi], cy, z1s[gi], lcs[gi]]],
+            [[cx, cy, z1s[gi], lcs[gi]]],
+            [], [], [], []
+        ]
+    elif r0 == r0y1 == r0y0:
+        cts = [0, 0, 0, 0, ct, ct0, ct0, ct, 0, 0, 0, 0]
+        cd = [
+            [], [], [], [],
+            [[x1s[gi], cy, z0s[gi], lcs[gi]]],
+            [[cx, cy, z0s[gi], lcs[gi]]],
+            [[cx, cy, z1s[gi], lcs[gi]]],
+            [[x1s[gi], cy, z1s[gi], lcs[gi]]],
             [], [], [], []
         ]
     else:
-        t = kws[kws_map[gi]].get('ct', 3)
-        cts = [0, 0, 0, 0, 0, t, t, 0, 0, 0, 0, 0]
+        cts = [0, 0, 0, 0, ct, ct, ct, ct, 0, 0, 0, 0]
         cd = [
             [], [], [], [],
-            [], [[x0, cy, z0, 1]], [[x0, cy, z1, 1]], [],
+            [[x1s[gi], cy, z0s[gi], lcs[gi]]],
+            [[x0s[gi], cy, z0s[gi], lcs[gi]]],
+            [[x0s[gi], cy, z1s[gi], lcs[gi]]],
+            [[x1s[gi], cy, z1s[gi], lcs[gi]]],
             [], [], [], []
         ]
     primitives.append(Primitive(
         factory=factory,
-        point_data=[
-            [x1, y1, z0, lcs[gi]],
-            [cx - r1 / 2 ** 0.5, cy + k1y1 * r1 / 2 ** 0.5, z0, lcs[gi]],
-            [cx - r1 / 2 ** 0.5, cy - k1y0 * r1 / 2 ** 0.5, z0, lcs[gi]],
-            [x1, y0, z0, lcs[gi]],
-            [x1, y1, z1, lcs[gi]],
-            [cx - r1 / 2 ** 0.5, cy + k1y1 * r1 / 2 ** 0.5, z1, lcs[gi]],
-            [cx - r1 / 2 ** 0.5, cy - k1y0 * r1 / 2 ** 0.5, z1, lcs[gi]],
-            [x1, y0, z1, lcs[gi]]
-        ],
+        point_data=pd,
+        curve_types=cts,
+        curve_data=cd,
+        transfinite_data=[txs[i], tys[j], tzs[k]],
+        transfinite_type=0,
+        physical_name=volumes_names[volumes_map[gi]],
+        surfaces_names=surfaces_names[surfaces_map[gi]],
+        rec=recs_map[gi],
+        trans=trans_map[gi]
+    ))
+
+
+# Cylinder Y
+def type_7(primitives, ci, gi, gis, factory,
+            x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
+            volumes_names, volumes_map, surfaces_names, surfaces_map,
+            recs_map, trans_map, xs, ys, zs, transform_data,
+            kws, kws_map, **kwargs):
+    i, j, k = ci
+    cxi, cyj = len(xs) // 2, len(ys) // 2
+    cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
+    cy = sum(ys[:cyj]) + ys[cyj] / 2 + transform_data[1]
+    gix0, gix1 = gis[(i - (j - cyj), j, k)], gis[(i + (j - cyj), j, k)]
+    r0, r1 = abs(y0s[gi] - cy), abs(y1s[gi] - cy)
+    r1x0, r1x1 = abs(x0s[gix0] - cx), abs(x1s[gix1] - cx)
+    r0x0, r0x1 = abs(x1s[gix0] - cx), abs(x0s[gix1] - cx)
+    ct0 = kws[kws_map[gi]].get('ct0', 0)
+    ct1 = kws[kws_map[gi]].get('ct1', 0)
+    ct = kws[kws_map[gi]].get('ct', 3)
+    if ct1 and ct0:
+        dyr1 = r1 / 2 ** 0.5
+        dyr0 = r0 / 2 ** 0.5
+        dxr1x1 = r1x1 / 2 ** 0.5
+        dxr1x0 = -r1x0 / 2 ** 0.5
+        dxr0x1 = r0x1 / 2 ** 0.5
+        dxr0x0 = -r0x0 / 2 ** 0.5
+    elif ct0:
+        dyr1 = r1
+        dyr0 = r0 / 2 ** 0.5
+        dxr1x1 = r1x1
+        dxr1x0 = -r1x0
+        dxr0x1 = r0x1 / 2 ** 0.5
+        dxr0x0 = -r0x0 / 2 ** 0.5
+    elif ct1:
+        dyr1 = r1 / 2 ** 0.5
+        dyr0 = r0
+        dxr1x1 = r1x1 / 2 ** 0.5
+        dxr1x0 = -r1x0 / 2 ** 0.5
+        dxr0x1 = r0x1
+        dxr0x0 = -r0x0
+    else:
+        dyr1 = r1
+        dyr0 = r0
+        dxr1x1 = r1x1
+        dxr1x0 = -r1x0
+        dxr0x1 = r0x1
+        dxr0x0 = -r0x0
+    pd = [
+        [cx + dxr1x1, cy + dyr1, z0s[gi], lcs[gi]],
+        [cx + dxr1x0, cy + dyr1, z0s[gi], lcs[gi]],
+        [cx + dxr0x0, cy + dyr0, z0s[gi], lcs[gi]],
+        [cx + dxr0x1, cy + dyr0, z0s[gi], lcs[gi]],
+        [cx + dxr1x1, cy + dyr1, z1s[gi], lcs[gi]],
+        [cx + dxr1x0, cy + dyr1, z1s[gi], lcs[gi]],
+        [cx + dxr0x0, cy + dyr0, z1s[gi], lcs[gi]],
+        [cx + dxr0x1, cy + dyr0, z1s[gi], lcs[gi]]
+    ]
+    if r1 == r1x1 == r1x0 and r0 == r0x1 == r0x0:
+        cts = [ct1, ct1, ct0, ct0, 0, 0, 0, 0, 0, 0, 0, 0]
+        cd = [
+            [[cx, cy, z0s[gi], lcs[gi]]],
+            [[cx, cy, z1s[gi], lcs[gi]]],
+            [[cx, cy, z1s[gi], lcs[gi]]],
+            [[cx, cy, z0s[gi], lcs[gi]]],
+            [], [], [], [],
+            [], [], [], []
+        ]
+    elif r1 == r1x1 == r1x0:
+        cts = [ct1, ct1, ct, ct, 0, 0, 0, 0, 0, 0, 0, 0]
+        cd = [
+            [[cx, cy, z0s[gi], lcs[gi]]],
+            [[cx, cy, z1s[gi], lcs[gi]]],
+            [[cx, y0s[gi], z1s[gi], lcs[gi]]],
+            [[cx, y0s[gi], z0s[gi], lcs[gi]]],
+            [], [], [], []
+        ]
+    elif r0 == r0x1 == r0x0:
+        cts = [ct, ct, ct0, ct0, 0, 0, 0, 0, 0, 0, 0, 0]
+        cd = [
+            [[cx, y1s[gi], z0s[gi], lcs[gi]]],
+            [[cx, y1s[gi], z1s[gi], lcs[gi]]],
+            [[cx, cy, z1s[gi], lcs[gi]]],
+            [[cx, cy, z0s[gi], lcs[gi]]],
+            [], [], [], [],
+            [], [], [], []
+        ]
+    else:
+        cts = [ct, ct, ct, ct, 0, 0, 0, 0, 0, 0, 0, 0]
+        cd = [
+            [[cx, y1s[gi], z0s[gi], lcs[gi]]],
+            [[cx, y1s[gi], z1s[gi], lcs[gi]]],
+            [[cx, y0s[gi], z1s[gi], lcs[gi]]],
+            [[cx, y0s[gi], z0s[gi], lcs[gi]]],
+            [], [], [], [],
+            [], [], [], []
+        ]
+    primitives.append(Primitive(
+        factory=factory,
+        point_data=pd,
+        curve_types=cts,
+        curve_data=cd,
+        transfinite_data=[txs[i], tys[j], tzs[k]],
+        transfinite_type=0,
+        physical_name=volumes_names[volumes_map[gi]],
+        surfaces_names=surfaces_names[surfaces_map[gi]],
+        rec=recs_map[gi],
+        trans=trans_map[gi]
+    ))
+
+
+# Cylinder NX
+def type_8(primitives, ci, gi, gis, factory,
+            x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
+            volumes_names, volumes_map, surfaces_names, surfaces_map,
+            recs_map, trans_map, xs, ys, zs, transform_data,
+            kws, kws_map, **kwargs):
+    i, j, k = ci
+    cxi, cyj = len(xs) // 2, len(ys) // 2
+    cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
+    cy = sum(ys[:cyj]) + ys[cyj] / 2 + transform_data[1]
+    giy0, giy1 = gis[(i, j - (cxi - i), k)], gis[(i, j + (cxi - i), k)]
+    r0, r1 = abs(x1s[gi] - cx), abs(x0s[gi] - cx)
+    r1y0, r1y1 = abs(y0s[giy0] - cy), abs(y1s[giy1] - cy)
+    r0y0, r0y1 = abs(y1s[giy0] - cy), abs(y0s[giy1] - cy)
+    ct0 = kws[kws_map[gi]].get('ct0', 0)
+    ct1 = kws[kws_map[gi]].get('ct1', 0)
+    ct = kws[kws_map[gi]].get('ct', 3)
+    if ct1 and ct0:
+        dxr1 = -r1 / 2 ** 0.5
+        dxr0 = -r0 / 2 ** 0.5
+        dyr1y1 = r1y1 / 2 ** 0.5
+        dyr1y0 = -r1y0 / 2 ** 0.5
+        dyr0y1 = r0y1 / 2 ** 0.5
+        dyr0y0 = -r0y0 / 2 ** 0.5
+    elif ct0:
+        dxr1 = -r1
+        dxr0 = -r0 / 2 ** 0.5
+        dyr1y1 = r1y1
+        dyr1y0 = -r1y0
+        dyr0y1 = r0y1 / 2 ** 0.5
+        dyr0y0 = -r0y0 / 2 ** 0.5
+    elif ct1:
+        dxr1 = -r1 / 2 ** 0.5
+        dxr0 = -r0
+        dyr1y1 = r1y1 / 2 ** 0.5
+        dyr1y0 = -r1y0 / 2 ** 0.5
+        dyr0y1 = r0y1
+        dyr0y0 = -r0y0
+    else:
+        dxr1 = -r1
+        dxr0 = -r0
+        dyr1y1 = r1y1
+        dyr1y0 = -r1y0
+        dyr0y1 = r0y1
+        dyr0y0 = -r0y0
+    pd = [
+        [cx + dxr1, cy + dyr1y1, z0s[gi], lcs[gi]],
+        [cx + dxr0, cy + dyr0y1, z0s[gi], lcs[gi]],
+        [cx + dxr0, cy + dyr0y0, z0s[gi], lcs[gi]],
+        [cx + dxr1, cy + dyr1y0, z0s[gi], lcs[gi]],
+        [cx + dxr1, cy + dyr1y1, z1s[gi], lcs[gi]],
+        [cx + dxr0, cy + dyr0y1, z1s[gi], lcs[gi]],
+        [cx + dxr0, cy + dyr0y0, z1s[gi], lcs[gi]],
+        [cx + dxr1, cy + dyr1y0, z1s[gi], lcs[gi]]
+    ]
+    if r1 == r1y1 == r1y0 and r0 == r0y1 == r0y0:
+        cts = [0, 0, 0, 0, ct1, ct0, ct0, ct1, 0, 0, 0, 0]
+        cd = [
+            [], [], [], [],
+            [[cx, cy, z0s[gi], lcs[gi]]],
+            [[cx, cy, z0s[gi], lcs[gi]]],
+            [[cx, cy, z1s[gi], lcs[gi]]],
+            [[cx, cy, z1s[gi], lcs[gi]]],
+            [], [], [], []
+        ]
+    elif r1 == r1y1 == r1y0:
+        cts = [0, 0, 0, 0, ct1, ct, ct, ct1, 0, 0, 0, 0]
+        cd = [
+            [], [], [], [],
+            [[cx, cy, z0s[gi], lcs[gi]]],
+            [[x1s[gi], cy, z0s[gi], lcs[gi]]],
+            [[x1s[gi], cy, z1s[gi], lcs[gi]]],
+            [[cx, cy, z1s[gi], lcs[gi]]],
+            [], [], [], []
+        ]
+    elif r0 == r0y1 == r0y0:
+        cts = [0, 0, 0, 0, ct, ct0, ct0, ct, 0, 0, 0, 0]
+        cd = [
+            [], [], [], [],
+            [[x0s[gi], cy, z0s[gi], lcs[gi]]],
+            [[cx, cy, z0s[gi], lcs[gi]]],
+            [[cx, cy, z1s[gi], lcs[gi]]],
+            [[x0s[gi], cy, z1s[gi], lcs[gi]]],
+            [], [], [], []
+        ]
+    else:
+        cts = [0, 0, 0, 0, ct, ct, ct, ct, 0, 0, 0, 0]
+        cd = [
+            [], [], [], [],
+            [[x0s[gi], cy, z0s[gi], lcs[gi]]],
+            [[x1s[gi], cy, z0s[gi], lcs[gi]]],
+            [[x1s[gi], cy, z1s[gi], lcs[gi]]],
+            [[x0s[gi], cy, z1s[gi], lcs[gi]]],
+            [], [], [], []
+        ]
+    primitives.append(Primitive(
+        factory=factory,
+        point_data=pd,
         curve_types=cts,
         curve_data=cd,
         transfinite_data=[txs[i], tys[j], tzs[k]],
@@ -436,50 +666,103 @@ def type_22(primitives, i, j, k, gi, factory,
     ))
 
 
-# Cylinder NY|)
-def type_23(primitives, i, j, k, gi, factory,
-            x0, x1, xc, y0, y1, yc, z0, z1, zc, lcs, txs, tys, tzs,
+# Cylinder NY
+def type_9(primitives, ci, gi, gis, factory,
+            x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
             volumes_names, volumes_map, surfaces_names, surfaces_map,
-            recs_map, trans_map, xs, ys, transform_data,
+            recs_map, trans_map, xs, ys, zs, transform_data,
             kws, kws_map, **kwargs):
-    cxi = len(xs) // 2
-    cyi = len(ys) // 2
+    i, j, k = ci
+    cxi, cyj = len(xs) // 2, len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
-    cy = sum(ys[:cyi]) + ys[cyi] / 2 + transform_data[1]
-    r1 = abs(y0 - cy)
-    r1x1 = sum(xs[i:i + 2]) - xs[i] / 2
-    r1x0 = sum(xs[:i]) + xs[i] / 2
-    k1x1 = r1x1 / r1
-    k1x0 = r1x0 / r1
-    # print(r1, r1x1, k1x1)
-    # print(r1, r1x0, k1x0)
-    if k1x1 == 1 and k1x0 == 1:
-        cts = [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+    cy = sum(ys[:cyj]) + ys[cyj] / 2 + transform_data[1]
+    gix0, gix1 = gis[(i - (cyj - j), j, k)], gis[(i + (cyj - j), j, k)]
+    r0, r1 = abs(y1s[gi] - cy), abs(y0s[gi] - cy)
+    r1x0, r1x1 = abs(x0s[gix0] - cx), abs(x1s[gix1] - cx)
+    r0x0, r0x1 = abs(x1s[gix0] - cx), abs(x0s[gix1] - cx)
+    ct0 = kws[kws_map[gi]].get('ct0', 0)
+    ct1 = kws[kws_map[gi]].get('ct1', 0)
+    ct = kws[kws_map[gi]].get('ct', 3)
+    if ct1 and ct0:
+        dyr1 = -r1 / 2 ** 0.5
+        dyr0 = -r0 / 2 ** 0.5
+        dxr1x1 = r1x1 / 2 ** 0.5
+        dxr1x0 = -r1x0 / 2 ** 0.5
+        dxr0x1 = r0x1 / 2 ** 0.5
+        dxr0x0 = -r0x0 / 2 ** 0.5
+    elif ct0:
+        dyr1 = -r1
+        dyr0 = -r0 / 2 ** 0.5
+        dxr1x1 = r1x1
+        dxr1x0 = -r1x0
+        dxr0x1 = r0x1 / 2 ** 0.5
+        dxr0x0 = -r0x0 / 2 ** 0.5
+    elif ct1:
+        dyr1 = -r1 / 2 ** 0.5
+        dyr0 = -r0
+        dxr1x1 = r1x1 / 2 ** 0.5
+        dxr1x0 = -r1x0 / 2 ** 0.5
+        dxr0x1 = r0x1
+        dxr0x0 = -r0x0
+    else:
+        dyr1 = -r1
+        dyr0 = -r0
+        dxr1x1 = r1x1
+        dxr1x0 = -r1x0
+        dxr0x1 = r0x1
+        dxr0x0 = -r0x0
+    pd = [
+        [cx + dxr0x1, cy + dyr0, z0s[gi], lcs[gi]],
+        [cx + dxr0x0, cy + dyr0, z0s[gi], lcs[gi]],
+        [cx + dxr1x0, cy + dyr1, z0s[gi], lcs[gi]],
+        [cx + dxr1x1, cy + dyr1, z0s[gi], lcs[gi]],
+        [cx + dxr0x1, cy + dyr0, z1s[gi], lcs[gi]],
+        [cx + dxr0x0, cy + dyr0, z1s[gi], lcs[gi]],
+        [cx + dxr1x0, cy + dyr1, z1s[gi], lcs[gi]],
+        [cx + dxr1x1, cy + dyr1, z1s[gi], lcs[gi]]
+    ]
+    if r1 == r1x1 == r1x0 and r0 == r0x1 == r0x0:
+        cts = [ct0, ct0, ct1, ct1, 0, 0, 0, 0, 0, 0, 0, 0]
         cd = [
-            [], [], [[cx, cy, z1, 1]], [[cx, cy, z0, 1]],
+            [[cx, cy, z0s[gi], lcs[gi]]],
+            [[cx, cy, z1s[gi], lcs[gi]]],
+            [[cx, cy, z1s[gi], lcs[gi]]],
+            [[cx, cy, z0s[gi], lcs[gi]]],
+            [], [], [], [],
+            [], [], [], []
+        ]
+    elif r1 == r1x1 == r1x0:
+        cts = [ct, ct, ct1, ct1, 0, 0, 0, 0, 0, 0, 0, 0]
+        cd = [
+            [[cx, y1s[gi], z0s[gi], lcs[gi]]],
+            [[cx, y1s[gi], z1s[gi], lcs[gi]]],
+            [[cx, cy, z1s[gi], lcs[gi]]],
+            [[cx, cy, z0s[gi], lcs[gi]]],
+            [], [], [], []
+        ]
+    elif r0 == r0x1 == r0x0:
+        cts = [ct0, ct0, ct, ct, 0, 0, 0, 0, 0, 0, 0, 0]
+        cd = [
+            [[cx, cy, z0s[gi], lcs[gi]]],
+            [[cx, cy, z1s[gi], lcs[gi]]],
+            [[cx, y0s[gi], z1s[gi], lcs[gi]]],
+            [[cx, y0s[gi], z0s[gi], lcs[gi]]],
             [], [], [], [],
             [], [], [], []
         ]
     else:
-        t = kws[kws_map[gi]].get('ct', 3)
-        cts = [0, 0, t, t, 0, 0, 0, 0, 0, 0, 0, 0]
+        cts = [ct, ct, ct, ct, 0, 0, 0, 0, 0, 0, 0, 0]
         cd = [
-            [], [], [[cx, y0, z1, 1]], [[cx, y0, z0, 1]],
+            [[cx, y1s[gi], z0s[gi], lcs[gi]]],
+            [[cx, y1s[gi], z1s[gi], lcs[gi]]],
+            [[cx, y0s[gi], z1s[gi], lcs[gi]]],
+            [[cx, y0s[gi], z0s[gi], lcs[gi]]],
             [], [], [], [],
             [], [], [], []
         ]
     primitives.append(Primitive(
         factory=factory,
-        point_data=[
-            [x1, y1, z0, lcs[gi]],
-            [x0, y1, z0, lcs[gi]],
-            [cx - k1x0 * r1 / 2 ** 0.5, cy - r1 / 2 ** 0.5, z0, lcs[gi]],
-            [cx + k1x1 * r1 / 2 ** 0.5, cy - r1 / 2 ** 0.5, z0, lcs[gi]],
-            [x1, y1, z1, lcs[gi]],
-            [x0, y1, z1, lcs[gi]],
-            [cx - k1x0 * r1 / 2 ** 0.5, cy - r1 / 2 ** 0.5, z1, lcs[gi]],
-            [cx + k1x1 * r1 / 2 ** 0.5, cy - r1 / 2 ** 0.5, z1, lcs[gi]]
-        ],
+        point_data=pd,
         curve_types=cts,
         curve_data=cd,
         transfinite_data=[txs[i], tys[j], tzs[k]],
@@ -498,8 +781,9 @@ type_factory = {
     3: type_3,  # Complex at (xc, yc, z0)
     4: type_4,  # Complex at (x0, yc, z0)
     5: type_5,  # Complex in Primitive at (xc, yc, zc)
-    20: type_20,  # Cylinder X|)
-    21: type_21,  # Cylinder Y|)
-    22: type_22,  # Cylinder NX|)
-    23: type_23   # Cylinder NY|)
+    19: type_19,
+    6: type_6,  # Cylinder X
+    7: type_7,  # Cylinder Y
+    8: type_8,  # Cylinder NX
+    9: type_9   # Cylinder NY
 }
