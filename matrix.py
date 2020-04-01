@@ -17,7 +17,7 @@ class Matrix(Complex):
                  volumes_names=None, volumes_map=None,
                  surfaces_names=None, surfaces_map=None,
                  recs_map=None, trans_map=None,
-                 kwargs=None, kwargs_map=None):
+                 kws=None, kws_map=None):
         """
         Primitives, Complexes and Complex descendants
         as items of 3D matrix structure
@@ -56,6 +56,8 @@ class Matrix(Complex):
         :param list of int surfaces_map: item - surface names map
         :param list of int recs_map: see Primitive
         :param list of int trans_map: see Primitive
+        :param list of dict kws: keyword arguments for matrix items
+        :param list of int kws_map: matrix item keyword arguments map
         """
         if factory == 'occ':
             factory_object = gmsh.model.occ
@@ -98,6 +100,8 @@ class Matrix(Complex):
             type_map = [type_map for _ in range(ni)]
         if inputs is None:
             inputs = ['input/test_matrix_item.json']
+        elif not isinstance(inputs, list):
+            inputs = [inputs]
         if inputs_map is None:
             inputs_map = [0 for _ in range(ni)]
         if volumes_names is None:
@@ -122,6 +126,14 @@ class Matrix(Complex):
             with open(result['path']) as f:
                 d = json.load(f)
             inputs_datas.append(d)
+        if kws is None:
+            kws = [{}]
+        elif not isinstance(kws, list):
+            kws = [kws]
+        if kws_map is None:
+            kws_map = [0 for _ in range(ni)]
+        elif not isinstance(kws_map, list):
+            kws_map = [kws_map for _ in range(ni)]
         # x0, y0, z0 - item start X, Y, Z
         # x1, y1, z1 - item end X, Y, Z
         # xc, yc, zc - item center X, Y, Z
@@ -255,10 +267,12 @@ def type_5(primitives, i, j, k, gi, factory,
     ))
 
 
+# Cylinder X|)
 def type_20(primitives, i, j, k, gi, factory,
-            x0, x1, xc, y0, y1, yc, z0, z1, zc, lcs, txs, tys, tzs,
+            x0, x1, y0, y1, z0, z1, lcs, txs, tys, tzs,
             volumes_names, volumes_map, surfaces_names, surfaces_map,
-            recs_map, trans_map, xs, ys, transform_data, **kwargs):
+            recs_map, trans_map, xs, ys, transform_data,
+            kws, kws_map, **kwargs):
     cxi = len(xs) // 2
     cyi = len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
@@ -268,9 +282,9 @@ def type_20(primitives, i, j, k, gi, factory,
     r1y0 = sum(ys[:cyi]) + ys[cyi] / 2
     k1y1 = r1y1 / r1
     k1y0 = r1y0 / r1
-    print(r1, r1y1, k1y1)
-    print(r1, r1y0, k1y0)
-    if k1y1 == 0 and k1y0 == 0:
+    # print(r1, r1y1, k1y1)
+    # print(r1, r1y0, k1y0)
+    if k1y1 == 1 and k1y0 == 1:
         cts = [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]
         cd = [
             [], [], [], [],
@@ -280,7 +294,8 @@ def type_20(primitives, i, j, k, gi, factory,
             [], [], [], []
         ]
     else:
-        cts = [0, 0, 0, 0, 3, 0, 0, 3, 0, 0, 0, 0]
+        t = kws[kws_map[gi]].get('ct', 3)
+        cts = [0, 0, 0, 0, t, 0, 0, t, 0, 0, 0, 0]
         cd = [
             [], [], [], [],
             [[x1, cy, z0, lcs[gi]]],
@@ -311,18 +326,24 @@ def type_20(primitives, i, j, k, gi, factory,
     ))
 
 
+# Cylinder Y|)
 def type_21(primitives, i, j, k, gi, factory,
-            x0, x1, xc, y0, y1, yc, z0, z1, zc, lcs, txs, tys, tzs,
+            x0, x1, y0, y1, z0, z1, lcs, txs, tys, tzs,
             volumes_names, volumes_map, surfaces_names, surfaces_map,
-            recs_map, trans_map, xs, ys, transform_data, **kwargs):
+            recs_map, trans_map, xs, ys, transform_data,
+            kws, kws_map, **kwargs):
     cxi = len(xs) // 2
     cyi = len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
     cy = sum(ys[:cyi]) + ys[cyi] / 2 + transform_data[1]
     r1 = abs(y1 - cy)
     r1x1 = sum(xs[i:i + 2]) - xs[i] / 2
+    r1x0 = sum(xs[:i]) + xs[i] / 2
     k1x1 = r1x1 / r1
-    if r1 == r1x1:
+    k1x0 = r1x0 / r1
+    # print(r1, r1x1, r1x1)
+    # print(r1, r1x0, k1x0)
+    if k1x1 == 1 and k1x0 == 1:
         cts = [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         cd = [
             [[cx, cy, z0, 1]], [[cx, cy, z1, 1]], [], [],
@@ -330,7 +351,8 @@ def type_21(primitives, i, j, k, gi, factory,
             [], [], [], []
         ]
     else:
-        cts = [3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        t = kws[kws_map[gi]].get('ct', 3)
+        cts = [t, t, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         cd = [
             [[cx, y1, z0, 1]], [[cx, y1, z1, 1]], [], [],
             [], [], [], [],
@@ -339,12 +361,12 @@ def type_21(primitives, i, j, k, gi, factory,
     primitives.append(Primitive(
         factory=factory,
         point_data=[
-            [xc + k1x1 * r1 / 2 ** 0.5, cy + r1 / 2 ** 0.5, z0, lcs[gi]],
-            [xc - r1 / 2 ** 0.5, cy + r1 / 2 ** 0.5, z0, lcs[gi]],
+            [cx + k1x1 * r1 / 2 ** 0.5, cy + r1 / 2 ** 0.5, z0, lcs[gi]],
+            [cx - k1x0 * r1 / 2 ** 0.5, cy + r1 / 2 ** 0.5, z0, lcs[gi]],
             [x0, y0, z0, lcs[gi]],
             [x1, y0, z0, lcs[gi]],
-            [xc + k1x1 * r1 / 2 ** 0.5, cy + r1 / 2 ** 0.5, z1, lcs[gi]],
-            [xc - r1 / 2 ** 0.5, cy + r1 / 2 ** 0.5, z1, lcs[gi]],
+            [cx + k1x1 * r1 / 2 ** 0.5, cy + r1 / 2 ** 0.5, z1, lcs[gi]],
+            [cx - k1x0 * r1 / 2 ** 0.5, cy + r1 / 2 ** 0.5, z1, lcs[gi]],
             [x0, y0, z1, lcs[gi]],
             [x1, y0, z1, lcs[gi]]
         ],
@@ -359,48 +381,48 @@ def type_21(primitives, i, j, k, gi, factory,
     ))
 
 
+# Cylinder NX|)
 def type_22(primitives, i, j, k, gi, factory,
-            x0, x1, xc, y0, y1, yc, z0, z1, zc, lcs, txs, tys, tzs,
+            x0, x1, y0, y1, z0, z1, lcs, txs, tys, tzs,
             volumes_names, volumes_map, surfaces_names, surfaces_map,
-            recs_map, trans_map, xs, ys, transform_data, **kwargs):
+            recs_map, trans_map, xs, ys, transform_data,
+            kws, kws_map, **kwargs):
     cxi = len(xs) // 2
     cyi = len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
     cy = sum(ys[:cyi]) + ys[cyi] / 2 + transform_data[1]
-    r1 = abs(x1 - cx)
+    r1 = abs(x0 - cx)
     r1y1 = sum(ys[cyi:j + 2]) - ys[cyi] / 2
     r1y0 = sum(ys[:cyi]) + ys[cyi] / 2
     k1y1 = r1y1 / r1
     k1y0 = r1y0 / r1
-    print(r1, r1y1, k1y1)
-    print(r1, r1y0, k1y0)
-    if k1y1 == 0 and k1y0 == 0:
-        cts = [0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0]
+    # print(r1, r1y1, k1y1)
+    # print(r1, r1y0, k1y0)
+    if k1y1 == 1 and k1y0 == 1:
+        cts = [0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0]
         cd = [
             [], [], [], [],
-            [], [[0, 0, z0, 1], [0, 0, z0, 1]],
-            [[0, 0, z1, 1], [0, 0, z1, 1]], [],
+            [], [[cx, cy, z0, 1]], [[cx, cy, z1, 1]], [],
             [], [], [], []
         ]
     else:
-        cts = [0, 0, 0, 0, 3, 0, 0, 3, 0, 0, 0, 0]
+        t = kws[kws_map[gi]].get('ct', 3)
+        cts = [0, 0, 0, 0, 0, t, t, 0, 0, 0, 0, 0]
         cd = [
             [], [], [], [],
-            [[x1, cy, z0, lcs[gi]]],
-            [], [],
-            [[x1, cy, z1, lcs[gi]]],
+            [], [[x0, cy, z0, 1]], [[x0, cy, z1, 1]], [],
             [], [], [], []
         ]
     primitives.append(Primitive(
         factory=factory,
         point_data=[
             [x1, y1, z0, lcs[gi]],
-            [x0 / 2 ** 0.5, -ky1 * x0 / 2 ** 0.5, z0, lcs[gi]],
-            [x0 / 2 ** 0.5, ky0 * x0 / 2 ** 0.5, z0, lcs[gi]],
+            [cx - r1 / 2 ** 0.5, cy + k1y1 * r1 / 2 ** 0.5, z0, lcs[gi]],
+            [cx - r1 / 2 ** 0.5, cy - k1y0 * r1 / 2 ** 0.5, z0, lcs[gi]],
             [x1, y0, z0, lcs[gi]],
             [x1, y1, z1, lcs[gi]],
-            [x0 / 2 ** 0.5, -ky1 * x0 / 2 ** 0.5, z1, lcs[gi]],
-            [x0 / 2 ** 0.5, ky0 * x0 / 2 ** 0.5, z1, lcs[gi]],
+            [cx - r1 / 2 ** 0.5, cy + k1y1 * r1 / 2 ** 0.5, z1, lcs[gi]],
+            [cx - r1 / 2 ** 0.5, cy - k1y0 * r1 / 2 ** 0.5, z1, lcs[gi]],
             [x1, y0, z1, lcs[gi]]
         ],
         curve_types=cts,
@@ -414,19 +436,24 @@ def type_22(primitives, i, j, k, gi, factory,
     ))
 
 
+# Cylinder NY|)
 def type_23(primitives, i, j, k, gi, factory,
             x0, x1, xc, y0, y1, yc, z0, z1, zc, lcs, txs, tys, tzs,
             volumes_names, volumes_map, surfaces_names, surfaces_map,
-            recs_map, trans_map, xs, ys, transform_data, **kwargs):
+            recs_map, trans_map, xs, ys, transform_data,
+            kws, kws_map, **kwargs):
     cxi = len(xs) // 2
     cyi = len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
     cy = sum(ys[:cyi]) + ys[cyi] / 2 + transform_data[1]
     r1 = abs(y0 - cy)
     r1x1 = sum(xs[i:i + 2]) - xs[i] / 2
+    r1x0 = sum(xs[:i]) + xs[i] / 2
     k1x1 = r1x1 / r1
-    print(r1, r1x1, k1x1)
-    if k1x1 == 0:
+    k1x0 = r1x0 / r1
+    # print(r1, r1x1, k1x1)
+    # print(r1, r1x0, k1x0)
+    if k1x1 == 1 and k1x0 == 1:
         cts = [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
         cd = [
             [], [], [[cx, cy, z1, 1]], [[cx, cy, z0, 1]],
@@ -434,7 +461,8 @@ def type_23(primitives, i, j, k, gi, factory,
             [], [], [], []
         ]
     else:
-        cts = [0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0]
+        t = kws[kws_map[gi]].get('ct', 3)
+        cts = [0, 0, t, t, 0, 0, 0, 0, 0, 0, 0, 0]
         cd = [
             [], [], [[cx, y0, z1, 1]], [[cx, y0, z0, 1]],
             [], [], [], [],
@@ -445,11 +473,11 @@ def type_23(primitives, i, j, k, gi, factory,
         point_data=[
             [x1, y1, z0, lcs[gi]],
             [x0, y1, z0, lcs[gi]],
-            [cx - r1 / 2 ** 0.5, cy - r1 / 2 ** 0.5, z0, lcs[gi]],
+            [cx - k1x0 * r1 / 2 ** 0.5, cy - r1 / 2 ** 0.5, z0, lcs[gi]],
             [cx + k1x1 * r1 / 2 ** 0.5, cy - r1 / 2 ** 0.5, z0, lcs[gi]],
             [x1, y1, z1, lcs[gi]],
             [x0, y1, z1, lcs[gi]],
-            [cx - r1 / 2 ** 0.5, cy - r1 / 2 ** 0.5, z1, lcs[gi]],
+            [cx - k1x0 * r1 / 2 ** 0.5, cy - r1 / 2 ** 0.5, z1, lcs[gi]],
             [cx + k1x1 * r1 / 2 ** 0.5, cy - r1 / 2 ** 0.5, z1, lcs[gi]]
         ],
         curve_types=cts,
@@ -473,5 +501,5 @@ type_factory = {
     20: type_20,  # Cylinder X|)
     21: type_21,  # Cylinder Y|)
     22: type_22,  # Cylinder NX|)
-    23: type_23  # Cylinder NY|)
+    23: type_23   # Cylinder NY|)
 }

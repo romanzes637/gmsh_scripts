@@ -8,11 +8,11 @@
     "factory": "geo",
     "inputs": null,
     "coordinates_type": "delta",
-    "transform_data": [-20, 10, 3],
+    "transform_data": [-20, 10, 8],
     "volumes_names": null,
     "surfaces_names": null,
-    "xs": [4, 2, 6],
-    "ys": [14, 4, 8],
+    "xs": [4, 4, 8],
+    "ys": [6, 3, 20],
     "zs": [6],
     "lcs": 1,
     "txs": [9, 0, 1],
@@ -20,13 +20,15 @@
     "tzs": [9, 0, 1],
     "type_map": [
       0, 23, 0,
-      0, 1, 20,
+      22, 1, 20,
       0, 21, 0
     ],
     "inputs_map": null,
     "volumes_map": null,
     "surfaces_map": null,
     "recs_map": null,
-    "trans_map": null
+    "trans_map": null,
+    "kws": {"ct": 3},
+    "kws_map": null
   }
 }
