@@ -11,8 +11,8 @@
     "transform_data": [0, 0, 0],
     "volumes_names": null,
     "surfaces_names": null,
-    "xs": [4, 2, 6],
-    "ys": [6, 2, 4],
+    "xs": [3, 4, 5],
+    "ys": [6, 2, 8],
     "zs": [4],
     "lcs": 1,
     "txs": [9, 0, 1],
@@ -29,7 +29,7 @@
     "recs_map": null,
     "trans_map": null,
     "kws": [
-      {"ct": 3, "ct0": 0, "ct1": 1}
+      {"ct": 3, "ct0": 0, "ct1": 0}
     ],
     "kws_map": [
       0, 0, 0,

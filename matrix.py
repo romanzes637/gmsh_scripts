@@ -275,10 +275,10 @@ def type_5(primitives, ci, gi, factory,
 
 # Cylinder X
 def type_6(primitives, ci, gi, gis, factory,
-            x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
-            volumes_names, volumes_map, surfaces_names, surfaces_map,
-            recs_map, trans_map, xs, ys, zs, transform_data,
-            kws, kws_map, **kwargs):
+           x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
+           volumes_names, volumes_map, surfaces_names, surfaces_map,
+           recs_map, trans_map, xs, ys, zs, transform_data,
+           kws, kws_map, **kwargs):
     i, j, k = ci
     cxi, cyj = len(xs) // 2, len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
@@ -339,7 +339,7 @@ def type_6(primitives, ci, gi, gis, factory,
             [], [], [], []
         ]
     elif r1 == r1y1 == r1y0:
-        cts = [0, 0, 0, 0, ct1, ct, ct, ct1, 0, 0, 0, 0]
+        cts = [0, 0, 0, 0, ct1, ct * ct0, ct * ct0, ct1, 0, 0, 0, 0]
         cd = [
             [], [], [], [],
             [[cx, cy, z0s[gi], lcs[gi]]],
@@ -349,7 +349,7 @@ def type_6(primitives, ci, gi, gis, factory,
             [], [], [], []
         ]
     elif r0 == r0y1 == r0y0:
-        cts = [0, 0, 0, 0, ct, ct0, ct0, ct, 0, 0, 0, 0]
+        cts = [0, 0, 0, 0, ct * ct1, ct0, ct0, ct * ct1, 0, 0, 0, 0]
         cd = [
             [], [], [], [],
             [[x1s[gi], cy, z0s[gi], lcs[gi]]],
@@ -359,7 +359,7 @@ def type_6(primitives, ci, gi, gis, factory,
             [], [], [], []
         ]
     else:
-        cts = [0, 0, 0, 0, ct, ct, ct, ct, 0, 0, 0, 0]
+        cts = [0, 0, 0, 0, ct * ct1, ct * ct0, ct * ct0, ct * ct1, 0, 0, 0, 0]
         cd = [
             [], [], [], [],
             [[x1s[gi], cy, z0s[gi], lcs[gi]]],
@@ -384,10 +384,10 @@ def type_6(primitives, ci, gi, gis, factory,
 
 # Cylinder Y
 def type_7(primitives, ci, gi, gis, factory,
-            x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
-            volumes_names, volumes_map, surfaces_names, surfaces_map,
-            recs_map, trans_map, xs, ys, zs, transform_data,
-            kws, kws_map, **kwargs):
+           x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
+           volumes_names, volumes_map, surfaces_names, surfaces_map,
+           recs_map, trans_map, xs, ys, zs, transform_data,
+           kws, kws_map, **kwargs):
     i, j, k = ci
     cxi, cyj = len(xs) // 2, len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
@@ -448,7 +448,7 @@ def type_7(primitives, ci, gi, gis, factory,
             [], [], [], []
         ]
     elif r1 == r1x1 == r1x0:
-        cts = [ct1, ct1, ct, ct, 0, 0, 0, 0, 0, 0, 0, 0]
+        cts = [ct1, ct1, ct * ct0, ct * ct0, 0, 0, 0, 0, 0, 0, 0, 0]
         cd = [
             [[cx, cy, z0s[gi], lcs[gi]]],
             [[cx, cy, z1s[gi], lcs[gi]]],
@@ -457,7 +457,7 @@ def type_7(primitives, ci, gi, gis, factory,
             [], [], [], []
         ]
     elif r0 == r0x1 == r0x0:
-        cts = [ct, ct, ct0, ct0, 0, 0, 0, 0, 0, 0, 0, 0]
+        cts = [ct * ct1, ct * ct1, ct0, ct0, 0, 0, 0, 0, 0, 0, 0, 0]
         cd = [
             [[cx, y1s[gi], z0s[gi], lcs[gi]]],
             [[cx, y1s[gi], z1s[gi], lcs[gi]]],
@@ -467,7 +467,7 @@ def type_7(primitives, ci, gi, gis, factory,
             [], [], [], []
         ]
     else:
-        cts = [ct, ct, ct, ct, 0, 0, 0, 0, 0, 0, 0, 0]
+        cts = [ct * ct1, ct * ct1, ct * ct0, ct * ct0, 0, 0, 0, 0, 0, 0, 0, 0]
         cd = [
             [[cx, y1s[gi], z0s[gi], lcs[gi]]],
             [[cx, y1s[gi], z1s[gi], lcs[gi]]],
@@ -492,10 +492,10 @@ def type_7(primitives, ci, gi, gis, factory,
 
 # Cylinder NX
 def type_8(primitives, ci, gi, gis, factory,
-            x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
-            volumes_names, volumes_map, surfaces_names, surfaces_map,
-            recs_map, trans_map, xs, ys, zs, transform_data,
-            kws, kws_map, **kwargs):
+           x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
+           volumes_names, volumes_map, surfaces_names, surfaces_map,
+           recs_map, trans_map, xs, ys, zs, transform_data,
+           kws, kws_map, **kwargs):
     i, j, k = ci
     cxi, cyj = len(xs) // 2, len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
@@ -556,7 +556,7 @@ def type_8(primitives, ci, gi, gis, factory,
             [], [], [], []
         ]
     elif r1 == r1y1 == r1y0:
-        cts = [0, 0, 0, 0, ct, ct1, ct1, ct, 0, 0, 0, 0]
+        cts = [0, 0, 0, 0, ct * ct0, ct1, ct1, ct * ct0, 0, 0, 0, 0]
         cd = [
             [], [], [], [],
             [[x1s[gi], cy, z0s[gi], lcs[gi]]],
@@ -566,7 +566,7 @@ def type_8(primitives, ci, gi, gis, factory,
             [], [], [], []
         ]
     elif r0 == r0y1 == r0y0:
-        cts = [0, 0, 0, 0, ct0, ct, ct, ct0, 0, 0, 0, 0]
+        cts = [0, 0, 0, 0, ct0, ct * ct1, ct * ct1, ct0, 0, 0, 0, 0]
         cd = [
             [], [], [], [],
             [[cx, cy, z0s[gi], lcs[gi]]],
@@ -576,7 +576,7 @@ def type_8(primitives, ci, gi, gis, factory,
             [], [], [], []
         ]
     else:
-        cts = [0, 0, 0, 0, ct, ct, ct, ct, 0, 0, 0, 0]
+        cts = [0, 0, 0, 0, ct * ct0, ct * ct1, ct * ct1, ct * ct0, 0, 0, 0, 0]
         cd = [
             [], [], [], [],
             [[x1s[gi], cy, z0s[gi], lcs[gi]]],
@@ -601,10 +601,10 @@ def type_8(primitives, ci, gi, gis, factory,
 
 # Cylinder NY
 def type_9(primitives, ci, gi, gis, factory,
-            x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
-            volumes_names, volumes_map, surfaces_names, surfaces_map,
-            recs_map, trans_map, xs, ys, zs, transform_data,
-            kws, kws_map, **kwargs):
+           x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
+           volumes_names, volumes_map, surfaces_names, surfaces_map,
+           recs_map, trans_map, xs, ys, zs, transform_data,
+           kws, kws_map, **kwargs):
     i, j, k = ci
     cxi, cyj = len(xs) // 2, len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
@@ -665,7 +665,7 @@ def type_9(primitives, ci, gi, gis, factory,
             [], [], [], []
         ]
     elif r1 == r1x1 == r1x0:
-        cts = [ct, ct, ct1, ct1, 0, 0, 0, 0, 0, 0, 0, 0]
+        cts = [ct * ct0, ct * ct0, ct1, ct1, 0, 0, 0, 0, 0, 0, 0, 0]
         cd = [
             [[cx, y1s[gi], z0s[gi], lcs[gi]]],
             [[cx, y1s[gi], z1s[gi], lcs[gi]]],
@@ -674,7 +674,7 @@ def type_9(primitives, ci, gi, gis, factory,
             [], [], [], []
         ]
     elif r0 == r0x1 == r0x0:
-        cts = [ct0, ct0, ct, ct, 0, 0, 0, 0, 0, 0, 0, 0]
+        cts = [ct0, ct0, ct * ct1, ct * ct1, 0, 0, 0, 0, 0, 0, 0, 0]
         cd = [
             [[cx, cy, z0s[gi], lcs[gi]]],
             [[cx, cy, z1s[gi], lcs[gi]]],
@@ -684,7 +684,7 @@ def type_9(primitives, ci, gi, gis, factory,
             [], [], [], []
         ]
     else:
-        cts = [ct, ct, ct, ct, 0, 0, 0, 0, 0, 0, 0, 0]
+        cts = [ct * ct0, ct * ct0, ct * ct1, ct * ct1, 0, 0, 0, 0, 0, 0, 0, 0]
         cd = [
             [[cx, y1s[gi], z0s[gi], lcs[gi]]],
             [[cx, y1s[gi], z1s[gi], lcs[gi]]],
@@ -717,5 +717,5 @@ type_factory = {
     6: type_6,  # Cylinder X
     7: type_7,  # Cylinder Y
     8: type_8,  # Cylinder NX
-    9: type_9   # Cylinder NY
+    9: type_9  # Cylinder NY
 }
