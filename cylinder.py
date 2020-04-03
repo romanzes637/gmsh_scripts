@@ -20,7 +20,8 @@ class Cylinder(Matrix):
         ('Y', 10): [0, 0, 3, 7, 8, 9],
     }
 
-    def __init__(self, factory, radii, heights, layers_lcs, transform_data,
+    def __init__(self, factory, radii_x, radii_y, heights,
+                 layers_lcs, transform_data,
                  transfinite_r_data, transfinite_h_data, transfinite_phi_data,
                  volumes_names=None, layers_volumes_names=None,
                  surfaces_names=None, layers_surfaces_names=None,
@@ -39,7 +40,8 @@ class Cylinder(Matrix):
         h1_r1 h1_r2 ... h1_rN
         Bottom center of h1_r1 layer is an origin of the cylinder
         :param str factory: see Primitive
-        :param list of float radii: layers outer radii [r1, r2, ..., rN]
+        :param list of float radii_x: layers outer radii by X [r1, r2, ..., rN]
+        :param list of float radii_y: layers outer radii by Y [r1, r2, ..., rN]
         :param list of float heights: layers heights [h1, h2, ..., hM]
         :param list of list of float layers_lcs: characteristic lengths
         of layers
@@ -73,46 +75,41 @@ class Cylinder(Matrix):
         :param list of int ct1s: curve or straight line for outer radius? 1 - yes, 0 - no
         :return None
         """
+        nr = len(radii_x)
         if ct is None:
             ct = 3
         if ct0s is None:
-            ct0s = [1 if i != 0 else 0 for i in range(len(radii))]
+            ct0s = [1 if i != 0 else 0 for i in range(nr)]
         if ct1s is None:
-            ct1s = [1 for _ in radii]
+            ct1s = [1 for _ in range(nr)]
         if layers_lcs is None:
-            layers_lcs = [[1 for _ in radii] for _ in heights]
+            layers_lcs = [[1 for _ in range(nr)] for _ in heights]
         elif not isinstance(layers_lcs, list):
-            layers_lcs = [[layers_lcs for _ in radii] for _ in heights]
+            layers_lcs = [[layers_lcs for _ in range(nr)] for _ in heights]
         if layers_recs is None:
-            layers_recs = [[1 for _ in radii] for _ in heights]
+            layers_recs = [[1 for _ in range(nr)] for _ in heights]
         elif not isinstance(layers_recs, list):
-            layers_recs = [[layers_recs for _ in radii] for _ in heights]
+            layers_recs = [[layers_recs for _ in range(nr)] for _ in heights]
         if layers_trans is None:
-            layers_trans = [[1 for _ in radii] for _ in heights]
+            layers_trans = [[1 for _ in range(nr)] for _ in heights]
         elif not isinstance(layers_trans, list):
-            layers_trans = [[layers_trans for _ in radii] for _ in heights]
+            layers_trans = [[layers_trans for _ in range(nr)] for _ in heights]
         if layers_exists is None:
-            layers_exists = [[1 for _ in radii] for _ in heights]
+            layers_exists = [[1 for _ in range(nr)] for _ in heights]
         elif not isinstance(layers_exists, list):
-            layers_exists = [[layers_exists for _ in radii] for _ in heights]
+            layers_exists = [[layers_exists for _ in range(nr)] for _ in heights]
         if k is None:
             k = 0.5
-        if kxs is None:
-            kxs = [1 for _ in radii]
-        if kys is None:
-            kys = [1 for _ in radii]
         if volumes_names is None:
             volumes_names = ['V']
         if layers_volumes_names is None:
-            layers_volumes_names = [[0 for _ in radii] for _ in heights]
+            layers_volumes_names = [[0 for _ in range(nr)] for _ in heights]
         if surfaces_names is None:
             surfaces_names = [['NX', 'X', 'NY', 'Y', 'NZ', 'Z']]
         if layers_surfaces_names is None:
-            layers_surfaces_names = [[0 for _ in radii] for _ in heights]
+            layers_surfaces_names = [[0 for _ in range(nr)] for _ in heights]
         xs, ys, zs, txs, tys, tzs = [], [], heights, [], [], transfinite_h_data
-        radii_x = [radii[i] * kxs[i] for i in range(len(radii))]
-        radii_y = [radii[i] * kys[i] for i in range(len(radii))]
-        for i in range(len(radii) - 1, 0, -1):
+        for i in range(nr - 1, 0, -1):
             xs.append(radii_x[i] - radii_x[i - 1])
             ys.append(radii_y[i] - radii_y[i - 1])
             txs.append(transfinite_r_data[i])
@@ -129,7 +126,7 @@ class Cylinder(Matrix):
         tys.append(transfinite_r_data[0])
         tys.append(transfinite_phi_data)
         tys.append(transfinite_r_data[0])
-        for i in range(1, len(radii)):
+        for i in range(1, nr):
             xs.append(radii_x[i] - radii_x[i - 1])
             ys.append(radii_y[i] - radii_y[i - 1])
             txs.append(transfinite_r_data[i])
