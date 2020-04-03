@@ -36,7 +36,7 @@ class Complex:
     def get_map_names_to_volumes(self):
         ns_to_vs = dict()
         for p in self.primitives:
-            n = p.physical_name
+            n = p.volume_name
             vs = p.volumes
             for v in vs:
                 ns_to_vs.setdefault(n, list()).append(v)
