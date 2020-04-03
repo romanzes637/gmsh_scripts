@@ -2,33 +2,62 @@
   "metadata": {
     "type": "class_arguments",
     "class_name": "Cylinder",
-    "description": "Test Cylinder"
+    "description": "Cylinder for testing"
   },
-    "arguments": {
+  "arguments": {
     "factory": "geo",
-    "radii": [10, 20, 30],
-    "heights": [5, 10, 15],
+    "k": 0.4,
+    "kxs": [1.3, 1.1, 1, 1.1],
+    "kys": [1, 1, 1.2, 1],
+    "ct": 3,
+    "ct0s": [0, 1, 1, 0],
+    "ct1s": [1, 1, 0, 0],
+    "radii": [1, 3, 5, 7],
+    "heights": [1, 3, 5],
     "layers_lcs": [
-      [3, 4, 5],
-      [6, 7, 8],
-      [9, 10, 11]
+      [0.25, 0.5, 0.75, 1],
+      [0.25, 0.5, 0.75, 1],
+      [0.25, 0.5, 0.75, 1]
     ],
-    "transform_data": [1, -1, 4, 0, 0, 0, 0, 0, 0],
-    "layers_physical_names": [
-      ["r1h1", "r2h1", "r3h1"],
-      ["r1h2", "r2h2", "r3h2"],
-      ["r1h3", "r2h3", "r3h3"]
+    "volumes_names": ["Internal", "External"],
+    "layers_volumes_names": [
+      [0, 1, 1, 1],
+      [0, 1, 1, 1],
+      [0, 1, 1, 1]
     ],
-    "transfinite_r_data": [
-      [5, 0, 1.5],
-      [7, 0, 1],
-      [9, 1, 0.1]
+    "surfaces_names": [
+      ["Int", "Ext", "Bottom", "Top"],
+      ["IntNX", "IntX", "IntNY", "IntY", "ExtNX", "ExtX", "ExtNY", "ExtY", "Bottom", "Top"],
+      ["Int", "Ext", "Bottom2", "Top2"]
+    ],
+    "layers_surfaces_names": [
+      [1, 1, 1, 1],
+      [2, 0, 1, 1],
+      [1, 0, 1, 1]
     ],
     "transfinite_h_data": [
-      [5, 1, 5],
-      [7, 1, 1],
-      [9, 0, 0.5]
+      [5, 0, 1],
+      [5, 0, 1],
+      [5, 0, 1]
     ],
-    "transfinite_phi_data": [7, 0, 1]
+    "transfinite_phi_data": [5, 0, 1],
+    "transfinite_r_data": [
+      [5, 0, 1],
+      [5, 0, 1],
+      [5, 0, 1],
+      [5, 0, 1]
+    ],
+    "transform_data": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "layers_recs": [
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0]
+    ],
+    "layers_trans": 1,
+    "layers_exists": [
+      [0, 1, 1, 1],
+      [1, 1, 1, 1],
+      [0, 1, 1, 1]
+    ]
   }
 }

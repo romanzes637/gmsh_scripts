@@ -1,7 +1,7 @@
 {
   "metadata": {
     "type": "class_arguments",
-    "class_name": "DividedCylinder",
+    "class_name": "Cylinder",
     "description": "Part of NKM as RegularBoundMatrix"
   },
   "arguments": {
@@ -63,9 +63,8 @@
       [3, 0, 1]
     ],
     "transform_data": [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    "divide_h_data": null,
-    "divide_r_data": null,
-    "straight_boundary": [1, 3, 3, 3, 2],
+    "ct0s": [0, 1, 1, 1, 1],
+    "ct1s": [1, 1, 1, 1, 0],
     "layers_recs": 1,
     "layers_trans": [
       [1, 1, 1, 1, 1],

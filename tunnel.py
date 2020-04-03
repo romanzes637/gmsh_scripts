@@ -78,7 +78,7 @@ def type_1(factory_object, primitives, kwargs):
         ],
         transfinite_data=[tx, ty, tz],
         transfinite_type=tt,
-        physical_name=physical_name
+        volume_name=physical_name
     )
     primitives.append(p)
 
@@ -131,7 +131,7 @@ def type_2(factory_object, primitives, kwargs):
         ],
         transfinite_data=[tx, ty, tz],
         transfinite_type=tt,
-        physical_name=physical_name
+        volume_name=physical_name
     )
     primitives.append(p)
 
@@ -184,7 +184,7 @@ def type_3(factory_object, primitives, kwargs):
         ],
         transfinite_data=[tx, ty, tz],
         transfinite_type=tt,
-        physical_name=physical_name
+        volume_name=physical_name
     )
     primitives.append(p)
 
@@ -237,7 +237,7 @@ def type_4(factory_object, primitives, kwargs):
         ],
         transfinite_data=[tx, ty, tz],
         transfinite_type=tt,
-        physical_name=physical_name
+        volume_name=physical_name
     )
     primitives.append(p)
 
@@ -290,7 +290,7 @@ def type_5(factory_object, primitives, kwargs):
         ],
         transfinite_data=[tx, ty, tz],
         transfinite_type=tt,
-        physical_name=physical_name
+        volume_name=physical_name
     )
     primitives.append(p)
 
@@ -343,7 +343,7 @@ def type_6(factory_object, primitives, kwargs):
         ],
         transfinite_data=[tx, ty, tz],
         transfinite_type=tt,
-        physical_name=physical_name
+        volume_name=physical_name
     )
     primitives.append(p)
 
@@ -396,7 +396,7 @@ def type_7(factory_object, primitives, kwargs):
         ],
         transfinite_data=[tx, ty, tz],
         transfinite_type=tt,
-        physical_name=physical_name
+        volume_name=physical_name
     )
     primitives.append(p)
 
@@ -449,7 +449,7 @@ def type_8(factory_object, primitives, kwargs):
         ],
         transfinite_data=[tx, ty, tz],
         transfinite_type=tt,
-        physical_name=physical_name
+        volume_name=physical_name
     )
     primitives.append(p)
 
@@ -502,7 +502,7 @@ def type_9(factory_object, primitives, kwargs):
         ],
         transfinite_data=[tx, ty, tz],
         transfinite_type=tt,
-        physical_name=physical_name
+        volume_name=physical_name
     )
     primitives.append(p)
 
@@ -555,7 +555,7 @@ def type_10(factory_object, primitives, kwargs):
         ],
         transfinite_data=[tx, ty, tz],
         transfinite_type=tt,
-        physical_name=physical_name
+        volume_name=physical_name
     )
     primitives.append(p)
 
@@ -608,7 +608,7 @@ def type_11(factory_object, primitives, kwargs):
         ],
         transfinite_data=[tx, ty, tz],
         transfinite_type=tt,
-        physical_name=physical_name
+        volume_name=physical_name
     )
     primitives.append(p)
 

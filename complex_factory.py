@@ -12,12 +12,10 @@ import complex
 import complex_primitive
 import complex_union
 import cylinder
-import divided_cylinder
 import experiment
 import matrix
 import regular_matrix
 import regular_bound_matrix
-import pool
 import polygon
 import tunnel
 import nkm_eleron_2
@@ -46,14 +44,10 @@ class ComplexFactory:
             complex_union, complex_union.ComplexUnion.__name__),
         cylinder.Cylinder.__name__: getattr(
             cylinder, cylinder.Cylinder.__name__),
-        divided_cylinder.DividedCylinder.__name__: getattr(
-            divided_cylinder, divided_cylinder.DividedCylinder.__name__),
         polygon.Polygon.__name__: getattr(
             polygon, polygon.Polygon.__name__),
         tunnel.Tunnel.__name__: getattr(
             tunnel, tunnel.Tunnel.__name__),
-        pool.Pool.__name__: getattr(
-            pool, pool.Pool.__name__),
         experiment.Experiment.__name__: getattr(
             experiment, experiment.Experiment.__name__),
         nkm_eleron_2.NkmEleron2.__name__: getattr(

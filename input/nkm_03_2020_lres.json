@@ -7,9 +7,9 @@
   "arguments": {
     "factory": "geo",
     "transform_data": [-461.5, -457.5, -975],
-    "nxi": 23,
-    "nyj": 20,
-    "nzk": 35,
+    "nxi": 3,
+    "nyj": 3,
+    "nzk": 3,
     "dxi": 23,
     "dyj": 15,
     "dzk": 2.11,

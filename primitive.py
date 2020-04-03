@@ -3,6 +3,7 @@ import itertools
 from collections import deque
 from itertools import permutations
 from pprint import pprint
+import time
 
 from occ_workarounds import correct_and_transfinite_primitive
 from support import volumes_groups_surfaces, volumes_groups_surfaces_registry
@@ -13,7 +14,7 @@ class Primitive:
     def __init__(self, factory, point_data=None, transform_data=None,
                  curve_types=None, curve_data=None,
                  transfinite_data=None, transfinite_type=None,
-                 physical_name=None, inner_volumes=None, surfaces_names=None,
+                 volume_name=None, inner_volumes=None, surfaces_names=None,
                  rec=None, trans=None):
         """
         Base object with six quadrangular surfaces and eight points
@@ -74,7 +75,7 @@ class Primitive:
         types: 0 - progression, 1 - bump
         :param int transfinite_type: 0, 1, 2 or 4 determines orientation
         of surfaces' tetrahedra at structured volume
-        :param str physical_name: primitive's volumes physical name
+        :param str volume_name: primitive's volumes physical name
         :param list of int inner_volumes: inner volumes,
         no effect at 'occ' factory, if point_data is None wrap these volumes
         as Primitive.volumes
@@ -269,18 +270,11 @@ class Primitive:
                 self.transfinite_data = transfinite_data
         else:
             self.transfinite_data = transfinite_data
-        if transfinite_type is None:
-            self.transfinite_type = 0
-        else:
-            self.transfinite_type = transfinite_type
-        if physical_name is None:
-            self.physical_name = Primitive.__name__
-        else:
-            self.physical_name = physical_name
-        if surfaces_names is None:
-            self.surfaces_names = ['NX', 'X', 'NY', 'Y', 'NZ', 'Z']
-        else:
-            self.surfaces_names = surfaces_names
+        self.volume_name = volume_name if volume_name is not None else 'V'
+        self.surfaces_names = surfaces_names if surfaces_names is not None else ['NX', 'X', 'NY', 'Y', 'NZ', 'Z']
+        self.transfinite_type = transfinite_type if transfinite_type is not None else 0
+        self.rec = rec if rec is not None else 1
+        self.trans = trans if trans is not None else 1
         self.points = list()
         self.curves_points = list()
         self.curves = list()
@@ -327,6 +321,7 @@ class Primitive:
             if curve_data is None:
                 curve_data = [[]] * 12
             # Points
+            # t0 = time.time()
             for d in new_point_data:
                 # print(d)
                 if transform_data is not None:
@@ -388,6 +383,9 @@ class Primitive:
                     pass
                     # print(tag, cs, len(registry.coord_point_map), 'point')
                 self.points.append(tag)
+            # print(f'points: {time.time() - t0}')
+            # Curves points
+            # t0 = time.time()
             for i in range(len(curve_data)):
                 ps = list()
                 for j in range(len(curve_data[i])):
@@ -495,7 +493,9 @@ class Primitive:
             #                         transform_data[3], transform_data[4],
             #                         transform_data[5],
             #                         0, 0, 1, transform_data[8])
+            # print(f'curves points: {time.time() - t0}')
             # Curves
+            # t0 = time.time()
             for i in range(12):
                 # FIXME Workaround for OCC factory
                 ct = [curve_types[i]]
@@ -528,7 +528,9 @@ class Primitive:
                 self.curves.append(tag)
             # pprint(registry.curves)
             # print('curves: {}'.format(len(registry.curves)))
+            # print(f'curves: {time.time() - t0}')
             # Surfaces
+            # t0 = time.time()
             for i in range(6):
                 cs = list(map(lambda x, y: y * self.curves[x],
                               self.surfaces_local_curves[i],
@@ -550,6 +552,7 @@ class Primitive:
                     tag = registry.surfaces.get(c, None)
                     if tag is not None:
                         break
+                # t00 = time.time()
                 if tag is None:
                     if self.factory == gmsh.model.geo:
                         tag = self.factory.addCurveLoop(
@@ -569,9 +572,12 @@ class Primitive:
                     # print(set(registry.surfaces.values()))
                     # print(tag, css, len(registry.surfaces), 'surface')
                 self.surfaces.append(tag)
+                # print(f'surfaces2: {time.time() - t00}')
             # print('surfaces: {}'.format(len(registry.curves)))
             # print(len(self.surfaces))
+            # print(f'surfaces: {time.time() - t0}')
             # Volume
+            # t0 = time.time()
             if inner_volumes is None:
                 # gs = volumes_groups_surfaces_registry(list(registry.volumes),
                 #                                       registry.volumes)
@@ -584,7 +590,6 @@ class Primitive:
             else:
                 # gs = volumes_groups_surfaces(inner_volumes)
                 gs = volumes_groups_surfaces_registry(inner_volumes, registry.volumes)
-                print(len(gs))
                 if self.factory == gmsh.model.occ:
                     # FIXME bug always return tag = -1 by default
                     out_sl = self.factory.addSurfaceLoop(self.surfaces, 1)
@@ -602,12 +607,11 @@ class Primitive:
                 tag = self.factory.addVolume(sls)
                 registry.volumes[tag] = sls
             self.volumes.append(tag)
+            # print(f'volumes: {time.time() - t0}')
         else:
             if inner_volumes is not None:
                 self.volumes = inner_volumes
         # pprint(registry.coord_point_map)
-        self.rec = rec if rec is not None else True
-        self.trans = trans if trans is not None else True
 
     def recombine(self):
         if self.rec:
@@ -1076,7 +1080,7 @@ if __name__ == '__main__':
         print("Physical")
         vs = primitive.volumes
         tag = gmsh.model.addPhysicalGroup(3, vs)
-        gmsh.model.setPhysicalName(3, tag, primitive.physical_name)
+        gmsh.model.setPhysicalName(3, tag, primitive.volume_name)
         for i, s in enumerate(primitive.surfaces):
             tag = gmsh.model.addPhysicalGroup(2, [s])
             gmsh.model.setPhysicalName(2, tag, primitive.surfaces_names[i])

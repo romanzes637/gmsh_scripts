@@ -54,7 +54,7 @@ class Polygon(Complex):
                                 closed_groups_points, closed_groups_polygons,
                                 sizes)
             name = physical_names[i]
-            p = Primitive(factory, physical_name=name, inner_volumes=vs)
+            p = Primitive(factory, volume_name=name, inner_volumes=vs)
             primitives.append(p)
         Complex.__init__(self, factory, primitives)
 

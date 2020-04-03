@@ -10,7 +10,7 @@ from support import check_file
 
 
 class Matrix(Complex):
-    def __init__(self, factory, xs, ys, zs, coordinates_type='direct',
+    def __init__(self, factory, xs, ys, zs, coordinates_type='delta',
                  lcs=None, transform_data=None, txs=None, tys=None, tzs=None,
                  type_map=None,
                  inputs=None, inputs_map=None,
@@ -52,7 +52,7 @@ class Matrix(Complex):
         :param list of int inputs_map: item - input file map
         :param list of str volumes_names: names for items volumes
         :param list of int volumes_map: item - volume name map
-        :param list of str surfaces_names: names for items surfaces
+        :param list of list of str surfaces_names: names for items surfaces
         :param list of int surfaces_map: item - surface names map
         :param list of int recs_map: see Primitive
         :param list of int trans_map: see Primitive
@@ -156,7 +156,9 @@ class Matrix(Complex):
                     zcs.append(0.5 * (z0s[-1] + z1s[-1]))
         primitives = []
         for ci, gi in gis.items():
+            # t0 = time.time()
             type_factory[type_map[gi]](**locals())
+            # print(f'type: {type_map[gi]}, time {time.time() - t0}')
         Complex.__init__(self, factory, primitives)
 
 
@@ -184,7 +186,7 @@ def type_1(primitives, ci, gi, factory,
             [x1s[gi], y0s[gi], z1s[gi], lcs[gi]],
         ],
         transfinite_data=[txs[i], tys[j], tzs[k]],
-        physical_name=volumes_names[volumes_map[gi]],
+        volume_name=volumes_names[volumes_map[gi]],
         surfaces_names=surfaces_names[surfaces_map[gi]],
         rec=recs_map[gi],
         trans=trans_map[gi]
@@ -265,7 +267,7 @@ def type_5(primitives, ci, gi, factory,
             [x1s[gi], y0s[gi], z1s[gi], lcs[gi]],
         ],
         transfinite_data=[txs[i], tys[j], tzs[k]],
-        physical_name=volumes_names[volumes_map[gi]],
+        volume_name=volumes_names[volumes_map[gi]],
         inner_volumes=c.get_volumes(),
         surfaces_names=surfaces_names[surfaces_map[gi]],
         rec=recs_map[gi],
@@ -375,7 +377,7 @@ def type_6(primitives, ci, gi, gis, factory,
         curve_data=cd,
         transfinite_data=[txs[i], tys[j], tzs[k]],
         transfinite_type=0,
-        physical_name=volumes_names[volumes_map[gi]],
+        volume_name=volumes_names[volumes_map[gi]],
         surfaces_names=surfaces_names[surfaces_map[gi]],
         rec=recs_map[gi],
         trans=trans_map[gi]
@@ -483,7 +485,7 @@ def type_7(primitives, ci, gi, gis, factory,
         curve_data=cd,
         transfinite_data=[txs[i], tys[j], tzs[k]],
         transfinite_type=0,
-        physical_name=volumes_names[volumes_map[gi]],
+        volume_name=volumes_names[volumes_map[gi]],
         surfaces_names=surfaces_names[surfaces_map[gi]],
         rec=recs_map[gi],
         trans=trans_map[gi]
@@ -592,7 +594,7 @@ def type_8(primitives, ci, gi, gis, factory,
         curve_data=cd,
         transfinite_data=[txs[i], tys[j], tzs[k]],
         transfinite_type=1,
-        physical_name=volumes_names[volumes_map[gi]],
+        volume_name=volumes_names[volumes_map[gi]],
         surfaces_names=surfaces_names[surfaces_map[gi]],
         rec=recs_map[gi],
         trans=trans_map[gi]
@@ -700,7 +702,7 @@ def type_9(primitives, ci, gi, gis, factory,
         curve_data=cd,
         transfinite_data=[txs[i], tys[j], tzs[k]],
         transfinite_type=3,
-        physical_name=volumes_names[volumes_map[gi]],
+        volume_name=volumes_names[volumes_map[gi]],
         surfaces_names=surfaces_names[surfaces_map[gi]],
         rec=recs_map[gi],
         trans=trans_map[gi]
