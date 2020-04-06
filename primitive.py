@@ -54,11 +54,12 @@ class Primitive:
         [point8_x, point8_y, point8_z]] or
         [length_x, length_y, length_z, lc] or
         [length_x, length_y, length_z]
-        :param list of list of float transform_data:
-        list of transformations
-        [displacement x, y, z] or
-        [rotation direction x, y, z, rotation angle] or
-        [rotation origin x, y, z, rotation direction x, y, z, rotation angle]
+        :param list transform_data:
+        list of transformations: [transformation, transformation, ...]
+        where transformation is
+        [[displacement x, y, z], [mask]] or
+        [[rotation direction x, y, z, rot. angle], [mask]] or
+        [[rot. origin x, y, z, rot. direction x, y, z, rot. angle], [mask]]
         :param list of int curve_types:
         [line1_type, line2_type, ..., line12_type],
         types: 0 - line, 1 - circle, 2 - ellipse
@@ -116,15 +117,22 @@ class Primitive:
         self.coordinates_evaluated = False
         if transform_data is None:
             transform_data = []
-        elif isinstance(transform_data, list) and not isinstance(
-                transform_data[0], list):
-            transform_data = [np.array(transform_data, dtype=float)]
+        elif isinstance(transform_data, list):
+            if not isinstance(transform_data[0], list):  # [data]
+                transform_data = [[np.array(transform_data), np.ones(8)]]
+            elif not isinstance(transform_data[0][0], list):  # [[data], [mask]]
+                transform_data = [[np.array(transform_data[0]),
+                                   np.array(transform_data[1])]]
+            else:  # [ [[data], [mask]], [[data],[mask]], ... ]
+                transform_data = [[np.array(x[0], dtype=float),
+                                   np.array(x[1], dtype=int)]
+                                  for x in transform_data]
         else:
-            transform_data = [np.array(x, dtype=float) for x in transform_data]
+            raise ValueError(f'invalid transform_data: {transform_data}')
         if curve_types is None:
-            curve_types = [0] * 12
+            curve_types = np.zeros(12)
         if curve_data is None:
-            curve_data = [[]] * 12
+            curve_data = [[] for _ in range(12)]
         curve_data = [np.array(x, dtype=float) for x in curve_data]
         if point_data is not None:
             if len(point_data) == 3:
@@ -162,10 +170,10 @@ class Primitive:
             # Points
             # t0 = time.time()
             for td in transform_data:
-                print(td)
-                print(point_data)
-                point_data[:, :3] = transform(point_data[:, :3], td)
-                print(point_data)
+                d, m = td
+                mask = np.array([[not x for _ in range(point_data.shape[1] - 1)]
+                                 for x in m], dtype=int)
+                point_data[:, :3] = transform(point_data[:, :3], d, mask)
             for d in point_data:
                 d[0] = round(d[0], registry.point_tol)
                 d[1] = round(d[1], registry.point_tol)
@@ -184,12 +192,16 @@ class Primitive:
             # Curves points
             # t0 = time.time()
             for td in transform_data:
+                d, m = td
                 for i in range(len(curve_data)):
                     if len(curve_data[i]) > 0:
-                        print(curve_data[i])
+                        lps = self.curves_local_points[i]
+                        mask = np.array([
+                            [not m[lps[0]] * m[lps[1]]
+                             for _ in range(curve_data[i].shape[1] - 1)]
+                            for _ in range(curve_data[i].shape[0])], dtype=int)
                         curve_data[i][:, :3] = transform(curve_data[i][:, :3],
-                                                         td)
-                        print(curve_data[i])
+                                                         d, mask)
             for i in range(len(curve_data)):
                 ps = list()
                 for j in range(len(curve_data[i])):
@@ -759,17 +771,20 @@ def rotation_matrix(axis, theta):
                      [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
 
 
-def transform(ps, td):
-    if len(td) == 7:  # rotation around direction by angle relative to origin
-        origin, direction, angle = td[:3], td[3:6], td[6]
+def transform(ps, data, mask):
+    mps = np.ma.array(ps, mask=mask)
+    if len(data) == 7:  # rotation around dir by angle relative to origin
+        origin, direction, angle = data[:3], data[3:6], data[6]
         m = rotation_matrix(direction, angle)
-        lps = ps - origin  # local coordinates relative to origin
-        ps = np.dot(lps, m.T)
-        ps += origin
-    elif len(td) == 4:  # rotation around direction by angle relative to (0, 0, 0)
-        direction, angle = td[:3], td[3]
+        lps = mps - origin  # local coordinates relative to origin
+        mps = np.ma.dot(lps, m.T)
+        mps = np.ma.add(mps, origin)
+    elif len(data) == 4:  # rotation about dir by angle relative to (0, 0, 0)
+        direction, angle = data[:3], data[3]
         m = rotation_matrix(direction, angle)
-        ps = np.dot(ps, m.T)
+        mps = np.ma.dot(mps, m.T)
     else:  # displacement
-        ps += td[:3]
+        displacement = data[:3]
+        mps = np.ma.add(mps, displacement)
+    ps = mps.filled(ps)
     return ps
