@@ -146,12 +146,12 @@ class Cylinder(Matrix):
             for j in range(len(ys)):
                 for i in range(len(xs)):
                     if i == ci and j == cj:  # C
-                        type_map.append(1 if layers_exists[k][0] else 0)
+                        type_map.append(10 if layers_exists[k][0] else 0)
                         lcs.append(layers_lcs[k][0])
                         recs_map.append(layers_recs[k][0])
                         trans_map.append(layers_trans[k][0])
                         volumes_map.append(layers_volumes_names[k][0])
-                        kws_map.append(0)
+                        kws_map.append(ct_map[(ct0s[0], ct1s[0])])
                         sns = surfaces_names[layers_surfaces_names[k][0]]
                         new_sns = [sns[x] for x in self.surfaces_names_map[
                             ('C', len(sns))]]

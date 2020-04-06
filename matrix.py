@@ -275,6 +275,88 @@ def type_5(primitives, ci, gi, factory,
     ))
 
 
+# Cylinder C
+def type_10(primitives, ci, gi, gis, factory,
+            x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
+            volumes_names, volumes_map, surfaces_names, surfaces_map,
+            recs_map, trans_map, xs, ys, zs, transform_data,
+            kws, kws_map, **kwargs):
+    i, j, k = ci
+    cxi, cyj = len(xs) // 2, len(ys) // 2
+    cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
+    cy = sum(ys[:cyj]) + ys[cyj] / 2 + transform_data[1]
+    rx, rnx, ry, rny = x1s[gi] - cx, cx - x0s[gi], y1s[gi] - cy, cy - y0s[gi]
+    ct0 = kws[kws_map[gi]].get('ct0', 0)
+    # ct1 = kws[kws_map[gi]].get('ct1', 0)
+    ct = kws[kws_map[gi]].get('ct', 3)
+    if not ct0:
+        pd = [[x1s[gi], y1s[gi], z0s[gi], lcs[gi]],
+              [x0s[gi], y1s[gi], z0s[gi], lcs[gi]],
+              [x0s[gi], y0s[gi], z0s[gi], lcs[gi]],
+              [x1s[gi], y0s[gi], z0s[gi], lcs[gi]],
+              [x1s[gi], y1s[gi], z1s[gi], lcs[gi]],
+              [x0s[gi], y1s[gi], z1s[gi], lcs[gi]],
+              [x0s[gi], y0s[gi], z1s[gi], lcs[gi]],
+              [x1s[gi], y0s[gi], z1s[gi], lcs[gi]]]
+        cts = None
+        cd = None
+    else:
+        dxrx = rx / 2 ** 0.5
+        dyry = ry / 2 ** 0.5
+        dxrnx = -rnx / 2 ** 0.5
+        dyrny = -rny / 2 ** 0.5
+        pd = [
+            [cx + dxrx, cy + dyry, z0s[gi], lcs[gi]],
+            [cx + dxrnx, cy + dyry, z0s[gi], lcs[gi]],
+            [cx + dxrnx, cy + dyrny, z0s[gi], lcs[gi]],
+            [cx + dxrx, cy + dyrny, z0s[gi], lcs[gi]],
+            [cx + dxrx, cy + dyry, z1s[gi], lcs[gi]],
+            [cx + dxrnx, cy + dyry, z1s[gi], lcs[gi]],
+            [cx + dxrnx, cy + dyrny, z1s[gi], lcs[gi]],
+            [cx + dxrx, cy + dyrny, z1s[gi], lcs[gi]],
+        ]
+        # if rx == ry == rnx == rny:  # FIXME BUG WITH CIRCLE ARC (transfinite)
+        #     cts = [ct0, ct0, ct0, ct0,
+        #            ct0, ct0, ct0, ct0,
+        #            0, 0, 0, 0]
+        #     cd = [
+        #         [[cx, cy, z0s[gi], lcs[gi]]],
+        #         [[cx, cy, z1s[gi], lcs[gi]]],
+        #         [[cx, cy, z1s[gi], lcs[gi]]],
+        #         [[cx, cy, z0s[gi], lcs[gi]]],
+        #         [[cx, cy, z0s[gi], lcs[gi]]],
+        #         [[cx, cy, z0s[gi], lcs[gi]]],
+        #         [[cx, cy, z1s[gi], lcs[gi]]],
+        #         [[cx, cy, z1s[gi], lcs[gi]]],
+        #         [], [], [], []
+        #     ]
+        # else:
+        cts = [ct, ct, ct, ct, ct, ct, ct, ct, 0, 0, 0, 0]
+        cd = [
+            [[cx, cy + ry, z0s[gi], lcs[gi]]],
+            [[cx, cy + ry, z1s[gi], lcs[gi]]],
+            [[cx, cy - rny, z1s[gi], lcs[gi]]],
+            [[cx, cy - rny, z0s[gi], lcs[gi]]],
+            [[cx + rx, cy, z0s[gi], lcs[gi]]],
+            [[cx - rnx, cy, z0s[gi], lcs[gi]]],
+            [[cx - rnx, cy, z1s[gi], lcs[gi]]],
+            [[cx + rx, cy, z1s[gi], lcs[gi]]],
+            [], [], [], []
+        ]
+    primitives.append(Primitive(
+        factory=factory,
+        point_data=pd,
+        curve_types=cts,
+        curve_data=cd,
+        transfinite_data=[txs[i], tys[j], tzs[k]],
+        transfinite_type=0,
+        volume_name=volumes_names[volumes_map[gi]],
+        surfaces_names=surfaces_names[surfaces_map[gi]],
+        rec=recs_map[gi],
+        trans=trans_map[gi]
+    ))
+
+
 # Cylinder X
 def type_6(primitives, ci, gi, gis, factory,
            x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
@@ -719,5 +801,6 @@ type_factory = {
     6: type_6,  # Cylinder X
     7: type_7,  # Cylinder Y
     8: type_8,  # Cylinder NX
-    9: type_9  # Cylinder NY
+    9: type_9,  # Cylinder NY
+    10: type_10  # Cylinder C
 }
