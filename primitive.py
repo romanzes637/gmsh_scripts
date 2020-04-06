@@ -4,6 +4,7 @@ from collections import deque
 from itertools import permutations
 from pprint import pprint
 import time
+import numpy as np
 
 from occ_workarounds import correct_and_transfinite_primitive
 from support import volumes_groups_surfaces, volumes_groups_surfaces_registry
@@ -53,11 +54,11 @@ class Primitive:
         [point8_x, point8_y, point8_z]] or
         [length_x, length_y, length_z, lc] or
         [length_x, length_y, length_z]
-        :param list of float transform_data:
+        :param list of list of float transform_data:
+        list of transformations
         [displacement x, y, z] or
-        [displacement x, y, z, rotation origin x, y, z, rotation angle x, y, z]
-        or [displacement x, y, z, rotation vector x, y, z, rotation angle]
-        or [displacement x, y, z, rotation angle x, y, z]
+        [rotation direction x, y, z, rotation angle] or
+        [rotation origin x, y, z, rotation direction x, y, z, rotation angle]
         :param list of int curve_types:
         [line1_type, line2_type, ..., line12_type],
         types: 0 - line, 1 - circle, 2 - ellipse
@@ -84,178 +85,6 @@ class Primitive:
         :param int rec: Recombine Primitive?
         :param int trans: Transfinite Primitive?
         """
-        # print(physical_name)
-        # if factory == 'occ':
-        #     self.factory = gmsh.model.occ
-        # else:
-        #     self.factory = gmsh.model.geo
-        # if transfinite_data is not None:
-        #     if len(transfinite_data) == 3:
-        #         self.transfinite_data = list()
-        #         self.transfinite_data.extend([transfinite_data[0]] * 4)
-        #         self.transfinite_data.extend([transfinite_data[1]] * 4)
-        #         self.transfinite_data.extend([transfinite_data[2]] * 4)
-        #     else:
-        #         self.transfinite_data = transfinite_data
-        # else:
-        #     self.transfinite_data = transfinite_data
-        # if transfinite_type is None:
-        #     self.transfinite_type = 0
-        # else:
-        #     self.transfinite_type = transfinite_type
-        # if physical_name is None:
-        #     self.physical_name = Primitive.__name__
-        # else:
-        #     self.physical_name = physical_name
-        # if surfaces_names is None:
-        #     self.surfaces_names = ['NX', 'X', 'NY', 'Y', 'NZ', 'Z']
-        # else:
-        #     self.surfaces_names = surfaces_names
-        # self.points = list()
-        # self.curves_points = list()
-        # self.curves = list()
-        # self.surfaces = list()
-        # self.volumes = list()
-        # self.points_coordinates = list()
-        # self.curves_points_coordinates = list()
-        # self.bounding_box = None
-        # self.coordinates_evaluated = False
-        # if point_data is not None:
-        #     if len(point_data) == 3:
-        #         half_lx = point_data[0] / 2.0
-        #         half_ly = point_data[1] / 2.0
-        #         half_lz = point_data[2] / 2.0
-        #         new_point_data = [
-        #             [half_lx, half_ly, -half_lz],
-        #             [-half_lx, half_ly, -half_lz],
-        #             [-half_lx, -half_ly, -half_lz],
-        #             [half_lx, -half_ly, -half_lz],
-        #             [half_lx, half_ly, half_lz],
-        #             [-half_lx, half_ly, half_lz],
-        #             [-half_lx, -half_ly, half_lz],
-        #             [half_lx, -half_ly, half_lz]
-        #         ]
-        #     elif len(point_data) == 4:
-        #         half_lx = point_data[0] / 2.0
-        #         half_ly = point_data[1] / 2.0
-        #         half_lz = point_data[2] / 2.0
-        #         lc = point_data[3]
-        #         new_point_data = [
-        #             [half_lx, half_ly, -half_lz, lc],
-        #             [-half_lx, half_ly, -half_lz, lc],
-        #             [-half_lx, -half_ly, -half_lz, lc],
-        #             [half_lx, -half_ly, -half_lz, lc],
-        #             [half_lx, half_ly, half_lz, lc],
-        #             [-half_lx, half_ly, half_lz, lc],
-        #             [-half_lx, -half_ly, half_lz, lc],
-        #             [half_lx, -half_ly, half_lz, lc]
-        #         ]
-        #     else:
-        #         new_point_data = point_data
-        #     if curve_types is None:
-        #         curve_types = [0] * 12
-        #     if curve_data is None:
-        #         curve_data = [[]] * 12
-        #     # Points
-        #     for i in range(len(new_point_data)):
-        #         tag = self.factory.addPoint(*new_point_data[i])
-        #         self.points.append(tag)
-        #     for i in range(len(curve_data)):
-        #         ps = list()
-        #         for j in range(len(curve_data[i])):
-        #             tag = self.factory.addPoint(*curve_data[i][j])
-        #             ps.append(tag)
-        #         self.curves_points.append(ps)
-        #     # Transform
-        #     if transform_data is not None:
-        #         dim_tags = [(0, x) for x in self.points]
-        #         for curve_points in self.curves_points:
-        #             dim_tags += [(0, x) for x in curve_points]
-        #         self.factory.translate(dim_tags, transform_data[0],
-        #                                transform_data[1], transform_data[2])
-        #         if len(transform_data) == 6:
-        #             self.factory.rotate(dim_tags,
-        #                                 transform_data[0], transform_data[1],
-        #                                 transform_data[2],
-        #                                 1, 0, 0, transform_data[3])
-        #             self.factory.rotate(dim_tags,
-        #                                 transform_data[0], transform_data[1],
-        #                                 transform_data[2],
-        #                                 0, 1, 0, transform_data[4])
-        #             self.factory.rotate(dim_tags,
-        #                                 transform_data[0], transform_data[1],
-        #                                 transform_data[2],
-        #                                 0, 0, 1, transform_data[5])
-        #         elif len(transform_data) == 7:
-        #             self.factory.rotate(dim_tags,
-        #                                 transform_data[0], transform_data[1],
-        #                                 transform_data[2],
-        #                                 transform_data[3], transform_data[4],
-        #                                 transform_data[5],
-        #                                 transform_data[6])
-        #         elif len(transform_data) == 9:
-        #             self.factory.rotate(dim_tags,
-        #                                 transform_data[3], transform_data[4],
-        #                                 transform_data[5],
-        #                                 1, 0, 0, transform_data[6])
-        #             self.factory.rotate(dim_tags,
-        #                                 transform_data[3], transform_data[4],
-        #                                 transform_data[5],
-        #                                 0, 1, 0, transform_data[7])
-        #             self.factory.rotate(dim_tags,
-        #                                 transform_data[3], transform_data[4],
-        #                                 transform_data[5],
-        #                                 0, 0, 1, transform_data[8])
-        #     # Curves
-        #     for i in range(12):
-        #         # FIXME Workaround for OCC factory
-        #         if self.factory != gmsh.model.occ:
-        #             tag = self.add_curve[curve_types[i]](self, i)
-        #             self.curves.append(tag)
-        #         else:
-        #             tag = self.add_curve[curve_types[i] + 6](self, i)
-        #             self.curves.append(tag)
-        #     # Surfaces
-        #     for i in range(6):
-        #         if self.factory == gmsh.model.geo:
-        #             tag = self.factory.addCurveLoop(
-        #                 map(lambda x, y: y * self.curves[x],
-        #                     self.surfaces_local_curves[i],
-        #                     self.surfaces_local_curves_signs[i]))
-        #             tag = self.factory.addSurfaceFilling([tag])
-        #         else:
-        #             tag = self.factory.addCurveLoop(
-        #                 map(lambda x: self.curves[x],
-        #                     self.surfaces_local_curves[i]))
-        #             tag = self.factory.addSurfaceFilling(tag)
-        #         self.surfaces.append(tag)
-        #     # Volume
-        #     if inner_volumes is None:
-        #         # FIXME always return tag = -1
-        #         tag = self.factory.addSurfaceLoop(self.surfaces)
-        #         tag = self.factory.addVolume([tag])
-        #         self.volumes.append(tag)
-        #     else:
-        #         gs = volumes_groups_surfaces(inner_volumes)
-        #         if self.factory == gmsh.model.occ:
-        #             # FIXME bug always return tag = -1 by default
-        #             out_sl = self.factory.addSurfaceLoop(self.surfaces, 1)
-        #             in_sls = list()
-        #             for i, g in enumerate(gs):
-        #                 # FIXME bug always return tag = -1 by default
-        #                 in_sls.append(self.factory.addSurfaceLoop(g, 2 + i))
-        #         else:
-        #             out_sl = self.factory.addSurfaceLoop(self.surfaces)
-        #             flatten_in_sls = list(itertools.chain.from_iterable(gs))
-        #             in_sls = [self.factory.addSurfaceLoop(flatten_in_sls)]
-        #         sls = list()
-        #         sls.append(out_sl)
-        #         sls += in_sls
-        #         self.volumes.append(self.factory.addVolume(sls))
-        # else:
-        #     if inner_volumes is not None:
-        #         self.volumes = inner_volumes
-        # with registry
         if factory == 'occ':
             self.factory = gmsh.model.occ
         else:
@@ -271,7 +100,8 @@ class Primitive:
         else:
             self.transfinite_data = transfinite_data
         self.volume_name = volume_name if volume_name is not None else 'V'
-        self.surfaces_names = surfaces_names if surfaces_names is not None else ['NX', 'X', 'NY', 'Y', 'NZ', 'Z']
+        self.surfaces_names = surfaces_names if surfaces_names is not None else [
+            'NX', 'X', 'NY', 'Y', 'NZ', 'Z']
         self.transfinite_type = transfinite_type if transfinite_type is not None else 0
         self.rec = rec if rec is not None else 1
         self.trans = trans if trans is not None else 1
@@ -284,27 +114,25 @@ class Primitive:
         self.curves_points_coordinates = list()
         self.bounding_box = None
         self.coordinates_evaluated = False
+        if transform_data is None:
+            transform_data = []
+        elif isinstance(transform_data, list) and not isinstance(
+                transform_data[0], list):
+            transform_data = [np.array(transform_data, dtype=float)]
+        else:
+            transform_data = [np.array(x, dtype=float) for x in transform_data]
+        if curve_types is None:
+            curve_types = [0] * 12
+        if curve_data is None:
+            curve_data = [[]] * 12
+        curve_data = [np.array(x, dtype=float) for x in curve_data]
         if point_data is not None:
             if len(point_data) == 3:
                 half_lx = point_data[0] / 2.0
                 half_ly = point_data[1] / 2.0
                 half_lz = point_data[2] / 2.0
-                new_point_data = [
-                    [half_lx, half_ly, -half_lz],
-                    [-half_lx, half_ly, -half_lz],
-                    [-half_lx, -half_ly, -half_lz],
-                    [half_lx, -half_ly, -half_lz],
-                    [half_lx, half_ly, half_lz],
-                    [-half_lx, half_ly, half_lz],
-                    [-half_lx, -half_ly, half_lz],
-                    [half_lx, -half_ly, half_lz]
-                ]
-            elif len(point_data) == 4:
-                half_lx = point_data[0] / 2.0
-                half_ly = point_data[1] / 2.0
-                half_lz = point_data[2] / 2.0
-                lc = point_data[3]
-                new_point_data = [
+                lc = 1.
+                point_data = np.array([
                     [half_lx, half_ly, -half_lz, lc],
                     [-half_lx, half_ly, -half_lz, lc],
                     [-half_lx, -half_ly, -half_lz, lc],
@@ -313,63 +141,32 @@ class Primitive:
                     [-half_lx, half_ly, half_lz, lc],
                     [-half_lx, -half_ly, half_lz, lc],
                     [half_lx, -half_ly, half_lz, lc]
-                ]
+                ], dtype=float)
+            elif len(point_data) == 4:
+                half_lx = point_data[0] / 2.0
+                half_ly = point_data[1] / 2.0
+                half_lz = point_data[2] / 2.0
+                lc = point_data[3]
+                point_data = np.array([
+                    [half_lx, half_ly, -half_lz, lc],
+                    [-half_lx, half_ly, -half_lz, lc],
+                    [-half_lx, -half_ly, -half_lz, lc],
+                    [half_lx, -half_ly, -half_lz, lc],
+                    [half_lx, half_ly, half_lz, lc],
+                    [-half_lx, half_ly, half_lz, lc],
+                    [-half_lx, -half_ly, half_lz, lc],
+                    [half_lx, -half_ly, half_lz, lc]
+                ], dtype=float)
             else:
-                new_point_data = point_data
-            if curve_types is None:
-                curve_types = [0] * 12
-            if curve_data is None:
-                curve_data = [[]] * 12
+                pass
             # Points
             # t0 = time.time()
-            for d in new_point_data:
-                # print(d)
-                if transform_data is not None:
-                    d[0] += transform_data[0]
-                    d[1] += transform_data[1]
-                    d[2] += transform_data[2]
-                    # TODO rotation
-                    # if len(transform_data) == 6:
-                    #     self.factory.rotate(dim_tags,
-                    #                         transform_data[0],
-                    #                         transform_data[1],
-                    #                         transform_data[2],
-                    #                         1, 0, 0, transform_data[3])
-                    #     self.factory.rotate(dim_tags,
-                    #                         transform_data[0],
-                    #                         transform_data[1],
-                    #                         transform_data[2],
-                    #                         0, 1, 0, transform_data[4])
-                    #     self.factory.rotate(dim_tags,
-                    #                         transform_data[0],
-                    #                         transform_data[1],
-                    #                         transform_data[2],
-                    #                         0, 0, 1, transform_data[5])
-                    # elif len(transform_data) == 7:
-                    #     self.factory.rotate(dim_tags,
-                    #                         transform_data[0],
-                    #                         transform_data[1],
-                    #                         transform_data[2],
-                    #                         transform_data[3],
-                    #                         transform_data[4],
-                    #                         transform_data[5],
-                    #                         transform_data[6])
-                    # elif len(transform_data) == 9:
-                    #     self.factory.rotate(dim_tags,
-                    #                         transform_data[3],
-                    #                         transform_data[4],
-                    #                         transform_data[5],
-                    #                         1, 0, 0, transform_data[6])
-                    #     self.factory.rotate(dim_tags,
-                    #                         transform_data[3],
-                    #                         transform_data[4],
-                    #                         transform_data[5],
-                    #                         0, 1, 0, transform_data[7])
-                    #     self.factory.rotate(dim_tags,
-                    #                         transform_data[3],
-                    #                         transform_data[4],
-                    #                         transform_data[5],
-                    #                         0, 0, 1, transform_data[8])
+            for td in transform_data:
+                print(td)
+                print(point_data)
+                point_data[:, :3] = transform(point_data[:, :3], td)
+                print(point_data)
+            for d in point_data:
                 d[0] = round(d[0], registry.point_tol)
                 d[1] = round(d[1], registry.point_tol)
                 d[2] = round(d[2], registry.point_tol)
@@ -386,59 +183,22 @@ class Primitive:
             # print(f'points: {time.time() - t0}')
             # Curves points
             # t0 = time.time()
+            for td in transform_data:
+                for i in range(len(curve_data)):
+                    if len(curve_data[i]) > 0:
+                        print(curve_data[i])
+                        curve_data[i][:, :3] = transform(curve_data[i][:, :3],
+                                                         td)
+                        print(curve_data[i])
             for i in range(len(curve_data)):
                 ps = list()
                 for j in range(len(curve_data[i])):
-                    # print(curve_data[i][j])
-                    if transform_data is not None:
-                        curve_data[i][j][0] += transform_data[0]
-                        curve_data[i][j][1] += transform_data[1]
-                        curve_data[i][j][2] += transform_data[2]
-                        # TODO rotation
-                        # if len(transform_data) == 6:
-                        #     self.factory.rotate(dim_tags,
-                        #                         transform_data[0],
-                        #                         transform_data[1],
-                        #                         transform_data[2],
-                        #                         1, 0, 0, transform_data[3])
-                        #     self.factory.rotate(dim_tags,
-                        #                         transform_data[0],
-                        #                         transform_data[1],
-                        #                         transform_data[2],
-                        #                         0, 1, 0, transform_data[4])
-                        #     self.factory.rotate(dim_tags,
-                        #                         transform_data[0],
-                        #                         transform_data[1],
-                        #                         transform_data[2],
-                        #                         0, 0, 1, transform_data[5])
-                        # elif len(transform_data) == 7:
-                        #     self.factory.rotate(dim_tags,
-                        #                         transform_data[0],
-                        #                         transform_data[1],
-                        #                         transform_data[2],
-                        #                         transform_data[3],
-                        #                         transform_data[4],
-                        #                         transform_data[5],
-                        #                         transform_data[6])
-                        # elif len(transform_data) == 9:
-                        #     self.factory.rotate(dim_tags,
-                        #                         transform_data[3],
-                        #                         transform_data[4],
-                        #                         transform_data[5],
-                        #                         1, 0, 0, transform_data[6])
-                        #     self.factory.rotate(dim_tags,
-                        #                         transform_data[3],
-                        #                         transform_data[4],
-                        #                         transform_data[5],
-                        #                         0, 1, 0, transform_data[7])
-                        #     self.factory.rotate(dim_tags,
-                        #                         transform_data[3],
-                        #                         transform_data[4],
-                        #                         transform_data[5],
-                        #                         0, 0, 1, transform_data[8])
-                    curve_data[i][j][0] = round(curve_data[i][j][0], registry.point_tol)
-                    curve_data[i][j][1] = round(curve_data[i][j][1], registry.point_tol)
-                    curve_data[i][j][2] = round(curve_data[i][j][2], registry.point_tol)
+                    curve_data[i][j][0] = round(curve_data[i][j][0],
+                                                registry.point_tol)
+                    curve_data[i][j][1] = round(curve_data[i][j][1],
+                                                registry.point_tol)
+                    curve_data[i][j][2] = round(curve_data[i][j][2],
+                                                registry.point_tol)
                     cs = tuple(curve_data[i][j][:3])  # x, y and z coordinates
                     # print(cs)
                     tag = registry.coord_point_map.get(cs, None)
@@ -453,46 +213,6 @@ class Primitive:
                 self.curves_points.append(ps)
             # print(self.points)
             # print(self.curves_points)
-            # Transform
-            # if transform_data is not None:
-            #     dim_tags = [(0, x) for x in self.points]
-            #     for curve_points in self.curves_points:
-            #         dim_tags += [(0, x) for x in curve_points]
-            # self.factory.translate(dim_tags, transform_data[0],
-            #                        transform_data[1], transform_data[2])
-            # if len(transform_data) == 6:
-            #     self.factory.rotate(dim_tags,
-            #                         transform_data[0], transform_data[1],
-            #                         transform_data[2],
-            #                         1, 0, 0, transform_data[3])
-            #     self.factory.rotate(dim_tags,
-            #                         transform_data[0], transform_data[1],
-            #                         transform_data[2],
-            #                         0, 1, 0, transform_data[4])
-            #     self.factory.rotate(dim_tags,
-            #                         transform_data[0], transform_data[1],
-            #                         transform_data[2],
-            #                         0, 0, 1, transform_data[5])
-            # elif len(transform_data) == 7:
-            #     self.factory.rotate(dim_tags,
-            #                         transform_data[0], transform_data[1],
-            #                         transform_data[2],
-            #                         transform_data[3], transform_data[4],
-            #                         transform_data[5],
-            #                         transform_data[6])
-            # elif len(transform_data) == 9:
-            #     self.factory.rotate(dim_tags,
-            #                         transform_data[3], transform_data[4],
-            #                         transform_data[5],
-            #                         1, 0, 0, transform_data[6])
-            #     self.factory.rotate(dim_tags,
-            #                         transform_data[3], transform_data[4],
-            #                         transform_data[5],
-            #                         0, 1, 0, transform_data[7])
-            #     self.factory.rotate(dim_tags,
-            #                         transform_data[3], transform_data[4],
-            #                         transform_data[5],
-            #                         0, 0, 1, transform_data[8])
             # print(f'curves points: {time.time() - t0}')
             # Curves
             # t0 = time.time()
@@ -557,13 +277,13 @@ class Primitive:
                     if self.factory == gmsh.model.geo:
                         tag = self.factory.addCurveLoop(
                             list(map(lambda x, y: y * self.curves[x],
-                                self.surfaces_local_curves[i],
-                                self.surfaces_local_curves_signs[i])))
+                                     self.surfaces_local_curves[i],
+                                     self.surfaces_local_curves_signs[i])))
                         tag = self.factory.addSurfaceFilling([tag])
                     else:
                         tag = self.factory.addCurveLoop(
                             list(map(lambda x: self.curves[x],
-                                self.surfaces_local_curves[i])))
+                                     self.surfaces_local_curves[i])))
                         tag = self.factory.addSurfaceFilling(tag)
                     for c in css:
                         registry.surfaces[c] = tag
@@ -589,7 +309,8 @@ class Primitive:
                 registry.volumes[tag] = self.surfaces
             else:
                 # gs = volumes_groups_surfaces(inner_volumes)
-                gs = volumes_groups_surfaces_registry(inner_volumes, registry.volumes)
+                gs = volumes_groups_surfaces_registry(inner_volumes,
+                                                      registry.volumes)
                 if self.factory == gmsh.model.occ:
                     # FIXME bug always return tag = -1 by default
                     out_sl = self.factory.addSurfaceLoop(self.surfaces, 1)
@@ -708,7 +429,8 @@ class Primitive:
                             if self.factory != gmsh.model.geo:
                                 transfinite_type = self.transfinite_data[i][1]
                             else:
-                                transfinite_type = self.transfinite_data[i][1] + 2
+                                transfinite_type = self.transfinite_data[i][
+                                                       1] + 2
                             self.transfinite_curve[transfinite_type](self, i)
                             transfinited_curves.add(c)
                     if transfinite_surface_data is not None:
@@ -716,21 +438,25 @@ class Primitive:
                             if s not in transfinited_surfaces:
                                 # FIXME Workaround for GEO factory
                                 if self.factory != gmsh.model.geo:
-                                    transfinite_type = transfinite_surface_data[i]
+                                    transfinite_type = transfinite_surface_data[
+                                        i]
                                 else:
                                     transfinite_type = transfinite_surface_data[
                                                            i] + 4
-                                self.transfinite_surface[transfinite_type](self, i)
+                                self.transfinite_surface[transfinite_type](self,
+                                                                           i)
                                 transfinited_surfaces.add(s)
                         if transfinite_volume_data is not None:
                             for i in range(len(self.volumes)):
                                 # FIXME Workaround for GEO factory
                                 if self.factory != gmsh.model.geo:
-                                    transfinite_type = transfinite_volume_data[i]
+                                    transfinite_type = transfinite_volume_data[
+                                        i]
                                 else:
                                     transfinite_type = transfinite_volume_data[
                                                            i] + 4
-                                self.transfinite_volume[transfinite_type](self, i)
+                                self.transfinite_volume[transfinite_type](self,
+                                                                          i)
                     result = True
             # print(check, result)
             return result
@@ -1017,79 +743,33 @@ class Primitive:
     }
 
 
-if __name__ == '__main__':
-    import argparse
-    import socket
-    import sys
-    import os
+def rotation_matrix(axis, theta):
+    """
+    Return the rotation matrix associated with counterclockwise rotation about
+    the given axis by theta radians.
+    """
+    axis = np.array(axis)
+    axis = axis / np.sqrt(np.dot(axis, axis))
+    a = np.cos(theta / 2.0)
+    b, c, d = -axis * np.sin(theta / 2.0)
+    aa, bb, cc, dd = a * a, b * b, c * c, d * d
+    bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+    return np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+                     [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                     [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
 
-    import json
-    from pprint import pprint
 
-    print('Python: {0}'.format(sys.executable))
-    print('Script: {0}'.format(__file__))
-    print('Working Directory: {0}'.format(os.getcwd()))
-    print('Host: {}'.format(socket.gethostname()))
-    print('PID: {}'.format(os.getpid()))
-    print('Arguments')
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', help='input filename',
-                        default='input_primitive.json')
-    parser.add_argument('-o', '--output', help='output filename')
-    parser.add_argument('-v', '--verbose', help='verbose', action='store_true')
-    parser.add_argument('-t', '--test', help='test mode', action='store_true')
-    args = parser.parse_args()
-    basename, extension = os.path.splitext(args.input)
-    if args.output is None:
-        args.output = basename
-    print(args)
-    is_test = args.test
-    is_verbose = args.verbose
-    output_path = args.output
-    input_path = args.input
-    model_name = basename
-    gmsh.initialize()
-    if is_verbose:
-        gmsh.option.setNumber("General.Terminal", 1)
-    else:
-        gmsh.option.setNumber("General.Terminal", 0)
-    gmsh.option.setNumber('Geometry.AutoCoherence',
-                          0)  # No effect at gmsh.model.occ factory
-    gmsh.model.add(model_name)
-    print('Input')
-    with open(input_path) as f:
-        d = json.load(f)
-    pprint(d)
-    print('Initialize')
-    primitive = Primitive(**d['arguments'])
-    factory = primitive.factory
-    print('Synchronize')
-    factory.synchronize()
-    if not is_test:
-        print('Evaluate')
-        primitive.evaluate_coordinates()  # for correct and transfinite
-        primitive.evaluate_bounding_box()  # for boolean
-        print('Remove Duplicates')
-        factory.removeAllDuplicates()
-        print('Synchronize')
-        factory.synchronize()
-        print("Correct and Transfinite")
-        ss = set()
-        cs = set()
-        correct_and_transfinite_primitive(primitive, ss, cs)
-        print("Physical")
-        vs = primitive.volumes
-        tag = gmsh.model.addPhysicalGroup(3, vs)
-        gmsh.model.setPhysicalName(3, tag, primitive.volume_name)
-        for i, s in enumerate(primitive.surfaces):
-            tag = gmsh.model.addPhysicalGroup(2, [s])
-            gmsh.model.setPhysicalName(2, tag, primitive.surfaces_names[i])
-        print("Mesh")
-        gmsh.model.mesh.generate(3)
-        gmsh.model.mesh.removeDuplicateNodes()
-        print("Write")
-        gmsh.write(output_path + '.msh')
-    else:
-        print("Write")
-        gmsh.write(output_path + '.brep')
-    gmsh.finalize()
+def transform(ps, td):
+    if len(td) == 7:  # rotation around direction by angle relative to origin
+        origin, direction, angle = td[:3], td[3:6], td[6]
+        m = rotation_matrix(direction, angle)
+        lps = ps - origin  # local coordinates relative to origin
+        ps = np.dot(lps, m.T)
+        ps += origin
+    elif len(td) == 4:  # rotation around direction by angle relative to (0, 0, 0)
+        direction, angle = td[:3], td[3]
+        m = rotation_matrix(direction, angle)
+        ps = np.dot(ps, m.T)
+    else:  # displacement
+        ps += td[:3]
+    return ps

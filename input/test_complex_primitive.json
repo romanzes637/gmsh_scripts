@@ -6,19 +6,19 @@
   },
   "arguments": {
     "factory": "geo",
-    "divide_data": [2, 2, 2],
-    "point_data": [5, 10, 15],
-    "transform_data": [1, -1, 3, 0, 0, 0, 0, 0, 0],
-    "curve_types": null,
-    "curve_data": null,
+    "point_data": [1, 1, 1],
+    "transform_data": [[0.5, 0, 0, 0, 0, 1, 0.758], [-0.5, 0, 0]],
+    "curve_types": [4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "curve_data": [[[-0.25, 0.75, -0.75, 1], [0.25, 1.25, -0.25, 1]], [], [], [], [], [], [], [], [], [], [], []],
     "transfinite_data": [
-      [10, 1, 3],
-      [10, 0, 1],
-      [10, 0, 1.5]
+      [10, 1, 1],
+      [15, 0, 1],
+      [20, 0, 1]
     ],
-    "transfinite_type": null,
-    "physical_name": "TestComplexPrimitive",
-    "surfaces_names": ["NX_Left", "X_Right", "NY_Back", "Y_Forward", "NZ_Bottom",
-    "Z_Top"]
+    "transfinite_type": 0,
+    "volume_name": "V",
+    "surfaces_names": ["NX", "X", "NY", "Y", "NZ", "Z"],
+    "rec": 0,
+    "trans": 1
   }
 }
