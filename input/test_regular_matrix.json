@@ -6,7 +6,7 @@
   },
   "arguments": {
     "factory": "geo",
-    "transform_data": [0, 0, 0],
+    "transform_data": [[0, 0, 0]],
     "dx": 2,
     "dy": 3,
     "dz": 4,

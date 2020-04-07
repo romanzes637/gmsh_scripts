@@ -6,9 +6,8 @@
   },
   "arguments": {
     "factory": "geo",
-    "divide_data": [1, 1, 1],
     "point_data": [1, 2, 3],
-    "transform_data": [0, 0, 0],
+    "transform_data": [[0, 0, 0]],
     "curve_types": null,
     "curve_data": null,
     "transfinite_data": [
@@ -17,7 +16,7 @@
       [10, 0, 1.5]
     ],
     "transfinite_type": null,
-    "physical_name": "Item",
+    "volume_name": "Item",
     "surfaces_names": ["NX", "X", "NY", "Y", "NZ", "Z"]
   }
 }

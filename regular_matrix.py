@@ -8,8 +8,7 @@ class RegularMatrix(Matrix):
                  dx=1, dy=2, dz=3, nx=3, ny=2, nz=1,
                  lc=None, tx=None, ty=None, tz=None,
                  trans=1, rec=1, item_input=None, item_type=1):
-        if transform_data is None:
-            transform_data = [0, 0, 0]
+        transform_data = [] if transform_data is None else transform_data
         coordinates_type = 'delta'
         n = nx * ny * nz
         xs = [dx for _ in range(nx)]

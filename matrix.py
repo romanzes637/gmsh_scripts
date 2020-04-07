@@ -77,7 +77,7 @@ class Matrix(Complex):
         ni = nx * ny * nz  # number of matrix items
         # print(nx, ny, nz, ni)
         if transform_data is None:
-            transform_data = [0, 0, 0]
+            transform_data = []
         if txs is None:
             txs = [[3, 0, 1] for _ in range(nx)]
         elif isinstance(txs, list) and not isinstance(txs[0], list):
@@ -141,18 +141,31 @@ class Matrix(Complex):
         x0s, x1s, xcs = [], [], []
         y0s, y1s, ycs = [], [], []
         z0s, z1s, zcs = [], [], []
+        # for k in range(nz):
+        #     for j in range(ny):
+        #         for i in range(nx):
+        #             gis[(i, j, k)] = i + nx * j + ny * nx * k
+        #             x0s.append(sum(xs[:i]) + transform_data[0])
+        #             x1s.append(sum(xs[:i + 1]) + transform_data[0])
+        #             xcs.append(0.5 * (x0s[-1] + x1s[-1]))
+        #             y0s.append(sum(ys[:j]) + transform_data[1])
+        #             y1s.append(sum(ys[:j + 1]) + transform_data[1])
+        #             ycs.append(0.5 * (y0s[-1] + y1s[-1]))
+        #             z0s.append(sum(zs[:k]) + transform_data[2])
+        #             z1s.append(sum(zs[:k + 1]) + transform_data[2])
+        #             zcs.append(0.5 * (z0s[-1] + z1s[-1]))
         for k in range(nz):
             for j in range(ny):
                 for i in range(nx):
                     gis[(i, j, k)] = i + nx * j + ny * nx * k
-                    x0s.append(sum(xs[:i]) + transform_data[0])
-                    x1s.append(sum(xs[:i + 1]) + transform_data[0])
+                    x0s.append(sum(xs[:i]))
+                    x1s.append(sum(xs[:i + 1]))
                     xcs.append(0.5 * (x0s[-1] + x1s[-1]))
-                    y0s.append(sum(ys[:j]) + transform_data[1])
-                    y1s.append(sum(ys[:j + 1]) + transform_data[1])
+                    y0s.append(sum(ys[:j]))
+                    y1s.append(sum(ys[:j + 1]))
                     ycs.append(0.5 * (y0s[-1] + y1s[-1]))
-                    z0s.append(sum(zs[:k]) + transform_data[2])
-                    z1s.append(sum(zs[:k + 1]) + transform_data[2])
+                    z0s.append(sum(zs[:k]))
+                    z1s.append(sum(zs[:k + 1]))
                     zcs.append(0.5 * (z0s[-1] + z1s[-1]))
         primitives = []
         for ci, gi in gis.items():
@@ -171,7 +184,7 @@ def type_0(**kwargs):
 def type_1(primitives, ci, gi, factory,
            x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
            volumes_names, volumes_map, surfaces_names, surfaces_map,
-           recs_map, trans_map, **kwargs):
+           recs_map, trans_map, transform_data, **kwargs):
     i, j, k = ci
     primitives.append(Primitive(
         factory=factory,
@@ -185,6 +198,7 @@ def type_1(primitives, ci, gi, factory,
             [x0s[gi], y0s[gi], z1s[gi], lcs[gi]],
             [x1s[gi], y0s[gi], z1s[gi], lcs[gi]],
         ],
+        transform_data=transform_data,
         transfinite_data=[txs[i], tys[j], tzs[k]],
         volume_name=volumes_names[volumes_map[gi]],
         surfaces_names=surfaces_names[surfaces_map[gi]],
@@ -195,13 +209,14 @@ def type_1(primitives, ci, gi, factory,
 
 # Complex at (xc, yc, zc)
 def type_2(primitives, gi, factory,
-           xcs, ycs, zcs, inputs_datas, inputs_map, **kwargs):
+           xcs, ycs, zcs, inputs_datas, inputs_map, transform_data, **kwargs):
     input_data = inputs_datas[inputs_map[gi]]
-    transform_data = input_data['arguments'].setdefault('transform_data',
-                                                        [0, 0, 0])
-    transform_data[0] += xcs[gi]
-    transform_data[1] += ycs[gi]
-    transform_data[2] += zcs[gi]
+    if input_data['arguments'].get('transform_data', None) is None:
+        input_data['arguments']['transform_data'] = []
+    input_data['arguments']['transform_data'].append(
+        [xcs[gi], ycs[gi], zcs[gi]])
+    input_data['arguments']['transform_data'].extend(transform_data)
+    input_data['arguments']['factory'] = factory
     input_data['arguments']['factory'] = factory
     from complex_factory import ComplexFactory
     c = ComplexFactory.new(input_data)
@@ -210,13 +225,13 @@ def type_2(primitives, gi, factory,
 
 # Complex at (xc, yc, z0)
 def type_3(primitives, gi, factory,
-           xcs, ycs, z0s, inputs_datas, inputs_map, **kwargs):
+           xcs, ycs, z0s, inputs_datas, inputs_map, transform_data, **kwargs):
     input_data = inputs_datas[inputs_map[gi]]
-    transform_data = input_data['arguments'].setdefault('transform_data',
-                                                        [0, 0, 0])
-    transform_data[0] += xcs[gi]
-    transform_data[1] += ycs[gi]
-    transform_data[2] += z0s[gi]
+    if input_data['arguments'].get('transform_data', None) is None:
+        input_data['arguments']['transform_data'] = []
+    input_data['arguments']['transform_data'].append(
+        [xcs[gi], ycs[gi], z0s[gi]])
+    input_data['arguments']['transform_data'].extend(transform_data)
     input_data['arguments']['factory'] = factory
     from complex_factory import ComplexFactory
     c = ComplexFactory.new(input_data)
@@ -225,13 +240,13 @@ def type_3(primitives, gi, factory,
 
 # Complex at (x0, yc, z0)
 def type_4(primitives, gi, factory,
-           x0s, ycs, z0s, inputs_datas, inputs_map, **kwargs):
+           x0s, ycs, z0s, inputs_datas, inputs_map, transform_data, **kwargs):
     input_data = inputs_datas[inputs_map[gi]]
-    transform_data = input_data['arguments'].setdefault('transform_data',
-                                                        [0, 0, 0])
-    transform_data[0] += x0s[gi]
-    transform_data[1] += ycs[gi]
-    transform_data[2] += z0s[gi]
+    if input_data['arguments'].get('transform_data', None) is None:
+        input_data['arguments']['transform_data'] = []
+    input_data['arguments']['transform_data'].append(
+        [x0s[gi], ycs[gi], z0s[gi]])
+    input_data['arguments']['transform_data'].extend(transform_data)
     input_data['arguments']['factory'] = factory
     from complex_factory import ComplexFactory
     c = ComplexFactory.new(input_data)
@@ -242,14 +257,15 @@ def type_4(primitives, gi, factory,
 def type_5(primitives, ci, gi, factory,
            x0s, x1s, xcs, y0s, y1s, ycs, z0s, z1s, zcs, lcs, txs, tys, tzs,
            volumes_names, volumes_map, surfaces_names, surfaces_map,
-           recs_map, trans_map, inputs_datas, inputs_map, **kwargs):
+           recs_map, trans_map, inputs_datas, inputs_map, transform_data,
+           **kwargs):
     i, j, k = ci
     input_data = inputs_datas[inputs_map[gi]]
-    transform_data = input_data['arguments'].setdefault('transform_data',
-                                                        [0, 0, 0])
-    transform_data[0] += xcs[gi]
-    transform_data[1] += ycs[gi]
-    transform_data[2] += zcs[gi]
+    if input_data['arguments'].get('transform_data', None) is None:
+        input_data['arguments']['transform_data'] = []
+    input_data['arguments']['transform_data'].append(
+        [xcs[gi], ycs[gi], zcs[gi]])
+    input_data['arguments']['transform_data'].extend(transform_data)
     input_data['arguments']['factory'] = factory
     from complex_factory import ComplexFactory
     c = ComplexFactory.new(input_data)
@@ -266,6 +282,7 @@ def type_5(primitives, ci, gi, factory,
             [x0s[gi], y0s[gi], z1s[gi], lcs[gi]],
             [x1s[gi], y0s[gi], z1s[gi], lcs[gi]],
         ],
+        transform_data=transform_data,
         transfinite_data=[txs[i], tys[j], tzs[k]],
         volume_name=volumes_names[volumes_map[gi]],
         inner_volumes=c.get_volumes(),
@@ -283,8 +300,8 @@ def type_10(primitives, ci, gi, gis, factory,
             kws, kws_map, **kwargs):
     i, j, k = ci
     cxi, cyj = len(xs) // 2, len(ys) // 2
-    cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
-    cy = sum(ys[:cyj]) + ys[cyj] / 2 + transform_data[1]
+    cx = sum(xs[:cxi]) + xs[cxi] / 2
+    cy = sum(ys[:cyj]) + ys[cyj] / 2
     rx, rnx, ry, rny = x1s[gi] - cx, cx - x0s[gi], y1s[gi] - cy, cy - y0s[gi]
     ct0 = kws[kws_map[gi]].get('ct0', 0)
     # ct1 = kws[kws_map[gi]].get('ct1', 0)
@@ -346,6 +363,7 @@ def type_10(primitives, ci, gi, gis, factory,
     primitives.append(Primitive(
         factory=factory,
         point_data=pd,
+        transform_data=transform_data,
         curve_types=cts,
         curve_data=cd,
         transfinite_data=[txs[i], tys[j], tzs[k]],
@@ -365,8 +383,8 @@ def type_6(primitives, ci, gi, gis, factory,
            kws, kws_map, **kwargs):
     i, j, k = ci
     cxi, cyj = len(xs) // 2, len(ys) // 2
-    cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
-    cy = sum(ys[:cyj]) + ys[cyj] / 2 + transform_data[1]
+    cx = sum(xs[:cxi]) + xs[cxi] / 2
+    cy = sum(ys[:cyj]) + ys[cyj] / 2
     giy0, giy1 = gis[(i, j - (i - cxi), k)], gis[(i, j + (i - cxi), k)]
     r0, r1 = abs(x0s[gi] - cx), abs(x1s[gi] - cx)
     r1y0, r1y1 = abs(y0s[giy0] - cy), abs(y1s[giy1] - cy)
@@ -455,6 +473,7 @@ def type_6(primitives, ci, gi, gis, factory,
     primitives.append(Primitive(
         factory=factory,
         point_data=pd,
+        transform_data=transform_data,
         curve_types=cts,
         curve_data=cd,
         transfinite_data=[txs[i], tys[j], tzs[k]],
@@ -474,8 +493,8 @@ def type_7(primitives, ci, gi, gis, factory,
            kws, kws_map, **kwargs):
     i, j, k = ci
     cxi, cyj = len(xs) // 2, len(ys) // 2
-    cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
-    cy = sum(ys[:cyj]) + ys[cyj] / 2 + transform_data[1]
+    cx = sum(xs[:cxi]) + xs[cxi] / 2
+    cy = sum(ys[:cyj]) + ys[cyj] / 2
     gix0, gix1 = gis[(i - (j - cyj), j, k)], gis[(i + (j - cyj), j, k)]
     r0, r1 = abs(y0s[gi] - cy), abs(y1s[gi] - cy)
     r1x0, r1x1 = abs(x0s[gix0] - cx), abs(x1s[gix1] - cx)
@@ -563,6 +582,7 @@ def type_7(primitives, ci, gi, gis, factory,
     primitives.append(Primitive(
         factory=factory,
         point_data=pd,
+        transform_data=transform_data,
         curve_types=cts,
         curve_data=cd,
         transfinite_data=[txs[i], tys[j], tzs[k]],
@@ -582,8 +602,8 @@ def type_8(primitives, ci, gi, gis, factory,
            kws, kws_map, **kwargs):
     i, j, k = ci
     cxi, cyj = len(xs) // 2, len(ys) // 2
-    cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
-    cy = sum(ys[:cyj]) + ys[cyj] / 2 + transform_data[1]
+    cx = sum(xs[:cxi]) + xs[cxi] / 2
+    cy = sum(ys[:cyj]) + ys[cyj] / 2
     giy0, giy1 = gis[(i, j - (cxi - i), k)], gis[(i, j + (cxi - i), k)]
     r0, r1 = abs(x1s[gi] - cx), abs(x0s[gi] - cx)
     r1y0, r1y1 = abs(y0s[giy0] - cy), abs(y1s[giy1] - cy)
@@ -672,6 +692,7 @@ def type_8(primitives, ci, gi, gis, factory,
     primitives.append(Primitive(
         factory=factory,
         point_data=pd,
+        transform_data=transform_data,
         curve_types=cts,
         curve_data=cd,
         transfinite_data=[txs[i], tys[j], tzs[k]],
@@ -691,8 +712,8 @@ def type_9(primitives, ci, gi, gis, factory,
            kws, kws_map, **kwargs):
     i, j, k = ci
     cxi, cyj = len(xs) // 2, len(ys) // 2
-    cx = sum(xs[:cxi]) + xs[cxi] / 2 + transform_data[0]
-    cy = sum(ys[:cyj]) + ys[cyj] / 2 + transform_data[1]
+    cx = sum(xs[:cxi]) + xs[cxi] / 2
+    cy = sum(ys[:cyj]) + ys[cyj] / 2
     gix0, gix1 = gis[(i - (cyj - j), j, k)], gis[(i + (cyj - j), j, k)]
     r0, r1 = abs(y1s[gi] - cy), abs(y0s[gi] - cy)
     r1x0, r1x1 = abs(x0s[gix0] - cx), abs(x1s[gix1] - cx)
@@ -780,6 +801,7 @@ def type_9(primitives, ci, gi, gis, factory,
     primitives.append(Primitive(
         factory=factory,
         point_data=pd,
+        transform_data=transform_data,
         curve_types=cts,
         curve_data=cd,
         transfinite_data=[txs[i], tys[j], tzs[k]],

@@ -8,7 +8,7 @@
     "factory": "geo",
     "inputs": ["input/test_regular_matrix.json"],
     "coordinates_type": "delta",
-    "transform_data": [0, 0, 0],
+    "transform_data": null,
     "volumes_names": ["External"],
     "surfaces_names": null,
     "xs": [30],

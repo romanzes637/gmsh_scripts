@@ -6,7 +6,7 @@
   },
   "arguments": {
     "factory": "geo",
-    "transform_data": [-264.5, -150, -72.5],
+    "transform_data": [[-264.5, -150, -72.5]],
     "nxi": 23,
     "nyj": 20,
     "nzk": 35,

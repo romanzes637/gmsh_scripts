@@ -19,7 +19,7 @@ class RegularBoundMatrix(Matrix):
                  x0_y0_z1=None, xi_y0_z1=None, x1_y0_z1=None,
                  x0_yj_z1=None, xi_yj_z1=None, x1_yj_z1=None,
                  x0_y1_z1=None, xi_y1_z1=None, x1_y1_z1=None):
-        transform_data = [0, 0, 0] if transform_data is None else transform_data
+        transform_data = [] if transform_data is None else transform_data
         coordinates_type = 'delta'
         # n = (nxi + 2)*(nyj + 2)*(nzk + 2)
         # print(nxi, nyj, nzk, n)

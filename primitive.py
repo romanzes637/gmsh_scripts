@@ -118,15 +118,18 @@ class Primitive:
         if transform_data is None:
             transform_data = []
         elif isinstance(transform_data, list):
-            if not isinstance(transform_data[0], list):  # [data]
-                transform_data = [[np.array(transform_data), np.ones(8)]]
-            elif not isinstance(transform_data[0][0], list):  # [[data], [mask]]
-                transform_data = [[np.array(transform_data[0]),
-                                   np.array(transform_data[1])]]
-            else:  # [ [[data], [mask]], [[data],[mask]], ... ]
-                transform_data = [[np.array(x[0], dtype=float),
-                                   np.array(x[1], dtype=int)]
-                                  for x in transform_data]
+            if isinstance(transform_data[0], list):
+                new_transform_data = []
+                for td in transform_data:
+                    if isinstance(td[0], list):
+                        new_transform_data.append([np.array(td[0], dtype=float),
+                                                   np.array(td[1], dtype=int)])
+                    else:
+                        new_transform_data.append([np.array(td, dtype=float),
+                                                   np.ones(8, dtype=int)])
+                transform_data = new_transform_data
+            else:
+                raise ValueError(f'invalid transform_data: {transform_data}')
         else:
             raise ValueError(f'invalid transform_data: {transform_data}')
         if curve_types is None:
@@ -166,7 +169,7 @@ class Primitive:
                     [half_lx, -half_ly, half_lz, lc]
                 ], dtype=float)
             else:
-                pass
+                point_data = np.array(point_data, dtype=float)
             # Points
             # t0 = time.time()
             for td in transform_data:

@@ -11,7 +11,7 @@
       "input/nkm_03_2020_hlw_core_lres.json"
     ],
     "coordinates_type": "delta",
-    "transform_data": [-345, -169, -72.5],
+    "transform_data": [[-345, -169, -72.5]],
     "volumes_names": ["Rock"],
     "surfaces_names": null,
     "xs": [345, 345],

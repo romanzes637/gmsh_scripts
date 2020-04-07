@@ -76,6 +76,8 @@ class Cylinder(Matrix):
         :return None
         """
         nr = len(radii_x)
+        if transform_data is None:
+            transform_data = []
         if ct is None:
             ct = 3
         if ct0s is None:
@@ -131,8 +133,7 @@ class Cylinder(Matrix):
             ys.append(radii_y[i] - radii_y[i - 1])
             txs.append(transfinite_r_data[i])
             tys.append(transfinite_r_data[i])
-        transform_data[0] -= radii_x[-1]
-        transform_data[1] -= radii_y[-1]
+        transform_data = [[-radii_x[-1], -radii_y[-1], 0]] + transform_data
         kws = [{"ct": ct, "ct0": 0, "ct1": 0},
                {"ct": ct, "ct0": 1, "ct1": 0},
                {"ct": ct, "ct0": 0, "ct1": 1},
