@@ -765,8 +765,8 @@ def rotation_matrix(axis, theta):
     """
     axis = np.array(axis)
     axis = axis / np.sqrt(np.dot(axis, axis))
-    a = np.cos(theta / 2.0)
-    b, c, d = -axis * np.sin(theta / 2.0)
+    a = np.cos(np.radians(theta / 2.0))
+    b, c, d = -axis * np.sin(np.radians(theta / 2.0))
     aa, bb, cc, dd = a * a, b * b, c * c, d * d
     bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
     return np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],

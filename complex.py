@@ -53,7 +53,7 @@ class Complex:
     def get_map_surface_to_primitives_surfaces_indices(self):
         s_to_is = dict()
         for i, p in enumerate(self.primitives):
-            ss = p.surfaces
+            ss = p.get_surfaces()
             for j, s in enumerate(ss):
                 s_to_is.setdefault(s, list()).append((i, j))
         return s_to_is

@@ -12,12 +12,13 @@ from support import check_file
 class Matrix(Complex):
     def __init__(self, factory, xs, ys, zs, coordinates_type='delta',
                  lcs=None, transform_data=None, txs=None, tys=None, tzs=None,
-                 type_map=None,
-                 inputs=None, inputs_map=None,
+                 types=None, type_map=None,
                  volumes_names=None, volumes_map=None,
                  surfaces_names=None, surfaces_map=None,
-                 recs_map=None, trans_map=None,
-                 kws=None, kws_map=None):
+                 transforms=None, transforms_map=None,
+                 inputs=None, inputs_map=None,
+                 kws=None, kws_map=None,
+                 recs_map=None, trans_map=None):
         """
         Primitives, Complexes and Complex descendants
         as items of 3D matrix structure
@@ -47,17 +48,20 @@ class Matrix(Complex):
         :param list of float txs: X axis transfinite_data (see Primitive)
         :param list of float tys: Y axis transfinite_data (see Primitive)
         :param list of float tzs: Z axis transfinite_data (see Primitive)
-        :param list of int type_map: matrix item type (see type_factory below)
-        :param list of str inputs: input files
-        :param list of int inputs_map: item - input file map
+        :param list of str types: matrix items types (See functions below)
+        :param list of int type_map: matrix items types map
         :param list of str volumes_names: names for items volumes
         :param list of int volumes_map: item - volume name map
         :param list of list of str surfaces_names: names for items surfaces
         :param list of int surfaces_map: item - surface names map
-        :param list of int recs_map: see Primitive
-        :param list of int trans_map: see Primitive
+        :param list of list of list of float: transform_datas for matrix items
+        :param list of int transforms_map: item - input file map
+        :param list of str inputs: input files
+        :param list of int inputs_map: item - input file map
         :param list of dict kws: keyword arguments for matrix items
         :param list of int kws_map: matrix item keyword arguments map
+        :param list of int recs_map: see Primitive
+        :param list of int trans_map: see Primitive
         """
         if factory == 'occ':
             factory_object = gmsh.model.occ
@@ -94,16 +98,15 @@ class Matrix(Complex):
             lcs = [1 for _ in range(ni)]
         elif not isinstance(lcs, list):
             lcs = [lcs for _ in range(ni)]
+        if types is None:
+            types = ['empty', 'primitive', 'type_2',  'type_3', 'type_3',
+                     'type_4', 'complex_in_primitive', 'axisymmetric_x',
+                     'axisymmetric_x', 'axisymmetric_y', 'axisymmetric_nx',
+                     'axisymmetric_ny', 'axisymmetric_core']
         if type_map is None:
             type_map = [1 for _ in range(ni)]
         elif not isinstance(type_map, list):
             type_map = [type_map for _ in range(ni)]
-        if inputs is None:
-            inputs = ['input/test_matrix_item.json']
-        elif not isinstance(inputs, list):
-            inputs = [inputs]
-        if inputs_map is None:
-            inputs_map = [0 for _ in range(ni)]
         if volumes_names is None:
             volumes_names = ['V']
         if volumes_map is None:
@@ -112,6 +115,16 @@ class Matrix(Complex):
             surfaces_names = [['NX', 'X', 'NY', 'Y', 'NZ', 'Z']]
         if surfaces_map is None:
             surfaces_map = [0 for _ in range(ni)]
+        if transforms is None:
+            transforms = [[]]
+        if transforms_map is None:
+            transforms_map = [0 for _ in range(ni)]
+        if inputs is None:
+            inputs = []
+        elif not isinstance(inputs, list):
+            inputs = [inputs]
+        if inputs_map is None:
+            inputs_map = [0 for _ in range(ni)]
         if recs_map is None:
             recs_map = [1 for _ in range(ni)]
         elif not isinstance(recs_map, list):
@@ -121,8 +134,8 @@ class Matrix(Complex):
         elif not isinstance(trans_map, list):
             trans_map = [trans_map for _ in range(ni)]
         inputs_datas = []
-        for inp in inputs:
-            result = check_file(inp)
+        for i in inputs:
+            result = check_file(i)
             with open(result['path']) as f:
                 d = json.load(f)
             inputs_datas.append(d)
@@ -134,26 +147,10 @@ class Matrix(Complex):
             kws_map = [0 for _ in range(ni)]
         elif not isinstance(kws_map, list):
             kws_map = [kws_map for _ in range(ni)]
-        # x0, y0, z0 - item start X, Y, Z
-        # x1, y1, z1 - item end X, Y, Z
-        # xc, yc, zc - item center X, Y, Z
-        gis = {}
-        x0s, x1s, xcs = [], [], []
-        y0s, y1s, ycs = [], [], []
-        z0s, z1s, zcs = [], [], []
-        # for k in range(nz):
-        #     for j in range(ny):
-        #         for i in range(nx):
-        #             gis[(i, j, k)] = i + nx * j + ny * nx * k
-        #             x0s.append(sum(xs[:i]) + transform_data[0])
-        #             x1s.append(sum(xs[:i + 1]) + transform_data[0])
-        #             xcs.append(0.5 * (x0s[-1] + x1s[-1]))
-        #             y0s.append(sum(ys[:j]) + transform_data[1])
-        #             y1s.append(sum(ys[:j + 1]) + transform_data[1])
-        #             ycs.append(0.5 * (y0s[-1] + y1s[-1]))
-        #             z0s.append(sum(zs[:k]) + transform_data[2])
-        #             z1s.append(sum(zs[:k + 1]) + transform_data[2])
-        #             zcs.append(0.5 * (z0s[-1] + z1s[-1]))
+        gis = {}  # local index (xi, yj, zk) -> global index (gi) map
+        x0s, x1s, xcs = [], [], []  # items starts X, Y, Z
+        y0s, y1s, ycs = [], [], []  # items ends X, Y, Z
+        z0s, z1s, zcs = [], [], []  # items centers X, Y, Z
         for k in range(nz):
             for j in range(ny):
                 for i in range(nx):
@@ -170,21 +167,22 @@ class Matrix(Complex):
         primitives = []
         for ci, gi in gis.items():
             # t0 = time.time()
-            type_factory[type_map[gi]](**locals())
-            # print(f'type: {type_map[gi]}, time {time.time() - t0}')
+            globals()[types[type_map[gi]]](**locals())
+            # print(f'type: {types[type_map[gi]]}, time {time.time() - t0}')
         Complex.__init__(self, factory, primitives)
 
 
 # Empty
-def type_0(**kwargs):
+def empty(**kwargs):
     pass
 
 
 # Primitive
-def type_1(primitives, ci, gi, factory,
-           x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
-           volumes_names, volumes_map, surfaces_names, surfaces_map,
-           recs_map, trans_map, transform_data, **kwargs):
+def primitive(primitives, ci, gi, factory,
+              x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
+              volumes_names, volumes_map, surfaces_names, surfaces_map,
+              transforms, transforms_map,
+              recs_map, trans_map, transform_data, **kwargs):
     i, j, k = ci
     primitives.append(Primitive(
         factory=factory,
@@ -198,7 +196,7 @@ def type_1(primitives, ci, gi, factory,
             [x0s[gi], y0s[gi], z1s[gi], lcs[gi]],
             [x1s[gi], y0s[gi], z1s[gi], lcs[gi]],
         ],
-        transform_data=transform_data,
+        transform_data=transform_data + transforms[transforms_map[gi]],
         transfinite_data=[txs[i], tys[j], tzs[k]],
         volume_name=volumes_names[volumes_map[gi]],
         surfaces_names=surfaces_names[surfaces_map[gi]],
@@ -254,11 +252,14 @@ def type_4(primitives, gi, factory,
 
 
 # Complex in Primitive at (xc, yc, zc)
-def type_5(primitives, ci, gi, factory,
-           x0s, x1s, xcs, y0s, y1s, ycs, z0s, z1s, zcs, lcs, txs, tys, tzs,
-           volumes_names, volumes_map, surfaces_names, surfaces_map,
-           recs_map, trans_map, inputs_datas, inputs_map, transform_data,
-           **kwargs):
+def complex_in_primitive(primitives, ci, gi, factory,
+                         x0s, x1s, xcs, y0s, y1s, ycs, z0s, z1s, zcs, lcs, txs,
+                         tys, tzs,
+                         volumes_names, volumes_map, surfaces_names,
+                         surfaces_map,
+                         recs_map, trans_map, inputs_datas, inputs_map,
+                         transform_data,
+                         **kwargs):
     i, j, k = ci
     input_data = inputs_datas[inputs_map[gi]]
     if input_data['arguments'].get('transform_data', None) is None:
@@ -292,12 +293,11 @@ def type_5(primitives, ci, gi, factory,
     ))
 
 
-# Cylinder C
-def type_10(primitives, ci, gi, gis, factory,
-            x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
-            volumes_names, volumes_map, surfaces_names, surfaces_map,
-            recs_map, trans_map, xs, ys, zs, transform_data,
-            kws, kws_map, **kwargs):
+def axisymmetric_core(primitives, ci, gi, gis, factory,
+                      x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
+                      volumes_names, volumes_map, surfaces_names, surfaces_map,
+                      recs_map, trans_map, xs, ys, zs, transform_data,
+                      kws, kws_map, **kwargs):
     i, j, k = ci
     cxi, cyj = len(xs) // 2, len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2
@@ -375,12 +375,11 @@ def type_10(primitives, ci, gi, gis, factory,
     ))
 
 
-# Cylinder X
-def type_6(primitives, ci, gi, gis, factory,
-           x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
-           volumes_names, volumes_map, surfaces_names, surfaces_map,
-           recs_map, trans_map, xs, ys, zs, transform_data,
-           kws, kws_map, **kwargs):
+def axisymmetric_x(primitives, ci, gi, gis, factory,
+                   x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
+                   volumes_names, volumes_map, surfaces_names, surfaces_map,
+                   recs_map, trans_map, xs, ys, zs, transform_data,
+                   kws, kws_map, **kwargs):
     i, j, k = ci
     cxi, cyj = len(xs) // 2, len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2
@@ -485,8 +484,7 @@ def type_6(primitives, ci, gi, gis, factory,
     ))
 
 
-# Cylinder Y
-def type_7(primitives, ci, gi, gis, factory,
+def axisymmetric_y(primitives, ci, gi, gis, factory,
            x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
            volumes_names, volumes_map, surfaces_names, surfaces_map,
            recs_map, trans_map, xs, ys, zs, transform_data,
@@ -594,12 +592,11 @@ def type_7(primitives, ci, gi, gis, factory,
     ))
 
 
-# Cylinder NX
-def type_8(primitives, ci, gi, gis, factory,
-           x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
-           volumes_names, volumes_map, surfaces_names, surfaces_map,
-           recs_map, trans_map, xs, ys, zs, transform_data,
-           kws, kws_map, **kwargs):
+def axisymmetric_nx(primitives, ci, gi, gis, factory,
+                   x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
+                   volumes_names, volumes_map, surfaces_names, surfaces_map,
+                   recs_map, trans_map, xs, ys, zs, transform_data,
+                   kws, kws_map, **kwargs):
     i, j, k = ci
     cxi, cyj = len(xs) // 2, len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2
@@ -704,12 +701,11 @@ def type_8(primitives, ci, gi, gis, factory,
     ))
 
 
-# Cylinder NY
-def type_9(primitives, ci, gi, gis, factory,
-           x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
-           volumes_names, volumes_map, surfaces_names, surfaces_map,
-           recs_map, trans_map, xs, ys, zs, transform_data,
-           kws, kws_map, **kwargs):
+def axisymmetric_ny(primitives, ci, gi, gis, factory,
+                    x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
+                    volumes_names, volumes_map, surfaces_names, surfaces_map,
+                    recs_map, trans_map, xs, ys, zs, transform_data,
+                    kws, kws_map, **kwargs):
     i, j, k = ci
     cxi, cyj = len(xs) // 2, len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2
@@ -811,18 +807,3 @@ def type_9(primitives, ci, gi, gis, factory,
         rec=recs_map[gi],
         trans=trans_map[gi]
     ))
-
-
-type_factory = {
-    0: type_0,  # Empty
-    1: type_1,  # Primitive
-    2: type_2,  # Complex at (xc, yc, zc)
-    3: type_3,  # Complex at (xc, yc, z0)
-    4: type_4,  # Complex at (x0, yc, z0)
-    5: type_5,  # Complex in Primitive at (xc, yc, zc)
-    6: type_6,  # Cylinder X
-    7: type_7,  # Cylinder Y
-    8: type_8,  # Cylinder NX
-    9: type_9,  # Cylinder NY
-    10: type_10  # Cylinder C
-}

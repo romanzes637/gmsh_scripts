@@ -86,8 +86,8 @@ if __name__ == '__main__':
     parser.add_argument('config', help='config file', nargs='?')
     parser.add_argument('-i', '--input_path', help='input filename')
     parser.add_argument('-o', '--output_path', help='output filename')
-    parser.add_argument('-v', '--verbose', help='verbose mode',
-                        action='store_true')
+    parser.add_argument('-v', '--verbose', type=int, metavar=1,
+                        help='verbose', default=0, nargs='?', const=1)
     parser.add_argument('-t', '--test', help='test mode', action='store_true')
     parser.add_argument('-r', '--recombine', help='recombine',
                         action='store_true')
@@ -128,7 +128,7 @@ if __name__ == '__main__':
         args['input_path'] = config_args.get('input_path', None)
         args['output_path'] = config_args.get('output_path', False)
         args['test'] = config_args.get('test', False)
-        args['verbose'] = config_args.get('verbose', False)
+        args['verbose'] = config_args.get('verbose', 0)
         args['recombine'] = config_args.get('recombine', False)
         args['boolean'] = config_args.get('boolean', False)
         args['auto_size'] = config_args.get('auto_size', False)
@@ -177,7 +177,7 @@ if __name__ == '__main__':
     print('gmsh')
     gmsh.initialize()
     print('Options')
-    if args['verbose']:
+    if args['verbose'] > 1:
         gmsh.option.setNumber("General.Terminal", 1)
     else:
         gmsh.option.setNumber("General.Terminal", 0)
@@ -195,86 +195,77 @@ if __name__ == '__main__':
     t0 = time.time()
     c = ComplexFactory.new(input_data)
     factory = c.factory
-    print(time.time() - t0)
+    print(f'{time.time() - t0:.3f}s')
     print('Synchronize')
     t0 = time.time()
     factory.synchronize()
-    print(time.time() - t0)
+    print(f'{time.time() - t0:.3f}s')
     if not args['test']:
-        print('Evaluate')
-        t0 = time.time()
-        c.evaluate_coordinates()  # for correct and transfinite
-        c.evaluate_bounding_box()  # for boolean
-        print(time.time() - t0)
+        # c.evaluate_coordinates()  # for correction (obsoleted)
         if args['boolean']:
+            print('Bounding Box')  # for boolean speedup
+            t0 = time.time()
+            c.evaluate_bounding_box()
+            print(f'{time.time() - t0:.3f}s')
             print("Boolean")
-            complex_self(factory, c)
-        # print(len(gmsh.model.getEntities(0)))
-        # print(len(gmsh.model.getEntities(1)))
-        # print(len(gmsh.model.getEntities(2)))
-        # print(len(gmsh.model.getEntities(3)))
-        # print('Remove Duplicates')
-        # t0 = time.time()
-        # factory.removeAllDuplicates()
-        # print(time.time() - t0)
-        # print('Synchronize')
-        # t0 = time.time()
-        # factory.synchronize()
-        # print(time.time() - t0)
-        # print(len(gmsh.model.getEntities(0)))
-        # print(len(gmsh.model.getEntities(1)))
-        # print(len(gmsh.model.getEntities(2)))
-        # print(len(gmsh.model.getEntities(3)))
-        # Primitive/Complex Correction
+            t0 = time.time()
+            complex_self(factory, c, verbose=args['verbose'])
+            print(f'{time.time() - t0:.3f}s')
+            t0 = time.time()
+            print('Synchronize')
+            factory.synchronize()
+            print(f'{time.time() - t0:.3f}s')
+        print('Transfinite')
         t0 = time.time()
-        ss = set()  # transfinited surfaces
-        cs = set()  # transfinited curves
+        ss, cs = set(), set()  # surfaces, curves
+        c.transfinite(ss, cs)
+        # correct_and_transfinite_complex(c, ss, cs)
+        print(f'{time.time() - t0:.3f}s')
         if args['recombine']:
-            print('Correct and Transfinite and Recombine')
-            c.transfinite(ss, cs)
+            print('Recombine')
+            t0 = time.time()
             c.recombine()
-            # correct_and_transfinite_and_recombine_complex(c, ss, cs)
-            # transfinite_and_recombine_complex(c, ss, cs)
-        else:
-            print('Correct and Transfinite')
-            c.transfinite(ss, cs)
-            # correct_and_transfinite_complex(c, ss, cs)
-            # transfinite_complex(c, ss, cs)
-        print(time.time() - t0)
-        print('Autosize')
-        t0 = time.time()
+            print(f'{time.time() - t0:.3f}s')
         if args['auto_size'] is not None:
             print('Auto Size: {}'.format(args['auto_size']))
+            t0 = time.time()
             pss = dict()
             auto_complex_points_sizes_min_curve_in_volume(c, pss,
                                                           args['auto_size'])
+            print(f'{time.time() - t0:.3f}s')
         if args['size'] is not None:
             print('Set Size: {}'.format(args['size']))
+            t0 = time.time()
             set_points_sizes(args['size'])
+            print(f'{time.time() - t0:.3f}s')
         if args['boundary_auto_size'] is not None:
             print('Boundary Auto Size: {}'.format(args['boundary_auto_size']))
+            t0 = time.time()
             auto_boundary_points_sizes_min_edge_in_surface(
                 args['boundary_auto_size'])
+            print(f'{time.time() - t0:.3f}s')
         if args['boundary_size'] is not None:
             print('Set Boundary Size: {}'.format(args['boundary_size']))
+            t0 = time.time()
             set_boundary_points_sizes(args['boundary_size'])
-        print(time.time() - t0)
-        print("Physical Volumes")
+            print(f'{time.time() - t0:.3f}s')
+        print("Volumes")
         t0 = time.time()
         ns_to_vs = c.get_map_names_to_volumes()
         for n, vs in ns_to_vs.items():
             tag = gmsh.model.addPhysicalGroup(3, vs)
             gmsh.model.setPhysicalName(3, tag, n)
-        print(time.time() - t0)
-        print("Physical Surfaces")
+        print(f'{time.time() - t0:.3f}s')
+        print("Surfaces")
         t0 = time.time()
         if args['boundary_type'] == '6':
-            print("6 surfaces")
+            # print("by 6 surfaces")
             boundary_surfaces_groups = boundary_surfaces_to_six_side_groups()
             for n, ss in boundary_surfaces_groups.items():
                 tag = gmsh.model.addPhysicalGroup(2, ss)
                 gmsh.model.setPhysicalName(2, tag, n)
         elif args['boundary_type'] == 'primitive':
+            # print("by primitives surfaces")
             map_names_to_surfaces = dict()
             s_to_is = c.get_map_surface_to_primitives_surfaces_indices()
             boundary_surfaces = get_boundary_surfaces()
@@ -282,27 +273,27 @@ if __name__ == '__main__':
                 primitives_surfaces_indices = s_to_is[s]
                 index, surface_index = primitives_surfaces_indices[0]
                 surface_name = c.primitives[index].surfaces_names[
-                    surface_index]
+                    surface_index] if surface_index < 6 else 'S'  # Boolean
                 map_names_to_surfaces.setdefault(
                     surface_name, list()).append(s)
             for n, ss in map_names_to_surfaces.items():
                 tag = gmsh.model.addPhysicalGroup(2, ss)
                 gmsh.model.setPhysicalName(2, tag, n)
         elif args['boundary_type'] == 'all':
-            print("All surfaces")
+            # print("by all surfaces")
             boundary_surfaces = get_boundary_surfaces()
             for i, s in enumerate(boundary_surfaces):
                 name = 'S{0}'.format(s)
                 tag = gmsh.model.addPhysicalGroup(2, [s])
                 gmsh.model.setPhysicalName(2, tag, name)
         else:
-            print("By support.physical_surfaces")
+            # print("by support.physical_surfaces")
             physical_surfaces(**physical_surfaces_kwargs)
-        print(time.time() - t0)
+        print(f'{time.time() - t0:.3f}s')
         print("Mesh")
         t0 = time.time()
         gmsh.model.mesh.generate(3)
-        print(time.time() - t0)
+        print(f'{time.time() - t0:.3f}s')
         print('Nodes: {0}'.format(len(gmsh.model.mesh.getNodes()[0])))
         # t0 = time.time()
         # gmsh.model.mesh.removeDuplicateNodes()
@@ -313,10 +304,10 @@ if __name__ == '__main__':
             print("Optimize Mesh")
             t0 = time.time()
             gmsh.model.mesh.optimize('Optimize', True)
-            print(time.time() - t0)
+            print(f'{time.time() - t0:.3f}s')
     print("Write: {}".format(args['output_path']))
     t0 = time.time()
     gmsh.write(args['output_path'])
-    print(time.time() - t0)
+    print(f'{time.time() - t0:.3f}s')
     gmsh.finalize()
-    print('Time spent: {}s'.format(time.time() - t00))
+    print(f'Time spent: {time.time() - t00:.3f}s')
