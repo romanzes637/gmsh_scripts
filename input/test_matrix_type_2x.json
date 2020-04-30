@@ -8,6 +8,12 @@
     "factory": "geo",
     "inputs": null,
     "coordinates_type": "delta",
+    "types": ["empty",
+      "axisymmetric_x",
+      "axisymmetric_y",
+      "axisymmetric_nx",
+      "axisymmetric_ny",
+      "axisymmetric_core"],
     "transform_data": null,
     "volumes_names": null,
     "surfaces_names": null,
@@ -19,9 +25,9 @@
     "tys": [9, 0, 1],
     "tzs": [3, 0, 1],
     "type_map": [
-      0, 9, 0,
-      8, 1, 6,
-      0, 7, 0
+      0, 4, 0,
+      3, 5, 1,
+      0, 2, 0
     ],
     "inputs_map": null,
     "volumes_map": null,
@@ -29,7 +35,7 @@
     "recs_map": null,
     "trans_map": null,
     "kws": [
-      {"ct": 3, "ct0": 0, "ct1": 0}
+      {"ct": 3, "ct0": 0, "ct1": 1}
     ],
     "kws_map": [
       0, 0, 0,
