@@ -25,7 +25,7 @@ from support import boundary_surfaces_to_six_side_groups, \
     get_boundary_surfaces, check_file, physical_surfaces, \
     auto_complex_points_sizes_min_curve_in_volume, set_boundary_points_sizes, \
     auto_boundary_points_sizes, auto_boundary_points_sizes_min_edge_in_surface, \
-    set_points_sizes
+    set_points_sizes, get_interior_surfaces
 
 
 class ComplexFactory:
@@ -113,6 +113,8 @@ if __name__ == '__main__':
                         help='gmsh mesh algorithm: 1: Delaunay, 4: Frontal,'
                              ' 5: Frontal Delaunay, 6: Frontal Hex, 7: MMG3D,'
                              ' 9: R-tree, 10: HXT')
+    parser.add_argument('-I', '--in_surf', help='make inner surfaces',
+                        action='store_true')
     print('Cmd Arguments')
     cmd_args = parser.parse_args()
     print(cmd_args)
@@ -138,6 +140,7 @@ if __name__ == '__main__':
         args['boundary_type'] = config_args.get('boundary_type', '6')
         args['optimize'] = config_args.get('optimize', True)
         args['mesh_algorithm'] = config_args.get('mesh_algorithm', 1)
+        args['in_surf'] = config_args.get('in_surf', False)
     else:
         args['input_path'] = cmd_args.input_path
         args['output_path'] = cmd_args.output_path
@@ -152,6 +155,7 @@ if __name__ == '__main__':
         args['boundary_type'] = cmd_args.boundary_type
         args['optimize'] = cmd_args.optimize
         args['mesh_algorithm'] = cmd_args.mesh_algorithm
+        args['in_surf'] = cmd_args.in_surf
     root, extension = os.path.splitext(args['input_path'])
     basename = os.path.basename(root)
     if args['output_path'] is None:
@@ -266,17 +270,19 @@ if __name__ == '__main__':
                 gmsh.model.setPhysicalName(2, tag, n)
         elif args['boundary_type'] == 'primitive':
             # print("by primitives surfaces")
-            map_names_to_surfaces = dict()
-            s_to_is = c.get_map_surface_to_primitives_surfaces_indices()
-            boundary_surfaces = get_boundary_surfaces()
-            for s in boundary_surfaces:
-                primitives_surfaces_indices = s_to_is[s]
-                index, surface_index = primitives_surfaces_indices[0]
-                surface_name = c.primitives[index].surfaces_names[
-                    surface_index] if surface_index < 6 else 'S'  # Boolean
-                map_names_to_surfaces.setdefault(
-                    surface_name, list()).append(s)
-            for n, ss in map_names_to_surfaces.items():
+            n2s = dict()  # surface name to surface global index
+            s2psi = c.get_map_surface_to_primitives_surfaces_indices()
+            bs = get_boundary_surfaces()
+            for s in bs:
+                sn = None
+                psi = s2psi[s]  # [(primitive, surf local index)]
+                if len(psi) != 0:
+                    pi, si = psi[0]  # from first primitive
+                    sn = c.primitives[pi].surfaces_names[si]
+                else:  # After boolean
+                    sn = 'S'
+                n2s.setdefault(sn, []).append(s)
+            for n, ss in n2s.items():
                 tag = gmsh.model.addPhysicalGroup(2, ss)
                 gmsh.model.setPhysicalName(2, tag, n)
         elif args['boundary_type'] == 'all':
@@ -290,6 +296,30 @@ if __name__ == '__main__':
             # print("by support.physical_surfaces")
             physical_surfaces(**physical_surfaces_kwargs)
         print(f'{time.time() - t0:.3f}s')
+        if args['in_surf']:
+            t0 = time.time()
+            print('Inner Surfaces')
+            n2s = {}  # surface name to surface global index
+            if 's2psi' not in locals():  # s2i not exists
+                s2psi = c.get_map_surface_to_primitives_surfaces_indices()
+            in_surfaces = get_interior_surfaces()
+            for s in in_surfaces:
+                sn = None
+                psi = s2psi[s]
+                if len(psi) != 0:
+                    for pi, si in psi:
+                        mask = c.primitives[pi].in_surf_mask
+                        if not mask[si]:
+                            sn = c.primitives[pi].in_surfaces_names[si]
+                            break
+                else:  # After boolean or masked
+                    sn = 'SI'
+                if sn is not None:
+                    n2s.setdefault(sn, []).append(s)
+            for n, ss in n2s.items():
+                tag = gmsh.model.addPhysicalGroup(2, ss)
+                gmsh.model.setPhysicalName(2, tag, n)
+            print(f'{time.time() - t0:.3f}s')
         print("Mesh")
         t0 = time.time()
         gmsh.model.mesh.generate(3)

@@ -5,6 +5,7 @@ from itertools import permutations
 from pprint import pprint
 import time
 import numpy as np
+from itertools import chain
 
 from occ_workarounds import correct_and_transfinite_primitive
 from support import volumes_groups_surfaces, volumes_groups_surfaces_registry
@@ -16,6 +17,7 @@ class Primitive:
                  curve_types=None, curve_data=None,
                  transfinite_data=None, transfinite_type=None,
                  volume_name=None, inner_volumes=None, surfaces_names=None,
+                 in_surfaces_names=None, in_surfaces_mask=None,
                  rec=None, trans=None):
         """
         Base object with six quadrangular surfaces and eight points
@@ -101,8 +103,24 @@ class Primitive:
         else:
             self.transfinite_data = transfinite_data
         self.volume_name = volume_name if volume_name is not None else 'V'
-        self.surfaces_names = surfaces_names if surfaces_names is not None else [
-            'NX', 'X', 'NY', 'Y', 'NZ', 'Z']
+        if surfaces_names is None:
+            self.surfaces_names = ['NX', 'X', 'NY', 'Y', 'NZ', 'Z']
+        elif isinstance(surfaces_names, str):
+            self.surfaces_names = [surfaces_names for _ in range(6)]
+        else:
+            self.surfaces_names = surfaces_names
+        if in_surfaces_names is None:
+            self.in_surfaces_names = ['NXI', 'XI', 'NYI', 'YI', 'NZI', 'ZI']
+        elif isinstance(in_surfaces_names, str):
+            self.in_surfaces_names = [in_surfaces_names for _ in range(6)]
+        else:
+            self.in_surfaces_names = in_surfaces_names
+        if in_surfaces_mask is None:
+            self.in_surf_mask = np.zeros(6)
+        elif isinstance(in_surfaces_mask, int):
+            self.in_surf_mask = [in_surfaces_mask for _ in range(6)]
+        else:
+            self.in_surf_mask = in_surfaces_mask
         self.transfinite_type = transfinite_type if transfinite_type is not None else 0
         self.rec = rec if rec is not None else 1
         self.trans = trans if trans is not None else 1
@@ -127,7 +145,7 @@ class Primitive:
                                                        np.array(td[1], dtype=int)])
                         else:
                             new_transform_data.append([np.array(td, dtype=float),
-                                                       np.ones(8, dtype=int)])
+                                                       np.zeros(8, dtype=int)])
                     transform_data = new_transform_data
                 else:
                     raise ValueError(f'invalid transform_data: {transform_data}')
@@ -175,7 +193,7 @@ class Primitive:
             # t0 = time.time()
             for td in transform_data:
                 d, m = td
-                mask = np.array([[not x for _ in range(point_data.shape[1] - 1)]
+                mask = np.array([[x for _ in range(point_data.shape[1] - 1)]
                                  for x in m], dtype=int)
                 point_data[:, :3] = transform(point_data[:, :3], d, mask)
             for d in point_data:
@@ -200,10 +218,9 @@ class Primitive:
                 for i in range(len(curve_data)):
                     if len(curve_data[i]) > 0:
                         lps = self.curves_local_points[i]
-                        mask = np.array([
-                            [not m[lps[0]] * m[lps[1]]
+                        mask = np.array([[m[lps[0]] * m[lps[1]]
                              for _ in range(curve_data[i].shape[1] - 1)]
-                            for _ in range(curve_data[i].shape[0])], dtype=int)
+                             for _ in range(curve_data[i].shape[0])], dtype=int)
                         curve_data[i][:, :3] = transform(curve_data[i][:, :3],
                                                          d, mask)
             for i in range(len(curve_data)):
@@ -522,11 +539,14 @@ class Primitive:
             gmsh.model.mesh.setSize(points_dim_tags, size)
 
     def get_surfaces(self, combined=True):
-        volumes_dim_tags = [(3, x) for x in self.volumes]
-        surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags,
-                                                   combined=combined)
-        surfaces = [x[1] for x in surfaces_dim_tags]
-        return surfaces
+        if len(self.surfaces) == 6:  # unaffected Primitive
+            return self.surfaces
+        else:  # Primitive after boolean
+            volumes_dim_tags = [(3, x) for x in self.volumes]
+            surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags,
+                                                       combined=combined)
+            surfaces = [x[1] for x in surfaces_dim_tags]
+            return surfaces
 
     curves_local_points = [
         [1, 0], [5, 4], [6, 7], [2, 3],

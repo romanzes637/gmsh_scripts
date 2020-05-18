@@ -15,6 +15,8 @@ class Matrix(Complex):
                  types=None, type_map=None,
                  volumes_names=None, volumes_map=None,
                  surfaces_names=None, surfaces_map=None,
+                 in_surfaces_names=None, in_surfaces_map=None,
+                 in_surfaces_masks=None, in_surfaces_masks_map=None,
                  transforms=None, transforms_map=None,
                  inputs=None, inputs_map=None,
                  kws=None, kws_map=None,
@@ -101,8 +103,8 @@ class Matrix(Complex):
         if types is None:
             types = ['empty', 'primitive', 'type_2',  'type_3', 'type_3',
                      'type_4', 'complex_in_primitive', 'axisymmetric_x',
-                     'axisymmetric_x', 'axisymmetric_y', 'axisymmetric_nx',
-                     'axisymmetric_ny', 'axisymmetric_core']
+                     'axisymmetric_y', 'axisymmetric_nx', 'axisymmetric_ny',
+                     'axisymmetric_core']
         if type_map is None:
             type_map = [1 for _ in range(ni)]
         elif not isinstance(type_map, list):
@@ -113,6 +115,24 @@ class Matrix(Complex):
             volumes_map = [0 for _ in range(ni)]
         if surfaces_names is None:
             surfaces_names = [['NX', 'X', 'NY', 'Y', 'NZ', 'Z']]
+        elif isinstance(surfaces_names, str):
+            surfaces_names = [[surfaces_names for _ in range(6)]]
+        if in_surfaces_names is None:
+            in_surfaces_names = [['NXI', 'XI', 'NYI', 'YI', 'NZI', 'ZI']]
+        elif isinstance(in_surfaces_names, str):
+            in_surfaces_names = [[in_surfaces_names for _ in range(6)]]
+        if in_surfaces_masks is None:
+            in_surfaces_masks = [[0, 0, 0, 0, 0, 0]]
+        elif isinstance(in_surfaces_masks, str):
+            in_surfaces_masks = [[in_surfaces_masks for _ in range(6)]]
+        if in_surfaces_map is None:
+            in_surfaces_map = [0 for _ in range(ni)]
+        elif isinstance(in_surfaces_map, int):
+            in_surfaces_map = [in_surfaces_map for _ in range(ni)]
+        if in_surfaces_masks_map is None:
+            in_surfaces_masks_map = [0 for _ in range(ni)]
+        elif isinstance(in_surfaces_masks_map, int):
+            in_surfaces_masks_map = [in_surfaces_masks_map for _ in range(ni)]
         if surfaces_map is None:
             surfaces_map = [0 for _ in range(ni)]
         if transforms is None:
@@ -165,10 +185,15 @@ class Matrix(Complex):
                     z1s.append(sum(zs[:k + 1]))
                     zcs.append(0.5 * (z0s[-1] + z1s[-1]))
         primitives = []
+        print(surfaces_names)
+        print(in_surfaces_names)
+        print(in_surfaces_map)
+        # print(in_surfaces_masks)
+        # print(in_surfaces_masks_map)
         for ci, gi in gis.items():
-            # t0 = time.time()
+            t0 = time.time()
             globals()[types[type_map[gi]]](**locals())
-            # print(f'type: {types[type_map[gi]]}, time {time.time() - t0}')
+            print(f'type: {types[type_map[gi]]}, time {time.time() - t0}')
         Complex.__init__(self, factory, primitives)
 
 
@@ -182,6 +207,8 @@ def primitive(primitives, ci, gi, factory,
               x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
               volumes_names, volumes_map, surfaces_names, surfaces_map,
               transforms, transforms_map,
+              in_surfaces_names, in_surfaces_map,
+              in_surfaces_masks, in_surfaces_masks_map,
               recs_map, trans_map, transform_data, **kwargs):
     i, j, k = ci
     primitives.append(Primitive(
@@ -200,6 +227,8 @@ def primitive(primitives, ci, gi, factory,
         transfinite_data=[txs[i], tys[j], tzs[k]],
         volume_name=volumes_names[volumes_map[gi]],
         surfaces_names=surfaces_names[surfaces_map[gi]],
+        in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
+        in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
         rec=recs_map[gi],
         trans=trans_map[gi]
     ))
@@ -257,6 +286,8 @@ def complex_in_primitive(primitives, ci, gi, factory,
                          tys, tzs,
                          volumes_names, volumes_map, surfaces_names,
                          surfaces_map,
+                         in_surfaces_names, in_surfaces_map,
+                         in_surfaces_masks, in_surfaces_masks_map,
                          recs_map, trans_map, inputs_datas, inputs_map,
                          transform_data,
                          **kwargs):
@@ -288,6 +319,8 @@ def complex_in_primitive(primitives, ci, gi, factory,
         volume_name=volumes_names[volumes_map[gi]],
         inner_volumes=c.get_volumes(),
         surfaces_names=surfaces_names[surfaces_map[gi]],
+        in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
+        in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
         rec=recs_map[gi],
         trans=trans_map[gi]
     ))
@@ -297,6 +330,8 @@ def axisymmetric_core(primitives, ci, gi, gis, factory,
                       x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
                       volumes_names, volumes_map, surfaces_names, surfaces_map,
                       recs_map, trans_map, xs, ys, zs, transform_data,
+                      in_surfaces_names, in_surfaces_map,
+                      in_surfaces_masks, in_surfaces_masks_map,
                       kws, kws_map, **kwargs):
     i, j, k = ci
     cxi, cyj = len(xs) // 2, len(ys) // 2
@@ -370,6 +405,8 @@ def axisymmetric_core(primitives, ci, gi, gis, factory,
         transfinite_type=0,
         volume_name=volumes_names[volumes_map[gi]],
         surfaces_names=surfaces_names[surfaces_map[gi]],
+        in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
+        in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
         rec=recs_map[gi],
         trans=trans_map[gi]
     ))
@@ -378,6 +415,8 @@ def axisymmetric_core(primitives, ci, gi, gis, factory,
 def axisymmetric_x(primitives, ci, gi, gis, factory,
                    x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
                    volumes_names, volumes_map, surfaces_names, surfaces_map,
+                   in_surfaces_names, in_surfaces_map,
+                   in_surfaces_masks, in_surfaces_masks_map,
                    recs_map, trans_map, xs, ys, zs, transform_data,
                    kws, kws_map, **kwargs):
     i, j, k = ci
@@ -479,6 +518,8 @@ def axisymmetric_x(primitives, ci, gi, gis, factory,
         transfinite_type=0,
         volume_name=volumes_names[volumes_map[gi]],
         surfaces_names=surfaces_names[surfaces_map[gi]],
+        in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
+        in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
         rec=recs_map[gi],
         trans=trans_map[gi]
     ))
@@ -487,6 +528,8 @@ def axisymmetric_x(primitives, ci, gi, gis, factory,
 def axisymmetric_y(primitives, ci, gi, gis, factory,
            x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
            volumes_names, volumes_map, surfaces_names, surfaces_map,
+           in_surfaces_names, in_surfaces_map,
+           in_surfaces_masks, in_surfaces_masks_map,
            recs_map, trans_map, xs, ys, zs, transform_data,
            kws, kws_map, **kwargs):
     i, j, k = ci
@@ -587,6 +630,8 @@ def axisymmetric_y(primitives, ci, gi, gis, factory,
         transfinite_type=0,
         volume_name=volumes_names[volumes_map[gi]],
         surfaces_names=surfaces_names[surfaces_map[gi]],
+        in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
+        in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
         rec=recs_map[gi],
         trans=trans_map[gi]
     ))
@@ -595,6 +640,8 @@ def axisymmetric_y(primitives, ci, gi, gis, factory,
 def axisymmetric_nx(primitives, ci, gi, gis, factory,
                    x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
                    volumes_names, volumes_map, surfaces_names, surfaces_map,
+                   in_surfaces_names, in_surfaces_map,
+                   in_surfaces_masks, in_surfaces_masks_map,
                    recs_map, trans_map, xs, ys, zs, transform_data,
                    kws, kws_map, **kwargs):
     i, j, k = ci
@@ -696,6 +743,8 @@ def axisymmetric_nx(primitives, ci, gi, gis, factory,
         transfinite_type=1,
         volume_name=volumes_names[volumes_map[gi]],
         surfaces_names=surfaces_names[surfaces_map[gi]],
+        in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
+        in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
         rec=recs_map[gi],
         trans=trans_map[gi]
     ))
@@ -704,6 +753,8 @@ def axisymmetric_nx(primitives, ci, gi, gis, factory,
 def axisymmetric_ny(primitives, ci, gi, gis, factory,
                     x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
                     volumes_names, volumes_map, surfaces_names, surfaces_map,
+                    in_surfaces_names, in_surfaces_map,
+                    in_surfaces_masks, in_surfaces_masks_map,
                     recs_map, trans_map, xs, ys, zs, transform_data,
                     kws, kws_map, **kwargs):
     i, j, k = ci
@@ -804,6 +855,8 @@ def axisymmetric_ny(primitives, ci, gi, gis, factory,
         transfinite_type=3,
         volume_name=volumes_names[volumes_map[gi]],
         surfaces_names=surfaces_names[surfaces_map[gi]],
+        in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
+        in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
         rec=recs_map[gi],
         trans=trans_map[gi]
     ))

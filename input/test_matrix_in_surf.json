@@ -17,6 +17,7 @@
     "transform_data": null,
     "volumes_names": null,
     "surfaces_names": null,
+    "in_surfaces_names": ["SI", "SI2"],
     "xs": [3, 4, 5],
     "ys": [6, 2, 8],
     "zs": [4],
@@ -28,6 +29,16 @@
       0, 4, 0,
       3, 5, 1,
       0, 2, 0
+    ],
+    "in_surfaces_map": [
+      0, 1, 0,
+      0, 0, 0,
+      0, 0, 0
+    ],
+    "in_surfaces_mask": [
+      0, 0, 0,
+      1, 1, 1,
+      0, 0, 0
     ],
     "inputs_map": null,
     "volumes_map": null,

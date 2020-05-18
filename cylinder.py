@@ -3,21 +3,31 @@ from matrix import Matrix
 
 class Cylinder(Matrix):
     surfaces_names_map = {
-        ('C', 4): [0, 0, 0, 0, 2, 3],
-        ('NX', 4): [1, 0, 0, 0, 2, 3],
-        ('X', 4): [0, 1, 0, 0, 2, 3],
-        ('NY', 4): [0, 0, 1, 0, 2, 3],
-        ('Y', 4): [0, 0, 0, 1, 2, 3],
-        ('C', 6): [0, 1, 2, 3, 4, 5],
-        ('NX', 6): [0, 1, 2, 3, 4, 5],
-        ('X', 6): [0, 1, 2, 3, 4, 5],
-        ('NY', 6): [0, 1, 2, 3, 4, 5],
-        ('Y', 6): [0, 1, 2, 3, 4, 5],
-        ('C', 10): [0, 0, 0, 0, 8, 9],
-        ('NX', 10): [4, 0, 0, 0, 8, 9],
-        ('X', 10): [1, 5, 0, 0, 8, 9],
-        ('NY', 10): [0, 0, 6, 2, 8, 9],
-        ('Y', 10): [0, 0, 3, 7, 8, 9],
+        ('C', 4): [0, 0, 0, 0, 2, 3],  # Int, Ext, Bottom, Top
+        ('NX', 4): [1, 0, 0, 0, 2, 3],  # Int, Ext, Bottom, Top
+        ('X', 4): [0, 1, 0, 0, 2, 3],  # Int, Ext, Bottom, Top
+        ('NY', 4): [0, 0, 1, 0, 2, 3],  # Int, Ext, Bottom, Top
+        ('Y', 4): [0, 0, 0, 1, 2, 3],  # Int, Ext, Bottom, Top
+        ('C', 5): [4, 4, 4, 4, 2, 3],  # Int, Ext, Bottom, Top, In
+        ('NX', 5): [1, 0, 4, 4, 2, 3],  # Int, Ext, Bottom, Top, In
+        ('X', 5): [0, 1, 4, 4, 2, 3],  # Int, Ext, Bottom, Top, In
+        ('NY', 5): [4, 4, 1, 0, 2, 3],  # Int, Ext, Bottom, Top, In
+        ('Y', 5): [4, 4, 0, 1, 2, 3],  # Int, Ext, Bottom, Top, In
+        ('C', 6): [0, 1, 2, 3, 4, 5],  # NX X NY Y NZ Z
+        ('NX', 6): [0, 1, 2, 3, 4, 5],  # NX X NY Y NZ Z
+        ('X', 6): [0, 1, 2, 3, 4, 5],  # NX X NY Y NZ Z
+        ('NY', 6): [0, 1, 2, 3, 4, 5],  # NX X NY Y NZ Z
+        ('Y', 6): [0, 1, 2, 3, 4, 5],  # NX X NY Y NZ Z
+        ('C', 10): [0, 0, 0, 0, 8, 9],  # INX IX INY IY ENX EX ENY EY B T
+        ('NX', 10): [4, 0, 0, 0, 8, 9],  # INX IX INY IY ENX EX ENY EY B T
+        ('X', 10): [1, 5, 0, 0, 8, 9],  # INX IX INY IY ENX EX ENY EY B T
+        ('NY', 10): [0, 0, 6, 2, 8, 9],  # INX IX INY IY ENX EX ENY EY B T
+        ('Y', 10): [0, 0, 3, 7, 8, 9],  # INX IX INY IY ENX EX ENY EY B T
+        ('C', 18): [0, 0, 0, 0, 8, 9],  # INX IX INY IY ENX EX ENY EY BC TC BNX TNX BX TX BNY TNY BY TY
+        ('NX', 18): [4, 0, 0, 0, 10, 11],  # INX IX INY IY ENX EX ENY EY BC TC BNX TNX BX TX BNY TNY BY TY
+        ('X', 18): [1, 5, 0, 0, 12, 13],  # INX IX INY IY ENX EX ENY EY BC TC BNX TNX BX TX BNY TNY BY TY
+        ('NY', 18): [0, 0, 6, 2, 14, 15],  # INX IX INY IY ENX EX ENY EY BC TC BNX TNX BX TX BNY TNY BY TY
+        ('Y', 18): [0, 0, 3, 7, 16, 17],  # INX IX INY IY ENX EX ENY EY BC TC BNX TNX BX TX BNY TNY BY TY
     }
 
     def __init__(self, factory, radii_x, radii_y, heights,
@@ -25,6 +35,8 @@ class Cylinder(Matrix):
                  transfinite_r_data, transfinite_h_data, transfinite_phi_data,
                  volumes_names=None, layers_volumes_names=None,
                  surfaces_names=None, layers_surfaces_names=None,
+                 in_surfaces_names=None, layers_in_surfaces_names=None,
+                 in_surfaces_masks=None, layers_in_surfaces_masks=None,
                  layers_recs=None, layers_trans=None, layers_exists=None,
                  k=None, kxs=None, kys=None,
                  ct=None, ct0s=None, ct1s=None):
@@ -100,6 +112,12 @@ class Cylinder(Matrix):
             layers_exists = [[1 for _ in range(nr)] for _ in heights]
         elif not isinstance(layers_exists, list):
             layers_exists = [[layers_exists for _ in range(nr)] for _ in heights]
+        if in_surfaces_masks is None:
+            in_surfaces_masks = [[0, 0, 0, 0, 0, 0]]
+        if layers_in_surfaces_masks is None:
+            layers_in_surfaces_masks = [[0 for _ in range(nr)] for _ in heights]
+        elif not isinstance(layers_in_surfaces_masks, list):
+            layers_in_surfaces_masks = [[layers_in_surfaces_masks for _ in range(nr)] for _ in heights]
         if k is None:
             k = 0.5
         if volumes_names is None:
@@ -110,6 +128,10 @@ class Cylinder(Matrix):
             surfaces_names = [['NX', 'X', 'NY', 'Y', 'NZ', 'Z']]
         if layers_surfaces_names is None:
             layers_surfaces_names = [[0 for _ in range(nr)] for _ in heights]
+        if in_surfaces_names is None:
+            in_surfaces_names = [['NXI', 'XI', 'NYI', 'YI', 'NZI', 'ZI']]
+        if layers_in_surfaces_names is None:
+            layers_in_surfaces_names = [[0 for _ in range(nr)] for _ in heights]
         xs, ys, zs, txs, tys, tzs = [], [], heights, [], [], transfinite_h_data
         for i in range(nr - 1, 0, -1):
             xs.append(radii_x[i] - radii_x[i - 1])
@@ -142,35 +164,72 @@ class Cylinder(Matrix):
         type_map, lcs, recs_map, trans_map, kws_map = [], [], [], [], []
         volumes_map, surfaces_map = [], []
         new_surfaces_names = {}
+        in_surfaces_map, in_surfaces_masks_map = [], []
+        new_in_surfaces_names = {}
+        new_in_surfaces_mask = {}
         ci, cj, ck = len(xs) // 2, len(ys) // 2, len(zs) // 2
+        types = ['empty', 'axisymmetric_nx', 'axisymmetric_x',
+                 'axisymmetric_ny', 'axisymmetric_y', 'axisymmetric_core']
         for k in range(len(zs)):
             for j in range(len(ys)):
                 for i in range(len(xs)):
                     if i == ci and j == cj:  # C
-                        type_map.append(10 if layers_exists[k][0] else 0)
+                        type_map.append(5 if layers_exists[k][0] else 0)
                         lcs.append(layers_lcs[k][0])
                         recs_map.append(layers_recs[k][0])
                         trans_map.append(layers_trans[k][0])
                         volumes_map.append(layers_volumes_names[k][0])
                         kws_map.append(ct_map[(ct0s[0], ct1s[0])])
+                        # surfaces
                         sns = surfaces_names[layers_surfaces_names[k][0]]
                         new_sns = [sns[x] for x in self.surfaces_names_map[
                             ('C', len(sns))]]
                         surfaces_map.append(new_surfaces_names.setdefault(
                             tuple(new_sns), len(new_surfaces_names)))
+                        # in surfaces
+                        in_sns = in_surfaces_names[layers_in_surfaces_names[k][0]]
+                        new_in_sns = [in_sns[x] for x in self.surfaces_names_map[
+                            ('C', len(in_sns))]]
+                        in_surfaces_map.append(new_in_surfaces_names.setdefault(
+                            tuple(new_in_sns), len(new_in_surfaces_names)))
+                        # in surfaces masks
+                        mask = in_surfaces_masks[layers_in_surfaces_masks[k][0]]
+                        new_mask = [mask[x] for x in self.surfaces_names_map[
+                            ('C', len(mask))]]
+                        in_surfaces_masks_map.append(new_in_surfaces_mask.setdefault(
+                            tuple(new_mask), len(new_in_surfaces_mask)))
                     elif i == ci:
                         li = abs(j - cj) - 1  # layer index
                         sns = surfaces_names[layers_surfaces_names[k][li]]
+                        in_sns = in_surfaces_names[layers_in_surfaces_names[k][li]]
+                        mask = in_surfaces_masks[layers_in_surfaces_masks[k][li]]
                         if j > cj:  # Y
-                            type_map.append(7 if layers_exists[k][li] else 0)
+                            type_map.append(4 if layers_exists[k][li] else 0)
                             new_sns = [sns[x] for x in self.surfaces_names_map[
                                 ('Y', len(sns))]]
+                            new_in_sns = [in_sns[x] for x in
+                                          self.surfaces_names_map[
+                                              ('Y', len(in_sns))]]
+                            new_mask = [mask[x] for x in
+                                        self.surfaces_names_map[
+                                            ('Y', len(mask))]]
                         else:  # NY
-                            type_map.append(9 if layers_exists[k][li] else 0)
+                            type_map.append(3 if layers_exists[k][li] else 0)
                             new_sns = [sns[x] for x in self.surfaces_names_map[
                                 ('NY', len(sns))]]
+                            new_in_sns = [in_sns[x] for x in
+                                          self.surfaces_names_map[
+                                              ('NY', len(in_sns))]]
+                            new_mask = [mask[x] for x in
+                                        self.surfaces_names_map[
+                                            ('NY', len(mask))]]
                         surfaces_map.append(new_surfaces_names.setdefault(
                             tuple(new_sns), len(new_surfaces_names)))
+                        in_surfaces_map.append(new_in_surfaces_names.setdefault(
+                            tuple(new_in_sns), len(new_in_surfaces_names)))
+                        in_surfaces_masks_map.append(
+                            new_in_surfaces_mask.setdefault(
+                                tuple(new_mask), len(new_in_surfaces_mask)))
                         lcs.append(layers_lcs[k][li])
                         recs_map.append(layers_recs[k][li])
                         trans_map.append(layers_trans[k][li])
@@ -179,16 +238,35 @@ class Cylinder(Matrix):
                     elif j == cj:
                         li = abs(i - ci) - 1  # layer index
                         sns = surfaces_names[layers_surfaces_names[k][li]]
+                        in_sns = in_surfaces_names[layers_in_surfaces_names[k][li]]
+                        mask = in_surfaces_masks[layers_in_surfaces_masks[k][li]]
                         if i > ci:  # X
-                            type_map.append(6 if layers_exists[k][li] else 0)
+                            type_map.append(2 if layers_exists[k][li] else 0)
                             new_sns = [sns[x] for x in self.surfaces_names_map[
                                 ('X', len(sns))]]
+                            new_in_sns = [in_sns[x] for x in
+                                          self.surfaces_names_map[
+                                              ('X', len(in_sns))]]
+                            new_mask = [mask[x] for x in
+                                        self.surfaces_names_map[
+                                            ('X', len(mask))]]
                         else:  # NX
-                            type_map.append(8 if layers_exists[k][li] else 0)
+                            type_map.append(1 if layers_exists[k][li] else 0)
                             new_sns = [sns[x] for x in self.surfaces_names_map[
                                 ('NX', len(sns))]]
+                            new_in_sns = [in_sns[x] for x in
+                                          self.surfaces_names_map[
+                                              ('NX', len(in_sns))]]
+                            new_mask = [mask[x] for x in
+                                        self.surfaces_names_map[
+                                            ('NX', len(mask))]]
                         surfaces_map.append(new_surfaces_names.setdefault(
                             tuple(new_sns), len(new_surfaces_names)))
+                        in_surfaces_map.append(new_in_surfaces_names.setdefault(
+                            tuple(new_in_sns), len(new_in_surfaces_names)))
+                        in_surfaces_masks_map.append(
+                            new_in_surfaces_mask.setdefault(
+                                tuple(new_mask), len(new_in_surfaces_mask)))
                         lcs.append(layers_lcs[k][li])
                         recs_map.append(layers_recs[k][li])
                         trans_map.append(layers_trans[k][li])
@@ -201,16 +279,25 @@ class Cylinder(Matrix):
                         trans_map.append(0)
                         volumes_map.append(0)
                         surfaces_map.append(0)
+                        in_surfaces_map.append(0)
+                        in_surfaces_masks_map.append(0)
                         kws_map.append(0)
         new_surfaces_names = [list(x) for x in new_surfaces_names]
+        new_in_surfaces_names = [list(x) for x in new_in_surfaces_names]
+        new_in_surfaces_mask = [list(x) for x in new_in_surfaces_mask]
         Matrix.__init__(self, factory, xs=xs, ys=ys, zs=zs,
                         coordinates_type='delta', lcs=lcs,
                         transform_data=transform_data,
                         txs=txs, tys=tys, tzs=tzs,
                         type_map=type_map,
+                        types=types,
                         volumes_names=volumes_names,
                         volumes_map=volumes_map,
                         surfaces_names=new_surfaces_names,
                         surfaces_map=surfaces_map,
+                        in_surfaces_names=new_in_surfaces_names,
+                        in_surfaces_map=in_surfaces_map,
+                        in_surfaces_masks=new_in_surfaces_mask,
+                        in_surfaces_masks_map=in_surfaces_masks_map,
                         recs_map=recs_map, trans_map=trans_map,
                         kws=kws, kws_map=kws_map)

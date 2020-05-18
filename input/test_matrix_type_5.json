@@ -18,7 +18,7 @@
     "txs": [[3, 0, 1.25]],
     "tys": [[4, 0, 0.8]],
     "tzs": [[5, 0, 1]],
-    "type_map": [5],
+    "type_map": [6],
     "inputs_map": [0],
     "volumes_map": [0],
     "surfaces_map": null,

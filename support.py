@@ -578,6 +578,13 @@ def get_boundary_surfaces():
     return surfaces
 
 
+def get_interior_surfaces():
+    ss = set(x[1] for x in gmsh.model.getEntities(2))
+    bss = set(x[1] for x in gmsh.model.getBoundary(gmsh.model.getEntities(3)))
+    iss = ss - bss
+    return iss
+
+
 def boundary_surfaces_to_six_side_groups():
     """
     Try group boundary surfaces them into 6 groups by sides of cuboid:
