@@ -23,11 +23,11 @@ class Cylinder(Matrix):
         ('X', 10): [1, 5, 0, 0, 8, 9],  # INX IX INY IY ENX EX ENY EY B T
         ('NY', 10): [0, 0, 6, 2, 8, 9],  # INX IX INY IY ENX EX ENY EY B T
         ('Y', 10): [0, 0, 3, 7, 8, 9],  # INX IX INY IY ENX EX ENY EY B T
-        ('C', 18): [0, 0, 0, 0, 8, 9],  # INX IX INY IY ENX EX ENY EY BC TC BNX TNX BX TX BNY TNY BY TY
-        ('NX', 18): [4, 0, 0, 0, 10, 11],  # INX IX INY IY ENX EX ENY EY BC TC BNX TNX BX TX BNY TNY BY TY
-        ('X', 18): [1, 5, 0, 0, 12, 13],  # INX IX INY IY ENX EX ENY EY BC TC BNX TNX BX TX BNY TNY BY TY
-        ('NY', 18): [0, 0, 6, 2, 14, 15],  # INX IX INY IY ENX EX ENY EY BC TC BNX TNX BX TX BNY TNY BY TY
-        ('Y', 18): [0, 0, 3, 7, 16, 17],  # INX IX INY IY ENX EX ENY EY BC TC BNX TNX BX TX BNY TNY BY TY
+        ('C', 19): [18, 18, 18, 18, 8, 9],  # INX IX INY IY ENX EX ENY EY BC TC BNX TNX BX TX BNY TNY BY TY, I
+        ('NX', 19): [4, 0, 18, 18, 10, 11],  # INX IX INY IY ENX EX ENY EY BC TC BNX TNX BX TX BNY TNY BY TY, I
+        ('X', 19): [1, 5, 18, 18, 12, 13],  # INX IX INY IY ENX EX ENY EY BC TC BNX TNX BX TX BNY TNY BY TY, I
+        ('NY', 19): [18, 18, 6, 2, 14, 15],  # INX IX INY IY ENX EX ENY EY BC TC BNX TNX BX TX BNY TNY BY TY, I
+        ('Y', 19): [18, 18, 3, 7, 16, 17],  # INX IX INY IY ENX EX ENY EY BC TC BNX TNX BX TX BNY TNY BY TY, I
     }
 
     def __init__(self, factory, radii_x, radii_y, heights,
