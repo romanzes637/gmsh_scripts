@@ -9,26 +9,23 @@ from pprint import pprint
 import gmsh
 
 from complex_factory import ComplexFactory
-from environment import Environment
+from old.environment import Environment
 from boolean import complex_by_volumes, complex_by_complex, \
-    primitive_by_complex, primitive_by_volumes, \
-    primitive_by_primitive, sort_object_only_shared_tool_no_shared, \
+    primitive_by_complex, primitive_by_primitive, sort_object_only_shared_tool_no_shared, \
     sort_object_only_shared_no_tool
-from io import read_complex_type_1, read_complex_type_2, \
+from io import read_complex_type_2, \
     read_complex_type_2_to_complex_primitives, write_json, \
     read_json
 from complex_primitive import ComplexPrimitive
-from occ_workarounds import correct_and_transfinite_primitive, \
+from old.occ_workarounds import correct_and_transfinite_primitive, \
     correct_and_transfinite_complex, \
     correct_and_transfinite_and_recombine_complex
 from primitive import Primitive
 from cylinder import Cylinder
 from divided_cylinder import DividedCylinder
-from support import auto_primitive_points_sizes_min_curve, \
-    auto_complex_points_sizes_min_curve, \
-    auto_complex_points_sizes_min_curve_in_volume, \
+from support import auto_complex_points_sizes_min_curve_in_volume, \
     auto_primitive_points_sizes_min_curve_in_volume, \
-    volumes_surfaces_to_volumes_groups_surfaces, auto_volumes_groups_surfaces, \
+    auto_volumes_groups_surfaces, \
     auto_points_sizes, \
     structure_cuboid, is_cuboid, get_volumes_geometry, check_geometry, \
     boundary_surfaces_to_six_side_groups, check_file

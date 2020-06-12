@@ -8,13 +8,13 @@ import sys
 import os
 
 import gmsh
-import occ_workarounds as occ_ws
+from old import occ_workarounds as occ_ws
 from complex_factory import ComplexFactory
 from io import read_complex_type_2_to_complex_primitives
-from environment import Environment
+from old.environment import Environment
 from boolean import complex_by_volumes, complex_by_complex, complex_self, \
     sort_object_only_shared_no_tool, sort_object_only_shared_tool_no_shared
-from support import auto_complex_points_sizes_min_curve_in_volume, auto_volumes_groups_surfaces, auto_points_sizes, \
+from support import auto_complex_points_sizes_min_curve_in_volume, auto_volumes_groups_surfaces, \
     boundary_surfaces_to_six_side_groups, check_file
 
 

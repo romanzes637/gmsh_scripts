@@ -10,7 +10,6 @@ import gmsh
 
 import complex
 import complex_primitive
-import complex_union
 import cylinder
 import experiment
 import matrix
@@ -18,13 +17,11 @@ import regular_matrix
 import regular_bound_matrix
 import polygon
 import tunnel
-import nkm_eleron_2
-import nkm_eleron_trench
 from boolean import complex_self
 from support import boundary_surfaces_to_six_side_groups, \
     get_boundary_surfaces, check_file, physical_surfaces, \
     auto_complex_points_sizes_min_curve_in_volume, set_boundary_points_sizes, \
-    auto_boundary_points_sizes, auto_boundary_points_sizes_min_edge_in_surface, \
+    auto_boundary_points_sizes_min_edge_in_surface, \
     set_points_sizes, get_interior_surfaces
 
 
@@ -40,8 +37,6 @@ class ComplexFactory:
             regular_bound_matrix, regular_bound_matrix.RegularBoundMatrix.__name__),
         complex_primitive.ComplexPrimitive.__name__: getattr(
             complex_primitive, complex_primitive.ComplexPrimitive.__name__),
-        complex_union.ComplexUnion.__name__: getattr(
-            complex_union, complex_union.ComplexUnion.__name__),
         cylinder.Cylinder.__name__: getattr(
             cylinder, cylinder.Cylinder.__name__),
         polygon.Polygon.__name__: getattr(
@@ -50,10 +45,6 @@ class ComplexFactory:
             tunnel, tunnel.Tunnel.__name__),
         experiment.Experiment.__name__: getattr(
             experiment, experiment.Experiment.__name__),
-        nkm_eleron_2.NkmEleron2.__name__: getattr(
-            nkm_eleron_2, nkm_eleron_2.NkmEleron2.__name__),
-        nkm_eleron_trench.NkmEleronTrench.__name__: getattr(
-            nkm_eleron_trench, nkm_eleron_trench.NkmEleronTrench.__name__)
     }
 
     def __init__(self):
@@ -88,7 +79,7 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output_path', help='output filename')
     parser.add_argument('-v', '--verbose', type=int, metavar=1,
                         help='verbose', default=0, nargs='?', const=1)
-    parser.add_argument('-t', '--test', help='test mode', action='store_true')
+    parser.add_argument('-T', '--test', help='test mode', action='store_true')
     parser.add_argument('-r', '--recombine', help='recombine',
                         action='store_true')
     parser.add_argument('-b', '--boolean', help='boolean', action='store_true')
@@ -110,11 +101,19 @@ if __name__ == '__main__':
                         help='optimize mesh after generation',
                         action='store_true')
     parser.add_argument('-m', '--mesh_algorithm', type=int, default=1,
-                        help='gmsh mesh algorithm: 1: Delaunay, 4: Frontal,'
-                             ' 5: Frontal Delaunay, 6: Frontal Hex, 7: MMG3D,'
-                             ' 9: R-tree, 10: HXT')
-    parser.add_argument('-I', '--in_surf', help='make inner surfaces',
+                        help='gmsh 3D mesh algorithm: 1: Delaunay, 4: Frontal, '
+                             '7: MMG3D, 9: R-tree, 10: HXT')
+    parser.add_argument('-M', '--mesh_algorithm_2d', type=int, default=6,
+                        help='gmsh 2D mesh algorithm: 1: MeshAdapt,'
+                             '2: Automatic, 5: Delaunay, 6: Frontal-Delaunay,'
+                             '7: BAMG, 8: Frontal-Delaunay for Quads,'
+                             '9: Packing of Parallelograms')
+    parser.add_argument('-I', '--in_surfaces', help='make inner surfaces',
                         action='store_true')
+    parser.add_argument('-t', '--transfinite', help='transfinite surfaces',
+                        action='store_true')
+    parser.add_argument('-f', '--factory', help='gmsh factory',
+                        default=None, choices=['geo', 'occ'])
     print('Cmd Arguments')
     cmd_args = parser.parse_args()
     print(cmd_args)
@@ -130,17 +129,20 @@ if __name__ == '__main__':
         args['input_path'] = config_args.get('input_path', None)
         args['output_path'] = config_args.get('output_path', False)
         args['test'] = config_args.get('test', False)
-        args['verbose'] = config_args.get('verbose', 0)
+        args['verbose'] = config_args.get('verbose', False)
         args['recombine'] = config_args.get('recombine', False)
         args['boolean'] = config_args.get('boolean', False)
         args['auto_size'] = config_args.get('auto_size', False)
         args['size'] = config_args.get('size', None)
         args['boundary_size'] = config_args.get('boundary_size', None)
         args['boundary_auto_size'] = config_args.get('boundary_auto_size', None)
-        args['boundary_type'] = config_args.get('boundary_type', '6')
+        args['boundary_type'] = config_args.get('boundary_type', 'primitive')
         args['optimize'] = config_args.get('optimize', True)
         args['mesh_algorithm'] = config_args.get('mesh_algorithm', 1)
-        args['in_surf'] = config_args.get('in_surf', False)
+        args['mesh_algorithm_2d'] = config_args.get('mesh_algorithm_2d', 6)
+        args['in_surfaces'] = config_args.get('in_surfaces', False)
+        args['factory'] = config_args.get('factory', None)
+        args['transfinite'] = config_args.get('transfinite', True)
     else:
         args['input_path'] = cmd_args.input_path
         args['output_path'] = cmd_args.output_path
@@ -155,7 +157,10 @@ if __name__ == '__main__':
         args['boundary_type'] = cmd_args.boundary_type
         args['optimize'] = cmd_args.optimize
         args['mesh_algorithm'] = cmd_args.mesh_algorithm
-        args['in_surf'] = cmd_args.in_surf
+        args['mesh_algorithm_2d'] = cmd_args.mesh_algorithm_2d
+        args['in_surfaces'] = cmd_args.in_surfaces
+        args['factory'] = cmd_args.factory
+        args['transfinite'] = cmd_args.transfinite
     root, extension = os.path.splitext(args['input_path'])
     basename = os.path.basename(root)
     if args['output_path'] is None:
@@ -186,17 +191,17 @@ if __name__ == '__main__':
     else:
         gmsh.option.setNumber("General.Terminal", 0)
     gmsh.option.setNumber('Geometry.AutoCoherence', 0)  # No effect at occ
-    # if args['optimize']:
-    #     gmsh.option.setNumber('Mesh.Optimize', 1)
-    # else:
     gmsh.option.setNumber('Mesh.Optimize', 0)  # resolving further
+    gmsh.option.setNumber('Mesh.Algorithm', args['mesh_algorithm_2d'])
     gmsh.option.setNumber('Mesh.Algorithm3D', args['mesh_algorithm'])
     print('Model')
     model_name = basename
     gmsh.model.add(model_name)
-    t00 = time.time()
     print('Initialize')
+    t00 = time.time()
     t0 = time.time()
+    if args['factory'] is not None:
+        input_data['arguments']['factory'] = args['factory']
     c = ComplexFactory.new(input_data)
     factory = c.factory
     print(f'{time.time() - t0:.3f}s')
@@ -219,12 +224,13 @@ if __name__ == '__main__':
             print('Synchronize')
             factory.synchronize()
             print(f'{time.time() - t0:.3f}s')
-        print('Transfinite')
-        t0 = time.time()
-        ss, cs = set(), set()  # surfaces, curves
-        c.transfinite(ss, cs)
-        # correct_and_transfinite_complex(c, ss, cs)
-        print(f'{time.time() - t0:.3f}s')
+        if args['transfinite']:
+            print('Transfinite')
+            t0 = time.time()
+            ss, cs = set(), set()  # surfaces, curves
+            c.transfinite(ss, cs)
+            # correct_and_transfinite_complex(c, ss, cs)
+            print(f'{time.time() - t0:.3f}s')
         if args['recombine']:
             print('Recombine')
             t0 = time.time()
@@ -296,7 +302,7 @@ if __name__ == '__main__':
             # print("by support.physical_surfaces")
             physical_surfaces(**physical_surfaces_kwargs)
         print(f'{time.time() - t0:.3f}s')
-        if args['in_surf']:
+        if args['in_surfaces']:
             t0 = time.time()
             print('Inner Surfaces')
             n2s = {}  # surface name to surface global index
@@ -333,7 +339,7 @@ if __name__ == '__main__':
         if args['optimize']:
             print("Optimize Mesh")
             t0 = time.time()
-            gmsh.model.mesh.optimize('Optimize', True)
+            gmsh.model.mesh.optimize('', True)
             print(f'{time.time() - t0:.3f}s')
     print("Write: {}".format(args['output_path']))
     t0 = time.time()

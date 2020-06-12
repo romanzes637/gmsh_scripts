@@ -1,0 +1,26 @@
+{
+  "metadata": {
+    "type": "script_arguments",
+    "class_name": "ComplexFactory",
+    "description": "ComplexFactory test on Cylinder test"
+  },
+  "arguments": {
+    "input_path": "input/test_cylinder.json",
+    "output_path": "test_cylinder_config.msh2",
+    "factory": "geo",
+    "verbose": false,
+    "test": false,
+    "recombine": false,
+    "boolean": false,
+    "boundary_type": "primitive",
+    "auto_size": null,
+    "size": null,
+    "boundary_auto_size": null,
+    "boundary_size": null,
+    "mesh_algorithm": 1,
+    "mesh_algorithm_2d": 6,
+    "optimize": false,
+    "in_surfaces": false,
+    "transfinite": false
+  }
+}

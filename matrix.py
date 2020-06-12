@@ -185,15 +185,15 @@ class Matrix(Complex):
                     z1s.append(sum(zs[:k + 1]))
                     zcs.append(0.5 * (z0s[-1] + z1s[-1]))
         primitives = []
-        print(surfaces_names)
-        print(in_surfaces_names)
-        print(in_surfaces_map)
+        # print(surfaces_names)
+        # print(in_surfaces_names)
+        # print(in_surfaces_map)
         # print(in_surfaces_masks)
         # print(in_surfaces_masks_map)
         for ci, gi in gis.items():
             t0 = time.time()
             globals()[types[type_map[gi]]](**locals())
-            print(f'type: {types[type_map[gi]]}, time {time.time() - t0}')
+            # print(f'type: {types[type_map[gi]]}, time {time.time() - t0}')
         Complex.__init__(self, factory, primitives)
 
 

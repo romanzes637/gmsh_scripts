@@ -1,14 +1,9 @@
 import gmsh
 import itertools
 from collections import deque
-from itertools import permutations
-from pprint import pprint
-import time
 import numpy as np
-from itertools import chain
 
-from occ_workarounds import correct_and_transfinite_primitive
-from support import volumes_groups_surfaces, volumes_groups_surfaces_registry
+from support import volumes_groups_surfaces_registry
 import registry
 
 

@@ -10,7 +10,7 @@ import sys
 
 from boolean import complex_by_complex
 from complex_factory import ComplexFactory
-from occ_workarounds import correct_and_transfinite_complex
+from old.occ_workarounds import correct_and_transfinite_complex
 from support import check_file, physical_surfaces, get_boundary_surfaces, \
     boundary_surfaces_to_six_side_groups, \
     auto_complex_points_sizes_min_curve_in_volume
