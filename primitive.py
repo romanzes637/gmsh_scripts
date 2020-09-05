@@ -368,10 +368,11 @@ class Primitive:
             surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags,
                                                        combined=False)
             for dt in surfaces_dim_tags:
-                if self.factory == gmsh.model.occ:
-                    gmsh.model.mesh.setRecombine(dt[0], dt[1])
-                else:
-                    self.factory.mesh.setRecombine(dt[0], dt[1])
+                gmsh.model.mesh.setRecombine(dt[0], dt[1])
+                # if self.factory == gmsh.model.occ:
+                #     gmsh.model.mesh.setRecombine(dt[0], dt[1])
+                # else:
+                #     self.factory.mesh.setRecombine(dt[0], dt[1])
 
     def smooth(self, dim, n):
         """
@@ -452,41 +453,44 @@ class Primitive:
                     transfinite_volume_data = None
                 if self.transfinite_data is not None:
                     for i, c in enumerate(self.curves):
+                        c = abs(c)  # FIXME Workaround for GEO factory
                         if c not in transfinited_curves:
-                            # FIXME Workaround for GEO factory
-                            if self.factory != gmsh.model.geo:
-                                transfinite_type = self.transfinite_data[i][1]
-                            else:
-                                transfinite_type = self.transfinite_data[i][
-                                                       1] + 2
+                            transfinite_type = self.transfinite_data[i][1]
+                            # # FIXME Workaround for GEO factory
+                            # if self.factory != gmsh.model.geo:
+                            #     transfinite_type = self.transfinite_data[i][1]
+                            # else:
+                            #     transfinite_type = self.transfinite_data[i][
+                            #                            1] + 2
                             self.transfinite_curve[transfinite_type](self, i)
                             transfinited_curves.add(c)
                     if transfinite_surface_data is not None:
                         for i, s in enumerate(self.surfaces):
                             if s not in transfinited_surfaces:
-                                # FIXME Workaround for GEO factory
-                                if self.factory != gmsh.model.geo:
-                                    transfinite_type = transfinite_surface_data[
-                                        i]
-                                else:
-                                    transfinite_type = transfinite_surface_data[
-                                                           i] + 4
+                                transfinite_type = self.transfinite_data[i][1]
+                                # # FIXME Workaround for GEO factory
+                                # if self.factory != gmsh.model.geo:
+                                #     transfinite_type = transfinite_surface_data[
+                                #         i]
+                                # else:
+                                #     transfinite_type = transfinite_surface_data[
+                                #                            i] + 4
                                 self.transfinite_surface[transfinite_type](self,
                                                                            i)
                                 transfinited_surfaces.add(s)
                         if transfinite_volume_data is not None:
                             for i in range(len(self.volumes)):
+                                transfinite_type = transfinite_volume_data[i]
                                 # FIXME Workaround for GEO factory
-                                if self.factory != gmsh.model.geo:
-                                    transfinite_type = transfinite_volume_data[
-                                        i]
-                                else:
-                                    transfinite_type = transfinite_volume_data[
-                                                           i] + 4
+                                # if self.factory != gmsh.model.geo:
+                                #     transfinite_type = transfinite_volume_data[
+                                #         i]
+                                # else:
+                                #     transfinite_type = transfinite_volume_data[
+                                #                            i] + 4
                                 self.transfinite_volume[transfinite_type](self,
                                                                           i)
                     result = True
-            # print(check, result)
             return result
 
     def evaluate_coordinates(self):
@@ -592,13 +596,13 @@ class Primitive:
             self.transfinite_data[i][2]
         ),
         # FIXME Workaround for GEO factory
-        2: lambda self, i: gmsh.model.geo.mesh.setTransfiniteCurve(
+        2: lambda self, i: gmsh.model.mesh.setTransfiniteCurve(
             self.curves[i],
             self.transfinite_data[i][0],
             "Progression",
             self.transfinite_data[i][2]
         ),
-        3: lambda self, i: gmsh.model.geo.mesh.setTransfiniteCurve(
+        3: lambda self, i: gmsh.model.mesh.setTransfiniteCurve(
             self.curves[i],
             self.transfinite_data[i][0],
             "Bump",
@@ -628,22 +632,22 @@ class Primitive:
             [self.points[x] for x in self.surfaces_local_points[i]]
         ),
         # FIXME Workaround for GEO factory
-        4: lambda self, i: gmsh.model.geo.mesh.setTransfiniteSurface(
+        4: lambda self, i: gmsh.model.mesh.setTransfiniteSurface(
             self.surfaces[i],
             "Left",
             [self.points[x] for x in self.surfaces_local_points[i]]
         ),
-        5: lambda self, i: gmsh.model.geo.mesh.setTransfiniteSurface(
+        5: lambda self, i: gmsh.model.mesh.setTransfiniteSurface(
             self.surfaces[i],
             "Right",
             [self.points[x] for x in self.surfaces_local_points[i]]
         ),
-        6: lambda self, i: gmsh.model.geo.mesh.setTransfiniteSurface(
+        6: lambda self, i: gmsh.model.mesh.setTransfiniteSurface(
             self.surfaces[i],
             "AlternateLeft",
             [self.points[x] for x in self.surfaces_local_points[i]]
         ),
-        7: lambda self, i: gmsh.model.geo.mesh.setTransfiniteSurface(
+        7: lambda self, i: gmsh.model.mesh.setTransfiniteSurface(
             self.surfaces[i],
             "AlternateRight",
             [self.points[x] for x in self.surfaces_local_points[i]]
@@ -680,28 +684,28 @@ class Primitive:
             ]
         ),
         # FIXME Workaround for GEO factory
-        4: lambda self, i: gmsh.model.geo.mesh.setTransfiniteVolume(
+        4: lambda self, i: gmsh.model.mesh.setTransfiniteVolume(
             self.volumes[i],
             [
                 self.points[0], self.points[1], self.points[2], self.points[3],
                 self.points[4], self.points[5], self.points[6], self.points[7]
             ]
         ),
-        5: lambda self, i: gmsh.model.geo.mesh.setTransfiniteVolume(
+        5: lambda self, i: gmsh.model.mesh.setTransfiniteVolume(
             self.volumes[i],
             [
                 self.points[1], self.points[2], self.points[3], self.points[0],
                 self.points[5], self.points[6], self.points[7], self.points[4]
             ]
         ),
-        6: lambda self, i: gmsh.model.geo.mesh.setTransfiniteVolume(
+        6: lambda self, i: gmsh.model.mesh.setTransfiniteVolume(
             self.volumes[i],
             [
                 self.points[2], self.points[3], self.points[0], self.points[1],
                 self.points[6], self.points[7], self.points[4], self.points[5]
             ]
         ),
-        7: lambda self, i: gmsh.model.geo.mesh.setTransfiniteVolume(
+        7: lambda self, i: gmsh.model.mesh.setTransfiniteVolume(
             self.volumes[i],
             [
                 self.points[3], self.points[0], self.points[1], self.points[2],
