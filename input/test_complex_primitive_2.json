@@ -6,17 +6,16 @@
   },
   "arguments": {
     "factory": "geo",
-    "point_data": [0.05, 10, 15],
+    "point_data": [5, 10, 15],
     "transform_data": [[0, 0, 0]],
     "curve_types": null,
     "curve_data": null,
     "transfinite_data": [
       [3, 1, 3],
       [10, 0, 1],
-      [10, 0, 1.5]
+      [15, 0, 1.5]
     ],
     "transfinite_type": null,
-    "physical_name": "TestComplexPrimitive",
     "surfaces_names": ["NX_Left", "X_Right", "NY_Back", "Y_Forward", "NZ_Bottom",
     "Z_Top"]
   }

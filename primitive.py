@@ -453,8 +453,7 @@ class Primitive:
                     transfinite_volume_data = None
                 if self.transfinite_data is not None:
                     for i, c in enumerate(self.curves):
-                        c = abs(c)  # FIXME Workaround for GEO factory
-                        if c not in transfinited_curves:
+                        if abs(c) not in transfinited_curves:
                             transfinite_type = self.transfinite_data[i][1]
                             # # FIXME Workaround for GEO factory
                             # if self.factory != gmsh.model.geo:
@@ -463,7 +462,7 @@ class Primitive:
                             #     transfinite_type = self.transfinite_data[i][
                             #                            1] + 2
                             self.transfinite_curve[transfinite_type](self, i)
-                            transfinited_curves.add(c)
+                            transfinited_curves.add(abs(c))
                     if transfinite_surface_data is not None:
                         for i, s in enumerate(self.surfaces):
                             if s not in transfinited_surfaces:
@@ -587,7 +586,7 @@ class Primitive:
             abs(self.curves[i]),
             self.transfinite_data[i][0],
             "Progression",
-            self.transfinite_data[i][2]
+            self.transfinite_data[i][2] if self.curves[i] > 0 else 1/self.transfinite_data[i][2]
         ),
         1: lambda self, i: gmsh.model.mesh.setTransfiniteCurve(
             abs(self.curves[i]),

@@ -136,18 +136,22 @@ class Cylinder(Matrix):
         for i in range(nr - 1, 0, -1):
             xs.append(radii_x[i] - radii_x[i - 1])
             ys.append(radii_y[i] - radii_y[i - 1])
-            txs.append(transfinite_r_data[i])
-            tys.append(transfinite_r_data[i])
+            t = transfinite_r_data[i].copy()
+            t[2] = 1/t[2]
+            txs.append(t)
+            tys.append(t)
         xs.append((1 - k) * radii_x[0])
         xs.append(2 * k * radii_x[0])
         xs.append((1 - k) * radii_x[0])
         ys.append((1 - k) * radii_y[0])
         ys.append(2 * k * radii_y[0])
         ys.append((1 - k) * radii_y[0])
-        txs.append(transfinite_r_data[0])
+        t = transfinite_r_data[0].copy()
+        t[2] = 1/t[2]
+        txs.append(t)
         txs.append(transfinite_phi_data)
         txs.append(transfinite_r_data[0])
-        tys.append(transfinite_r_data[0])
+        tys.append(t)
         tys.append(transfinite_phi_data)
         tys.append(transfinite_r_data[0])
         for i in range(1, nr):

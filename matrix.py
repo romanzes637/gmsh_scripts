@@ -1,6 +1,7 @@
 import json
 from pprint import pprint
 import time
+import copy  # for dict copy, items of dict are shallow copies
 
 import gmsh
 import numpy as np
@@ -147,6 +148,8 @@ class Matrix(Complex):
             inputs = [inputs]
         if inputs_map is None:
             inputs_map = [0 for _ in range(ni)]
+        elif not isinstance(inputs_map, list):
+            inputs_map = [inputs_map for _ in range(ni)]
         if recs_map is None:
             recs_map = [1 for _ in range(ni)]
         elif not isinstance(recs_map, list):
@@ -255,9 +258,10 @@ def type_2(primitives, gi, factory,
 # Complex at (xc, yc, z0)
 def type_3(primitives, gi, factory,
            xcs, ycs, z0s, inputs_datas, inputs_map, transform_data, **kwargs):
-    input_data = inputs_datas[inputs_map[gi]]
+    input_data = copy.deepcopy(inputs_datas[inputs_map[gi]])
     if input_data['arguments'].get('transform_data', None) is None:
         input_data['arguments']['transform_data'] = []
+    # print(xcs[gi], ycs[gi], z0s[gi])
     input_data['arguments']['transform_data'].append(
         [xcs[gi], ycs[gi], z0s[gi]])
     input_data['arguments']['transform_data'].extend(transform_data)

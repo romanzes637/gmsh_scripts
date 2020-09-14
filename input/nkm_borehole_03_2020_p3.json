@@ -1,7 +1,7 @@
 {
   "metadata": {
     "type": "class_arguments",
-    "class_name": "DividedCylinder",
+    "class_name": "Cylinder",
     "description": "NKM borehole with several containers. Part 3 - rock top"
   },
   "arguments": {
@@ -9,7 +9,10 @@
     "k": 0.5,
     "kxs": [1, 1, 1, 1, 1.53333333],
     "kys": [1, 1, 1, 1, 1],
-    "radii": [0.2835, 0.4875, 0.5675, 1.0675, 7.5],
+    "ct0s": [0, 1, 1, 1, 1],
+    "ct1s": [1, 1, 1, 1, 1],
+    "radii_x": [0.2835, 0.4875, 0.5675, 1.0675, 7.5],
+    "radii_y": [0.2835, 0.4875, 0.5675, 1.0675, 7.5],
     "heights": [0.575, 30],
     "layers_lcs": [
       [1, 1, 1, 1, 1],
@@ -42,10 +45,7 @@
       [7, 0, 1],
       [20, 0, 1.2]
     ],
-    "transform_data": [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    "divide_h_data": null,
-    "divide_r_data": null,
-    "straight_boundary": [1, 3, 3, 3, 2],
+    "transform_data": [[0, 0, 0, 0, 0, 0, 0, 0, 0]],
     "layers_recs": [
       [0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0]
