@@ -879,3 +879,274 @@ def axisymmetric_ny(primitives, ci, gi, gis, factory,
         rec=recs_map[gi],
         trans=trans_map[gi]
     ))
+
+
+def curved_nz(primitives, ci, gi, gis, factory,
+              x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
+              volumes_names, volumes_map, surfaces_names, surfaces_map,
+              transforms, transforms_map,
+              in_surfaces_names, in_surfaces_map,
+              in_surfaces_masks, in_surfaces_masks_map, xs, ys, zs,
+              recs_map, trans_map, transform_data, kws, kws_map, **kwargs):
+    i, j, k = ci
+    cxi, cyj = len(xs) // 2, len(ys) // 2
+    cx = sum(xs[:cxi]) + xs[cxi] / 2
+    cy = sum(ys[:cyj]) + ys[cyj] / 2
+    # gix0, gix1 = gis[(i - (cyj - j), j, k)], gis[(i + (cyj - j), j, k)]
+    r = kws[kws_map[gi]].get('r', 1)
+    ct = kws[kws_map[gi]].get('ct', 3)
+    cts = [0, 0, 0, 0, ct, ct, 0, 0, 0, 0, 0, 0]
+    cd = [
+        [], [], [], [],
+        [[x1s[gi], cy, z0s[gi] + r, lcs[gi]]],
+        [[x0s[gi], cy, z0s[gi] + r, lcs[gi]]],
+        [],
+        [],
+        [], [], [], []
+    ]
+    primitives.append(Primitive(
+        factory=factory,
+        point_data=[
+            [x1s[gi], y1s[gi], z0s[gi], lcs[gi]],
+            [x0s[gi], y1s[gi], z0s[gi], lcs[gi]],
+            [x0s[gi], y0s[gi], z0s[gi], lcs[gi]],
+            [x1s[gi], y0s[gi], z0s[gi], lcs[gi]],
+            [x1s[gi], y1s[gi], z1s[gi], lcs[gi]],
+            [x0s[gi], y1s[gi], z1s[gi], lcs[gi]],
+            [x0s[gi], y0s[gi], z1s[gi], lcs[gi]],
+            [x1s[gi], y0s[gi], z1s[gi], lcs[gi]],
+        ],
+        curve_types=cts,
+        curve_data=cd,
+        transform_data=transform_data + transforms[transforms_map[gi]],
+        transfinite_data=[txs[i], tys[j], tzs[k]],
+        volume_name=volumes_names[volumes_map[gi]],
+        surfaces_names=surfaces_names[surfaces_map[gi]],
+        in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
+        in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
+        rec=recs_map[gi],
+        trans=trans_map[gi]
+    ))
+
+
+def curved_nz_right(primitives, ci, gi, gis, factory,
+              x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
+              volumes_names, volumes_map, surfaces_names, surfaces_map,
+              transforms, transforms_map,
+              in_surfaces_names, in_surfaces_map,
+              in_surfaces_masks, in_surfaces_masks_map, xs, ys, zs,
+              recs_map, trans_map, transform_data, kws, kws_map, **kwargs):
+    i, j, k = ci
+    cxi, cyj = len(xs) // 2, len(ys) // 2
+    cx = sum(xs[:cxi]) + xs[cxi] / 2
+    cy = sum(ys[:cyj]) + ys[cyj] / 2
+    # gix0, gix1 = gis[(i - (cyj - j), j, k)], gis[(i + (cyj - j), j, k)]
+    r = kws[kws_map[gi]].get('r', 1)
+    a = kws[kws_map[gi]].get('a', r/2**0.5)
+    b = kws[kws_map[gi]].get('b', 1)
+    ct = kws[kws_map[gi]].get('ct', 3)
+    cts = [0, 0, 0, 0, ct, ct, 0, 0, 0, 0, 0, 0]
+    cd = [
+        [], [], [], [],
+        [[x1s[gi], y1s[gi], z0s[gi] - a, lcs[gi]]],
+        [[x0s[gi], y1s[gi], z0s[gi] - a, lcs[gi]]],
+        [],
+        [],
+        [], [], [], []
+    ]
+    primitives.append(Primitive(
+        factory=factory,
+        point_data=[
+            [x1s[gi], y1s[gi], z0s[gi] + r - a, lcs[gi]],
+            [x0s[gi], y1s[gi], z0s[gi] + r - a, lcs[gi]],
+            [x0s[gi], y0s[gi] , z0s[gi], lcs[gi]],
+            [x1s[gi], y0s[gi], z0s[gi], lcs[gi]],
+            [x1s[gi], y1s[gi], z1s[gi], lcs[gi]],
+            [x0s[gi], y1s[gi], z1s[gi], lcs[gi]],
+            [x0s[gi], y1s[gi] - b, z1s[gi], lcs[gi]],
+            [x1s[gi], y1s[gi] - b, z1s[gi], lcs[gi]],
+        ],
+        curve_types=cts,
+        curve_data=cd,
+        transform_data=transform_data + transforms[transforms_map[gi]],
+        transfinite_data=[txs[i], tys[j], tzs[k]],
+        volume_name=volumes_names[volumes_map[gi]],
+        surfaces_names=surfaces_names[surfaces_map[gi]],
+        in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
+        in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
+        rec=recs_map[gi],
+        trans=trans_map[gi]
+    ))
+
+def curved_y_left(primitives, ci, gi, gis, factory,
+              x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
+              volumes_names, volumes_map, surfaces_names, surfaces_map,
+              transforms, transforms_map,
+              in_surfaces_names, in_surfaces_map,
+              in_surfaces_masks, in_surfaces_masks_map, xs, ys, zs,
+              recs_map, trans_map, transform_data, kws, kws_map, **kwargs):
+    i, j, k = ci
+    cxi, cyj = len(xs) // 2, len(ys) // 2
+    cx = sum(xs[:cxi]) + xs[cxi] / 2
+    cy = sum(ys[:cyj]) + ys[cyj] / 2
+    # gix0, gix1 = gis[(i - (cyj - j), j, k)], gis[(i + (cyj - j), j, k)]
+    r = kws[kws_map[gi]].get('r', 1)
+    a = kws[kws_map[gi]].get('a', r/2**0.5)
+    b = kws[kws_map[gi]].get('b', 1)
+    ct = kws[kws_map[gi]].get('ct', 3)
+    cts = [0, 0, 0, 0, 0, 0, 0, 0, ct, ct, 0, 0]
+    cd = [
+        [], [], [], [],
+        [], [], [], [],
+        [[x1s[gi], y1s[gi] + a, z0s[gi], lcs[gi]]],
+        [[x0s[gi], y1s[gi] + a, z0s[gi], lcs[gi]]],
+        [],
+        [],
+    ]
+    primitives.append(Primitive(
+        factory=factory,
+        point_data=[
+            [x1s[gi], y1s[gi] - (r - a), z0s[gi], lcs[gi]],
+            [x0s[gi], y1s[gi] - (r - a), z0s[gi], lcs[gi]],
+            [x0s[gi], y0s[gi], z0s[gi], lcs[gi]],
+            [x1s[gi], y0s[gi], z0s[gi], lcs[gi]],
+            [x1s[gi], y1s[gi], z1s[gi], lcs[gi]],
+            [x0s[gi], y1s[gi], z1s[gi], lcs[gi]],
+            [x0s[gi], y0s[gi], z0s[gi] + b, lcs[gi]],
+            [x1s[gi], y0s[gi], z0s[gi] + b, lcs[gi]],
+        ],
+        curve_types=cts,
+        curve_data=cd,
+        transform_data=transform_data + transforms[transforms_map[gi]],
+        transfinite_data=[txs[i], tys[j], tzs[k]],
+        volume_name=volumes_names[volumes_map[gi]],
+        surfaces_names=surfaces_names[surfaces_map[gi]],
+        in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
+        in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
+        rec=recs_map[gi],
+        trans=trans_map[gi]
+    ))
+
+def curved_nz_left(primitives, ci, gi, gis, factory,
+              x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
+              volumes_names, volumes_map, surfaces_names, surfaces_map,
+              transforms, transforms_map,
+              in_surfaces_names, in_surfaces_map,
+              in_surfaces_masks, in_surfaces_masks_map, xs, ys, zs,
+              recs_map, trans_map, transform_data, kws, kws_map, **kwargs):
+    i, j, k = ci
+    cxi, cyj = len(xs) // 2, len(ys) // 2
+    cx = sum(xs[:cxi]) + xs[cxi] / 2
+    cy = sum(ys[:cyj]) + ys[cyj] / 2
+    # gix0, gix1 = gis[(i - (cyj - j), j, k)], gis[(i + (cyj - j), j, k)]
+    r = kws[kws_map[gi]].get('r', 1)
+    a = kws[kws_map[gi]].get('a', r/2**0.5)
+    b = kws[kws_map[gi]].get('b', 1)
+    ct = kws[kws_map[gi]].get('ct', 3)
+    cts = [0, 0, 0, 0, ct, ct, 0, 0, 0, 0, 0, 0]
+    cd = [
+        [], [], [], [],
+        [[x1s[gi], y0s[gi], z0s[gi] - a, lcs[gi]]],
+        [[x0s[gi], y0s[gi], z0s[gi] - a, lcs[gi]]],
+        [],
+        [],
+        [], [], [], []
+    ]
+    primitives.append(Primitive(
+        factory=factory,
+        point_data=[
+            [x1s[gi], y1s[gi], z0s[gi], lcs[gi]],
+            [x0s[gi], y1s[gi], z0s[gi], lcs[gi]],
+            [x0s[gi], y0s[gi], z0s[gi] + r - a, lcs[gi]],
+            [x1s[gi], y0s[gi], z0s[gi] + r - a, lcs[gi]],
+            [x1s[gi], y0s[gi] + b, z1s[gi], lcs[gi]],
+            [x0s[gi], y0s[gi] + b, z1s[gi], lcs[gi]],
+            [x0s[gi], y0s[gi], z1s[gi], lcs[gi]],
+            [x1s[gi], y0s[gi], z1s[gi], lcs[gi]],
+        ],
+        curve_types=cts,
+        curve_data=cd,
+        transform_data=transform_data + transforms[transforms_map[gi]],
+        transfinite_data=[txs[i], tys[j], tzs[k]],
+        volume_name=volumes_names[volumes_map[gi]],
+        surfaces_names=surfaces_names[surfaces_map[gi]],
+        in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
+        in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
+        rec=recs_map[gi],
+        trans=trans_map[gi]
+    ))
+
+
+def curved_ny_right(primitives, ci, gi, gis, factory,
+              x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
+              volumes_names, volumes_map, surfaces_names, surfaces_map,
+              transforms, transforms_map,
+              in_surfaces_names, in_surfaces_map,
+              in_surfaces_masks, in_surfaces_masks_map, xs, ys, zs,
+              recs_map, trans_map, transform_data, kws, kws_map, **kwargs):
+    i, j, k = ci
+    cxi, cyj = len(xs) // 2, len(ys) // 2
+    cx = sum(xs[:cxi]) + xs[cxi] / 2
+    cy = sum(ys[:cyj]) + ys[cyj] / 2
+    # gix0, gix1 = gis[(i - (cyj - j), j, k)], gis[(i + (cyj - j), j, k)]
+    r = kws[kws_map[gi]].get('r', 1)
+    a = kws[kws_map[gi]].get('a', r/2**0.5)
+    b = kws[kws_map[gi]].get('b', 1)
+    ct = kws[kws_map[gi]].get('ct', 3)
+    cts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ct, ct]
+    cd = [
+        [], [], [], [],
+        [], [], [], [],
+        [],
+        [],
+        [[x0s[gi], y0s[gi] - a, z0s[gi], lcs[gi]]],
+        [[x1s[gi], y0s[gi] - a, z0s[gi], lcs[gi]]]
+    ]
+    primitives.append(Primitive(
+        factory=factory,
+        point_data=[
+            [x1s[gi], y1s[gi], z0s[gi], lcs[gi]],
+            [x0s[gi], y1s[gi], z0s[gi], lcs[gi]],
+            [x0s[gi], y0s[gi] + (r - a), z0s[gi], lcs[gi]],
+            [x1s[gi], y0s[gi] + (r - a), z0s[gi] , lcs[gi]],
+            [x1s[gi], y1s[gi], z0s[gi] + b, lcs[gi]],
+            [x0s[gi], y1s[gi], z0s[gi] + b, lcs[gi]],
+            [x0s[gi], y0s[gi], z1s[gi], lcs[gi]],
+            [x1s[gi], y0s[gi], z1s[gi], lcs[gi]],
+        ],
+        curve_types=cts,
+        curve_data=cd,
+        transform_data=transform_data + transforms[transforms_map[gi]],
+        transfinite_data=[txs[i], tys[j], tzs[k]],
+        volume_name=volumes_names[volumes_map[gi]],
+        surfaces_names=surfaces_names[surfaces_map[gi]],
+        in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
+        in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
+        rec=recs_map[gi],
+        trans=trans_map[gi]
+    ))
+
+
+# Complex at external
+def external(primitives, gi, factory,
+             x0s, x1s, y0s, y1s, z0s, z1s, xcs, ycs, zcs,
+             inputs_datas, inputs_map, transform_data,
+             kws, kws_map, **kwargs):
+    input_data = copy.deepcopy(inputs_datas[inputs_map[gi]])
+    if input_data['arguments'].get('transform_data', None) is None:
+        input_data['arguments']['transform_data'] = []
+    pos = kws[kws_map[gi]].get('pos', ('xc', 'yc', 'zc'))
+    external_pos_map = {
+        "xc": xcs, "yc": ycs, "zc": zcs,
+        "x0": x0s, "y0": y0s, "z0": z0s,
+        "x1": x1s, "y1": y1s, "z1": z1s,
+    }
+    input_data['arguments']['transform_data'].append(
+        [external_pos_map[pos[0]][gi],
+         external_pos_map[pos[1]][gi],
+         external_pos_map[pos[2]][gi]])
+    input_data['arguments']['transform_data'].extend(transform_data)
+    input_data['arguments']['factory'] = factory
+    from complex_factory import ComplexFactory
+    c = ComplexFactory.new(input_data)
+    primitives.extend(c.primitives)
