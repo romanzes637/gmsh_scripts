@@ -441,6 +441,8 @@ def axisymmetric_x(primitives, ci, gi, gis, factory,
     ct0 = kws[kws_map[gi]].get('ct0', 0)
     ct1 = kws[kws_map[gi]].get('ct1', 0)
     ct = kws[kws_map[gi]].get('ct', 3)
+    dr1_z0 = kws[kws_map[gi]].get('dr1_z0', 0)
+    dxr1_z0 = dr1_z0 / 2 ** 0.5
     if ct1 and ct0:
         dxr1 = r1 / 2 ** 0.5
         dxr0 = r0 / 2 ** 0.5
@@ -470,10 +472,10 @@ def axisymmetric_x(primitives, ci, gi, gis, factory,
         dyr0y1 = r0y1
         dyr0y0 = -r0y0
     pd = [
-        [cx + dxr1, cy + dyr1y1, z0s[gi], lcs[gi]],
+        [cx + dxr1 + dxr1_z0, cy + dyr1y1 + dxr1_z0, z0s[gi], lcs[gi]],
         [cx + dxr0, cy + dyr0y1, z0s[gi], lcs[gi]],
         [cx + dxr0, cy + dyr0y0, z0s[gi], lcs[gi]],
-        [cx + dxr1, cy + dyr1y0, z0s[gi], lcs[gi]],
+        [cx + dxr1 + dxr1_z0, cy + dyr1y0 - dxr1_z0, z0s[gi], lcs[gi]],
         [cx + dxr1, cy + dyr1y1, z1s[gi], lcs[gi]],
         [cx + dxr0, cy + dyr0y1, z1s[gi], lcs[gi]],
         [cx + dxr0, cy + dyr0y0, z1s[gi], lcs[gi]],
@@ -482,14 +484,18 @@ def axisymmetric_x(primitives, ci, gi, gis, factory,
     r0_equal = np.allclose(r0, [r0y1, r0y0], atol=registry.point_tol, rtol=0)
     r1_equal = np.allclose(r1, [r1y1, r1y0], atol=registry.point_tol, rtol=0)
     if r0_equal and r1_equal:
-        cts = [0, 0, 0, 0, ct1, ct0, ct0, ct1, 0, 0, 0, 0]
+        cts = [0, 0, 0, 0, ct1, ct0, ct0, ct1,
+               1 if dxr1_z0 != 0 else 0, 0, 0, 1 if dxr1_z0 != 0 else 0]
         cd = [
             [], [], [], [],
             [[cx, cy, z0s[gi], lcs[gi]]],
             [[cx, cy, z0s[gi], lcs[gi]]],
             [[cx, cy, z1s[gi], lcs[gi]]],
             [[cx, cy, z1s[gi], lcs[gi]]],
-            [], [], [], []
+            [[cx + dxr1 + dxr1_z0, cy + dyr1y1 + dxr1_z0, z1s[gi], lcs[gi]]],
+            [],
+            [],
+            [[cx + dxr1 + dxr1_z0, cy + dyr1y0 - dxr1_z0, z1s[gi], lcs[gi]]]
         ]
     elif r1_equal:
         cts = [0, 0, 0, 0, ct1, ct * ct0, ct * ct0, ct1, 0, 0, 0, 0]
@@ -556,6 +562,8 @@ def axisymmetric_y(primitives, ci, gi, gis, factory,
     ct0 = kws[kws_map[gi]].get('ct0', 0)
     ct1 = kws[kws_map[gi]].get('ct1', 0)
     ct = kws[kws_map[gi]].get('ct', 3)
+    dr1_z0 = kws[kws_map[gi]].get('dr1_z0', 0)
+    dyr1_z0 = dr1_z0 / 2 ** 0.5
     if ct1 and ct0:
         dyr1 = r1 / 2 ** 0.5
         dyr0 = r0 / 2 ** 0.5
@@ -585,8 +593,8 @@ def axisymmetric_y(primitives, ci, gi, gis, factory,
         dxr0x1 = r0x1
         dxr0x0 = -r0x0
     pd = [
-        [cx + dxr1x1, cy + dyr1, z0s[gi], lcs[gi]],
-        [cx + dxr1x0, cy + dyr1, z0s[gi], lcs[gi]],
+        [cx + dxr1x1 + dyr1_z0, cy + dyr1 + dyr1_z0, z0s[gi], lcs[gi]],
+        [cx + dxr1x0 - dyr1_z0, cy + dyr1 + dyr1_z0, z0s[gi], lcs[gi]],
         [cx + dxr0x0, cy + dyr0, z0s[gi], lcs[gi]],
         [cx + dxr0x1, cy + dyr0, z0s[gi], lcs[gi]],
         [cx + dxr1x1, cy + dyr1, z1s[gi], lcs[gi]],
@@ -597,14 +605,17 @@ def axisymmetric_y(primitives, ci, gi, gis, factory,
     r0_equal = np.allclose(r0, [r0x1, r0x0], atol=registry.point_tol, rtol=0)
     r1_equal = np.allclose(r1, [r1x1, r1x0], atol=registry.point_tol, rtol=0)
     if r1_equal and r0_equal:
-        cts = [ct1, ct1, ct0, ct0, 0, 0, 0, 0, 0, 0, 0, 0]
+        cts = [ct1, ct1, ct0, ct0, 0, 0, 0, 0,
+               1 if dyr1_z0 != 0 else 0, 1 if dyr1_z0 != 0 else 0, 0, 0]
         cd = [
             [[cx, cy, z0s[gi], lcs[gi]]],
             [[cx, cy, z1s[gi], lcs[gi]]],
             [[cx, cy, z1s[gi], lcs[gi]]],
             [[cx, cy, z0s[gi], lcs[gi]]],
             [], [], [], [],
-            [], [], [], []
+            [[cx + dxr1x1 + dyr1_z0, cy + dyr1 + dyr1_z0, z1s[gi], lcs[gi]]],
+            [[cx + dxr1x0 - dyr1_z0, cy + dyr1 + dyr1_z0, z1s[gi], lcs[gi]]],
+            [], []
         ]
     elif r1_equal:
         cts = [ct1, ct1, ct * ct0, ct * ct0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -670,6 +681,8 @@ def axisymmetric_nx(primitives, ci, gi, gis, factory,
     ct0 = kws[kws_map[gi]].get('ct0', 0)
     ct1 = kws[kws_map[gi]].get('ct1', 0)
     ct = kws[kws_map[gi]].get('ct', 3)
+    dr1_z0 = kws[kws_map[gi]].get('dr1_z0', 0)
+    dxr1_z0 = dr1_z0 / 2 ** 0.5
     if ct1 and ct0:
         dxr1 = -r1 / 2 ** 0.5
         dxr0 = -r0 / 2 ** 0.5
@@ -698,10 +711,11 @@ def axisymmetric_nx(primitives, ci, gi, gis, factory,
         dyr1y0 = -r1y0
         dyr0y1 = r0y1
         dyr0y0 = -r0y0
+    print(dxr1)
     pd = [
         [cx + dxr0, cy + dyr0y1, z0s[gi], lcs[gi]],
-        [cx + dxr1, cy + dyr1y1, z0s[gi], lcs[gi]],
-        [cx + dxr1, cy + dyr1y0, z0s[gi], lcs[gi]],
+        [cx + dxr1 - dxr1_z0, cy + dyr1y1 + dxr1_z0, z0s[gi], lcs[gi]],
+        [cx + dxr1 - dxr1_z0, cy + dyr1y0 - dxr1_z0, z0s[gi], lcs[gi]],
         [cx + dxr0, cy + dyr0y0, z0s[gi], lcs[gi]],
         [cx + dxr0, cy + dyr0y1, z1s[gi], lcs[gi]],
         [cx + dxr1, cy + dyr1y1, z1s[gi], lcs[gi]],
@@ -711,14 +725,18 @@ def axisymmetric_nx(primitives, ci, gi, gis, factory,
     r0_equal = np.allclose(r0, [r0y1, r0y0], atol=registry.point_tol, rtol=0)
     r1_equal = np.allclose(r1, [r1y1, r1y0], atol=registry.point_tol, rtol=0)
     if r1_equal and r0_equal:
-        cts = [0, 0, 0, 0, ct0, ct1, ct1, ct0, 0, 0, 0, 0]
+        cts = [0, 0, 0, 0, ct0, ct1, ct1, ct0,
+               0, 1 if dxr1_z0 != 0 else 0, 1 if dxr1_z0 != 0 else 0, 0]
         cd = [
             [], [], [], [],
             [[cx, cy, z0s[gi], lcs[gi]]],
             [[cx, cy, z0s[gi], lcs[gi]]],
             [[cx, cy, z1s[gi], lcs[gi]]],
             [[cx, cy, z1s[gi], lcs[gi]]],
-            [], [], [], []
+            [],
+            [[cx + dxr1 - dxr1_z0, cy + dyr1y1 + dxr1_z0, z1s[gi], lcs[gi]]],
+            [[cx + dxr1 - dxr1_z0, cy + dyr1y0 - dxr1_z0, z1s[gi], lcs[gi]]],
+            []
         ]
     elif r1_equal:
         cts = [0, 0, 0, 0, ct * ct0, ct1, ct1, ct * ct0, 0, 0, 0, 0]
@@ -785,6 +803,8 @@ def axisymmetric_ny(primitives, ci, gi, gis, factory,
     ct0 = kws[kws_map[gi]].get('ct0', 0)
     ct1 = kws[kws_map[gi]].get('ct1', 0)
     ct = kws[kws_map[gi]].get('ct', 3)
+    dr1_z0 = kws[kws_map[gi]].get('dr1_z0', 0)
+    dyr1_z0 = dr1_z0 / 2 ** 0.5
     if ct1 and ct0:
         dyr1 = -r1 / 2 ** 0.5
         dyr0 = -r0 / 2 ** 0.5
@@ -816,8 +836,8 @@ def axisymmetric_ny(primitives, ci, gi, gis, factory,
     pd = [
         [cx + dxr0x1, cy + dyr0, z0s[gi], lcs[gi]],
         [cx + dxr0x0, cy + dyr0, z0s[gi], lcs[gi]],
-        [cx + dxr1x0, cy + dyr1, z0s[gi], lcs[gi]],
-        [cx + dxr1x1, cy + dyr1, z0s[gi], lcs[gi]],
+        [cx + dxr1x0 - dyr1_z0, cy + dyr1 - dyr1_z0, z0s[gi], lcs[gi]],
+        [cx + dxr1x1 + dyr1_z0, cy + dyr1 - dyr1_z0, z0s[gi], lcs[gi]],
         [cx + dxr0x1, cy + dyr0, z1s[gi], lcs[gi]],
         [cx + dxr0x0, cy + dyr0, z1s[gi], lcs[gi]],
         [cx + dxr1x0, cy + dyr1, z1s[gi], lcs[gi]],
@@ -826,14 +846,17 @@ def axisymmetric_ny(primitives, ci, gi, gis, factory,
     r0_equal = np.allclose(r0, [r0x1, r0x0], atol=registry.point_tol, rtol=0)
     r1_equal = np.allclose(r1, [r1x1, r1x0], atol=registry.point_tol, rtol=0)
     if r1_equal and r0_equal:
-        cts = [ct0, ct0, ct1, ct1, 0, 0, 0, 0, 0, 0, 0, 0]
+        cts = [ct0, ct0, ct1, ct1, 0, 0, 0, 0,
+               0, 0, 1 if dyr1_z0 != 0 else 0, 1 if dyr1_z0 != 0 else 0]
         cd = [
             [[cx, cy, z0s[gi], lcs[gi]]],
             [[cx, cy, z1s[gi], lcs[gi]]],
             [[cx, cy, z1s[gi], lcs[gi]]],
             [[cx, cy, z0s[gi], lcs[gi]]],
             [], [], [], [],
-            [], [], [], []
+            [], [],
+            [[cx + dxr1x0 - dyr1_z0, cy + dyr1 - dyr1_z0, z1s[gi], lcs[gi]]],
+            [[cx + dxr1x1 + dyr1_z0, cy + dyr1 - dyr1_z0, z1s[gi], lcs[gi]]]
         ]
     elif r1_equal:
         cts = [ct * ct0, ct * ct0, ct1, ct1, 0, 0, 0, 0, 0, 0, 0, 0]

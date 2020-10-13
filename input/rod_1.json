@@ -1,0 +1,46 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Matrix",
+    "description": "Test Matrix type_2x"
+  },
+  "arguments": {
+    "factory": "geo",
+    "inputs": null,
+    "coordinates_type": "delta",
+    "types": ["empty",
+      "axisymmetric_x",
+      "axisymmetric_y",
+      "axisymmetric_nx",
+      "axisymmetric_ny",
+      "axisymmetric_core"],
+    "transform_data": [[-0.006, -0.006, 0]],
+    "volumes_names": ["V1"],
+    "surfaces_names": [["E1", "E1", "E1", "E1", "NZ", "Z"]],
+    "xs": [0.004, 0.004, 0.004],
+    "ys": [0.004, 0.004, 0.004],
+    "zs": [0.031],
+    "lcs": 1,
+    "txs": [11, 0, 1],
+    "tys": [11, 0, 1],
+    "tzs": [30, 0, 1],
+    "type_map": [
+      0, 4, 0,
+      3, 5, 1,
+      0, 2, 0
+    ],
+    "inputs_map": null,
+    "volumes_map": null,
+    "surfaces_map": null,
+    "recs_map": null,
+    "trans_map": null,
+    "kws": [
+      {"ct": 1, "ct0": 0, "ct1": 1, "dr1_z0": 0}
+    ],
+    "kws_map": [
+      0, 0, 0,
+      0, 0, 0,
+      0, 0, 0
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Matrix",
+    "description": "Test Matrix type_2x"
+  },
+  "arguments": {
+    "factory": "geo",
+    "inputs": [
+      "input/rod_1.json",
+      "input/rod_2.json",
+      "input/rod_3.json"
+    ],
+    "coordinates_type": "delta",
+    "types": ["external"],
+    "transform_data": null,
+    "volumes_names": null,
+    "surfaces_names": null,
+    "xs": [0],
+    "ys": [0],
+    "zs": [0.073, 0.006, 0.031],
+    "lcs": null,
+    "txs": null,
+    "tys": null,
+    "tzs": null,
+    "type_map": [
+      0, 0, 0
+    ],
+    "inputs_map": [
+      2, 1, 0
+    ],
+    "volumes_map": null,
+    "surfaces_map": null,
+    "recs_map": null,
+    "trans_map": null,
+    "kws": [
+      {"pos": ["xc", "yc", "z0"]}
+    ],
+    "kws_map": null
+  }
+}
