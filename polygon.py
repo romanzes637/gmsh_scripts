@@ -13,6 +13,7 @@ from support import check_file
 class Polygon(Complex):
     def __init__(self, factory, inputs, physical_names, reader, reader_kwargs,
                  coordinates_transform, mesh_size_coefficients):
+
         if factory == 'occ':
             factory_object = gmsh.model.occ
         else:

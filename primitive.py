@@ -8,81 +8,130 @@ import registry
 
 
 class Primitive:
+    """
+    Primitive is a basic object that topologically represents a cuboid
+    i.e. a convex polyhedron bounded by six quadrilateral faces, whose polyhedral graph is the same as that of a cube.
+
+    | Primitive has 8 points, 12 curves, 6 surfaces and 1 volume.
+    | Primitive is the only object that can be meshed in a structured mesh.
+    | Primitive can contain internal volumes, if so it cannot be meshed in a structured mesh.
+
+    | **Object structure**
+
+    | **Axes**
+    | Y
+    | Z X
+    | NX, NY and NZ are negative X, Y and Z directions
+
+    | **Points**
+    | NZ:
+    | P1 P0
+    | P2 P3
+    | Z:
+    | P5 P4
+    | P6 P7
+
+    | **Curves**
+    | X direction curves from P0 by right-hand rule:
+    | C0: P1 -> P0
+    | C1: P5 -> P4
+    | C2: P6 -> P7
+    | C3: P2 -> P3
+    | Y direction curves from P0 by right-hand rule:
+    | C4: P3 -> P0
+    | C5: P2 -> P1
+    | C6: P6 -> P5
+    | C7: P7 -> P4
+    | Z direction curves from P0 by right-hand rule:
+    | C8:  P0 -> P4
+    | C9:  P1 -> P5
+    | C10: P2 -> P6
+    | C11: P3 -> P7
+
+    | **Surfaces**
+    | NX surface
+    | S0: C5  -> C9  -> -C6 -> -C10
+    | X surface
+    | S1: -C4 -> C11 -> C7  -> -C8
+    | NY surface
+    | S2: -C3 -> C10 -> C2  -> -C11
+    | Y surface
+    | S3: C0  -> C8  -> -C1 -> -C9
+    | NZ surface
+    | S4: -C0 -> -C5 ->  C3 -> C4
+    | Z surface
+    | S5: C1  -> -C7 -> -C2 -> C6
+
+    Args:
+        factory (str): gmsh factory
+            - 'geo' - gmsh
+            - 'occ' - OpenCASCADE
+        point_data (:obj:`numpy.ndarray`, optional): could be
+            - | Coordinates of points with characteristic lengths
+              | [[P0_X, P0_Y, P0_Z, P0_LC],
+              | [[P1_X, P1_Y, P1_Z, P1_LC],
+              | ...,
+              | [P7_X, P7_Y, P7_Z, P7_LC]]
+            - | Coordinates of points
+              | [[P0_X, P0_Y, P0_Z],
+              | [[P1_X, P1_Y, P1_Z],
+              | ...,
+              | [P7_X, P7_Y, P7_Z]]
+            - | Lengths by axes with characteristic length
+              | [L_X, L_Y, L_Z, LC]
+            - | Lengths by axes
+              | [L_X, L_Y, L_Z]
+        transform_data (list of transformation, optional):
+            transformations of points,
+            where transformation is a 2-tuple of data and mask
+
+            - | [[DX, DY, DZ], [P0_M, P1_M, ..., P7_M]]
+            - | [[RDX, RDY, RDZ, RA], [P0_M, P1_M, ..., P7_M]]
+            - | [[ROX, ROY, ROZ, RDX, RDY, RDZ, RA], [P0_M, P1_M, ..., P7_M]]
+            | where:
+            - | DX, DY, DZ - displacement
+            - | ROX, ROY, ROZ - origin of rotation
+            - | RDX, RDY, RDZ - direction of rotation
+            - | RA - angle of rotation
+            - | P0_M, P1_M, ..., P7_M - masks of points (0 - do transformation, 1 - do not)
+        curve_types (list of int):
+            [C0_TYPE, C1_TYPE, ..., C11_TYPE],
+
+            | TYPE:
+            - | 0 - line,
+            - | 1 - circle,
+            - | 2 - ellipse (FIXME not implemented for occ factory),
+            - | 3 - spline,
+            - | 4 - bspline (number of curve points > 1),
+            - | 5 - bezier curve
+        curve_data (list of list of list of float):
+            [[[line1_point1_x, line1_point1_y, line1_point1_z, line1_point1_lc],
+            ...], ..., [[line_12..., ...], ...]]] or
+            [[[line1_point1_x, line1_point1_y, line1_point1_z], ...],
+            ..., [[line_12_point_1, ...], ...]]]
+        transfinite_data (list of list of float):
+            [[line1 number of nodes, type, coefficient], ..., [line12 ...]]
+            or [[x_lines number of nodes, type, coefficient], [y_lines ...],
+            [z_lines ...]]
+            types: 0 - progression, 1 - bump
+        transfinite_type (int): 0, 1, 2 or 4 determines orientation
+            of surfaces' tetrahedra at structured volume
+        volume_name (str): primitive's volumes physical name
+        inner_volumes (list of int): inner volumes,
+            no effect at 'occ' factory, if point_data is None wrap these volumes
+            as Primitive.volumes
+            surfaces_names (list of str): names of boundary surfaces in order:
+            NX, X, NY, Y, NZ, Z.
+        rec (int): Recombine Primitive?
+        trans (int): Transfinite Primitive?
+    """
+
     def __init__(self, factory, point_data=None, transform_data=None,
                  curve_types=None, curve_data=None,
                  transfinite_data=None, transfinite_type=None,
                  volume_name=None, inner_volumes=None, surfaces_names=None,
                  in_surfaces_names=None, in_surfaces_mask=None,
                  rec=None, trans=None):
-        """
-        Base object with six quadrangular surfaces and eight points
-        The object (e.g. number of its volumes/surfaces)
-        could be changed in process, if not it may be meshed to structured mesh
-        Object structure:
-        Axes:
-        Y
-        Z X
-        Points:
-        Top Z:
-        P5 P4
-        P6 P7
-        Bottom Z:
-        P1 P0
-        P2 P3
-        Curves:
-        L0: P1 -> P0  L1: P5 -> P4  L2: P6  -> P7   L3: P2 -> P3
-        (X direction curves from P0 by right-hand rule)
-        L4: P3 -> P0  L5: P2 -> P1  L6: P6  -> P5   L7: P7 -> P4
-        (Y direction curves from P0 by right-hand rule)
-        L8: P0 -> P4  L9: P1 -> P5  L10: P2 -> P6  L11: P3 -> P7
-        (Z direction curves from P0 by right-hand rule)
-        Surfaces:
-        S0: L5  -> L9  -> -L6 -> -L10 (NX surface)
-        S1: -L4 -> L11 -> L7  -> -L8  (X surface)
-        S2: -L3 -> L10 -> L2  -> -L11 (NY surface)
-        S3: L0  -> L8  -> -L1 -> -L9  (Y surface)
-        S4: -L0 -> -L5 ->  L3 -> L4   (NZ surface)
-        S5: L1  -> -L7 -> -L2 -> L6   (Z surface)
-        :param str factory: gmsh factory (currently: 'geo' or 'occ')
-        :param list of list of float point_data:
-        [[point1_x, point1_y, point1_z, point1_lc], ...,
-        [point8_x, point8_y, point8_z, point8_lc]] or
-        [[point1_x, point1_y, point1_z], ...,
-        [point8_x, point8_y, point8_z]] or
-        [length_x, length_y, length_z, lc] or
-        [length_x, length_y, length_z]
-        :param list transform_data:
-        list of transformations: [transformation, transformation, ...]
-        where transformation is
-        [[displacement x, y, z], [mask]] or
-        [[rotation direction x, y, z, rot. angle], [mask]] or
-        [[rot. origin x, y, z, rot. direction x, y, z, rot. angle], [mask]]
-        :param list of int curve_types:
-        [line1_type, line2_type, ..., line12_type],
-        types: 0 - line, 1 - circle, 2 - ellipse
-        (FIXME not implemented for occ factory),
-        3 - spline, 4 - bspline (number of curve points > 1), 5 - bezier curve
-        :param list of list of list of float curve_data:
-        [[[line1_point1_x, line1_point1_y, line1_point1_z, line1_point1_lc],
-        ...], ..., [[line_12..., ...], ...]]] or
-        [[[line1_point1_x, line1_point1_y, line1_point1_z], ...],
-        ..., [[line_12_point_1, ...], ...]]]
-        :param list of list of float transfinite_data:
-        [[line1 number of nodes, type, coefficient], ..., [line12 ...]]
-        or [[x_lines number of nodes, type, coefficient], [y_lines ...],
-        [z_lines ...]]
-        types: 0 - progression, 1 - bump
-        :param int transfinite_type: 0, 1, 2 or 4 determines orientation
-        of surfaces' tetrahedra at structured volume
-        :param str volume_name: primitive's volumes physical name
-        :param list of int inner_volumes: inner volumes,
-        no effect at 'occ' factory, if point_data is None wrap these volumes
-        as Primitive.volumes
-        :param list of str surfaces_names: names of boundary surfaces in order:
-        NX, X, NY, Y, NZ, Z.
-        :param int rec: Recombine Primitive?
-        :param int trans: Transfinite Primitive?
-        """
         if factory == 'occ':
             self.factory = gmsh.model.occ
         else:

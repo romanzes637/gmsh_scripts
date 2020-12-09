@@ -1,4 +1,5 @@
-"""Multivariate launch of gmsh scripts.
+"""
+Multivariate launch of gmsh scripts.
     Positional arguments:
         input filename
     Keyword arguments:
