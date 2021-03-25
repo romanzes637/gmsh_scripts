@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "ComplexPrimitive",
+    "description": "Complex Primitive 1x1x1"
+  },
+  "arguments": {
+    "factory": "geo",
+    "point_data": [1, 1, 1],
+    "transform_data": [[0, 0, 0]],
+    "curve_types": null,
+    "curve_data": null,
+    "transfinite_data": [
+      [2, 1, 1],
+      [2, 1, 1],
+      [2, 1, 1]
+    ],
+    "transfinite_type": null,
+    "surfaces_names": ["NX_Left", "X_Right", "NY_Back", "Y_Forward", "NZ_Bottom",
+    "Z_Top"]
+  }
+}
