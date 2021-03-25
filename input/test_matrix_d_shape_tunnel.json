@@ -1,0 +1,45 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Matrix",
+    "description": "Test Matrix D-shape"
+  },
+  "arguments": {
+    "factory": "geo",
+    "inputs": ["input/test_matrix_d_shape_arc_tunnel.json"],
+    "coordinates_type": "delta",
+    "types": ["empty", "primitive", "external"],
+    "transform_data": null,
+    "volumes_names": null,
+    "surfaces_names": [
+      ["NX", "X", "NY", "Y", "NZ", "Z"],
+      ["NX", "X", "NY", "Y", "NZ", "Internal"],
+      ["NX", "X", "NY", "Internal", "NZ", "Z"],
+      ["NX", "X", "Internal", "Y", "NZ", "Z"],
+      ["NX", "X", "NY", "Y", "Internal", "Z"]
+    ],
+    "xs": [30],
+    "ys": [15.000, 6.000, 15.000],
+    "zs": [15.000, 5.250, 18.000],
+    "lcs": 1,
+    "txs": [41, 1, 1],
+    "tys": [[11, 1, 1], [24, 1, 1], [11, 1, 1]],
+    "tzs": [[11, 1, 1], [11, 1, 1], [11, 1, 1]],
+    "type_map": [
+      1, 1, 1,
+      1, 0, 1,
+      2, 0, 0
+    ],
+    "inputs_map": null,
+    "volumes_map": null,
+    "surfaces_map": [
+      0, 1, 0,
+      2, 0, 3,
+      0, 0, 0
+    ],
+    "recs_map": null,
+    "trans_map": null,
+    "kws": {"pos": ["x0", "y0", "z0"]},
+    "kws_map": null
+  }
+}

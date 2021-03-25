@@ -33,16 +33,16 @@ class Experiment(Complex):
         t.evaluate_bounding_box()
         print('Boolean')
         # Environment by Tunnel
-        complex_by_complex(
-            factory_object, e, t,
-            sort_function=sort_object_no_shared_no_tool_no_shared)
-        primitives = list()
-        primitives.extend(e.primitives)
-        # Boreholes
-        for i in inputs[1:-1]:
-            result = check_file(i)
-            with open(result['path']) as f:
-                input_data = json.load(f)
-            c = ComplexFactory.new(input_data)
-            primitives.extend(c.primitives)
+        # complex_by_complex(
+        #     factory_object, e, t,
+        #     sort_function=sort_object_no_shared_no_tool_no_shared)
+        # primitives = list()
+        # primitives.extend(e.primitives)
+        # # Boreholes
+        # for i in inputs[1:-1]:
+        #     result = check_file(i)
+        #     with open(result['path']) as f:
+        #         input_data = json.load(f)
+        #     c = ComplexFactory.new(input_data)
+        #     primitives.extend(c.primitives)
         Complex.__init__(self, factory, primitives)

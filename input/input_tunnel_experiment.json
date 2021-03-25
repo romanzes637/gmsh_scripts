@@ -6,7 +6,7 @@
   },
   "arguments": {
     "factory": "occ",
-    "transform_data": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "transform_data": null,
     "tunnel_type": 1,
     "args": [30, 6, 6, 0.5, 0, 0.5],
     "string_args": ["Tunnel"],

@@ -1,19 +1,21 @@
 {
   "metadata": {
     "type": "class_arguments",
-    "class_name": "DividedCylinder",
+    "class_name": "Cylinder",
     "description": "Borehole for experiment with 1 material: Radioactive Waste (RW)"
   },
   "arguments": {
     "factory": "occ",
-    "radii": [0.650],
+    "radii_x": [0.650],
+    "radii_y": [0.650],
     "heights": [5],
     "layers_lcs": [
       [1]
     ],
-    "transform_data": [-2, 0, -8, 0, 0, 0, 0, 0, 0],
-    "layers_physical_names": [
-      ["RW"]
+    "volumes_names": ["RW"],
+    "transform_data": [[5, 18, 10]],
+    "layers_volumes_names": [
+      [0]
     ],
     "transfinite_r_data": [
       [5, 0, 1]
@@ -21,8 +23,6 @@
     "transfinite_h_data": [
       [34, 0, 1]
     ],
-    "transfinite_phi_data": [5, 0, 1],
-    "divide_r_data": [1],
-    "divide_h_data": [1]
+    "transfinite_phi_data": [5, 0, 1]
   }
 }
