@@ -23,7 +23,7 @@ class Matrix(Complex):
                  transforms=None, transforms_map=None,
                  inputs=None, inputs_map=None,
                  kws=None, kws_map=None,
-                 recs_map=None, trans_map=None):
+                 recs_map=None, trans_map=None, trans_type_map=None):
         """
         Primitives, Complexes and Complex descendants
         as items of 3D matrix structure
@@ -156,6 +156,8 @@ class Matrix(Complex):
             recs_map = [recs_map for _ in range(ni)]
         if trans_map is None:
             trans_map = [1 for _ in range(ni)]
+        if trans_type_map is None:
+            trans_type_map = [0 for _ in range(ni)]
         elif not isinstance(trans_map, list):
             trans_map = [trans_map for _ in range(ni)]
         inputs_datas = []
@@ -214,7 +216,7 @@ def primitive(primitives, ci, gi, factory,
               transforms, transforms_map,
               in_surfaces_names, in_surfaces_map,
               in_surfaces_masks, in_surfaces_masks_map,
-              recs_map, trans_map, transform_data, **kwargs):
+              recs_map, trans_map, trans_type_map, transform_data, **kwargs):
     i, j, k = ci
     primitives.append(Primitive(
         factory=factory,
@@ -235,7 +237,8 @@ def primitive(primitives, ci, gi, factory,
         in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
         in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
         rec=recs_map[gi],
-        trans=trans_map[gi]
+        trans=trans_map[gi],
+        transfinite_type=trans_type_map[gi],
     ))
 
 
@@ -413,7 +416,7 @@ def axisymmetric_core(primitives, ci, gi, gis, factory,
         curve_types=cts,
         curve_data=cd,
         transfinite_data=[txs[i], tys[j], tzs[k]],
-        transfinite_type=1,
+        transfinite_type=2,
         volume_name=volumes_names[volumes_map[gi]],
         surfaces_names=surfaces_names[surfaces_map[gi]],
         in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
@@ -711,7 +714,6 @@ def axisymmetric_nx(primitives, ci, gi, gis, factory,
         dyr1y0 = -r1y0
         dyr0y1 = r0y1
         dyr0y0 = -r0y0
-    print(dxr1)
     pd = [
         [cx + dxr0, cy + dyr0y1, z0s[gi], lcs[gi]],
         [cx + dxr1 - dxr1_z0, cy + dyr1y1 + dxr1_z0, z0s[gi], lcs[gi]],
@@ -775,7 +777,7 @@ def axisymmetric_nx(primitives, ci, gi, gis, factory,
         curve_types=cts,
         curve_data=cd,
         transfinite_data=[txs[i], tys[j], tzs[k]],
-        transfinite_type=3,
+        transfinite_type=2,
         volume_name=volumes_names[volumes_map[gi]],
         surfaces_names=surfaces_names[surfaces_map[gi]],
         in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
@@ -894,7 +896,7 @@ def axisymmetric_ny(primitives, ci, gi, gis, factory,
         curve_types=cts,
         curve_data=cd,
         transfinite_data=[txs[i], tys[j], tzs[k]],
-        transfinite_type=1,
+        transfinite_type=2,
         volume_name=volumes_names[volumes_map[gi]],
         surfaces_names=surfaces_names[surfaces_map[gi]],
         in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
@@ -910,7 +912,8 @@ def curved_nz(primitives, ci, gi, gis, factory,
               transforms, transforms_map,
               in_surfaces_names, in_surfaces_map,
               in_surfaces_masks, in_surfaces_masks_map, xs, ys, zs,
-              recs_map, trans_map, transform_data, kws, kws_map, **kwargs):
+              recs_map, trans_map, trans_type_map, transform_data, kws, kws_map,
+              **kwargs):
     i, j, k = ci
     cxi, cyj = len(xs) // 2, len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2
@@ -948,7 +951,8 @@ def curved_nz(primitives, ci, gi, gis, factory,
         in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
         in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
         rec=recs_map[gi],
-        trans=trans_map[gi]
+        trans=trans_map[gi],
+        transfinite_type=trans_type_map[gi],
     ))
 
 
@@ -958,7 +962,8 @@ def curved_nz_right(primitives, ci, gi, gis, factory,
               transforms, transforms_map,
               in_surfaces_names, in_surfaces_map,
               in_surfaces_masks, in_surfaces_masks_map, xs, ys, zs,
-              recs_map, trans_map, transform_data, kws, kws_map, **kwargs):
+              recs_map, trans_map, trans_type_map, transform_data, kws, kws_map,
+              **kwargs):
     i, j, k = ci
     cxi, cyj = len(xs) // 2, len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2
@@ -998,8 +1003,10 @@ def curved_nz_right(primitives, ci, gi, gis, factory,
         in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
         in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
         rec=recs_map[gi],
-        trans=trans_map[gi]
+        trans=trans_map[gi],
+        transfinite_type=trans_type_map[gi],
     ))
+
 
 def curved_y_left(primitives, ci, gi, gis, factory,
               x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
@@ -1007,7 +1014,8 @@ def curved_y_left(primitives, ci, gi, gis, factory,
               transforms, transforms_map,
               in_surfaces_names, in_surfaces_map,
               in_surfaces_masks, in_surfaces_masks_map, xs, ys, zs,
-              recs_map, trans_map, transform_data, kws, kws_map, **kwargs):
+              recs_map, trans_map, trans_type_map, transform_data, kws, kws_map,
+              **kwargs):
     i, j, k = ci
     cxi, cyj = len(xs) // 2, len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2
@@ -1050,13 +1058,15 @@ def curved_y_left(primitives, ci, gi, gis, factory,
         trans=trans_map[gi]
     ))
 
+
 def curved_nz_left(primitives, ci, gi, gis, factory,
               x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
               volumes_names, volumes_map, surfaces_names, surfaces_map,
               transforms, transforms_map,
               in_surfaces_names, in_surfaces_map,
               in_surfaces_masks, in_surfaces_masks_map, xs, ys, zs,
-              recs_map, trans_map, transform_data, kws, kws_map, **kwargs):
+              recs_map, trans_map, trans_type_map, transform_data, kws, kws_map,
+              **kwargs):
     i, j, k = ci
     cxi, cyj = len(xs) // 2, len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2
@@ -1096,7 +1106,8 @@ def curved_nz_left(primitives, ci, gi, gis, factory,
         in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
         in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
         rec=recs_map[gi],
-        trans=trans_map[gi]
+        trans=trans_map[gi],
+        transfinite_type=trans_type_map[gi],
     ))
 
 
@@ -1106,7 +1117,8 @@ def curved_ny_right(primitives, ci, gi, gis, factory,
               transforms, transforms_map,
               in_surfaces_names, in_surfaces_map,
               in_surfaces_masks, in_surfaces_masks_map, xs, ys, zs,
-              recs_map, trans_map, transform_data, kws, kws_map, **kwargs):
+              recs_map, trans_map, trans_type_map, transform_data, kws, kws_map,
+              **kwargs):
     i, j, k = ci
     cxi, cyj = len(xs) // 2, len(ys) // 2
     cx = sum(xs[:cxi]) + xs[cxi] / 2
@@ -1146,7 +1158,8 @@ def curved_ny_right(primitives, ci, gi, gis, factory,
         in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
         in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
         rec=recs_map[gi],
-        trans=trans_map[gi]
+        trans=trans_map[gi],
+        transfinite_type=trans_type_map[gi],
     ))
 
 

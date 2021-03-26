@@ -515,7 +515,7 @@ class Primitive:
                     if transfinite_surface_data is not None:
                         for i, s in enumerate(self.surfaces):
                             if s not in transfinited_surfaces:
-                                transfinite_type = self.transfinite_data[i][1]
+                                transfinite_type = transfinite_surface_data[i]
                                 # # FIXME Workaround for GEO factory
                                 # if self.factory != gmsh.model.geo:
                                 #     transfinite_type = transfinite_surface_data[

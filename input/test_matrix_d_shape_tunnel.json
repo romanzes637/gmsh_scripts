@@ -39,6 +39,11 @@
     ],
     "recs_map": null,
     "trans_map": null,
+    "trans_type_map": [
+      0, 0, 1,
+      0, 0, 1,
+      0, 0, 0
+    ],
     "kws": {"pos": ["x0", "y0", "z0"]},
     "kws_map": null
   }

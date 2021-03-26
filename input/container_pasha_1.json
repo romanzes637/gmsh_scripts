@@ -7,7 +7,7 @@
   "arguments": {
     "factory": "geo",
     "k": 0.3,
-    "ct": 1,
+    "ct": 3,
     "ct0s": [0, 1],
     "ct1s": [1, 1],
     "radii_x": [0.167, 0.170],
@@ -20,21 +20,27 @@
       [0, 1],
       [1, 1]
     ],
-    "surfaces_names": null,
-    "layers_surfaces_names": null,
+    "surfaces_names": [
+      ["Internal", "External", "Bottom", "Top"]
+    ],
+    "layers_surfaces_names": [
+      [0, 0],
+      [0, 0],
+      [0, 0]
+    ],
     "in_surfaces_names": null,
     "layers_in_surfaces_names": null,
     "in_surfaces_masks": null,
     "layers_in_surfaces_masks": null,
     "transfinite_h_data": [
-      [3, 0, 1],
+      [5, 0, 1],
       [30, 0, 1],
-      [3, 0, 1]
+      [5, 0, 1]
     ],
     "transfinite_phi_data": [10, 0, 1],
     "transfinite_r_data": [
       [10, 0, 1],
-      [3, 0, 1]
+      [5, 0, 1]
     ],
     "transform_data": null,
     "layers_recs": 1,
