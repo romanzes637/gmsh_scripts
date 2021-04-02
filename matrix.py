@@ -956,6 +956,56 @@ def curved_nz(primitives, ci, gi, gis, factory,
     ))
 
 
+def curved_z(primitives, ci, gi, gis, factory,
+             x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
+             volumes_names, volumes_map, surfaces_names, surfaces_map,
+             transforms, transforms_map,
+             in_surfaces_names, in_surfaces_map,
+             in_surfaces_masks, in_surfaces_masks_map, xs, ys, zs,
+             recs_map, trans_map, trans_type_map, transform_data, kws, kws_map,
+             **kwargs):
+    i, j, k = ci
+    cxi, cyj = len(xs) // 2, len(ys) // 2
+    cx = sum(xs[:cxi]) + xs[cxi] / 2
+    cy = sum(ys[:cyj]) + ys[cyj] / 2
+    # gix0, gix1 = gis[(i - (cyj - j), j, k)], gis[(i + (cyj - j), j, k)]
+    r = kws[kws_map[gi]].get('r', 1)
+    ct = kws[kws_map[gi]].get('ct', 3)
+    cts = [0, 0, 0, 0, 0, 0, ct, ct, 0, 0, 0, 0]
+    cd = [
+        [], [], [], [],
+        [],
+        [],
+        [[x0s[gi], cy, z1s[gi] + r, lcs[gi]]],
+        [[x1s[gi], cy, z1s[gi] + r, lcs[gi]]],
+        [], [], [], []
+    ]
+    primitives.append(Primitive(
+        factory=factory,
+        point_data=[
+            [x1s[gi], y1s[gi], z0s[gi], lcs[gi]],
+            [x0s[gi], y1s[gi], z0s[gi], lcs[gi]],
+            [x0s[gi], y0s[gi], z0s[gi], lcs[gi]],
+            [x1s[gi], y0s[gi], z0s[gi], lcs[gi]],
+            [x1s[gi], y1s[gi], z1s[gi], lcs[gi]],
+            [x0s[gi], y1s[gi], z1s[gi], lcs[gi]],
+            [x0s[gi], y0s[gi], z1s[gi], lcs[gi]],
+            [x1s[gi], y0s[gi], z1s[gi], lcs[gi]],
+        ],
+        curve_types=cts,
+        curve_data=cd,
+        transform_data=transform_data + transforms[transforms_map[gi]],
+        transfinite_data=[txs[i], tys[j], tzs[k]],
+        volume_name=volumes_names[volumes_map[gi]],
+        surfaces_names=surfaces_names[surfaces_map[gi]],
+        in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
+        in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
+        rec=recs_map[gi],
+        trans=trans_map[gi],
+        transfinite_type=trans_type_map[gi],
+    ))
+
+
 def curved_nz_right(primitives, ci, gi, gis, factory,
               x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs, tys, tzs,
               volumes_names, volumes_map, surfaces_names, surfaces_map,

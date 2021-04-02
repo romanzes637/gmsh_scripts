@@ -120,7 +120,7 @@ class Primitive:
         inner_volumes (list of int): inner volumes,
             no effect at 'occ' factory, if point_data is None wrap these volumes
             as Primitive.volumes
-            surfaces_names (list of str): names of boundary surfaces in order:
+        surfaces_names (list of str): names of boundary surfaces in order:
             NX, X, NY, Y, NZ, Z.
         rec (int): Recombine Primitive?
         trans (int): Transfinite Primitive?
