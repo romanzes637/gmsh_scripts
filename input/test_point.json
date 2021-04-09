@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Point",
+    "description": "Test Point"
+  },
+  "arguments": {
+    "factory": "geo",
+    "coordinate_system": null,
+    "transform_data": null,
+    "coordinates": null,
+    "inputs": null,
+    "inputs_map": null,
+    "transforms": null,
+    "transforms_map": null
+  }
+}

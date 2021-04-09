@@ -17,6 +17,7 @@ import regular_matrix
 import regular_bound_matrix
 import polygon
 import tunnel
+import point
 from boolean import complex_self
 from support import boundary_surfaces_to_six_side_groups, \
     get_boundary_surfaces, check_file, physical_surfaces, \
@@ -45,6 +46,7 @@ class ComplexFactory:
             tunnel, tunnel.Tunnel.__name__),
         experiment.Experiment.__name__: getattr(
             experiment, experiment.Experiment.__name__),
+        point.Point.__name__: getattr(point, point.Point.__name__),
     }
 
     def __init__(self):

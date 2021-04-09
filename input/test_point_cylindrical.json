@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Point",
+    "description": "Test Point"
+  },
+  "arguments": {
+    "factory": "geo",
+    "coordinate_system": "cylindrical",
+    "transform_data": null,
+    "coordinates": [
+      [0, 0, 0],
+      [5, 0, 0], [5, 90, 0], [5, 180, 0], [5, 270, 0],
+      [5, 0, 5], [5, 90, 5], [5, 180, 5], [5, 270, 5]
+    ],
+    "inputs": ["input/test_complex_primitive.json"],
+    "inputs_map": null,
+    "transforms": null,
+    "transforms_map": null
+  }
+}
