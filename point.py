@@ -35,21 +35,19 @@ class Point(Complex):
         transform_data = [] if transform_data is None else transform_data
         coordinates = [] if coordinates is None else coordinates
         coordinates = np.array(coordinates)
-        print(coordinates)
+        # print(coordinates)
         if coordinate_system == 'cylindrical':
             coordinates = np.apply_along_axis(
                 cylindrical_to_cartesian, 1, coordinates)
         elif coordinate_system == 'spherical':
             coordinates = np.apply_along_axis(
                 spherical_to_cartesian, 1, coordinates)
-        print(coordinates)
+        # print(coordinates)
         inputs = [] if inputs is None else inputs
         if inputs_map is None:  # default
             inputs_map = [0 for _ in coordinates]
         elif isinstance(inputs_map, int):  # int to list
             inputs_map = [inputs_map for _ in coordinates]
-        else:
-            raise ValueError(inputs_map)
         transforms = [[]] if transforms is None else transforms
         if transforms_map is None:  # default
             transforms_map = [0 for _ in coordinates]
@@ -63,7 +61,7 @@ class Point(Complex):
             with open(result['path']) as f:
                 d = json.load(f)
             inputs_datas.append(d)
-
+        # Process
         primitives = []
         for i, c in enumerate(coordinates):
             input_data = copy.deepcopy(inputs_datas[inputs_map[i]])
@@ -72,7 +70,7 @@ class Point(Complex):
             # print(xcs[gi], ycs[gi], z0s[gi])
             input_data['arguments']['transform_data'].extend([c])
             input_data['arguments']['transform_data'].extend(transform_data)
-            print(input_data['arguments']['transform_data'])
+            # print(input_data['arguments']['transform_data'])
             input_data['arguments']['factory'] = factory
             from complex_factory import ComplexFactory
             c = ComplexFactory.new(input_data)

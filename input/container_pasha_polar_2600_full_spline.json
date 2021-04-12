@@ -1,0 +1,38 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Matrix",
+    "description": "Test Matrix. With curve type 3 (spline)"
+  },
+  "arguments": {
+    "factory": "geo",
+    "inputs": [
+      "input/container_pasha_polar_2600.json",
+      "input/container_pasha_polar_2600_n.json"],
+    "types": ["primitive", "complex_in_primitive"],
+    "transform_data": null,
+    "curve_types": [[3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0]],
+    "curve_data": [
+      [[[0.5, 1.20710678, 0]], [[0.5, 1.20710678, 1.0]],
+        [[0.5, -0.20710678, 1.0]], [[0.5, -0.20710678, 0]],
+        [[1.20710678, 0.5, 0]], [[-0.20710678, 0.5, 0]],
+        [[-0.20710678, 0.5, 1.0]], [[1.20710678, 0.5, 1.0]],
+        [], [], [], []]
+    ],
+    "curve_data_coord_sys": ["local"],
+    "surfaces_names": null,
+    "surfaces_map": null,
+    "coordinates_type": "direct",
+    "volumes_names": null,
+    "xs": [-0.91923882, 0.91923882],
+    "ys": [-0.91923882, 0.91923882],
+    "zs": [0.000, 10.700],
+    "lcs": 0.2,
+    "txs": [10, 0, 1],
+    "tys": [10, 0, 1],
+    "tzs": [10, 0, 1],
+    "type_map": 1,
+    "inputs_map": 1,
+    "volumes_map": null
+  }
+}

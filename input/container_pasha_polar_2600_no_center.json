@@ -1,0 +1,24 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Point",
+    "description": "Polar configuration of container"
+  },
+  "arguments": {
+    "factory": "geo",
+    "coordinate_system": "cylindrical",
+    "transform_data": null,
+    "coordinates": [
+      [1.045, 0, 0],  [1.045, 40, 0], [1.045, 80, 0],
+      [1.045, 120, 0], [1.045, 160, 0], [1.045, 200, 0],
+      [1.045, 240, 0], [1.045, 280, 0], [1.045, 320, 0],
+      [0.65, 20, 0],  [0.65, 60, 0], [0.65, 100, 0],
+      [0.65, 140, 0], [0.65, 180, 0], [0.65, 220, 0],
+      [0.65, 260, 0], [0.65, 300, 0], [0.65, 340, 0]
+    ],
+    "inputs": ["input/container_pasha_rw.json"],
+    "inputs_map": null,
+    "transforms": null,
+    "transforms_map": null
+  }
+}
