@@ -1,0 +1,31 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Matrix",
+    "description": "Intermediate object that contains the small and is in the big object"
+  },
+  "arguments": {
+    "factory": "geo",
+    "inputs": [
+      "input/test_matrix_complex_in_primitive_small.json",
+      "input/test_matrix_complex_in_primitive_small2.json"
+    ],
+    "inputs_transforms": [[0.5, 0.5, 0.5]],
+    "types": ["complex_in_primitive", "primitive", "empty"],
+    "transform_data": null,
+    "surfaces_names": null,
+    "surfaces_map": null,
+    "coordinates_type": "direct",
+    "volumes_names": ["Intermediate"],
+    "xs": [-4, 0, 2, 4],
+    "ys": [-2, 2],
+    "zs": [-2, 2],
+    "lcs": null,
+    "txs": null,
+    "tys": null,
+    "tzs": null,
+    "type_map": [0, 2, 1],
+    "inputs_map": 1,
+    "volumes_map": null
+  }
+}

@@ -237,7 +237,7 @@ class Primitive:
             # t0 = time.time()
             for td in transform_data:
                 d, m = td
-                mask = np.array([[x for _ in range(point_data.shape[1] - 1)]
+                mask = np.array([[x for _ in range(3)]
                                  for x in m], dtype=int)
                 point_data[:, :3] = transform(point_data[:, :3], d, mask)
             for d in point_data:
@@ -263,7 +263,7 @@ class Primitive:
                     if len(curve_data[i]) > 0:
                         lps = self.curves_local_points[i]
                         mask = np.array([[m[lps[0]] * m[lps[1]]
-                             for _ in range(curve_data[i].shape[1] - 1)]
+                             for _ in range(3)]
                              for _ in range(curve_data[i].shape[0])], dtype=int)
                         curve_data[i][:, :3] = transform(curve_data[i][:, :3],
                                                          d, mask)
@@ -376,34 +376,35 @@ class Primitive:
             # Volume
             # t0 = time.time()
             if inner_volumes is None:
-                # gs = volumes_groups_surfaces_registry(list(registry.volumes),
-                #                                       registry.volumes)
-                # print(gs)
-                # print(len(gs))
-                # FIXME always return tag = -1
-                tag = self.factory.addSurfaceLoop(self.surfaces)
-                tag = self.factory.addVolume([tag])
+                # FIXME bug always return surface loop tag = -1
+                # Workaround with registry surface_loop_tag
+                if self.factory == gmsh.model.occ:
+                    registry.surface_loop_tag += 1
+                    sl_tag = self.factory.addSurfaceLoop(
+                        self.surfaces, registry.surface_loop_tag)
+                else:
+                    sl_tag = self.factory.addSurfaceLoop(self.surfaces)
+                tag = self.factory.addVolume([sl_tag])
                 registry.volumes[tag] = self.surfaces
             else:
-                # gs = volumes_groups_surfaces(inner_volumes)
                 gs = volumes_groups_surfaces_registry(inner_volumes,
                                                       registry.volumes)
                 if self.factory == gmsh.model.occ:
-                    # FIXME bug always return tag = -1 by default
-                    out_sl = self.factory.addSurfaceLoop(self.surfaces, 1)
-                    in_sls = list()
-                    for i, g in enumerate(gs):
-                        # FIXME bug always return tag = -1 by default
-                        in_sls.append(self.factory.addSurfaceLoop(g, 2 + i))
+                    # FIXME bug always return surface loop tag = -1
+                    # Workaround with registry surface_loop_tag
+                    registry.surface_loop_tag += 1
+                    out_sl = self.factory.addSurfaceLoop(
+                        self.surfaces, registry.surface_loop_tag)
+                    in_sls = []
+                    for g in gs:
+                        registry.surface_loop_tag += 1
+                        in_sls.append(self.factory.addSurfaceLoop(
+                            g, registry.surface_loop_tag))
                 else:
                     out_sl = self.factory.addSurfaceLoop(self.surfaces)
-                    flatten_in_sls = list(itertools.chain.from_iterable(gs))
-                    in_sls = [self.factory.addSurfaceLoop(flatten_in_sls)]
-                sls = list()
-                sls.append(out_sl)
-                sls += in_sls
-                tag = self.factory.addVolume(sls)
-                registry.volumes[tag] = sls
+                    in_sls = [self.factory.addSurfaceLoop(x) for x in gs]
+                tag = self.factory.addVolume([out_sl] + in_sls)
+                registry.volumes[tag] = self.surfaces + list(itertools.chain.from_iterable(gs))
             self.volumes.append(tag)
             # print(f'volumes: {time.time() - t0}')
         else:

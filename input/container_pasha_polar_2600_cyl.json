@@ -1,0 +1,39 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Matrix",
+    "description": "Test Matrix. Bug GEO with lcs < 0.95. Bug GEO with curve_types"
+  },
+  "arguments": {
+    "factory": "geo",
+    "inputs": [
+      "input/container_pasha_polar_2600_cyl_i.json",
+      "input/container_pasha_polar_2600_cyl_n.json"],
+    "inputs_transforms": [[0.5, 0.5, 0]],
+    "types": ["primitive", "complex_in_primitive"],
+    "transform_data": null,
+    "curve_types": [[1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0]],
+    "curve_data": [
+      [[[0.5, 0.5, 0]], [[0.5, 0.5, 1.0]], [[0.5, 0.5, 1.0]], [[0.5, 0.5, 0]],
+        [[0.5, 0.5, 0]], [[0.5, 0.5, 0]], [[0.5, 0.5, 1.0]], [[0.5, 0.5, 1.0]],
+        [], [], [], []]
+    ],
+    "curve_data_coord_sys": ["local"],
+    "surfaces_names": [["External", "External", "External", "External",
+      "Bottom", "Top"]],
+    "coordinates_type": "direct",
+    "volumes_names": ["EBS"],
+    "xs": [-0.85913473, 0.85913473],
+    "ys": [-0.85913473, 0.85913473],
+    "zs": [-2.515, 2.515],
+    "lcs": 0.05,
+    "txs": [10, 0, 1],
+    "tys": [10, 0, 1],
+    "tzs": [10, 0, 1],
+    "type_map": 1,
+    "inputs_map": 1,
+    "inputs_transforms_map": 0,
+    "volumes_map": null,
+    "surfaces_map": 0
+  }
+}

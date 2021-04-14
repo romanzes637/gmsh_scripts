@@ -8,10 +8,10 @@ from support import check_file
 
 
 class Point(Complex):
-    def __init__(self, factory, coordinate_system,
-                 transform_data, coordinates,
-                 inputs, inputs_map,
-                 transforms, transforms_map):
+    def __init__(self, factory, coordinate_system=None,
+                 transform_data=None, coordinates=None,
+                 inputs=None, inputs_map=None,
+                 transforms=None, transforms_map=None):
         """
         Placing Complexes by coordinates in cylindrical coordinate system
         coordinate_system (str): cartesian, cylindrical, spherical
@@ -30,7 +30,6 @@ class Point(Complex):
             factory_object = gmsh.model.geo
         else:
             raise ValueError(factory)
-
         coordinate_system = 'cartesian' if coordinate_system is None else coordinate_system
         transform_data = [] if transform_data is None else transform_data
         coordinates = [] if coordinates is None else coordinates
