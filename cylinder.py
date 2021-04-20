@@ -30,9 +30,10 @@ class Cylinder(Matrix):
         ('Y', 19): [18, 18, 3, 7, 16, 17],  # INX IX INY IY ENX EX ENY EY BC TC BNX TNX BX TX BNY TNY BY TY, I
     }
 
-    def __init__(self, factory, radii_x, radii_y, heights,
-                 layers_lcs, transform_data,
-                 transfinite_r_data, transfinite_h_data, transfinite_phi_data,
+    def __init__(self, factory, heights, radii_x=None, radii_y=None, radii=None,
+                 layers_lcs=None, transform_data=None,
+                 transfinite_r_data=None, transfinite_h_data=None,
+                 transfinite_phi_data=None,
                  volumes_names=None, layers_volumes_names=None,
                  surfaces_names=None, layers_surfaces_names=None,
                  in_surfaces_names=None, layers_in_surfaces_names=None,
@@ -55,6 +56,8 @@ class Cylinder(Matrix):
         :param list of float radii_x: layers outer radii by X [r1, r2, ..., rN]
         :param list of float radii_y: layers outer radii by Y [r1, r2, ..., rN]
         :param list of float heights: layers heights [h1, h2, ..., hM]
+        :param list of float radii: layers outer radii [r1, r2, ..., rN]
+        used if radii_x and radii_y is None
         :param list of list of float layers_lcs: characteristic lengths
         of layers
         [[h1_r1, h1_r2, ..., h1_rN], [h2_r1, h2_r2, ..., h2_rN], ...,
@@ -87,19 +90,38 @@ class Cylinder(Matrix):
         :param list of int ct1s: curve or straight line for outer radius? 1 - yes, 0 - no
         :return None
         """
+        if radii is not None:
+            radii_x = radii_y = radii
+        if radii_x is None:
+            radii_x = [1]
+        if radii_y is None:
+            radii_y = [1]
         nr = len(radii_x)
-        if transform_data is None:
-            transform_data = []
-        if ct is None:
-            ct = 3
-        if ct0s is None:
-            ct0s = [1 if i != 0 else 0 for i in range(nr)]
-        if ct1s is None:
-            ct1s = [1 for _ in range(nr)]
         if layers_lcs is None:
             layers_lcs = [[1 for _ in range(nr)] for _ in heights]
         elif not isinstance(layers_lcs, list):
             layers_lcs = [[layers_lcs for _ in range(nr)] for _ in heights]
+        if transform_data is None:
+            transform_data = []
+        # transfinite
+        if transfinite_r_data is None:
+            transfinite_r_data = [[3, 0, 1] for _ in range(nr)]
+        elif isinstance(transfinite_r_data, list) \
+                and not isinstance(transfinite_r_data[0], list):
+            transfinite_r_data = [transfinite_r_data for _ in range(nr)]
+        if transfinite_h_data is None:
+            transfinite_h_data = [[3, 0, 1] for _ in heights]
+        elif isinstance(transfinite_h_data, list) \
+                and not isinstance(transfinite_h_data[0], list):
+            transfinite_h_data = [transfinite_h_data for _ in heights]
+        if transfinite_phi_data is None:
+            transfinite_phi_data = [3, 0, 1]
+        if ct is None:
+            ct = 1
+        if ct0s is None:
+            ct0s = [1 if i != 0 else 0 for i in range(nr)]
+        if ct1s is None:
+            ct1s = [1 for _ in range(nr)]
         if layers_recs is None:
             layers_recs = [[1 for _ in range(nr)] for _ in heights]
         elif not isinstance(layers_recs, list):
@@ -119,7 +141,7 @@ class Cylinder(Matrix):
         elif not isinstance(layers_in_surfaces_masks, list):
             layers_in_surfaces_masks = [[layers_in_surfaces_masks for _ in range(nr)] for _ in heights]
         if k is None:
-            k = 0.5
+            k = 0.3
         if volumes_names is None:
             volumes_names = ['V']
         if layers_volumes_names is None:
