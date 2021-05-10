@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Cylinder",
+    "description": "Test Cylinder simple"
+  },
+  "arguments": {
+    "factory": "occ",
+    "ct": 1,
+    "k": 0.566666666666,
+    "ct0s": [1],
+    "ct1s": [0],
+    "radii": [3],
+    "heights": [6],
+    "layers_lcs": 1,
+    "volumes_names": ["Concrete"],
+    "layers_volumes_names": [[0]],
+    "transfinite_r_data": [[3, 0, 1]],
+    "transfinite_h_data": [[3, 0, 1]],
+    "transfinite_phi_data": [7, 0, 1]
+  }
+}
