@@ -131,7 +131,7 @@ class Primitive:
                  transfinite_data=None, transfinite_type=None,
                  volume_name=None, inner_volumes=None, surfaces_names=None,
                  in_surfaces_names=None, in_surfaces_mask=None,
-                 rec=None, trans=None):
+                 rec=None, trans=None, boolean_level=None):
         if factory == 'occ':
             self.factory = gmsh.model.occ
         else:
@@ -177,6 +177,7 @@ class Primitive:
         self.curves_points_coordinates = list()
         self.bounding_box = None
         self.coordinates_evaluated = False
+        self.boolean_level = boolean_level if boolean_level is not None else 0
         if transform_data is None:
             transform_data = []
         elif isinstance(transform_data, list):
@@ -240,6 +241,7 @@ class Primitive:
                 mask = np.array([[x for _ in range(3)]
                                  for x in m], dtype=int)
                 point_data[:, :3] = transform(point_data[:, :3], d, mask)
+            # print(point_data)
             for d in point_data:
                 d[0] = round(d[0], registry.point_tol)
                 d[1] = round(d[1], registry.point_tol)
@@ -267,6 +269,7 @@ class Primitive:
                              for _ in range(curve_data[i].shape[0])], dtype=int)
                         curve_data[i][:, :3] = transform(curve_data[i][:, :3],
                                                          d, mask)
+            # print(curve_data)
             for i in range(len(curve_data)):
                 ps = list()
                 for j in range(len(curve_data[i])):

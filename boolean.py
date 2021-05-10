@@ -2,7 +2,6 @@ import time
 import itertools
 import warnings
 
-
 def timing(f):
     def wrapper(*args, **kwargs):
         start_time = time.time()
@@ -137,11 +136,22 @@ def primitive_by_primitive(factory, primitive_object, primitive_tool,
     if verbose:
         print(result)
     if result:
-        object_volumes, tool_volumes, shared_volumes = sorted_fragment(
-            factory, primitive_object.volumes, primitive_tool.volumes,
-            remove_object, remove_tool, sort_function)
-        primitive_object.volumes = list(object_volumes)
-        primitive_tool.volumes = list(tool_volumes)
+        if verbose:
+            print(primitive_object.boolean_level, primitive_tool.boolean_level)
+        if primitive_object.boolean_level >=  primitive_tool.boolean_level:
+            object_volumes, tool_volumes, shared_volumes = sorted_fragment(
+                factory, primitive_object.volumes, primitive_tool.volumes,
+                remove_object, remove_tool, sort_function)
+            primitive_object.volumes = list(object_volumes)
+            primitive_tool.volumes = list(tool_volumes)
+        else:
+            if verbose:
+                print('Reverse')
+            object_volumes, tool_volumes, shared_volumes = sorted_fragment(
+                factory, primitive_tool.volumes, primitive_object.volumes,
+                remove_object, remove_tool, sort_function)
+            primitive_tool.volumes = list(object_volumes)
+            primitive_object.volumes = list(tool_volumes)
 
 
 def primitive_by_primitive_return_shared(

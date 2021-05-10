@@ -27,7 +27,8 @@ class Matrix(Complex):
                  curve_types=None, curve_types_map=None,
                  curve_data=None, curve_data_map=None,
                  curve_data_coord_sys=None, curve_data_coord_sys_map=None,
-                 inputs_transforms=None, inputs_transforms_map=None
+                 inputs_transforms=None, inputs_transforms_map=None,
+                 boolean_level_map=None
                  ):
         """
         Primitives, Complexes and Complex descendants
@@ -82,6 +83,7 @@ class Matrix(Complex):
             inputs transform in local coordinate system of the cell
         :param list of int inputs_transforms_map: item - input transform
             item - curve data coordinate system map
+        :param boolean_level_map list of int: See Primitive
         """
         if factory == 'occ':
             factory_object = gmsh.model.occ
@@ -143,6 +145,8 @@ class Matrix(Complex):
             volumes_names = [None]
         if volumes_map is None:
             volumes_map = [0 for _ in range(ni)]
+        elif not isinstance(volumes_map, list):
+            volumes_map = [volumes_map for _ in range(ni)]
         # surfaces
         if surfaces_names is None:
             surfaces_names = [None]
@@ -168,7 +172,6 @@ class Matrix(Complex):
             in_surfaces_masks_map = [0 for _ in range(ni)]
         elif isinstance(in_surfaces_masks_map, int):
             in_surfaces_masks_map = [in_surfaces_masks_map for _ in range(ni)]
-
         # inputs
         if inputs is None:
             inputs = []
@@ -222,6 +225,11 @@ class Matrix(Complex):
             curve_data_coord_sys_map = [0 for _ in range(ni)]
         elif not isinstance(curve_data_coord_sys_map, list):
             curve_data_coord_sys_map = [curve_data_coord_sys_map for _ in range(ni)]
+        # boolean
+        if boolean_level_map is None:
+            boolean_level_map = [0 for _ in range(ni)]
+        elif not isinstance(boolean_level_map, list):
+            boolean_level_map = [boolean_level_map for _ in range(ni)]
         # Process
         gis = {}  # local index (xi, yj, zk) -> global index (gi) map
         x0s, x1s, xcs = [], [], []  # items starts X, Y, Z
@@ -264,9 +272,10 @@ def primitive(primitives, ci, gi, factory,
               curve_types, curve_types_map,
               curve_data, curve_data_map,
               curve_data_coord_sys, curve_data_coord_sys_map,
+              boolean_level_map,
               **kwargs):
     xi, yi, zi = ci  # local coordinates by axes
-    cd = curve_data[curve_data_map[gi]]
+    cd = copy.deepcopy(curve_data[curve_data_map[gi]])
     cd_cs = curve_data_coord_sys[curve_data_coord_sys_map[gi]]
     if cd is not None and cd_cs == 'local':
         for i, points in enumerate(cd):
@@ -298,6 +307,7 @@ def primitive(primitives, ci, gi, factory,
         rec=recs_map[gi],
         trans=trans_map[gi],
         transfinite_type=trans_type_map[gi],
+        boolean_level=boolean_level_map[gi]
     ))
 
 
@@ -334,9 +344,10 @@ def complex_in_primitive(primitives, ci, gi, factory, transform_data,
                          curve_data, curve_data_map,
                          curve_data_coord_sys, curve_data_coord_sys_map,
                          inputs_transforms, inputs_transforms_map,
+                         boolean_level_map,
                          **kwargs):
     xi, yi, zi = ci  # local coordinates by axes
-    cd = curve_data[curve_data_map[gi]]
+    cd = copy.deepcopy(curve_data[curve_data_map[gi]])
     cd_cs = curve_data_coord_sys[curve_data_coord_sys_map[gi]]
     if cd is not None and cd_cs == 'local':
         for i, points in enumerate(cd):
@@ -379,7 +390,72 @@ def complex_in_primitive(primitives, ci, gi, factory, transform_data,
         in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
         in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
         rec=recs_map[gi],
-        trans=trans_map[gi]
+        trans=trans_map[gi],
+        boolean_level=boolean_level_map[gi]
+    ))
+
+
+# Complex and Primitive (for OCC boolean)
+def complex_and_primitive(primitives, ci, gi, factory, transform_data,
+                          x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs,
+                          tys, tzs,
+                          volumes_names, volumes_map, surfaces_names,
+                          surfaces_map,
+                          in_surfaces_names, in_surfaces_map,
+                          in_surfaces_masks, in_surfaces_masks_map,
+                          recs_map, trans_map, inputs_datas, inputs_map,
+                          curve_types, curve_types_map,
+                          curve_data, curve_data_map,
+                          curve_data_coord_sys, curve_data_coord_sys_map,
+                          inputs_transforms, inputs_transforms_map,
+                          boolean_level_map,
+                          **kwargs):
+    xi, yi, zi = ci  # local coordinates by axes
+    cd = copy.deepcopy(curve_data[curve_data_map[gi]])
+    cd_cs = curve_data_coord_sys[curve_data_coord_sys_map[gi]]
+    if cd is not None and cd_cs == 'local':
+        for i, points in enumerate(cd):
+            for j, p in enumerate(points):  # [xj, yj, zj, lcj]
+                cd[i][j][0] = x0s[gi] + cd[i][j][0] * (x1s[gi] - x0s[gi])
+                cd[i][j][1] = y0s[gi] + cd[i][j][1] * (y1s[gi] - y0s[gi])
+                cd[i][j][2] = z0s[gi] + cd[i][j][2] * (z1s[gi] - z0s[gi])
+    local_tr = inputs_transforms[inputs_transforms_map[gi]]
+    global_tr = [x0s[gi] + local_tr[0] * (x1s[gi] - x0s[gi]),
+                 y0s[gi] + local_tr[1] * (y1s[gi] - y0s[gi]),
+                 z0s[gi] + local_tr[2] * (z1s[gi] - z0s[gi])]
+    input_data = copy.deepcopy(inputs_datas[inputs_map[gi]])
+    print(input_data['arguments'])
+    if input_data['arguments'].get('transform_data', None) is None:
+        input_data['arguments']['transform_data'] = []
+    input_data['arguments']['transform_data'].append(global_tr)
+    input_data['arguments']['transform_data'].extend(transform_data)
+    input_data['arguments']['factory'] = factory
+    from complex_factory import ComplexFactory
+    c = ComplexFactory.new(input_data)
+    primitives.extend(c.primitives)
+    primitives.append(Primitive(
+        factory=factory,
+        point_data=[
+            [x1s[gi], y1s[gi], z0s[gi], lcs[gi]],
+            [x0s[gi], y1s[gi], z0s[gi], lcs[gi]],
+            [x0s[gi], y0s[gi], z0s[gi], lcs[gi]],
+            [x1s[gi], y0s[gi], z0s[gi], lcs[gi]],
+            [x1s[gi], y1s[gi], z1s[gi], lcs[gi]],
+            [x0s[gi], y1s[gi], z1s[gi], lcs[gi]],
+            [x0s[gi], y0s[gi], z1s[gi], lcs[gi]],
+            [x1s[gi], y0s[gi], z1s[gi], lcs[gi]],
+        ],
+        transform_data=transform_data,
+        transfinite_data=[txs[xi], tys[yi], tzs[zi]],
+        curve_types=curve_types[curve_types_map[gi]],
+        curve_data=cd,
+        volume_name=volumes_names[volumes_map[gi]],
+        surfaces_names=surfaces_names[surfaces_map[gi]],
+        in_surfaces_names=in_surfaces_names[in_surfaces_map[gi]],
+        in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
+        rec=recs_map[gi],
+        trans=trans_map[gi],
+        boolean_level=boolean_level_map[gi]
     ))
 
 
@@ -401,7 +477,7 @@ def axisymmetric_core(primitives, ci, gi, gis, factory,
     # ct1 = kws[kws_map[gi]].get('ct1', 0)
     ct = kws[kws_map[gi]].get('ct', 3)
     # print(ct0)
-    if not ct0:
+    if not ct0:  # straight
         pd = [[x1s[gi], y1s[gi], z0s[gi], lcs[gi]],
               [x0s[gi], y1s[gi], z0s[gi], lcs[gi]],
               [x0s[gi], y0s[gi], z0s[gi], lcs[gi]],
@@ -413,7 +489,7 @@ def axisymmetric_core(primitives, ci, gi, gis, factory,
         cts = None
         cd = None
         # print(pd)
-    else:
+    else:  # curved
         dxrx = rx / 2 ** 0.5
         dyry = ry / 2 ** 0.5
         dxrnx = -rnx / 2 ** 0.5
@@ -428,34 +504,32 @@ def axisymmetric_core(primitives, ci, gi, gis, factory,
             [cx + dxrnx, cy + dyrny, z1s[gi], lcs[gi]],
             [cx + dxrx, cy + dyrny, z1s[gi], lcs[gi]],
         ]
-        # if rx == ry == rnx == rny:  # FIXME BUG WITH CIRCLE ARC (transfinite)
-        #     cts = [ct0, ct0, ct0, ct0,
-        #            ct0, ct0, ct0, ct0,
-        #            0, 0, 0, 0]
-        #     cd = [
-        #         [[cx, cy, z0s[gi], lcs[gi]]],
-        #         [[cx, cy, z1s[gi], lcs[gi]]],
-        #         [[cx, cy, z1s[gi], lcs[gi]]],
-        #         [[cx, cy, z0s[gi], lcs[gi]]],
-        #         [[cx, cy, z0s[gi], lcs[gi]]],
-        #         [[cx, cy, z0s[gi], lcs[gi]]],
-        #         [[cx, cy, z1s[gi], lcs[gi]]],
-        #         [[cx, cy, z1s[gi], lcs[gi]]],
-        #         [], [], [], []
-        #     ]
-        # else:
-        cts = [ct, ct, ct, ct, ct, ct, ct, ct, 0, 0, 0, 0]
-        cd = [
-            [[cx, cy + ry, z0s[gi], lcs[gi]]],
-            [[cx, cy + ry, z1s[gi], lcs[gi]]],
-            [[cx, cy - rny, z1s[gi], lcs[gi]]],
-            [[cx, cy - rny, z0s[gi], lcs[gi]]],
-            [[cx + rx, cy, z0s[gi], lcs[gi]]],
-            [[cx - rnx, cy, z0s[gi], lcs[gi]]],
-            [[cx - rnx, cy, z1s[gi], lcs[gi]]],
-            [[cx + rx, cy, z1s[gi], lcs[gi]]],
-            [], [], [], []
-        ]
+        if rx == ry == rnx == rny:
+            cts = [ct0, ct0, ct0, ct0, ct0, ct0, ct0, ct0, 0, 0, 0, 0]
+            cd = [
+                [[cx, cy, z0s[gi], lcs[gi]]],
+                [[cx, cy, z1s[gi], lcs[gi]]],
+                [[cx, cy, z1s[gi], lcs[gi]]],
+                [[cx, cy, z0s[gi], lcs[gi]]],
+                [[cx, cy, z0s[gi], lcs[gi]]],
+                [[cx, cy, z0s[gi], lcs[gi]]],
+                [[cx, cy, z1s[gi], lcs[gi]]],
+                [[cx, cy, z1s[gi], lcs[gi]]],
+                [], [], [], []
+            ]
+        else:
+            cts = [ct, ct, ct, ct, ct, ct, ct, ct, 0, 0, 0, 0]
+            cd = [
+                [[cx, cy + ry, z0s[gi], lcs[gi]]],
+                [[cx, cy + ry, z1s[gi], lcs[gi]]],
+                [[cx, cy - rny, z1s[gi], lcs[gi]]],
+                [[cx, cy - rny, z0s[gi], lcs[gi]]],
+                [[cx + rx, cy, z0s[gi], lcs[gi]]],
+                [[cx - rnx, cy, z0s[gi], lcs[gi]]],
+                [[cx - rnx, cy, z1s[gi], lcs[gi]]],
+                [[cx + rx, cy, z1s[gi], lcs[gi]]],
+                [], [], [], []
+            ]
     # print(pd)
     primitives.append(Primitive(
         factory=factory,

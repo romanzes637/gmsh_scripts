@@ -13,7 +13,7 @@
     "radii_x": [0.170],
     "radii_y": [0.170],
     "heights": [1.350],
-    "layers_lcs": [[0.05]],
+    "layers_lcs": 0.05,
     "volumes_names": ["RW"],
     "layers_volumes_names": [
       [0]

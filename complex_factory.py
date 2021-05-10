@@ -328,6 +328,26 @@ if __name__ == '__main__':
                 tag = gmsh.model.addPhysicalGroup(2, ss)
                 gmsh.model.setPhysicalName(2, tag, n)
             print(f'{time.time() - t0:.3f}s')
+        # t0 = time.time()
+        # print('Synchronize')
+        # factory.synchronize()
+        # for p in c.primitives:
+        #     for v in p.volumes:
+        #         ot = (3, v)
+        #         print(p.volumes, p.volume_name)
+        #         print(ot)
+        #         try:
+        #             print(gmsh.model.getBoundary([ot], recursive=False))
+        #         except Exception as e:
+        #             print(e)
+        # print(f'{time.time() - t0:.3f}s')
+        # print(gmsh.model.getEntities(dim=2))
+        # print(gmsh.model.getEntities(dim=3))
+        # gmsh.model.removeEntities(dimTags=[(3, 2)])
+        # print(gmsh.model.getEntities(dim=3))
+        # print(gmsh.model.getEntities(dim=2))
+        # print(gmsh.model.getEntities(dim=2))
+        # print(gmsh.model.getBoundary([(2, 34)], recursive=False))
         print("Mesh")
         t0 = time.time()
         gmsh.model.mesh.generate(3)
