@@ -2,10 +2,10 @@
   "metadata": {
     "type": "class_arguments",
     "class_name": "Matrix",
-    "description": "Bug GEO with lcs < 0.95. Bug GEO with curve_types, inputs_transforms 0.3 < Z < 0.7"
+    "description": "Bug GEO with lcs < 0.95. Bug GEO bad circle mesh"
   },
   "arguments": {
-    "factory": "geo",
+    "factory": "occ",
     "inputs": [
                "input/container_pasha_polar_2600_cyl_no_center_full_fill_concrete.json"
     ],
@@ -16,7 +16,7 @@
     "xs": [-100, 100],
     "ys": [-100, 100],
     "zs": [-150, 0],
-    "lcs": 1,
+    "lcs": 10,
     "txs": [10, 0, 1],
     "tys": [10, 0, 1],
     "tzs": [10, 0, 1],
