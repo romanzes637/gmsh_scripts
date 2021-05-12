@@ -44,13 +44,13 @@ Section `"metadata"` describes type of input file `"type"`, name of a Complex
 Section `"arguments"` contains input data for Complex "Cylinder":
 * `"factory"` - gmsh kernel: “geo” (default) or  “occ” (OpenCascade)
 * `"radii"` - radii of multilayer cylinder: two cylinders with 1 and 2 meters
-* `"radii"` - heights of multilayer cylinder layers: two layers of 1 and 2 meters
+* `"heights"` - heights of multilayer cylinder layers: two layers of 1 and 2 meters
 * `"layers_lcs"` - mesh characteristic length
 * `"volumes_names"` - names for mesh volumes
 * `"layers_volumes_names"` - map of volumes names by layers: from bottom to top, from center to side
 * `"transfinite_r_data"` - data for structured mesh by radial layers, \[number of nodes, struct type, size rate\]. Struct types: 0 - linear, 1 - centered. Size rate is a change of element sizes from center to side
-* `"transfinite_r_data"` - data for structured mesh by height layers. Size rate is from bottom to top
-* `"transfinite_r_data"` - data for circumferential structured mesh
+* `"transfinite_h_data"` - data for structured mesh by height layers. Size rate is from bottom to top
+* `"transfinite_phi_data"` - data for circumferential structured mesh
 
 ### Unstructured tetrahedral mesh
 ```shell
