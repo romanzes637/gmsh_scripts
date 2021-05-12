@@ -2,7 +2,7 @@
 
 # gmsh_scripts
 Mixed (structured/unstructured) 3D mesh generator with curved cuboid elements 
-(Primitives) based on gmsh https://gmsh.info/
+(Primitives) based on [gmsh](https://gmsh.info/)
 
 ## Installation
 1. Download and install python https://www.python.org/downloads/
@@ -70,16 +70,21 @@ python complex_factory -i input/test_cylinder_simple.json -tr
 ```
 ![struct_hexahedral](/images/test_cylinder_simple_tr.png)
 
-## Examples album
-https://photos.app.goo.gl/KngvSr6ttbyIdFEX2
+## [Examples album](https://photos.app.goo.gl/KngvSr6ttbyIdFEX2)
 
-## User manual (In Russian)
-[User manual](https://docs.google.com/document/d/166MPpgo0n661rmQZg7IS_MhNxlCueseOpwgqPBXQ8hI/edit?usp=sharing)
+## [User manual (In Russian)](https://docs.google.com/document/d/166MPpgo0n661rmQZg7IS_MhNxlCueseOpwgqPBXQ8hI/edit?usp=sharing)
 
 ## Cite
+
+### gmsh
+[Geuzaine and J.-F. Remacle. Gmsh: a three-dimensional finite element mesh generator with built-in pre- and post-processing facilities. International Journal for Numerical Methods in Engineering 79(11), pp. 1309-1331, 2009](https://gmsh.info/doc/preprints/gmsh_paper_preprint.pdf)
+
+### gmsh scripts
 [Butov R.A., Drobyishevsky N.I., Moiseenko E.V., Tokarev Yu. N. Mesh generation for radioactive waste management tasks. Radioactive Waste, 2021, no. 1 (14), pp. 87—95. DOI: 10.25283/2587-9707-2021-1-87-95. (In Russian)](http://eng.radwaste-journal.ru/docs/journals/27/mesh_generation_for_radioactive_waste_management_tasks.pdf)
 
 ## Contacts
 Roman Butov
+
 https://github.com/romanzes637
+
 romanbutov637@gmail.com
