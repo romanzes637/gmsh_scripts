@@ -2,12 +2,12 @@
   "metadata": {
     "type": "class_arguments",
     "class_name": "Matrix",
-    "description": "Fill"
+    "description": "Concrete d 4700, h 7300"
   },
   "arguments": {
     "factory": "occ",
-    "inputs": ["input/container_pasha_polar_2600_cyl_no_center_full.json"],
-    "inputs_transforms": [[0.5, 0.5, 0.0416666666666]],
+    "inputs": ["input/container_pasha_polar_2600_cyl_no_center_full_bent.json"],
+    "inputs_transforms": [[0.5, 0.5, 0.054794521]],
     "types": ["primitive", "complex_in_primitive"],
     "transform_data": null,
     "curve_types": [[1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0]],
@@ -20,10 +20,10 @@
     "surfaces_names": [["External", "External", "External", "External",
       "Bottom", "Top"]],
     "coordinates_type": "direct",
-    "volumes_names": ["Fill"],
-    "xs": [-1.202081528, 1.202081528],
-    "ys": [-1.202081528, 1.202081528],
-    "zs": [0.000, 6.000],
+    "volumes_names": ["Concrete"],
+    "xs": [-1.661700935788, 1.661700935788],
+    "ys": [-1.661700935788, 1.661700935788],
+    "zs": [0.000, 7.300],
     "lcs": 0.5,
     "txs": [10, 0, 1],
     "tys": [10, 0, 1],
@@ -31,7 +31,7 @@
     "type_map": 1,
     "inputs_map": 0,
     "inputs_transforms_map": 0,
-    "volumes_map": null,
+    "volumes_map": 0,
     "surfaces_map": 0
   }
 }

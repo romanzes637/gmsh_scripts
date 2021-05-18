@@ -2,7 +2,7 @@
   "metadata": {
     "type": "class_arguments",
     "class_name": "Matrix",
-    "description": "Bug GEO with lcs < 0.95. Bug GEO with curve_types"
+    "description": "CastIron"
   },
   "arguments": {
     "factory": "occ",

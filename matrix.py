@@ -504,7 +504,7 @@ def axisymmetric_core(primitives, ci, gi, gis, factory,
             [cx + dxrnx, cy + dyrny, z1s[gi], lcs[gi]],
             [cx + dxrx, cy + dyrny, z1s[gi], lcs[gi]],
         ]
-        if rx == ry == rnx == rny:
+        if np.allclose(rx, [ry, rnx, rny], atol=registry.point_tol, rtol=0):
             cts = [ct0, ct0, ct0, ct0, ct0, ct0, ct0, ct0, 0, 0, 0, 0]
             cd = [
                 [[cx, cy, z0s[gi], lcs[gi]]],
@@ -530,7 +530,6 @@ def axisymmetric_core(primitives, ci, gi, gis, factory,
                 [[cx + rx, cy, z1s[gi], lcs[gi]]],
                 [], [], [], []
             ]
-    # print(pd)
     primitives.append(Primitive(
         factory=factory,
         point_data=pd,

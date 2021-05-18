@@ -2,12 +2,12 @@
   "metadata": {
     "type": "class_arguments",
     "class_name": "Matrix",
-    "description": "Fill"
+    "description": "Bentonite d 3900, h 6500"
   },
   "arguments": {
     "factory": "occ",
     "inputs": ["input/container_pasha_polar_2600_cyl_no_center_full.json"],
-    "inputs_transforms": [[0.5, 0.5, 0.0416666666666]],
+    "inputs_transforms": [[0.5, 0.5, 0.076923077]],
     "types": ["primitive", "complex_in_primitive"],
     "transform_data": null,
     "curve_types": [[1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0]],
@@ -20,10 +20,10 @@
     "surfaces_names": [["External", "External", "External", "External",
       "Bottom", "Top"]],
     "coordinates_type": "direct",
-    "volumes_names": ["Fill"],
-    "xs": [-1.202081528, 1.202081528],
-    "ys": [-1.202081528, 1.202081528],
-    "zs": [0.000, 6.000],
+    "volumes_names": ["Bentonite"],
+    "xs": [-1.378858223314, 1.378858223314],
+    "ys": [-1.378858223314, 1.378858223314],
+    "zs": [0.000, 6.500],
     "lcs": 0.5,
     "txs": [10, 0, 1],
     "tys": [10, 0, 1],
