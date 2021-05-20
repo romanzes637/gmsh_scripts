@@ -9,29 +9,38 @@
     "inputs": [
       "input/test_matrix_complex_in_primitive_simple_item.json"
     ],
-    "inputs_transforms": [[0.5, 0.5, 0.5]],
+    "inputs_transforms":  [
+      [[1, 0, 0, 90], [0.5, 0.5, 0.5]],
+      [[0.5, 0.5, 0.5], [0.5, 0.5, 0.5, 1, 0, 0, 45]]
+    ],
+    "inputs_transforms_coord_sys": ["local"],
     "types": ["primitive", "complex_in_primitive"],
-    "transform_data": null,
-    "surfaces_names": null,
-    "surfaces_map": null,
-    "volumes_names": ["Container"],
+    "transform_data": [[0, 0, 0]],
+    "volumes_names": ["Container", "Cube"],
     "coordinates_type": "direct",
     "xs": [-4, -2, 0, 2, 4],
     "ys": [-2, 0, 2],
     "zs": [-2, 0, 2],
-    "lcs": null,
-    "txs": null,
-    "tys": null,
-    "tzs": null,
     "type_map": [
-      1, 0, 1, 0,
-      0, 1, 0, 1,
+      0, 1, 0, 0,
+      0, 0, 0, 0,
 
-      0, 1, 0, 1,
-      1, 0, 1, 0
+      0, 0, 0, 0,
+      0, 1, 0, 0
     ],
-    "inputs_map": 0,
-    "inputs_transforms_map": 0,
-    "volumes_map": null
+    "volumes_map": [
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+
+      1, 0, 1, 0,
+      0, 1, 1, 0
+    ],
+    "inputs_transforms_map": [
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+
+      0, 0, 0, 0,
+      0, 1, 0, 0
+    ]
   }
 }

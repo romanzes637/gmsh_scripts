@@ -28,6 +28,8 @@ class Matrix(Complex):
                  curve_data=None, curve_data_map=None,
                  curve_data_coord_sys=None, curve_data_coord_sys_map=None,
                  inputs_transforms=None, inputs_transforms_map=None,
+                 inputs_transforms_coord_sys=None,
+                 inputs_transforms_coord_sys_map=None,
                  boolean_level_map=None
                  ):
         """
@@ -48,7 +50,6 @@ class Matrix(Complex):
         X0, X1, ..., XN - X layers, where N - number of X layers
         Y0, Y1, ..., YM - Y layers, where M - number of Y layers
         Z0, Z1, ..., ZP - Z layers, where P - number of Z layers
-        TODO inputs_transforms add rotation
         :param str factory: see Primitive
         :param list of float xs: X axis coordinates
         :param list of float ys: Y axis coordinates
@@ -82,9 +83,10 @@ class Matrix(Complex):
         :param list of int curve_data_coord_sys_map:
         :param list of list of float inputs_transforms:
             inputs transform in local coordinate system of the cell
-        :param list of int inputs_transforms_map: item - input transform
-            item - curve data coordinate system map
-        :param boolean_level_map list of int: See Primitive
+        :param list of int inputs_transforms_map:
+        :param list of str inputs_transforms_coord_sys: "local" [0-1] or "global"
+        :param list of int curve_data_coord_sys_map:
+        :param list of int boolean_level_map : See Primitive
         """
         if factory == 'occ':
             factory_object = gmsh.model.occ
@@ -183,11 +185,19 @@ class Matrix(Complex):
         elif not isinstance(inputs_map, list):
             inputs_map = [inputs_map for _ in range(ni)]
         if inputs_transforms is None:
-            inputs_transforms = [[0.5, 0.5, 0.5]]  # center of the cell
+            inputs_transforms = [[[0.5, 0.5, 0.5]]]  # center of the cell
         if inputs_transforms_map is None:
             inputs_transforms_map = [0 for _ in range(ni)]
         elif not isinstance(inputs_transforms_map, list):
             inputs_transforms_map = [inputs_transforms_map for _ in range(ni)]
+        if inputs_transforms_coord_sys is None:
+            inputs_transforms_coord_sys = ['local']
+        if inputs_transforms_coord_sys_map is None:
+            inputs_transforms_coord_sys_map = [0 for _ in range(ni)]
+        elif not isinstance(curve_data_coord_sys_map, list):
+            inputs_transforms_coord_sys_map = [
+                inputs_transforms_coord_sys_map for _ in range(ni)]
+        # download inputs
         inputs_datas = []
         for i in inputs:
             result = check_file(i)
@@ -316,15 +326,27 @@ def primitive(primitives, ci, gi, factory,
 def complex(primitives, gi, factory, transform_data,
             x0s, x1s, y0s, y1s, z0s, z1s,
             inputs_datas, inputs_map,
-            inputs_transforms, inputs_transforms_map, **kwargs):
-    local_tr = inputs_transforms[inputs_transforms_map[gi]]
-    global_tr = [x0s[gi] + local_tr[0] * (x1s[gi] - x0s[gi]),
-                 y0s[gi] + local_tr[1] * (y1s[gi] - y0s[gi]),
-                 z0s[gi] + local_tr[2] * (z1s[gi] - z0s[gi])]
+            inputs_transforms, inputs_transforms_map,
+            inputs_transforms_coord_sys, inputs_transforms_coord_sys_map,
+            **kwargs):
+    in_ts = copy.deepcopy(inputs_transforms[inputs_transforms_map[gi]])
+    ts_cs = inputs_transforms_coord_sys[inputs_transforms_coord_sys_map[gi]]
+    for i, t in enumerate(in_ts):
+        if ts_cs == 'local':
+            if len(t) == 3:  # Displacement
+                in_ts[i][0] = x0s[gi] + t[0] * (x1s[gi] - x0s[gi])  # dx
+                in_ts[i][1] = y0s[gi] + t[1] * (y1s[gi] - y0s[gi])  # dy
+                in_ts[i][2] = z0s[gi] + t[2] * (z1s[gi] - z0s[gi])  # dz
+            elif len(t) == 7:  # Rotation with origin and direction
+                in_ts[i][0] = x0s[gi] + t[0] * (x1s[gi] - x0s[gi])  # origin x
+                in_ts[i][1] = y0s[gi] + t[1] * (y1s[gi] - y0s[gi])  # origin y
+                in_ts[i][2] = z0s[gi] + t[2] * (z1s[gi] - z0s[gi])  # origin z
+            else:  # Rotation with direction only
+                pass
     input_data = copy.deepcopy(inputs_datas[inputs_map[gi]])
     if input_data['arguments'].get('transform_data', None) is None:
         input_data['arguments']['transform_data'] = []
-    input_data['arguments']['transform_data'].append(global_tr)
+    input_data['arguments']['transform_data'].extend(in_ts)
     input_data['arguments']['transform_data'].extend(transform_data)
     input_data['arguments']['factory'] = factory
     from complex_factory import ComplexFactory
@@ -345,6 +367,8 @@ def complex_in_primitive(primitives, ci, gi, factory, transform_data,
                          curve_data, curve_data_map,
                          curve_data_coord_sys, curve_data_coord_sys_map,
                          inputs_transforms, inputs_transforms_map,
+                         inputs_transforms_coord_sys,
+                         inputs_transforms_coord_sys_map,
                          boolean_level_map,
                          **kwargs):
     xi, yi, zi = ci  # local coordinates by axes
@@ -356,16 +380,27 @@ def complex_in_primitive(primitives, ci, gi, factory, transform_data,
                 cd[i][j][0] = x0s[gi] + cd[i][j][0] * (x1s[gi] - x0s[gi])
                 cd[i][j][1] = y0s[gi] + cd[i][j][1] * (y1s[gi] - y0s[gi])
                 cd[i][j][2] = z0s[gi] + cd[i][j][2] * (z1s[gi] - z0s[gi])
-    local_tr = inputs_transforms[inputs_transforms_map[gi]]
-    global_tr = [x0s[gi] + local_tr[0] * (x1s[gi] - x0s[gi]),
-                 y0s[gi] + local_tr[1] * (y1s[gi] - y0s[gi]),
-                 z0s[gi] + local_tr[2] * (z1s[gi] - z0s[gi])]
+    in_ts = copy.deepcopy(inputs_transforms[inputs_transforms_map[gi]])
+    ts_cs = inputs_transforms_coord_sys[inputs_transforms_coord_sys_map[gi]]
+    for i, t in enumerate(in_ts):
+        if ts_cs == 'local':
+            if len(t) == 3:  # Displacement
+                in_ts[i][0] = x0s[gi] + t[0] * (x1s[gi] - x0s[gi])  # dx
+                in_ts[i][1] = y0s[gi] + t[1] * (y1s[gi] - y0s[gi])  # dy
+                in_ts[i][2] = z0s[gi] + t[2] * (z1s[gi] - z0s[gi])  # dz
+            elif len(t) == 7:  # Rotation with origin and direction
+                in_ts[i][0] = x0s[gi] + t[0] * (x1s[gi] - x0s[gi])  # origin x
+                in_ts[i][1] = y0s[gi] + t[1] * (y1s[gi] - y0s[gi])  # origin y
+                in_ts[i][2] = z0s[gi] + t[2] * (z1s[gi] - z0s[gi])  # origin z
+            else:  # Rotation with direction only
+                pass
     input_data = copy.deepcopy(inputs_datas[inputs_map[gi]])
     if input_data['arguments'].get('transform_data', None) is None:
         input_data['arguments']['transform_data'] = []
-    input_data['arguments']['transform_data'].append(global_tr)
+    input_data['arguments']['transform_data'].extend(in_ts)
     input_data['arguments']['transform_data'].extend(transform_data)
     input_data['arguments']['factory'] = factory
+    print(input_data['arguments']['transform_data'])
     from complex_factory import ComplexFactory
     c = ComplexFactory.new(input_data)
     primitives.extend(c.primitives)
