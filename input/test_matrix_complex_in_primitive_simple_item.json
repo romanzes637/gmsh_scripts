@@ -1,0 +1,26 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Matrix",
+    "description": "Small object that is in the intermediate object"
+  },
+  "arguments": {
+    "factory": "geo",
+    "inputs": null,
+    "types": ["primitive"],
+    "transform_data": [[1, 0, 0, 90]],
+    "surfaces_names": null,
+    "surfaces_map": null,
+    "volumes_names": ["Item"],
+    "coordinates_type": "direct",
+    "xs": [-0.1, 0.1],
+    "ys": [-0.2, 0.2],
+    "zs": [-0.3, 0.3],
+    "lcs": null,
+    "txs": null,
+    "tys": null,
+    "tzs": null,
+    "type_map": null,
+    "volumes_map": null
+  }
+}

@@ -48,6 +48,7 @@ class Matrix(Complex):
         X0, X1, ..., XN - X layers, where N - number of X layers
         Y0, Y1, ..., YM - Y layers, where M - number of Y layers
         Z0, Z1, ..., ZP - Z layers, where P - number of Z layers
+        TODO inputs_transforms add rotation
         :param str factory: see Primitive
         :param list of float xs: X axis coordinates
         :param list of float ys: Y axis coordinates
