@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "RegularMatrix",
+    "description": "Block of 20 rows"
+  },
+  "arguments": {
+    "factory": "geo",
+    "transform_data": [[-360, 0, 0]],
+    "dx": 90,
+    "dy": 0,
+    "dz": 0,
+    "nx": 8,
+    "ny": 1,
+    "nz": 1,
+    "lc": 5,
+    "item_input": "input/nkm_eleron_block_along.json",
+    "item_type": "complex",
+    "item_volume_name": "Rock",
+    "item_input_transforms": [[0.5, 0.5, 0.5]]
+  }
+}

@@ -87,6 +87,7 @@ class Matrix(Complex):
         :param list of str inputs_transforms_coord_sys: "local" [0-1] or "global"
         :param list of int curve_data_coord_sys_map:
         :param list of int boolean_level_map : See Primitive
+        TODO wrong lcs from Cylinder by layers
         """
         if factory == 'occ':
             factory_object = gmsh.model.occ
@@ -261,7 +262,7 @@ class Matrix(Complex):
                     zcs.append(0.5 * (z0s[-1] + z1s[-1]))
         primitives = []
         for ci, gi in gis.items():
-            t0 = time.time()
+            # t0 = time.time()
             globals()[types[type_map[gi]]](**locals())
             # print(f'type: {types[type_map[gi]]}, time {time.time() - t0}')
         Complex.__init__(self, factory, primitives)
@@ -285,16 +286,18 @@ def primitive(primitives, ci, gi, factory,
               curve_data_coord_sys, curve_data_coord_sys_map,
               boolean_level_map,
               **kwargs):
-    xi, yi, zi = ci  # local coordinates by axes
+    # Primitive curves data
     cd = copy.deepcopy(curve_data[curve_data_map[gi]])
     cd_cs = curve_data_coord_sys[curve_data_coord_sys_map[gi]]
-    if cd is not None and cd_cs == 'local':
+    if cd is not None and cd_cs == 'local':  # local to global coordinates
         for i, points in enumerate(cd):
             for j, p in enumerate(points):  # [xj, yj, zj, lcj]
                 cd[i][j][0] = x0s[gi] + cd[i][j][0]*(x1s[gi] - x0s[gi])
                 cd[i][j][1] = y0s[gi] + cd[i][j][1]*(y1s[gi] - y0s[gi])
                 cd[i][j][2] = z0s[gi] + cd[i][j][2]*(z1s[gi] - z0s[gi])
+    # Create Primitive
     # TODO bug with cylinder curve_types [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0]
+    xi, yi, zi = ci  # local coordinates by axes
     primitives.append(Primitive(
         factory=factory,
         point_data=[
@@ -329,10 +332,11 @@ def complex(primitives, gi, factory, transform_data,
             inputs_transforms, inputs_transforms_map,
             inputs_transforms_coord_sys, inputs_transforms_coord_sys_map,
             **kwargs):
+    # Complex transforms
     in_ts = copy.deepcopy(inputs_transforms[inputs_transforms_map[gi]])
     ts_cs = inputs_transforms_coord_sys[inputs_transforms_coord_sys_map[gi]]
     for i, t in enumerate(in_ts):
-        if ts_cs == 'local':
+        if ts_cs == 'local':  # local to global coordinates
             if len(t) == 3:  # Displacement
                 in_ts[i][0] = x0s[gi] + t[0] * (x1s[gi] - x0s[gi])  # dx
                 in_ts[i][1] = y0s[gi] + t[1] * (y1s[gi] - y0s[gi])  # dy
@@ -343,12 +347,14 @@ def complex(primitives, gi, factory, transform_data,
                 in_ts[i][2] = z0s[gi] + t[2] * (z1s[gi] - z0s[gi])  # origin z
             else:  # Rotation with direction only
                 pass
+    # Complex input data
     input_data = copy.deepcopy(inputs_datas[inputs_map[gi]])
     if input_data['arguments'].get('transform_data', None) is None:
         input_data['arguments']['transform_data'] = []
     input_data['arguments']['transform_data'].extend(in_ts)
     input_data['arguments']['transform_data'].extend(transform_data)
     input_data['arguments']['factory'] = factory
+    # Create Complex
     from complex_factory import ComplexFactory
     c = ComplexFactory.new(input_data)
     primitives.extend(c.primitives)
@@ -371,39 +377,43 @@ def complex_in_primitive(primitives, ci, gi, factory, transform_data,
                          inputs_transforms_coord_sys_map,
                          boolean_level_map,
                          **kwargs):
-    xi, yi, zi = ci  # local coordinates by axes
+    # Primitive curves data
     cd = copy.deepcopy(curve_data[curve_data_map[gi]])
     cd_cs = curve_data_coord_sys[curve_data_coord_sys_map[gi]]
-    if cd is not None and cd_cs == 'local':
+    if cd is not None and cd_cs == 'local':  # local to global coordinates
         for i, points in enumerate(cd):
             for j, p in enumerate(points):  # [xj, yj, zj, lcj]
                 cd[i][j][0] = x0s[gi] + cd[i][j][0] * (x1s[gi] - x0s[gi])
                 cd[i][j][1] = y0s[gi] + cd[i][j][1] * (y1s[gi] - y0s[gi])
                 cd[i][j][2] = z0s[gi] + cd[i][j][2] * (z1s[gi] - z0s[gi])
-    in_ts = copy.deepcopy(inputs_transforms[inputs_transforms_map[gi]])
-    ts_cs = inputs_transforms_coord_sys[inputs_transforms_coord_sys_map[gi]]
-    for i, t in enumerate(in_ts):
-        if ts_cs == 'local':
+    # Complex transforms
+    c_ts = copy.deepcopy(inputs_transforms[inputs_transforms_map[gi]])
+    c_cs = inputs_transforms_coord_sys[inputs_transforms_coord_sys_map[gi]]
+    for i, t in enumerate(c_ts):
+        if c_cs == 'local':  # local to global coordinates
             if len(t) == 3:  # Displacement
-                in_ts[i][0] = x0s[gi] + t[0] * (x1s[gi] - x0s[gi])  # dx
-                in_ts[i][1] = y0s[gi] + t[1] * (y1s[gi] - y0s[gi])  # dy
-                in_ts[i][2] = z0s[gi] + t[2] * (z1s[gi] - z0s[gi])  # dz
+                c_ts[i][0] = x0s[gi] + t[0] * (x1s[gi] - x0s[gi])  # dx
+                c_ts[i][1] = y0s[gi] + t[1] * (y1s[gi] - y0s[gi])  # dy
+                c_ts[i][2] = z0s[gi] + t[2] * (z1s[gi] - z0s[gi])  # dz
             elif len(t) == 7:  # Rotation with origin and direction
-                in_ts[i][0] = x0s[gi] + t[0] * (x1s[gi] - x0s[gi])  # origin x
-                in_ts[i][1] = y0s[gi] + t[1] * (y1s[gi] - y0s[gi])  # origin y
-                in_ts[i][2] = z0s[gi] + t[2] * (z1s[gi] - z0s[gi])  # origin z
+                c_ts[i][0] = x0s[gi] + t[0] * (x1s[gi] - x0s[gi])  # origin x
+                c_ts[i][1] = y0s[gi] + t[1] * (y1s[gi] - y0s[gi])  # origin y
+                c_ts[i][2] = z0s[gi] + t[2] * (z1s[gi] - z0s[gi])  # origin z
             else:  # Rotation with direction only
                 pass
+    # Complex input data
     input_data = copy.deepcopy(inputs_datas[inputs_map[gi]])
     if input_data['arguments'].get('transform_data', None) is None:
         input_data['arguments']['transform_data'] = []
-    input_data['arguments']['transform_data'].extend(in_ts)
+    input_data['arguments']['transform_data'].extend(c_ts)
     input_data['arguments']['transform_data'].extend(transform_data)
     input_data['arguments']['factory'] = factory
-    print(input_data['arguments']['transform_data'])
+    # Create Complex
     from complex_factory import ComplexFactory
     c = ComplexFactory.new(input_data)
     primitives.extend(c.primitives)
+    # Create Primitive
+    xi, yi, zi = ci  # local coordinates by axes
     primitives.append(Primitive(
         factory=factory,
         point_data=[
@@ -431,7 +441,7 @@ def complex_in_primitive(primitives, ci, gi, factory, transform_data,
     ))
 
 
-# Complex and Primitive (for OCC boolean)
+# Complex and Primitive (for boolean)
 def complex_and_primitive(primitives, ci, gi, factory, transform_data,
                           x0s, x1s, y0s, y1s, z0s, z1s, lcs, txs,
                           tys, tzs,
@@ -444,31 +454,47 @@ def complex_and_primitive(primitives, ci, gi, factory, transform_data,
                           curve_data, curve_data_map,
                           curve_data_coord_sys, curve_data_coord_sys_map,
                           inputs_transforms, inputs_transforms_map,
+                          inputs_transforms_coord_sys,
+                          inputs_transforms_coord_sys_map,
                           boolean_level_map,
                           **kwargs):
-    xi, yi, zi = ci  # local coordinates by axes
+    # Primitive curves data
     cd = copy.deepcopy(curve_data[curve_data_map[gi]])
     cd_cs = curve_data_coord_sys[curve_data_coord_sys_map[gi]]
-    if cd is not None and cd_cs == 'local':
+    if cd is not None and cd_cs == 'local':  # local to global coordinates
         for i, points in enumerate(cd):
             for j, p in enumerate(points):  # [xj, yj, zj, lcj]
                 cd[i][j][0] = x0s[gi] + cd[i][j][0] * (x1s[gi] - x0s[gi])
                 cd[i][j][1] = y0s[gi] + cd[i][j][1] * (y1s[gi] - y0s[gi])
                 cd[i][j][2] = z0s[gi] + cd[i][j][2] * (z1s[gi] - z0s[gi])
-    local_tr = inputs_transforms[inputs_transforms_map[gi]]
-    global_tr = [x0s[gi] + local_tr[0] * (x1s[gi] - x0s[gi]),
-                 y0s[gi] + local_tr[1] * (y1s[gi] - y0s[gi]),
-                 z0s[gi] + local_tr[2] * (z1s[gi] - z0s[gi])]
+    # Complex transforms
+    in_ts = copy.deepcopy(inputs_transforms[inputs_transforms_map[gi]])
+    ts_cs = inputs_transforms_coord_sys[inputs_transforms_coord_sys_map[gi]]
+    for i, t in enumerate(in_ts):
+        if ts_cs == 'local':  # local to global coordinates
+            if len(t) == 3:  # Displacement
+                in_ts[i][0] = x0s[gi] + t[0] * (x1s[gi] - x0s[gi])  # dx
+                in_ts[i][1] = y0s[gi] + t[1] * (y1s[gi] - y0s[gi])  # dy
+                in_ts[i][2] = z0s[gi] + t[2] * (z1s[gi] - z0s[gi])  # dz
+            elif len(t) == 7:  # Rotation with origin and direction
+                in_ts[i][0] = x0s[gi] + t[0] * (x1s[gi] - x0s[gi])  # origin x
+                in_ts[i][1] = y0s[gi] + t[1] * (y1s[gi] - y0s[gi])  # origin y
+                in_ts[i][2] = z0s[gi] + t[2] * (z1s[gi] - z0s[gi])  # origin z
+            else:  # Rotation with direction only
+                pass
+    # Complex input data
     input_data = copy.deepcopy(inputs_datas[inputs_map[gi]])
-    print(input_data['arguments'])
     if input_data['arguments'].get('transform_data', None) is None:
         input_data['arguments']['transform_data'] = []
-    input_data['arguments']['transform_data'].append(global_tr)
+    input_data['arguments']['transform_data'].extend(ts_cs)
     input_data['arguments']['transform_data'].extend(transform_data)
     input_data['arguments']['factory'] = factory
+    # Create Complex
     from complex_factory import ComplexFactory
     c = ComplexFactory.new(input_data)
     primitives.extend(c.primitives)
+    # Create Primitive
+    xi, yi, zi = ci  # local coordinates by axes
     primitives.append(Primitive(
         factory=factory,
         point_data=[
@@ -1368,28 +1394,3 @@ def curved_ny_right(primitives, ci, gi, gis, factory,
         trans=trans_map[gi],
         transfinite_type=trans_type_map[gi],
     ))
-
-
-# Complex at external
-def external(primitives, gi, factory,
-             x0s, x1s, y0s, y1s, z0s, z1s, xcs, ycs, zcs,
-             inputs_datas, inputs_map, transform_data,
-             kws, kws_map, **kwargs):
-    input_data = copy.deepcopy(inputs_datas[inputs_map[gi]])
-    if input_data['arguments'].get('transform_data', None) is None:
-        input_data['arguments']['transform_data'] = []
-    pos = kws[kws_map[gi]].get('pos', ('xc', 'yc', 'zc'))
-    external_pos_map = {
-        "xc": xcs, "yc": ycs, "zc": zcs,
-        "x0": x0s, "y0": y0s, "z0": z0s,
-        "x1": x1s, "y1": y1s, "z1": z1s,
-    }
-    input_data['arguments']['transform_data'].append(
-        [external_pos_map[pos[0]][gi],
-         external_pos_map[pos[1]][gi],
-         external_pos_map[pos[2]][gi]])
-    input_data['arguments']['transform_data'].extend(transform_data)
-    input_data['arguments']['factory'] = factory
-    from complex_factory import ComplexFactory
-    c = ComplexFactory.new(input_data)
-    primitives.extend(c.primitives)
