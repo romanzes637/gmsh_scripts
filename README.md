@@ -74,6 +74,8 @@ python complex_factory -i input/test_cylinder_simple.json -tr
 
 ## [User manual (In Russian)](https://docs.google.com/document/d/166MPpgo0n661rmQZg7IS_MhNxlCueseOpwgqPBXQ8hI/edit?usp=sharing)
 
+## [Screencasts (In Russian)](https://drive.google.com/drive/folders/19GORaa3Ph5f3IRG8sOTtKvHMmjgZvNHC?usp=sharing)
+
 ## Cite
 
 ### gmsh

@@ -7,7 +7,7 @@
   "arguments": {
     "factory": "occ",
     "inputs": ["input/container_pasha_polar_2600_cyl_no_center.json"],
-    "inputs_transforms": [[0.5, 0.5, 0.5]],
+    "inputs_transforms": [[[0.5, 0.5, 0.5]]],
     "types": ["primitive", "complex_in_primitive"],
     "transform_data": null,
     "curve_types": [[1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0]],

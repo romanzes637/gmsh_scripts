@@ -10,7 +10,7 @@
       "input/container_pasha_polar_2600_cyl_no_center_i.json",
       "input/container_pasha_polar_2600_cyl_no_center_n.json",
       "input/container_pasha_polar_2600_cyl_no_center_n_2b3.json"],
-    "inputs_transforms": [[0.5, 0.5, 0.0]],
+    "inputs_transforms": [[[0.5, 0.5, 0.0]]],
     "types": ["primitive", "complex_in_primitive"],
     "transform_data": null,
     "curve_types": [[1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0]],
