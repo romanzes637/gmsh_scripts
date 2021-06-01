@@ -9,7 +9,7 @@
     "inputs": [
                "input/container_pasha_polar_2600_cyl_no_center_full_bent_conc_top_all.json"
     ],
-    "inputs_transforms": [[0.5, 0.5, 0.6666666666667]],
+    "inputs_transforms": [[[0.5, 0.5, 0.6666666666667]]],
     "types": ["primitive", "complex_in_primitive", "complex_and_primitive"],
     "volumes_names": ["Rock"],
     "coordinates_type": "direct",
