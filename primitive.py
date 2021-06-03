@@ -1,6 +1,9 @@
-import gmsh
 import itertools
 from collections import deque
+import logging
+import time
+
+import gmsh
 import numpy as np
 
 from support import volumes_groups_surfaces_registry
@@ -132,6 +135,7 @@ class Primitive:
                  volume_name=None, inner_volumes=None, surfaces_names=None,
                  in_surfaces_names=None, in_surfaces_mask=None,
                  rec=None, trans=None, boolean_level=None):
+        t00 = time.perf_counter()
         if factory == 'occ':
             self.factory = gmsh.model.occ
         else:
@@ -269,7 +273,7 @@ class Primitive:
                              for _ in range(curve_data[i].shape[0])], dtype=int)
                         curve_data[i][:, :3] = transform(curve_data[i][:, :3],
                                                          d, mask)
-            # print(curve_data)
+            # logging.debug(f'curve_data: {curve_data}')
             for i in range(len(curve_data)):
                 ps = list()
                 for j in range(len(curve_data[i])):
@@ -413,7 +417,7 @@ class Primitive:
         else:
             if inner_volumes is not None:
                 self.volumes = inner_volumes
-        # pprint(registry.coord_point_map)
+        # logging.debug(f'Primitive: {time.perf_counter() - t00:.3f}s')
 
     def recombine(self):
         if self.rec:

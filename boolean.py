@@ -1,12 +1,13 @@
 import time
 import itertools
-import warnings
+import logging
+
 
 def timing(f):
     def wrapper(*args, **kwargs):
-        start_time = time.time()
+        t0 = time.perf_counter()
         out = f(*args, **kwargs)
-        print('{:.3f}s'.format(time.time() - start_time))
+        logging.debug('{:.3f}s'.format(time.perf_counter() - t0))
         return out
 
     return wrapper
@@ -87,7 +88,7 @@ def sorted_fragment(
                          shared_volumes)
 
 
-def primitive_pre_boolean(primitive_object, primitive_tool, verbose=0):
+def primitive_pre_boolean(primitive_object, primitive_tool):
     result = True
     # Check intersection of bounding boxes first
     # (this operation less expensive than direct boolean)
@@ -111,42 +112,40 @@ def primitive_pre_boolean(primitive_object, primitive_tool, verbose=0):
         if primitive_object.bounding_box[5] < primitive_tool.bounding_box[2]:
             # obj_z_max < tool_z_min
             result = False
-    if verbose and not result:
-        print("No bounding box intersection")
+    if not result:
+        logging.debug("No bounding box intersection")
     # Check on empty primitive_obj:
     if len(primitive_object.volumes) <= 0:
         result = False
-        warnings.warn("Warning! Empty object")
+        logging.warning("Warning! Empty object")
     # Check on empty primitive_tool:
     if len(primitive_tool.volumes) <= 0:
         result = False
-        warnings.warn("Warning! Empty tool")
+        logging.warning("Warning! Empty tool")
     return result
 
 
 def primitive_by_primitive(factory, primitive_object, primitive_tool,
                            remove_object=True, remove_tool=True,
                            sort_function=sort_object_no_shared_tool_shared,
-                           pre_boolean=True, verbose=0):
+                           pre_boolean=True):
     if pre_boolean:
-        result = primitive_pre_boolean(primitive_object, primitive_tool,
-                                       verbose)
+        result = primitive_pre_boolean(primitive_object, primitive_tool)
     else:
         result = True
-    if verbose:
-        print(result)
+    logging.debug(f'pre_boolean result: {result}')
     if result:
-        if verbose:
-            print(primitive_object.boolean_level, primitive_tool.boolean_level)
-        if primitive_object.boolean_level >=  primitive_tool.boolean_level:
+        logging.debug(f'boolean levels: {primitive_object.boolean_level}, '
+                      f'{primitive_tool.boolean_level}')
+        if primitive_object.boolean_level >= primitive_tool.boolean_level:
+            logging.debug('Forward')
             object_volumes, tool_volumes, shared_volumes = sorted_fragment(
                 factory, primitive_object.volumes, primitive_tool.volumes,
                 remove_object, remove_tool, sort_function)
             primitive_object.volumes = list(object_volumes)
             primitive_tool.volumes = list(tool_volumes)
         else:
-            if verbose:
-                print('Reverse')
+            logging.debug('Reverse')
             object_volumes, tool_volumes, shared_volumes = sorted_fragment(
                 factory, primitive_tool.volumes, primitive_object.volumes,
                 remove_object, remove_tool, sort_function)
@@ -158,14 +157,12 @@ def primitive_by_primitive_return_shared(
         factory, primitive_object, primitive_tool,
         remove_object=True, remove_tool=True,
         sort_function=sort_object_no_shared_tool_shared,
-        pre_boolean=True, verbose=0):
+        pre_boolean=True):
     if pre_boolean:
-        result = primitive_pre_boolean(primitive_object, primitive_tool,
-                                       verbose)
+        result = primitive_pre_boolean(primitive_object, primitive_tool)
     else:
         result = True
-    if verbose:
-        print(result)
+    logging.debug(f'pre_boolean result: {result}')
     if result:
         object_volumes, tool_volumes, shared_volumes = sorted_fragment(
             factory, primitive_object.volumes, primitive_tool.volumes,
@@ -183,11 +180,10 @@ def complex_by_complex(factory, complex_object, complex_tool,
                        pre_boolean=True):
     for i, primitive_object in enumerate(complex_object.primitives):
         for j, primitive_tool in enumerate(complex_tool.primitives):
-            print("{}/{} {} by {}/{} {}".format(
-                i + 1, len(complex_object.primitives),
-                primitive_object.volume_name,
-                j + 1, len(complex_tool.primitives),
-                primitive_tool.volume_name))
+            logging.debug(f"{i + 1}/{len(complex_object.primitives)} "
+                          f"{primitive_object.volume_name} "
+                          f"by {j + 1}/{len(complex_tool.primitives)} "
+                          f"{primitive_tool.volume_name}")
             primitive_by_primitive(factory, primitive_object, primitive_tool,
                                    remove_object, remove_tool, sort_function,
                                    pre_boolean)
@@ -201,11 +197,11 @@ def complex_by_complex_return_shared(
     shared_volumes = set()
     for i, primitive_object in enumerate(complex_object.primitives):
         for j, primitive_tool in enumerate(complex_tool.primitives):
-            print("{}/{} {} by {}/{} {}".format(
-                i + 1, len(complex_object.primitives),
-                primitive_object.volume_name,
-                j + 1, len(complex_tool.primitives),
-                primitive_tool.volume_name))
+            logging.debug("{}/{} {} by {}/{} {}".format(
+                            i + 1, len(complex_object.primitives),
+                            primitive_object.volume_name,
+                            j + 1, len(complex_tool.primitives),
+                            primitive_tool.volume_name))
             shared_volumes.union(
                 primitive_by_primitive_return_shared(factory, primitive_object,
                                                      primitive_tool,
@@ -215,22 +211,18 @@ def complex_by_complex_return_shared(
     return shared_volumes
 
 
-def complex_self(factory, complex_object, pre_boolean=True, verbose=0):
+def complex_self(factory, complex_object, pre_boolean=True):
     n_primitives = len(complex_object.primitives)
     combinations = list(itertools.combinations(range(n_primitives), 2))
     for i, c in enumerate(combinations):
-        if verbose:
-            t0 = time.time()
-            print("{}/{} ({} {} by {} {})".format(
-                i + 1, len(combinations),
-                c[0], complex_object.primitives[c[0]].volume_name,
-                c[1], complex_object.primitives[c[1]].volume_name)
-            )
+        t0 = time.perf_counter()
+        logging.debug(f"{i + 1}/{len(combinations)} "
+                      f"({c[0]} {complex_object.primitives[c[0]].volume_name} by "
+                      f"{c[1]} {complex_object.primitives[c[1]].volume_name})")
         primitive_by_primitive(factory, complex_object.primitives[c[0]],
                                complex_object.primitives[c[1]],
-                               pre_boolean=pre_boolean, verbose=verbose)
-        if verbose:
-            print(f'{time.time() - t0:.3f}s')
+                               pre_boolean=pre_boolean)
+        logging.debug(f'{time.perf_counter() - t0:.3f}s')
 
 
 def complex_self_return_shared(factory, complex_object, pre_boolean=True):
@@ -238,11 +230,10 @@ def complex_self_return_shared(factory, complex_object, pre_boolean=True):
     n_primitives = len(complex_object.primitives)
     combinations = list(itertools.combinations(range(n_primitives), 2))
     for i, c in enumerate(combinations):
-        print("{}/{} ({} {} by {} {})".format(
-            i + 1, len(combinations),
-            c[0], complex_object.primitives[c[0]].volume_name,
-            c[1], complex_object.primitives[c[1]].volume_name)
-        )
+        logging.debug("{}/{} ({} {} by {} {})".format(
+                        i + 1, len(combinations),
+                        c[0], complex_object.primitives[c[0]].volume_name,
+                        c[1], complex_object.primitives[c[1]].volume_name))
         shared_volumes.union(primitive_by_primitive_return_shared(
             factory,
             complex_object.primitives[c[0]],
@@ -257,7 +248,7 @@ def primitive_by_complex(factory, primitive_object, complex_tool,
                          sort_function=sort_object_no_shared_tool_shared,
                          pre_boolean=True):
     for i, primitive_tool in enumerate(complex_tool.primitives):
-        print("{} by {}/{} {}".format(
+        logging.debug("{} by {}/{} {}".format(
             primitive_object.volume_name, i + 1, len(complex_tool.primitives),
             primitive_tool.volume_name))
         primitive_by_primitive(factory, primitive_object, primitive_tool,
@@ -272,7 +263,7 @@ def primitive_by_complex_return_shared(
         pre_boolean=True):
     shared_volumes = set()
     for i, primitive_tool in enumerate(complex_tool.primitives):
-        print("{} by {}/{} {}".format(
+        logging.debug("{} by {}/{} {}".format(
             primitive_object.volume_name, i + 1, len(complex_tool.primitives),
             primitive_tool.volume_name))
         shared_volumes.union(primitive_by_primitive_return_shared(
@@ -286,7 +277,7 @@ def complex_by_primitive(factory, complex_object, primitive_tool,
                          sort_function=sort_object_no_shared_tool_shared,
                          pre_boolean=True):
     for i, primitive_object in enumerate(complex_object.primitives):
-        print("{}/{} {} by {}".format(
+        logging.debug("{}/{} {} by {}".format(
             i + 1, len(complex_object.primitives),
             primitive_object.volume_name, primitive_tool.volume_name))
         primitive_by_primitive(factory, primitive_object, primitive_tool,
@@ -301,7 +292,7 @@ def complex_by_primitive_return_shared(
         pre_boolean=True):
     shared_volumes = set()
     for i, primitive_object in enumerate(complex_object.primitives):
-        print("{}/{} {} by {}".format(
+        logging.debug("{}/{} {} by {}".format(
             i + 1, len(complex_object.primitives),
             primitive_object.volume_name, primitive_tool.volume_name))
         shared_volumes.union(primitive_by_primitive_return_shared(
@@ -325,7 +316,7 @@ def complex_by_volumes(
         remove_object=True, remove_tool=True,
         sort_function=sort_object_no_shared_tool_shared):
     for i, primitive_object in enumerate(complex_object.primitives):
-        print("{}/{} {} by volumes {}".format(
+        logging.debug("{}/{} {} by volumes {}".format(
             i + 1, len(complex_object.primitives),
             primitive_object.volume_name, volumes))
         primitive_by_volumes(factory, primitive_object, volumes, remove_object,

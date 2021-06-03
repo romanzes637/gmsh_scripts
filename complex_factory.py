@@ -2,9 +2,11 @@ import json
 import os
 import argparse
 import socket
-from pprint import pprint
 import sys
 import time
+import logging
+import copy
+import getpass
 
 import gmsh
 
@@ -70,17 +72,13 @@ class ComplexFactory:
 
 
 if __name__ == '__main__':
-    print('Python: {0}'.format(sys.executable))
-    print('Script: {0}'.format(__file__))
-    print('Working Directory: {0}'.format(os.getcwd()))
-    print('Host: {0}'.format(socket.gethostname()))
-    print('PID: {0}'.format(os.getpid()))
     parser = argparse.ArgumentParser()
     parser.add_argument('config', help='config file', nargs='?')
     parser.add_argument('-i', '--input_path', help='input filename')
     parser.add_argument('-o', '--output_path', help='output filename')
-    parser.add_argument('-v', '--verbose', type=int, metavar=1,
-                        help='verbose', default=0, nargs='?', const=1)
+    parser.add_argument('-l', '--log_path', help='log filename')
+    parser.add_argument('-L', '--log_level', default='INFO',
+                        choices=logging._nameToLevel.keys())
     parser.add_argument('-T', '--test', help='test mode', action='store_true')
     parser.add_argument('-r', '--recombine', help='recombine',
                         action='store_true')
@@ -116,79 +114,60 @@ if __name__ == '__main__':
                         action='store_true')
     parser.add_argument('-f', '--factory', help='gmsh factory',
                         default=None, choices=['geo', 'occ'])
-    print('Cmd Arguments')
-    cmd_args = parser.parse_args()
-    print(cmd_args)
-    args = dict()
-    args['config'] = cmd_args.config
-    if args['config'] is not None:
-        print('Using config file: {}'.format(args['config']))
-        result = check_file(args['config'])
+    cmd_args = vars(parser.parse_args())
+    args = copy.deepcopy(cmd_args)
+    config_args = None
+    if cmd_args['config'] is not None:
+        result = check_file(cmd_args['config'])
         with open(result['path']) as f:
             data = json.load(f)
-        pprint(data)
         config_args = data['arguments']
-        args['input_path'] = config_args.get('input_path', None)
-        args['output_path'] = config_args.get('output_path', False)
-        args['test'] = config_args.get('test', False)
-        args['verbose'] = config_args.get('verbose', False)
-        args['recombine'] = config_args.get('recombine', False)
-        args['boolean'] = config_args.get('boolean', False)
-        args['auto_size'] = config_args.get('auto_size', False)
-        args['size'] = config_args.get('size', None)
-        args['boundary_size'] = config_args.get('boundary_size', None)
-        args['boundary_auto_size'] = config_args.get('boundary_auto_size', None)
-        args['boundary_type'] = config_args.get('boundary_type', 'primitive')
-        args['optimize'] = config_args.get('optimize', True)
-        args['mesh_algorithm'] = config_args.get('mesh_algorithm', 1)
-        args['mesh_algorithm_2d'] = config_args.get('mesh_algorithm_2d', 6)
-        args['in_surfaces'] = config_args.get('in_surfaces', False)
-        args['factory'] = config_args.get('factory', None)
-        args['transfinite'] = config_args.get('transfinite', True)
-    else:
-        args['input_path'] = cmd_args.input_path
-        args['output_path'] = cmd_args.output_path
-        args['test'] = cmd_args.test
-        args['verbose'] = cmd_args.verbose
-        args['recombine'] = cmd_args.recombine
-        args['boolean'] = cmd_args.boolean
-        args['auto_size'] = cmd_args.auto_size
-        args['size'] = cmd_args.size
-        args['boundary_size'] = cmd_args.boundary_size
-        args['boundary_auto_size'] = cmd_args.boundary_auto_size
-        args['boundary_type'] = cmd_args.boundary_type
-        args['optimize'] = cmd_args.optimize
-        args['mesh_algorithm'] = cmd_args.mesh_algorithm
-        args['mesh_algorithm_2d'] = cmd_args.mesh_algorithm_2d
-        args['in_surfaces'] = cmd_args.in_surfaces
-        args['factory'] = cmd_args.factory
-        args['transfinite'] = cmd_args.transfinite
+        args.update(config_args)
     root, extension = os.path.splitext(args['input_path'])
     basename = os.path.basename(root)
-    if args['output_path'] is None:
-        if not args['test']:
+    # Test mode
+    if not args['test']:
+        if args['output_path'] is None:
             args['output_path'] = basename + '.msh2'
-        else:
-            args['output_path'] = basename + '.brep'
+    else:
+        args['output_path'] = basename + '.brep'
+    # Explicit boundaries
     if args['boundary_type'] not in ['6', 'primitive', 'all']:
-        print("Boundary input file: {}".format(args['boundary_type']))
         result = check_file(args['boundary_type'])
         with open(result['path']) as f:
             physical_surfaces_input = json.load(f)
-        pprint(physical_surfaces_input)
         physical_surfaces_kwargs = physical_surfaces_input['arguments']
-    print('Arguments')
-    pprint(args)
-    # Input data
-    print('Input data')
-    result = check_file(args['input_path'])
-    with open(result['path']) as f:
-        input_data = json.load(f)
-    pprint(input_data)
-    print('gmsh')
+    # Logging
+    if args['log_path'] is None:
+        args['log_path'] = basename + '.log'
+    log_level_int = logging._nameToLevel[args['log_level']]
+    tz = time.strftime('%z')
+    user = getpass.getuser()
+    hostname = socket.gethostname()
+    ip = socket.gethostbyname(hostname)
+    logging.basicConfig(
+        filename=args['log_path'],
+        filemode='a',
+        format='%(asctime)s.%(msecs)03d' + tz + f'|{hostname}|{ip}|{user}' +
+               '|%(process)d|%(levelname)s|%(filename)s|%(lineno)d|%(message)s',
+        datefmt='%Y-%m-%dT%H:%M:%S',
+        level=log_level_int)
+    # Log
+    logging.info(f'hostname: {socket.gethostname()}')
+    logging.info(f'ip: {socket.gethostbyname(socket.gethostname())}')
+    logging.info(f'user: {getpass.getuser()}')
+    logging.info(f'pid: {os.getpid()}')
+    logging.info(f'python: {sys.executable}')
+    logging.info(f'script: {__file__}')
+    logging.info(f'working directory: {os.getcwd()}')
+    logging.info(f'cmd args: {cmd_args}')
+    logging.info(f'config args: {config_args}')
+    logging.info(f'args: {args}')
+    logging.info('gmsh')
+    t00 = time.perf_counter()
+    t0 = time.perf_counter()
     gmsh.initialize()
-    print('Options')
-    if args['verbose'] > 1:
+    if args['log_level'] == "NOTSET":
         gmsh.option.setNumber("General.Terminal", 1)
     else:
         gmsh.option.setNumber("General.Terminal", 0)
@@ -196,88 +175,92 @@ if __name__ == '__main__':
     gmsh.option.setNumber('Mesh.Optimize', 0)  # resolving further
     gmsh.option.setNumber('Mesh.Algorithm', args['mesh_algorithm_2d'])
     gmsh.option.setNumber('Mesh.Algorithm3D', args['mesh_algorithm'])
-    print('Model')
     model_name = basename
     gmsh.model.add(model_name)
-    print('Initialize')
-    t00 = time.time()
-    t0 = time.time()
+    logging.info(f'gmsh: {time.perf_counter() - t0:.3f}s')
+    logging.info('Initialize')
+    t0 = time.perf_counter()
+    result = check_file(args['input_path'])
+    with open(result['path']) as f:
+        input_data = json.load(f)
+    logging.info(f'input data: {input_data}')
     if args['factory'] is not None:
         input_data['arguments']['factory'] = args['factory']
     c = ComplexFactory.new(input_data)
     factory = c.factory
-    print(f'{time.time() - t0:.3f}s')
-    print('Synchronize')
-    t0 = time.time()
+    logging.info(f'Initialize: {time.perf_counter() - t0:.3f}s')
+    logging.info('Synchronize')
+    t0 = time.perf_counter()
     factory.synchronize()
-    print(f'{time.time() - t0:.3f}s')
+    logging.info(f'Synchronize: {time.perf_counter() - t0:.3f}s')
     if not args['test']:
-        # c.evaluate_coordinates()  # for correction (obsoleted)
         if args['boolean']:
-            print('Bounding Box')  # for boolean speedup
-            t0 = time.time()
+            if args['factory'] != 'occ':
+                logging.critical('Boolean is only available in the occ factory!')
+                raise ValueError('Boolean is only available in the occ factory!')
+            logging.info('Bounding Box')  # for boolean speedup
+            t0 = time.perf_counter()
             c.evaluate_bounding_box()
-            print(f'{time.time() - t0:.3f}s')
-            print("Boolean")
-            t0 = time.time()
-            complex_self(factory, c, verbose=args['verbose'])
-            print(f'{time.time() - t0:.3f}s')
-            t0 = time.time()
-            print('Synchronize')
+            logging.info(f'Bounding Box: {time.perf_counter() - t0:.3f}s')
+            logging.info("Boolean")
+            t0 = time.perf_counter()
+            complex_self(factory, c)
+            logging.info(f'Boolean: {time.perf_counter() - t0:.3f}s')
+            logging.info('Synchronize')
+            t0 = time.perf_counter()
             factory.synchronize()
-            print(f'{time.time() - t0:.3f}s')
+            logging.info(f'Synchronize: {time.perf_counter() - t0:.3f}s')
         if args['transfinite']:
-            print('Transfinite')
-            t0 = time.time()
+            logging.info('Transfinite')
+            t0 = time.perf_counter()
             ss, cs = set(), set()  # surfaces, curves
             c.transfinite(ss, cs)
-            # correct_and_transfinite_complex(c, ss, cs)
-            print(f'{time.time() - t0:.3f}s')
+            logging.info(f'Transfinite: {time.perf_counter() - t0:.3f}s')
         if args['recombine']:
-            print('Recombine')
-            t0 = time.time()
+            logging.info('Recombine')
+            t0 = time.perf_counter()
             c.recombine()
-            print(f'{time.time() - t0:.3f}s')
+            logging.info(f'Recombine: {time.perf_counter() - t0:.3f}s')
         if args['auto_size'] is not None:
-            print('Auto Size: {}'.format(args['auto_size']))
-            t0 = time.time()
+            logging.info('Auto Size: {}'.format(args['auto_size']))
+            t0 = time.perf_counter()
             pss = dict()
             auto_complex_points_sizes_min_curve_in_volume(c, pss,
                                                           args['auto_size'])
-            print(f'{time.time() - t0:.3f}s')
+            logging.info(f'Auto Size: {time.perf_counter() - t0:.3f}s')
         if args['size'] is not None:
-            print('Set Size: {}'.format(args['size']))
-            t0 = time.time()
+            logging.info('Set Size: {}'.format(args['size']))
+            t0 = time.perf_counter()
             set_points_sizes(args['size'])
-            print(f'{time.time() - t0:.3f}s')
+            logging.info(f'Set Size {time.perf_counter() - t0:.3f}s')
         if args['boundary_auto_size'] is not None:
-            print('Boundary Auto Size: {}'.format(args['boundary_auto_size']))
-            t0 = time.time()
+            logging.info('Boundary Auto Size: {}'.format(args['boundary_auto_size']))
+            t0 = time.perf_counter()
             auto_boundary_points_sizes_min_edge_in_surface(
                 args['boundary_auto_size'])
-            print(f'{time.time() - t0:.3f}s')
+            logging.info(f'Boundary Auto Size {time.perf_counter() - t0:.3f}s')
         if args['boundary_size'] is not None:
-            print('Set Boundary Size: {}'.format(args['boundary_size']))
-            t0 = time.time()
+            logging.info('Set Boundary Size: {}'.format(args['boundary_size']))
+            t0 = time.perf_counter()
             set_boundary_points_sizes(args['boundary_size'])
-            print(f'{time.time() - t0:.3f}s')
-        print("Volumes")
-        t0 = time.time()
+            logging.info(f'Set Boundary Size: {time.perf_counter() - t0:.3f}s')
+        logging.info("Volumes")
+        t0 = time.perf_counter()
         ns_to_vs = c.get_map_names_to_volumes()
         for n, vs in ns_to_vs.items():
             tag = gmsh.model.addPhysicalGroup(3, vs)
             gmsh.model.setPhysicalName(3, tag, n)
-        print(f'{time.time() - t0:.3f}s')
-        print("Surfaces")
-        t0 = time.time()
+        logging.info(f'Volumes: {time.perf_counter() - t0:.3f}s')
+        logging.info("Surfaces")
+        t0 = time.perf_counter()
         if args['boundary_type'] == '6':
-            # print("by 6 surfaces")
+            logging.info("by 6 surfaces")
             boundary_surfaces_groups = boundary_surfaces_to_six_side_groups()
             for n, ss in boundary_surfaces_groups.items():
                 tag = gmsh.model.addPhysicalGroup(2, ss)
                 gmsh.model.setPhysicalName(2, tag, n)
         elif args['boundary_type'] == 'primitive':
-            # print("by primitives surfaces")
+            logging.info("by primitives surfaces")
             n2s = dict()  # surface name to surface global index
             s2psi = c.get_map_surface_to_primitives_surfaces_indices()
             bs = get_boundary_surfaces()
@@ -294,19 +277,19 @@ if __name__ == '__main__':
                 tag = gmsh.model.addPhysicalGroup(2, ss)
                 gmsh.model.setPhysicalName(2, tag, n)
         elif args['boundary_type'] == 'all':
-            # print("by all surfaces")
+            logging.info("by all surfaces")
             boundary_surfaces = get_boundary_surfaces()
             for i, s in enumerate(boundary_surfaces):
                 name = 'S{0}'.format(s)
                 tag = gmsh.model.addPhysicalGroup(2, [s])
                 gmsh.model.setPhysicalName(2, tag, name)
         else:
-            # print("by support.physical_surfaces")
+            logging.info("by explicit surfaces")
             physical_surfaces(**physical_surfaces_kwargs)
-        print(f'{time.time() - t0:.3f}s')
+        logging.info(f'Surfaces: {time.perf_counter() - t0:.3f}s')
         if args['in_surfaces']:
-            t0 = time.time()
-            print('Inner Surfaces')
+            t0 = time.perf_counter()
+            logging.info('Inner Surfaces')
             n2s = {}  # surface name to surface global index
             if 's2psi' not in locals():  # s2i not exists
                 s2psi = c.get_map_surface_to_primitives_surfaces_indices()
@@ -327,45 +310,20 @@ if __name__ == '__main__':
             for n, ss in n2s.items():
                 tag = gmsh.model.addPhysicalGroup(2, ss)
                 gmsh.model.setPhysicalName(2, tag, n)
-            print(f'{time.time() - t0:.3f}s')
-        # t0 = time.time()
-        # print('Synchronize')
-        # factory.synchronize()
-        # for p in c.primitives:
-        #     for v in p.volumes:
-        #         ot = (3, v)
-        #         print(p.volumes, p.volume_name)
-        #         print(ot)
-        #         try:
-        #             print(gmsh.model.getBoundary([ot], recursive=False))
-        #         except Exception as e:
-        #             print(e)
-        # print(f'{time.time() - t0:.3f}s')
-        # print(gmsh.model.getEntities(dim=2))
-        # print(gmsh.model.getEntities(dim=3))
-        # gmsh.model.removeEntities(dimTags=[(3, 2)])
-        # print(gmsh.model.getEntities(dim=3))
-        # print(gmsh.model.getEntities(dim=2))
-        # print(gmsh.model.getEntities(dim=2))
-        # print(gmsh.model.getBoundary([(2, 34)], recursive=False))
-        print("Mesh")
-        t0 = time.time()
+            logging.info(f'Inner Surfaces: {time.perf_counter() - t0:.3f}s')
+        logging.info("Mesh")
+        t0 = time.perf_counter()
         gmsh.model.mesh.generate(3)
-        print(f'{time.time() - t0:.3f}s')
-        print('Nodes: {0}'.format(len(gmsh.model.mesh.getNodes()[0])))
-        # t0 = time.time()
-        # gmsh.model.mesh.removeDuplicateNodes()
-        # print(time.time() - t0)
-        # print('Nodes: {0}'.format(len(gmsh.model.mesh.getNodes()[0])))
-        # es = gmsh.model.mesh.getElements()
+        logging.info(f'Mesh: {time.perf_counter() - t0:.3f}s')
+        logging.info(f'nodes: {len(gmsh.model.mesh.getNodes()[0])}')
         if args['optimize']:
-            print("Optimize Mesh")
-            t0 = time.time()
+            logging.info("Optimize")
+            t0 = time.perf_counter()
             gmsh.model.mesh.optimize('', True)
-            print(f'{time.time() - t0:.3f}s')
-    print("Write: {}".format(args['output_path']))
-    t0 = time.time()
+            logging.info(f'Optimize: {time.perf_counter() - t0:.3f}s')
+    logging.info("Write: {}".format(args['output_path']))
+    t0 = time.perf_counter()
     gmsh.write(args['output_path'])
-    print(f'{time.time() - t0:.3f}s')
+    logging.info(f'Write: {time.perf_counter() - t0:.3f}s')
     gmsh.finalize()
-    print(f'Time spent: {time.time() - t00:.3f}s')
+    logging.info(f'Time spent: {time.perf_counter() - t00:.3f}s')

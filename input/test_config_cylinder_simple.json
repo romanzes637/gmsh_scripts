@@ -1,0 +1,14 @@
+{
+  "metadata": {
+    "type": "script_arguments",
+    "class_name": "ComplexFactory",
+    "description": "Factory config test"
+  },
+  "arguments": {
+    "factory": "occ",
+    "input_path": "input/test_cylinder_simple.json",
+    "output_path": "test_cylinder_simple_config.msh2",
+    "boolean": true,
+    "log_level": "DEBUG"
+  }
+}
