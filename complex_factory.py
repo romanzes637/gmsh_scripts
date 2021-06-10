@@ -13,12 +13,10 @@ import gmsh
 import complex
 import complex_primitive
 import cylinder
-import experiment
 import matrix
 import regular_matrix
 import regular_bound_matrix
 import polygon
-import tunnel
 import point
 from boolean import complex_self
 from support import boundary_surfaces_to_six_side_groups, \
@@ -44,10 +42,6 @@ class ComplexFactory:
             cylinder, cylinder.Cylinder.__name__),
         polygon.Polygon.__name__: getattr(
             polygon, polygon.Polygon.__name__),
-        tunnel.Tunnel.__name__: getattr(
-            tunnel, tunnel.Tunnel.__name__),
-        experiment.Experiment.__name__: getattr(
-            experiment, experiment.Experiment.__name__),
         point.Point.__name__: getattr(point, point.Point.__name__),
     }
 

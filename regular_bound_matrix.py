@@ -1,5 +1,3 @@
-import gmsh
-
 from matrix import Matrix
 
 
