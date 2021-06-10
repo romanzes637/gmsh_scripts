@@ -89,6 +89,7 @@ class Cylinder(Matrix):
         :param list of int ct0s: curve or straight line for inner radius? 1 - yes, 0 - no
         :param list of int ct1s: curve or straight line for outer radius? 1 - yes, 0 - no
         :return None
+        TODO change transfinite and lcs to maps
         """
         if radii is not None:
             radii_x = radii_y = radii
@@ -154,14 +155,16 @@ class Cylinder(Matrix):
             in_surfaces_names = [['NXI', 'XI', 'NYI', 'YI', 'NZI', 'ZI']]
         if layers_in_surfaces_names is None:
             layers_in_surfaces_names = [[0 for _ in range(nr)] for _ in heights]
-        xs, ys, zs, txs, tys, tzs = [], [], heights, [], [], transfinite_h_data
+        xs, ys, zs, txs, tys, tzs, ts_map = [], [], heights, [], [], [], {}
+        for t in transfinite_h_data:
+            tzs.append(ts_map.setdefault(tuple(t), len(ts_map)))
         for i in range(nr - 1, 0, -1):
             xs.append(radii_x[i] - radii_x[i - 1])
             ys.append(radii_y[i] - radii_y[i - 1])
             t = transfinite_r_data[i].copy()
             t[2] = 1/t[2]
-            txs.append(t)
-            tys.append(t)
+            txs.append(ts_map.setdefault(tuple(t), len(ts_map)))
+            tys.append(ts_map.setdefault(tuple(t), len(ts_map)))
         xs.append((1 - k) * radii_x[0])
         xs.append(2 * k * radii_x[0])
         xs.append((1 - k) * radii_x[0])
@@ -170,24 +173,27 @@ class Cylinder(Matrix):
         ys.append((1 - k) * radii_y[0])
         t = transfinite_r_data[0].copy()
         t[2] = 1/t[2]
-        txs.append(t)
-        txs.append(transfinite_phi_data)
-        txs.append(transfinite_r_data[0])
-        tys.append(t)
-        tys.append(transfinite_phi_data)
-        tys.append(transfinite_r_data[0])
+        txs.append(ts_map.setdefault(tuple(t), len(ts_map)))
+        txs.append(ts_map.setdefault(tuple(transfinite_phi_data), len(ts_map)))
+        txs.append(ts_map.setdefault(tuple(transfinite_r_data[0]), len(ts_map)))
+        tys.append(ts_map.setdefault(tuple(t), len(ts_map)))
+        tys.append(ts_map.setdefault(tuple(transfinite_phi_data), len(ts_map)))
+        tys.append(ts_map.setdefault(tuple(transfinite_r_data[0]), len(ts_map)))
         for i in range(1, nr):
             xs.append(radii_x[i] - radii_x[i - 1])
             ys.append(radii_y[i] - radii_y[i - 1])
-            txs.append(transfinite_r_data[i])
-            tys.append(transfinite_r_data[i])
+            txs.append(ts_map.setdefault(tuple(transfinite_r_data[i]), len(ts_map)))
+            tys.append(ts_map.setdefault(tuple(transfinite_r_data[i]), len(ts_map)))
+        ts = [list(x) for x in ts_map.keys()]
         transform_data = [[-radii_x[-1], -radii_y[-1], 0]] + transform_data
         kws = [{"ct": ct, "ct0": 0, "ct1": 0},
                {"ct": ct, "ct0": 1, "ct1": 0},
                {"ct": ct, "ct0": 0, "ct1": 1},
                {"ct": ct, "ct0": 1, "ct1": 1}]
         ct_map = {(x['ct0'], x['ct1']): i for i, x in enumerate(kws)}
-        type_map, lcs, recs_map, trans_map, kws_map = [], [], [], [], []
+        lcs = list(set([x for y in layers_lcs for x in y]))
+        lcs2i = {x: i for i, x in enumerate(lcs)}
+        type_map, lcs_map, recs_map, trans_map, kws_map = [], [], [], [], []
         volumes_map, surfaces_map = [], []
         new_surfaces_names = {}
         in_surfaces_map, in_surfaces_masks_map = [], []
@@ -201,7 +207,7 @@ class Cylinder(Matrix):
                 for i in range(len(xs)):
                     if i == ci and j == cj:  # C
                         type_map.append(5 if layers_exists[k][0] else 0)
-                        lcs.append(layers_lcs[k][0])
+                        lcs_map.append(lcs2i[layers_lcs[k][0]])
                         recs_map.append(layers_recs[k][0])
                         trans_map.append(layers_trans[k][0])
                         volumes_map.append(layers_volumes_names[k][0])
@@ -256,7 +262,7 @@ class Cylinder(Matrix):
                         in_surfaces_masks_map.append(
                             new_in_surfaces_mask.setdefault(
                                 tuple(new_mask), len(new_in_surfaces_mask)))
-                        lcs.append(layers_lcs[k][li])
+                        lcs_map.append(lcs2i[layers_lcs[k][li]])
                         recs_map.append(layers_recs[k][li])
                         trans_map.append(layers_trans[k][li])
                         volumes_map.append(layers_volumes_names[k][li])
@@ -293,14 +299,14 @@ class Cylinder(Matrix):
                         in_surfaces_masks_map.append(
                             new_in_surfaces_mask.setdefault(
                                 tuple(new_mask), len(new_in_surfaces_mask)))
-                        lcs.append(layers_lcs[k][li])
+                        lcs_map.append(lcs2i[layers_lcs[k][li]])
                         recs_map.append(layers_recs[k][li])
                         trans_map.append(layers_trans[k][li])
                         volumes_map.append(layers_volumes_names[k][li])
                         kws_map.append(ct_map[(ct0s[li], ct1s[li])])
                     else:
                         type_map.append(0)  # Empty
-                        lcs.append(0)
+                        lcs_map.append(0)
                         recs_map.append(0)
                         trans_map.append(0)
                         volumes_map.append(0)
@@ -312,9 +318,9 @@ class Cylinder(Matrix):
         new_in_surfaces_names = [list(x) for x in new_in_surfaces_names]
         new_in_surfaces_mask = [list(x) for x in new_in_surfaces_mask]
         Matrix.__init__(self, factory, xs=xs, ys=ys, zs=zs,
-                        coordinates_type='delta', lcs=lcs,
-                        transform_data=transform_data,
-                        txs=txs, tys=tys, tzs=tzs,
+                        coordinates_type='delta', transform_data=transform_data,
+                        lcs=lcs, lcs_map=lcs_map,
+                        ts=ts, txs=txs, tys=tys, tzs=tzs,
                         type_map=type_map,
                         types=types,
                         volumes_names=volumes_names,
