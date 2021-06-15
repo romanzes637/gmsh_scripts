@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Matrix",
+    "description": "Column of containers: vertical step 2, horizontal step 24"
+  },
+  "arguments": {
+    "factory": "occ",
+    "inputs": [
+               "input/container_pasha_polar_2600_cyl_no_center_full_bent_conc_1000.json"
+    ],
+    "inputs_transforms": [[[0.5, 0.5, 0.0952380952380952380952380952381]]],
+    "types": ["primitive", "complex_in_primitive", "complex_and_primitive"],
+    "volumes_names": ["Rock"],
+    "coordinates_type": "direct",
+    "xs": [-12, 12],
+    "ys": [-12, 12],
+    "zs": [-5.25, 5.25],
+    "lcs": 1,
+    "type_map": 1
+  }
+}
