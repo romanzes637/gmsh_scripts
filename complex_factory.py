@@ -18,6 +18,7 @@ import regular_matrix
 import regular_bound_matrix
 import polygon
 import point
+import uni
 from boolean import complex_self
 from support import boundary_surfaces_to_six_side_groups, \
     get_boundary_surfaces, check_file, physical_surfaces, \
@@ -43,6 +44,7 @@ class ComplexFactory:
         polygon.Polygon.__name__: getattr(
             polygon, polygon.Polygon.__name__),
         point.Point.__name__: getattr(point, point.Point.__name__),
+        uni.Uni.__name__: getattr(uni, uni.Uni.__name__)
     }
 
     def __init__(self):

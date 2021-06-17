@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Uni",
+    "description": "Test Uni cartesian cylindrical spherical"
+  },
+  "arguments": {
+    "factory": "geo",
+    "coordinate_system": "spherical",
+    "transform_data": [[0, -1, 3], [0, 0, 1, 30], [0, 0, 3, 1, 0, 0, 45]],
+    "coordinates": [0.1, 0.2, 0.3],
+    "ps": [[0, 1, 0], [2, 0, 1]],
+    "xs": [1, 2, 0],
+    "ys": [1, 2, 0],
+    "zs": [1, 2, 1]
+  }
+}

@@ -2,6 +2,7 @@ import os
 import math
 from pprint import pprint
 
+import numpy as np
 import gmsh
 
 
@@ -990,3 +991,107 @@ def check_file(path):
         result['type'] = -1
         result['path'] = path
     return result
+
+
+def rotation_matrix(axis, theta, deg=True):
+    """
+    Return the rotation matrix associated with counterclockwise rotation about
+    the given axis by theta degrees.
+    """
+    theta = np.radians(theta) if deg else theta
+    axis = np.array(axis)
+    axis = axis / np.sqrt(np.dot(axis, axis))
+    a = np.cos(0.5 * theta)
+    b, c, d = -axis * np.sin(0.5 * theta)
+    aa, bb, cc, dd = a * a, b * b, c * c, d * d
+    bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+    return np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+                     [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                     [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
+
+
+def transform(ps, data, mask=None, deg=True):
+    mask = mask if mask is not None else np.zeros_like(ps)
+    mps = np.ma.array(ps, mask=mask)
+    if len(data) == 7:  # rotation around dir by angle relative to origin
+        origin, direction, angle = data[:3], data[3:6], data[6]
+        m = rotation_matrix(direction, angle, deg)
+        lps = mps - origin  # local coordinates relative to origin
+        mps = np.ma.dot(lps, m.T)
+        mps = np.ma.add(mps, origin)
+    elif len(data) == 4:  # rotation about dir by angle relative to (0, 0, 0)
+        direction, angle = data[:3], data[3]
+        m = rotation_matrix(direction, angle, deg)
+        mps = np.ma.dot(mps, m.T)
+    elif len(data) == 3:  # displacement
+        displacement = data[:3]
+        mps = np.ma.add(mps, displacement)
+    else:
+        raise ValueError(data)
+    ps = mps.filled(ps)
+    return ps
+
+
+def cylindrical_to_cartesian(cs, deg=True):
+    """
+    [[x, y, z], ...], [[r, phi, z], ...] or [[r, phi, theta], ...], where
+    x, y, z  (inf, inf),
+    r - radius [0, inf),
+    phi - azimuthal angle [0, 360) (counterclockwise from X to Y),
+    theta - polar angle [0, 180] [from top to bottom, i.e XY-plane is 90]
+    """
+    if deg:
+        return np.array([cs[0] * np.cos(np.radians(cs[1])),
+                         cs[0] * np.sin(np.radians(cs[1])), cs[2]])
+    else:
+        return np.array([cs[0] * np.cos(cs[1]), cs[0] * np.sin(cs[1]), cs[2]])
+
+
+def spherical_to_cartesian(cs, deg=True):
+    """
+    [[x, y, z], ...], [[r, phi, z], ...] or [[r, phi, theta], ...], where
+    x, y, z  (inf, inf),
+    r - radius [0, inf),
+    phi - azimuthal angle [0, 360) (counterclockwise from X to Y),
+    theta - polar angle [0, 180] [from top to bottom, i.e XY-plane is 90]
+    """
+    if deg:
+        return np.array([
+            cs[0] * np.cos(np.radians(cs[1])) * np.sin(np.radians(cs[2])),
+            cs[0] * np.sin(np.radians(cs[1])) * np.sin(np.radians(cs[2])),
+            cs[0] * np.cos(np.radians(cs[2]))])
+    else:
+        return np.array([cs[0] * np.cos(cs[1]) * np.sin(cs[2]),
+                         cs[0] * np.sin(cs[1]) * np.sin(cs[2]),
+                         cs[0] * np.cos(cs[2])])
+
+
+def cartesian_to_cartesian(cs, deg=True):
+    return cs
+
+
+coordinates_to_coordinates_map = {
+    ('cylindrical', 'cartesian'): cylindrical_to_cartesian,
+    ('spherical', 'cartesian'): spherical_to_cartesian,
+    ('cartesian', 'cartesian'): cartesian_to_cartesian
+}
+
+
+def transform_to_transform(t, cs0, cs1):
+    f = coordinates_to_coordinates_map[(cs0, cs1)]
+    if len(t) == 3:  # displacement
+        t[:3] = f(t[:3])
+    elif len(t) == 4:  # rotation direction, angle
+        t[:3] = f(t[:3])
+    elif len(t) == 7:  # rotation origin, direction, angle
+        t[:3] = f(t[:3])
+        t[3:6] = f(t[3:6])
+    else:
+        raise ValueError(t)
+    return t
+
+
+def coordinates_to_coordinates(ps, cs0, cs1):
+    f = coordinates_to_coordinates_map[(cs0, cs1)]
+    return np.apply_along_axis(f, 1, ps)
+

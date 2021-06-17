@@ -1,0 +1,34 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Uni",
+    "description": "Test Uni FIXME spherical theta 0 and 180 bug"
+  },
+  "arguments": {
+    "factory": "geo",
+    "coordinate_system": "cartesian",
+    "transform_data": [[1, 2, 3], [1, 0, 0, 30], [0, 0, 1, 0, 1, 0, 30]],
+    "coordinate_systems": ["cartesian", "cylindrical", "spherical"],
+    "coordinate_systems_transform_data": [
+      [[1, 2, 3], [1, 0, 0, 30], [0, 0, 1, 0, 1, 0, 30]],
+      [[1, 2, 3], [1, 0, 0, 30], [0, 0, 1, 0, 1, 0, 30]],
+      [[1, 2, 3], [1, 0, 0, 30], [0, 0, 1, 0, 1, 0, 30]]
+    ],
+    "coordinates_type": "direct",
+    "xs": [
+      10, 20
+    ],
+    "ys": [
+      0, 45, 90, 135, 180, 225, 270, 315, 360
+    ],
+    "zs": [
+      10, 45, 90, 135, 170
+    ],
+    "css_map": 1,
+    "lcs": 5,
+    "ts": [[4, 0, 1], [6, 0, 1], [9, 0, 1]],
+    "txs": 0,
+    "tys": 1,
+    "tzs": 2
+  }
+}
