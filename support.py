@@ -1047,6 +1047,48 @@ def cylindrical_to_cartesian(cs, deg=True):
         return np.array([cs[0] * np.cos(cs[1]), cs[0] * np.sin(cs[1]), cs[2]])
 
 
+def toroidal_to_cartesian(cs, deg=True):
+    """
+    [r, phi, theta, r2] -> [x, y, z]
+    r - inner radius (r < r2)
+    phi - inner angle [0-360]
+    theta - outer angle [0-360]
+    r2 - outer radius
+    """
+    r, phi, theta, r2 = cs[:4]
+    if deg:
+        phi, theta = np.radians(phi), np.radians(theta)
+    return np.array([
+        r2 * np.cos(theta) + r * np.cos(phi) * np.cos(theta),
+        r2 * np.sin(theta) + r * np.cos(phi) * np.sin(theta),
+        r * np.sin(phi)])
+
+
+def tokamak_to_cartesian(cs, deg=True):
+    """
+    [r, phi, theta, r2, kxy, kz]
+    r - inner radius (r < r2)
+    phi - inner angle [0-360]
+    theta - outer angle [0-360]
+    r2 - outer radius
+    kxy - inner radius XY scale coefficient in positive outer radius direction
+    kz - inner radius Z scale coefficient
+    """
+    r, phi, theta, r2, kxy, kz = cs[:6]
+    if deg:
+        phi, theta = np.radians(phi), np.radians(theta)
+    if 0 <= phi < 0.5 * np.pi/2 or 1.5 * np.pi < phi <= 2 * np.pi:
+        return np.array([
+            r2 * np.cos(theta) + kxy * r * np.cos(phi) * np.cos(theta),
+            r2 * np.sin(theta) + kxy * r * np.cos(phi) * np.sin(theta),
+            kz * r * np.sin(phi)])
+    else:
+        return np.array([
+            r2 * np.cos(theta) + r * np.cos(phi) * np.cos(theta),
+            r2 * np.sin(theta) + r * np.cos(phi) * np.sin(theta),
+            kz * r * np.sin(phi)])
+
+
 def spherical_to_cartesian(cs, deg=True):
     """
     [[x, y, z], ...], [[r, phi, z], ...] or [[r, phi, theta], ...], where
@@ -1073,7 +1115,9 @@ def cartesian_to_cartesian(cs, deg=True):
 coordinates_to_coordinates_map = {
     ('cylindrical', 'cartesian'): cylindrical_to_cartesian,
     ('spherical', 'cartesian'): spherical_to_cartesian,
-    ('cartesian', 'cartesian'): cartesian_to_cartesian
+    ('cartesian', 'cartesian'): cartesian_to_cartesian,
+    ('toroidal', 'cartesian'): toroidal_to_cartesian,
+    ('tokamak', 'cartesian'): tokamak_to_cartesian
 }
 
 
@@ -1093,5 +1137,47 @@ def transform_to_transform(t, cs0, cs1):
 
 def coordinates_to_coordinates(ps, cs0, cs1):
     f = coordinates_to_coordinates_map[(cs0, cs1)]
-    return np.apply_along_axis(f, 1, ps)
+    return [f(x) for x in ps]
 
+
+def parse_indexing(cs, coordinates_type):
+    """
+    Parse grid coordinates indexing of 2 types:
+    1. start:end:number of steps
+    2. delta:number of steps
+    """
+    new_cs = []  # new coordinates
+    n2o = {}  # new to old local map
+    ni = 0  # new index
+    for oi, c in enumerate(cs):  # old index
+        if isinstance(c, (int, float)):
+            new_cs.append(c)
+            n2o[ni] = oi
+            ni += 1
+        elif isinstance(c, str):
+            vs = [float(x) for x in c.split(':')]  # values
+            if len(vs) == 3:
+                c0, c1, nc = vs  # start, end, number of steps
+                dc = (c1 - c0) / nc
+                if coordinates_type == 'direct':
+                    new_cs.append(c0)
+                    n2o[ni] = oi
+                    ni += 1
+                    for _ in range(int(nc)):
+                        new_cs.append(new_cs[ni - 1] + dc)
+                        n2o[ni] = oi
+                        ni += 1
+                else:
+                    raise NotImplementedError(coordinates_type)
+            elif len(vs) == 2:
+                dc, nc = vs  # delta, number of steps
+                if coordinates_type == 'delta':
+                    for _ in range(int(nc)):
+                        new_cs.append(dc)
+                        n2o[ni] = oi
+                        ni += 1
+                else:
+                    raise NotImplementedError(coordinates_type)
+            else:
+                raise ValueError(c)
+    return new_cs, n2o

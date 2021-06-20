@@ -1,0 +1,27 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Uni",
+    "description": "Test Uni Torus"
+  },
+  "arguments": {
+    "factory": "geo",
+    "coordinate_system": "cartesian",
+    "coordinate_systems": ["cartesian", "cylindrical", "spherical", "toroidal"],
+    "grid_coordinates_type": "direct",
+    "grid": [
+      [10, 12],
+      ["0:360:6"],
+      ["0:360:10"],
+      [0, 30],
+      [0, 3],
+      [0, 3]
+    ],
+    "css_map": 3,
+    "lcs": 5,
+    "ts": [[4, 0, 1], [6, 0, 1], [9, 0, 1]],
+    "txs": 0,
+    "tys": 1,
+    "tzs": 2
+  }
+}

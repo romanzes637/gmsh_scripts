@@ -1,6 +1,8 @@
 import json
 import time
 import copy  # for dict copy, items of dict are shallow copies
+from functools import reduce
+from itertools import product
 
 import gmsh
 import numpy as np
@@ -9,7 +11,7 @@ import registry
 from complex import Complex
 from primitive import Primitive
 from support import check_file, transform, coordinates_to_coordinates, \
-    transform_to_transform
+    transform_to_transform, parse_indexing
 
 
 class Uni(Complex):
@@ -17,11 +19,9 @@ class Uni(Complex):
                  coordinate_system=None,
                  transform_data=None,
                  coordinates=None,
-                 ps=None,
-                 coordinates_type=None,
-                 xs=None,
-                 ys=None,
-                 zs=None,
+                 points=None,
+                 grid_coordinates_type=None,
+                 grid=None,
                  coordinate_systems=None,
                  coordinate_systems_transform_data=None,
                  css_map=None,
@@ -50,22 +50,124 @@ class Uni(Complex):
             factory_object = gmsh.model.geo
         else:
             raise ValueError(factory)
-        # Coordinates map for ps, xs, ys, zs
+        # Indexing
+        new_grid, new_grid_maps = [], []
+        for x in grid:
+            new_cs, n2o = parse_indexing(x, grid_coordinates_type)
+            new_grid.append(new_cs)
+            new_grid_maps.append(n2o)
+        grid = new_grid
+        print(new_grid)
+        # TODO change the maps to new grid shape
+        # if any((len(nxs) != len(xs), len(nys) != len(ys), len(nzs) != len(zs))):
+        #     # Old
+        #     if coordinates_type == 'delta':
+        #         nx, ny, nz = len(xs), len(ys), len(zs)
+        #     elif coordinates_type == 'direct':
+        #         nx, ny, nz = len(xs) - 1, len(ys) - 1, len(zs) - 1
+        #     else:
+        #         raise ValueError(f'coordinates_type: {coordinates_type}')
+        #     l2g = {}  # local index (xi, yj, zk) -> global index (gi) map
+        #     g2l = {}  # global index (gi) map -> local index (xi, yj, zk)
+        #     for zi in range(nz):
+        #         for yi in range(ny):
+        #             for xi in range(nx):
+        #                 gi = xi + nx * yi + ny * nx * zi
+        #                 l2g[(xi, yi, zi)] = gi
+        #                 g2l[gi] = (xi, yi, zi)
+        #     # New
+        #     xs, ys, zs = nxs, nys, nzs
+        #     if coordinates_type == 'delta':
+        #         x0, y0, z0 = 0, 0, 0
+        #     elif coordinates_type == 'direct':  # convert to delta
+        #         x0, y0, z0 = xs[0], ys[0], zs[0]
+        #         xs = [xs[i] - xs[i - 1] for i in range(1, len(xs))]
+        #         ys = [ys[i] - ys[i - 1] for i in range(1, len(ys))]
+        #         zs = [zs[i] - zs[i - 1] for i in range(1, len(zs))]
+        #     else:
+        #         raise ValueError(f'coordinates_type: {coordinates_type}')
+        #     nx, ny, nz = len(xs), len(ys), len(zs)
+        #     ni = nx * ny * nz  # number of matrix items
+        #     n2o_gs = {}  # new global index (gi) to old global index (gi)
+        #     for zi in range(len(zs)):
+        #         for yi in range(len(ys)):
+        #             for xi in range(len(xs)):
+        #                 gi = xi + nx * yi + ny * nx * zi
+        #                 n2o_gs[gi] = l2g[(n2o_xs[xi], n2o_ys[yi], n2o_zs[zi])]
+        #     # Update maps
+        #     if isinstance(txs, list):
+        #         txs = [txs[n2o_xs[xi]] for xi in range(nx)]
+        #     if isinstance(tys, list):
+        #         tys = [tys[n2o_ys[yi]] for yi in range(ny)]
+        #     if isinstance(tzs, list):
+        #         tzs = [tzs[n2o_zs[zi]] for zi in range(nz)]
+        #     if isinstance(lcs_map, list):
+        #         lcs_map = [lcs_map[n2o_gs[gi]] for gi in range(ni)]
+        #     if isinstance(transforms_map, list):
+        #         transforms_map = [transforms_map[n2o_gs[gi]] for gi in range(ni)]
+        #     if isinstance(type_map, list):
+        #         type_map = [type_map[n2o_gs[gi]] for gi in range(ni)]
+        #     if isinstance(transforms_map, list):
+        #         transforms_map = [transforms_map[n2o_gs[gi]] for gi in range(ni)]
+        #     if isinstance(volumes_map, list):
+        #         volumes_map = [volumes_map[n2o_gs[gi]] for gi in range(ni)]
+        #     if isinstance(surfaces_map, list):
+        #         surfaces_map = [surfaces_map[n2o_gs[gi]] for gi in range(ni)]
+        #     if isinstance(in_surfaces_map, list):
+        #         in_surfaces_map = [in_surfaces_map[n2o_gs[gi]] for gi in range(ni)]
+        #     if isinstance(inputs_map, list):
+        #         inputs_map = [inputs_map[n2o_gs[gi]] for gi in range(ni)]
+        #     if isinstance(kws_map, list):
+        #         kws_map = [kws_map[n2o_gs[gi]] for gi in range(ni)]
+        #     if isinstance(recs_map, list):
+        #         recs_map = [recs_map[n2o_gs[gi]] for gi in range(ni)]
+        #     if isinstance(trans_map, list):
+        #         trans_map = [trans_map[n2o_gs[gi]] for gi in range(ni)]
+        #     if isinstance(curve_types_map, list):
+        #         curve_types_map = [curve_types_map[n2o_gs[gi]] for gi in range(ni)]
+        #     if isinstance(curve_data_map, list):
+        #         curve_data_map = [curve_data_map[n2o_gs[gi]] for gi in range(ni)]
+        #     if isinstance(curve_data_coord_sys_map, list):
+        #         curve_data_coord_sys_map = [curve_data_coord_sys_map[n2o_gs[gi]] for gi in range(ni)]
+        #     if isinstance(inputs_transforms_coord_sys_map, list):
+        #         inputs_transforms_coord_sys_map = [inputs_transforms_coord_sys_map[n2o_gs[gi]] for gi in range(ni)]
+        #     if isinstance(boolean_level_map, list):
+        #         boolean_level_map = [boolean_level_map[n2o_gs[gi]] for gi in range(ni)]
+        # Coordinates map for points and grid
         if coordinates is not None:
-            if ps is not None:
-                ps = [[coordinates[xi],
-                       coordinates[yi],
-                       coordinates[zi]] for (xi, yi, zi) in ps]
-            if xs is not None:
-                xs = [coordinates[i] for i in xs]
-            if ys is not None:
-                ys = [coordinates[i] for i in ys]
-            if zs is not None:
-                zs = [coordinates[i] for i in zs]
-        ps = np.array(ps) if ps is not None else ps
-        xs = np.array(xs) if xs is not None else xs
-        ys = np.array(ys) if ys is not None else ys
-        zs = np.array(zs) if zs is not None else zs
+            if points is not None:
+                points = [[coordinates[y] for y in x] for x in points]
+            if grid is not None:
+                grid = [coordinates[y] for x in grid for y in x]
+        if points is not None:
+            ni = nx = ny = nz = len(points)  # number of matrix items
+            l2g = {}  # local index (x1, x2, ..., xi) -> global index (gi) map
+            g2l = {}  # global index (gi) map -> local index (x1, x2, ..., xi)
+            for i in range(ni):
+                gi = i
+                l2g[(i, i, i)] = gi
+                g2l[gi] = (i, i, i)
+        if grid is not None:
+            if grid_coordinates_type is None:
+                grid_coordinates_type = 'delta'
+            if grid_coordinates_type == 'delta':
+                origin = [0 for x in grid]
+            elif grid_coordinates_type == 'direct':  # convert to delta
+                origin = [x[0] for x in grid]
+                grid = [[x[i] - x[i - 1] for i in range(1, len(x))] for x in grid]
+            else:
+                raise ValueError(grid_coordinates_type)
+            nx, ny, nz = [len(x) for x in grid][:3]
+            print(nx, ny, nz)
+            ni = reduce(lambda x, y: x * y, [len(x) for x in grid])  # number of matrix items
+            l2g = {}  # local index (xi, ..., zi, yi, xi) -> global index (gi) map
+            g2l = {}  # global index (gi) map -> local index (xi, ..., zi, yi, xi)
+            indexes = [range(len(x)) for x in grid]
+            for gi, li in enumerate(product(*reversed(indexes))):
+                l2g[li] = gi
+                g2l[gi] = li
+        points = np.array(points) if points is not None else points
+        grid = [np.array(x) for x in grid]
         # Coordinate system with transform
         if coordinate_system is None:
             coordinate_system = 'cartesian'
@@ -77,12 +179,7 @@ class Uni(Complex):
         for i, t in enumerate(transform_data):
             transform_data[i] = transform_to_transform(
                 t, coordinate_system, 'cartesian')
-        if ps is not None:  # Points
-            ni, nx, ny, nz = len(ps), len(ps), len(ps), len(ps)
-        else:
-            nx, ny, nz = len(xs), len(ys), len(zs)
-            ni = nx * ny * nz  # number of matrix items
-        # Coordinate systems for ps, xs, ys, zs
+        # Coordinate systems for point and grid
         if coordinate_systems is None:
             coordinate_systems = ['cartesian']
         if coordinate_systems_transform_data is None:  # In coordinate_system
@@ -92,73 +189,51 @@ class Uni(Complex):
             for j, t in enumerate(td):
                 coordinate_systems_transform_data[i][j] = transform_to_transform(
                     t, coordinate_system, 'cartesian')
-        # Coordinates type for xs, ys and zs
-        if coordinates_type is None:
-            coordinates_type = 'delta'
-        if coordinates_type == 'delta':
-            x0, y0, z0 = 0, 0, 0
-        elif coordinates_type == 'direct':  # convert to delta
-            x0, y0, z0 = xs[0], ys[0], zs[0]
-            xs = [xs[i] - xs[i - 1] for i in range(1, len(xs))]
-            ys = [ys[i] - ys[i - 1] for i in range(1, len(ys))]
-            zs = [zs[i] - zs[i - 1] for i in range(1, len(zs))]
-        else:
-            raise ValueError(coordinates_type)
-        # Points or Matrix
-        if ps is not None:  # Points
-            ni = nx = ny = nz = len(ps)
-            l2g = {}  # local index (xi, yj, zk) -> global index (gi) map
-            g2l = {}  # global index (gi) map -> local index (xi, yj, zk)
-            for i in range(ni):
-                gi = i
-                l2g[(i, i, i)] = gi
-                g2l[gi] = (i, i, i)
-        else:  # Matrix
-            nx, ny, nz = len(xs), len(ys), len(zs)
-            ni = nx * ny * nz  # number of matrix items
-            l2g = {}  # local index (xi, yj, zk) -> global index (gi) map
-            g2l = {}  # global index (gi) map -> local index (xi, yj, zk)
-            for zi in range(nz):
-                for yi in range(ny):
-                    for xi in range(nx):
-                        gi = xi + nx * yi + ny * nx * zi
-                        l2g[(xi, yi, zi)] = gi
-                        g2l[gi] = (xi, yi, zi)
         if css_map is None:
             css_map = [0 for _ in range(ni)]
         elif not isinstance(css_map, list):
             css_map = [css_map for _ in range(ni)]
-        point_datas = np.zeros((ni, 8, 3))
+        # point_datas = np.zeros((ni, 8, 3))
+        point_datas = []
         # Points datas
-        if ps is not None:
-            for gi in range(nx):
-                xi, yi, zi = g2l[gi]
-                x, y, z = ps[gi]  # center
-                dx, dy, dz = xs[xi], ys[yi], zs[zi]  # deltas
-                point_datas[gi] = np.array([
-                    [x + 0.5 * dx, y + 0.5 * dy, z - 0.5 * dz],
-                    [x - 0.5 * dx, y + 0.5 * dy, z - 0.5 * dz],
-                    [x - 0.5 * dx, y - 0.5 * dy, z - 0.5 * dz],
-                    [x + 0.5 * dx, y - 0.5 * dy, z - 0.5 * dz],
-                    [x + 0.5 * dx, y + 0.5 * dy, z + 0.5 * dz],
-                    [x - 0.5 * dx, y + 0.5 * dy, z + 0.5 * dz],
-                    [x - 0.5 * dx, y - 0.5 * dy, z + 0.5 * dz],
-                    [x + 0.5 * dx, y - 0.5 * dy, z + 0.5 * dz]])
+        if points is not None:
+            for gi in range(ni):
+                zi, yi, xi = g2l[gi][-3:]
+                x, y, z = points[gi]  # center
+                dxs, dys, dzs = grid[0], grid[1], grid[2]
+                dx, dy, dz = dxs[xi], dys[yi], dzs[zi]  # deltas
+                ds = grid[3:]
+                dsi = reversed(g2l[gi][:-3])
+                ds = [x[i] for (i, x) in zip(dsi, ds)]
+                point_datas.append([
+                    [x + 0.5 * dx, y + 0.5 * dy, z - 0.5 * dz] + ds,
+                    [x - 0.5 * dx, y + 0.5 * dy, z - 0.5 * dz] + ds,
+                    [x - 0.5 * dx, y - 0.5 * dy, z - 0.5 * dz] + ds,
+                    [x + 0.5 * dx, y - 0.5 * dy, z - 0.5 * dz] + ds,
+                    [x + 0.5 * dx, y + 0.5 * dy, z + 0.5 * dz] + ds,
+                    [x - 0.5 * dx, y + 0.5 * dy, z + 0.5 * dz] + ds,
+                    [x - 0.5 * dx, y - 0.5 * dy, z + 0.5 * dz] + ds,
+                    [x + 0.5 * dx, y - 0.5 * dy, z + 0.5 * dz] + ds])
         else:
             for gi in range(ni):
-                xi, yi, zi = g2l[gi]
-                x0i, x1i = x0 + sum(xs[:xi]), x0 + sum(xs[:xi + 1])
-                y0i, y1i = y0 + sum(ys[:yi]), y0 + sum(ys[:yi + 1])
-                z0i, z1i = z0 + sum(zs[:zi]), z0 + sum(zs[:zi + 1])
-                point_datas[gi] = np.array([
-                    [x1i, y1i, z0i],
-                    [x0i, y1i, z0i],
-                    [x0i, y0i, z0i],
-                    [x1i, y0i, z0i],
-                    [x1i, y1i, z1i],
-                    [x0i, y1i, z1i],
-                    [x0i, y0i, z1i],
-                    [x1i, y0i, z1i]])
+                zi, yi, xi = g2l[gi][-3:]
+                x0, y0, z0 = origin[:3]
+                dxs, dys, dzs = grid[0], grid[1], grid[2]
+                ds = grid[3:]
+                dsi = reversed(g2l[gi][:-3])
+                ds = [x[i] for (i, x) in zip(dsi, ds)]
+                x0i, x1i = x0 + sum(dxs[:xi]), x0 + sum(dxs[:xi + 1])
+                y0i, y1i = y0 + sum(dys[:yi]), y0 + sum(dys[:yi + 1])
+                z0i, z1i = z0 + sum(dzs[:zi]), z0 + sum(dzs[:zi + 1])
+                point_datas.append([
+                    [x1i, y1i, z0i] + ds,
+                    [x0i, y1i, z0i] + ds,
+                    [x0i, y0i, z0i] + ds,
+                    [x1i, y0i, z0i] + ds,
+                    [x1i, y1i, z1i] + ds,
+                    [x0i, y1i, z1i] + ds,
+                    [x0i, y0i, z1i] + ds,
+                    [x1i, y0i, z1i] + ds])
         # Local curvilinear to global cartesian
         for gi in range(ni):
             cs = coordinate_systems[css_map[gi]]
@@ -166,14 +241,14 @@ class Uni(Complex):
             # Local curvilinear to local cartesian
             point_datas[gi] = coordinates_to_coordinates(
                 point_datas[gi], cs, 'cartesian')
-            if ps is not None:
-                ps[gi] = coordinates_to_coordinates(
-                    [ps[gi]], cs, 'cartesian')[0]
+            if points is not None:
+                points[gi] = coordinates_to_coordinates(
+                    [points[gi]], cs, 'cartesian')[0]
             # Local cartesian to global cartesian transform
             for t in td:
                 point_datas[gi] = transform(point_datas[gi], t)
-                if ps is not None:
-                    ps[gi] = transform([ps[gi]], t)[0]
+                if points is not None:
+                    points[gi] = transform([points[gi]], t)[0]
         # Types
         if types is None:
             types = ['primitive']
@@ -219,49 +294,6 @@ class Uni(Complex):
             globals()[types[types_map[gi]]](**locals())
         Complex.__init__(self, factory, primitives)
 
-    # @staticmethod
-    # def parse_indexing(cs, coordinates_type):
-    #     """
-    #     Parse coordinates indexing (xs, ys, zs) of 2 types:
-    #     1. start:end:number of steps
-    #     2. delta:number of steps
-    #     """
-    #     new_cs = []  # new coordinates
-    #     n2o = {}  # new to old local map
-    #     ni = 0  # new index
-    #     for oi, c in enumerate(cs):  # old index
-    #         if isinstance(c, (int, float)):
-    #             new_cs.append(c)
-    #             n2o[ni] = oi
-    #             ni += 1
-    #         elif isinstance(c, str):
-    #             vs = [float(x) for x in c.split(':')]  # values
-    #             if len(vs) == 3:
-    #                 c0, c1, nc = vs  # start, end, number of steps
-    #                 dc = (c1 - c0) / nc
-    #                 if coordinates_type == 'direct':
-    #                     new_cs.append(c0)
-    #                     n2o[ni] = oi
-    #                     ni += 1
-    #                     for _ in range(int(nc)):
-    #                         new_cs.append(new_cs[ni - 1] + dc)
-    #                         n2o[ni] = oi
-    #                         ni += 1
-    #                 else:
-    #                     raise NotImplementedError(coordinates_type)
-    #             elif len(vs) == 2:
-    #                 dc, nc = vs  # delta, number of steps
-    #                 if coordinates_type == 'delta':
-    #                     for _ in range(int(nc)):
-    #                         new_cs.append(dc)
-    #                         n2o[ni] = oi
-    #                         ni += 1
-    #                 else:
-    #                     raise NotImplementedError(coordinates_type)
-    #             else:
-    #                 raise ValueError(c)
-    #     return new_cs, n2o
-
 
 # Empty
 def empty(**kwargs):
@@ -276,7 +308,7 @@ def primitive(primitives, li, gi, factory, transform_data,
     pd = point_datas[gi]
     lc = np.array([[lcs[lcs_map[gi]]] for _ in range(8)])
     pd = np.concatenate((pd, lc), axis=1)
-    xi, yi, zi = li
+    zi, yi, xi = li[-3:]
     primitives.append(Primitive(
         factory=factory,
         transform_data=transform_data,

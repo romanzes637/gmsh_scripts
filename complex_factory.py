@@ -191,7 +191,7 @@ if __name__ == '__main__':
     logging.info(f'Synchronize: {time.perf_counter() - t0:.3f}s')
     if not args['test']:
         if args['boolean']:
-            if args['factory'] != 'occ':
+            if input_data['arguments']['factory'] != 'occ':
                 logging.critical('Boolean is only available in the occ factory!')
                 raise ValueError('Boolean is only available in the occ factory!')
             logging.info('Bounding Box')  # for boolean speedup
