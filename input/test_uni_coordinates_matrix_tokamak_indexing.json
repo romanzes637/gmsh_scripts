@@ -6,23 +6,77 @@
   },
   "arguments": {
     "factory": "geo",
+    "transform_data": [[0, 1, 2]],
     "coordinate_system": "cartesian",
     "coordinate_systems": ["cartesian", "cylindrical", "spherical", "toroidal",
       "tokamak"],
+    "coordinate_systems_transform_data": [
+      [[1, 2, 3], [1, 0, 0, 30], [0, 0, 1, 0, 1, 0, 0]],
+      [[1, 2, 3], [1, 0, 0, 30], [0, 0, 1, 0, 1, 0, 30]],
+      [[1, 2, 3], [1, 0, 0, 30], [0, 0, 1, 0, 1, 0, 30]],
+      [[1, 2, 3], [1, 0, 0, 30], [0, 0, 1, 0, 1, 0, 30]],
+      [[0, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0, 1, 0, 0]]
+    ],
     "grid_coordinates_type": "direct",
     "grid": [
-      [10, 12],
-      ["0:360:10"],
-      ["0:360:10"],
+      [10, 12, 15],
+      [0, "6", 180, "6", 360],
+      [0, "6", 180, "6", 360],
       [0, 30],
       [0, 2],
       [0, 3]
     ],
-    "css_map": 4,
-    "lcs": 5,
-    "ts": [[3, 0, 1], [4, 0, 1], [5, 0, 1]],
-    "txs": 0,
-    "tys": 1,
-    "tzs": 2
+    "coordinate_systems_map": 4,
+    "types": ["primitive", "empty", "complex", "complex_and_primitive",
+      "complex_in_primitive"],
+    "types_map": [
+      0, 1,
+      1, 0,
+
+      1, 3,
+      3, 1
+    ],
+    "lcs": [5, 10, 15],
+    "lcs_map": [
+      0, 1,
+      0, 1,
+
+      1, 1,
+      2, 2
+    ],
+    "trans": [[3, 0, 1], [4, 0, 1], [7, 0, 1], [9, 0, 1]],
+    "trans_map_x": 0,
+    "trans_map_y": 0,
+    "trans_map_z": 0,
+    "trans_map": [
+      1, 1,
+      1, 1,
+
+      1, 1,
+      1, 1
+    ],
+    "trans_type_map": 0,
+    "recs_map": 1,
+    "volumes": ["A", "B", "C"],
+    "volumes_map": [
+      1, 2,
+      0, 1,
+
+      0, 2,
+      2, 0
+    ],
+    "surfaces": [
+      ["Internal", "External", "NY", "Y", "NZ", "Z"],
+      ["InternalA", "ExternalA", "NY", "Y", "NZ", "Z"]
+    ],
+    "surfaces_map": [
+      0, 0,
+      1, 1,
+
+      0, 0,
+      1, 1
+    ],
+    "inputs": ["input/test_uni_item.json"],
+    "inputs_map": 0
   }
 }

@@ -1032,6 +1032,22 @@ def transform(ps, data, mask=None, deg=True):
     return ps
 
 
+def transform_transform(t, data, deg=True):
+    if len(t) == 3:  # displacement
+        return list(transform([t[:3]], data, deg=deg)[0])
+    elif len(t) == 4:  # rotation direction, angle
+        return list(transform([t[:3]], data, deg=deg)[0]) + transform[4]
+    elif len(t) == 7:  # rotation origin, direction, angle
+        return list(transform([t[:3]], data, deg=deg)[0]) \
+               + list(transform([t[3:6]], data, deg=deg)[0]) + t[6]
+    else:
+        raise ValueError(t)
+
+
+def transform_transforms(ts, data, deg=True):
+    return [transform_transform(t, data, deg) for t in ts]
+
+
 def cylindrical_to_cartesian(cs, deg=True):
     """
     [[x, y, z], ...], [[r, phi, z], ...] or [[r, phi, theta], ...], where
@@ -1041,10 +1057,10 @@ def cylindrical_to_cartesian(cs, deg=True):
     theta - polar angle [0, 180] [from top to bottom, i.e XY-plane is 90]
     """
     if deg:
-        return np.array([cs[0] * np.cos(np.radians(cs[1])),
-                         cs[0] * np.sin(np.radians(cs[1])), cs[2]])
+        return [cs[0] * np.cos(np.radians(cs[1])),
+                cs[0] * np.sin(np.radians(cs[1])), cs[2]]
     else:
-        return np.array([cs[0] * np.cos(cs[1]), cs[0] * np.sin(cs[1]), cs[2]])
+        return [cs[0] * np.cos(cs[1]), cs[0] * np.sin(cs[1]), cs[2]]
 
 
 def toroidal_to_cartesian(cs, deg=True):
@@ -1058,10 +1074,9 @@ def toroidal_to_cartesian(cs, deg=True):
     r, phi, theta, r2 = cs[:4]
     if deg:
         phi, theta = np.radians(phi), np.radians(theta)
-    return np.array([
-        r2 * np.cos(theta) + r * np.cos(phi) * np.cos(theta),
-        r2 * np.sin(theta) + r * np.cos(phi) * np.sin(theta),
-        r * np.sin(phi)])
+    return [r2 * np.cos(theta) + r * np.cos(phi) * np.cos(theta),
+            r2 * np.sin(theta) + r * np.cos(phi) * np.sin(theta),
+            r * np.sin(phi)]
 
 
 def tokamak_to_cartesian(cs, deg=True):
@@ -1077,16 +1092,16 @@ def tokamak_to_cartesian(cs, deg=True):
     r, phi, theta, r2, kxy, kz = cs[:6]
     if deg:
         phi, theta = np.radians(phi), np.radians(theta)
-    if 0 <= phi < 0.5 * np.pi/2 or 1.5 * np.pi < phi <= 2 * np.pi:
-        return np.array([
+    if 0 <= phi <= 0.5 * np.pi or 1.5 * np.pi <= phi <= 2 * np.pi:
+        return [
             r2 * np.cos(theta) + kxy * r * np.cos(phi) * np.cos(theta),
             r2 * np.sin(theta) + kxy * r * np.cos(phi) * np.sin(theta),
-            kz * r * np.sin(phi)])
+            kz * r * np.sin(phi)]
     else:
-        return np.array([
+        return [
             r2 * np.cos(theta) + r * np.cos(phi) * np.cos(theta),
             r2 * np.sin(theta) + r * np.cos(phi) * np.sin(theta),
-            kz * r * np.sin(phi)])
+            kz * r * np.sin(phi)]
 
 
 def spherical_to_cartesian(cs, deg=True):
@@ -1098,18 +1113,23 @@ def spherical_to_cartesian(cs, deg=True):
     theta - polar angle [0, 180] [from top to bottom, i.e XY-plane is 90]
     """
     if deg:
-        return np.array([
+        return [
             cs[0] * np.cos(np.radians(cs[1])) * np.sin(np.radians(cs[2])),
             cs[0] * np.sin(np.radians(cs[1])) * np.sin(np.radians(cs[2])),
-            cs[0] * np.cos(np.radians(cs[2]))])
+            cs[0] * np.cos(np.radians(cs[2]))]
     else:
-        return np.array([cs[0] * np.cos(cs[1]) * np.sin(cs[2]),
-                         cs[0] * np.sin(cs[1]) * np.sin(cs[2]),
-                         cs[0] * np.cos(cs[2])])
+        return [cs[0] * np.cos(cs[1]) * np.sin(cs[2]),
+                cs[0] * np.sin(cs[1]) * np.sin(cs[2]),
+                cs[0] * np.cos(cs[2])]
 
 
 def cartesian_to_cartesian(cs, deg=True):
-    return cs
+    return cs[:3]
+
+
+def cell_to_local(cs, deg=True):
+    x, y, z, xc, yc, zc, x0, x1, y0, y1, z0, z1 = cs
+    return [x0 + x * (x1 - x0), y0 + y * (y1 - y0), z0 + z * (z1 - z0)]
 
 
 coordinates_to_coordinates_map = {
@@ -1117,22 +1137,38 @@ coordinates_to_coordinates_map = {
     ('spherical', 'cartesian'): spherical_to_cartesian,
     ('cartesian', 'cartesian'): cartesian_to_cartesian,
     ('toroidal', 'cartesian'): toroidal_to_cartesian,
-    ('tokamak', 'cartesian'): tokamak_to_cartesian
+    ('tokamak', 'cartesian'): tokamak_to_cartesian,
+    ('cell', 'local'): cell_to_local
 }
 
 
-def transform_to_transform(t, cs0, cs1):
+def transform_to_transform(t, cs0, cs1, c=None):
     f = coordinates_to_coordinates_map[(cs0, cs1)]
-    if len(t) == 3:  # displacement
-        t[:3] = f(t[:3])
-    elif len(t) == 4:  # rotation direction, angle
-        t[:3] = f(t[:3])
-    elif len(t) == 7:  # rotation origin, direction, angle
-        t[:3] = f(t[:3])
-        t[3:6] = f(t[3:6])
+    if c is not None:
+        if len(t) == 3:  # displacement
+            return f(t + c)
+        elif len(t) == 4:  # rotation direction, angle
+            return f(t[:3] + c) + [t[3]]
+        elif len(t) == 7:  # rotation origin, direction, angle
+            return f(t[:3] + c) + f(t[3:6] + c) + [t[6]]
+        else:
+            raise ValueError(t)
     else:
-        raise ValueError(t)
-    return t
+        if len(t) == 3:  # displacement
+            return f(t)
+        elif len(t) == 4:  # rotation direction, angle
+            return f(t[:3]) + [t[3]]
+        elif len(t) == 7:  # rotation origin, direction, angle
+            return f(t[:3]) + f(t[3:6]) + [t[6]]
+        else:
+            raise ValueError(t)
+
+
+def transforms_to_transforms(ts, cs0, cs1, cs=None):
+    if cs is None:
+        return [transform_to_transform(t, cs0, cs1) for t in ts]
+    else:
+        return [transform_to_transform(t, cs0, cs1, c) for t, c in zip(ts, cs)]
 
 
 def coordinates_to_coordinates(ps, cs0, cs1):
@@ -1142,42 +1178,41 @@ def coordinates_to_coordinates(ps, cs0, cs1):
 
 def parse_indexing(cs, coordinates_type):
     """
-    Parse grid coordinates indexing of 2 types:
-    1. start:end:number of steps
-    2. delta:number of steps
+    Parse grid coordinates indexing
     """
     new_cs = []  # new coordinates
-    n2o = {}  # new to old local map
+    n2o = {}  # new to old local item map
     ni = 0  # new index
-    for oi, c in enumerate(cs):  # old index
+    oi = 0  # old index
+    for i, c in enumerate(cs):
         if isinstance(c, (int, float)):
-            new_cs.append(c)
-            n2o[ni] = oi
-            ni += 1
-        elif isinstance(c, str):
-            vs = [float(x) for x in c.split(':')]  # values
-            if len(vs) == 3:
-                c0, c1, nc = vs  # start, end, number of steps
-                dc = (c1 - c0) / nc
-                if coordinates_type == 'direct':
-                    new_cs.append(c0)
+            if coordinates_type == 'direct':  # Divide dc interval into nc parts
+                new_cs.append(c)
+                if i != len(cs) - 1:  # skip last coordinate
                     n2o[ni] = oi
                     ni += 1
-                    for _ in range(int(nc)):
-                        new_cs.append(new_cs[ni - 1] + dc)
-                        n2o[ni] = oi
-                        ni += 1
-                else:
-                    raise NotImplementedError(coordinates_type)
-            elif len(vs) == 2:
-                dc, nc = vs  # delta, number of steps
-                if coordinates_type == 'delta':
-                    for _ in range(int(nc)):
-                        new_cs.append(dc)
-                        n2o[ni] = oi
-                        ni += 1
-                else:
-                    raise NotImplementedError(coordinates_type)
+                    oi += 1
+            elif coordinates_type == 'delta':
+                new_cs.append(c)
+                n2o[ni] = oi
+                ni += 1
+                oi += 1
             else:
-                raise ValueError(c)
+                raise ValueError(coordinates_type)
+        elif isinstance(c, str):  # Advanced indexing
+            if coordinates_type == 'direct':  # Divide dc interval into nc parts
+                c0, c1, nc = cs[i - 1], cs[i + 1], int(c)
+                dc = (c1 - c0) / nc
+                for _ in range(nc - 1):
+                    new_cs.append(new_cs[ni - 1] + dc)
+                    n2o[ni] = oi - 1
+                    ni += 1
+            elif coordinates_type == 'delta':
+                dc, nc = cs[i - 1], int(c)  # Copy dc interval nc times
+                for _ in range(nc):
+                    new_cs.append(dc)
+                    n2o[ni] = oi - 1
+                    ni += 1
+            else:
+                raise ValueError(coordinates_type)
     return new_cs, n2o

@@ -1,0 +1,12 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Uni",
+    "description": "Test Uni Item"
+  },
+  "arguments": {
+    "factory": "geo",
+    "volumes": "Item",
+    "grid": [[-0.5, 0.5], [-0.5, 0.5], [-0.5, 0.5]]
+  }
+}
