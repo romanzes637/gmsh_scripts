@@ -1216,3 +1216,37 @@ def parse_indexing(cs, coordinates_type):
             else:
                 raise ValueError(coordinates_type)
     return new_cs, n2o
+
+
+def rotation(ps, origin, direction, angle, **kwargs):
+    """Rotation of points around direction at origin by angle
+    Args:
+        ps:
+        origin:
+        direction:
+        angle:
+
+    Returns:
+        nps: (list of list of float or list of float): new point(s)
+    """
+    m = rotation_matrix(direction, angle)
+    lps = np.subtract(ps, origin)  # local coordinates relative to origin
+    return np.matmul(lps, m.T) + origin
+
+
+def affine(ps, origin, vs, **kwargs):
+    """Affine transformation of point(s) (y = Ax + b)
+    A - coordinate system basis vectors
+    b - coordinate system origin
+    x - old points
+    y - new points
+    Args:
+        ps: (list of list of float or list of float): point(s)
+        (number of points, old dim) or (old dim)
+        origin: (list of float): coordinate system origin (new dim)
+        vs: (list of list of float): coordinate system basis vectors
+        (old dim, new dim)
+    Returns:
+        nps: (list of list of float or list of float): new point(s)
+    """
+    return np.matmul(ps, vs) + origin
