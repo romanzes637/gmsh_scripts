@@ -1,0 +1,34 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Matrix",
+    "description": "NKM borehole with 5 containers."
+  },
+  "arguments": {
+    "factory": "geo",
+    "inputs": [
+        "input/nkm_borehole_03_2020_p0_2021_1.json",
+        "input/nkm_borehole_03_2020_p0_2021_middle_1.json",
+        "input/nkm_borehole_03_2020_p0_2021_middle_2.json",
+        "input/nkm_borehole_03_2020_p0_2021_middle_3.json",
+        "input/nkm_borehole_03_2020_p0_2021_3.json"
+    ],
+    "coordinates_type": "delta",
+    "transform_data": [[0, 0, 0]],
+    "volumes_names": null,
+    "surfaces_names": null,
+    "xs": [0],
+    "ys": [0],
+    "zs": [2.11, 2.11, 2.03833, 0.13334, 2.04833, 2.11],
+    "lcs": null,
+    "txs": null,
+    "tys": null,
+    "tzs": null,
+    "inputs_transforms": [[[0.5, 0.5, 0]]],
+    "types": ["complex", "empty"],
+    "type_map": [0, 0, 0, 0, 0, 0],
+    "inputs_map": [0, 0, 1, 2, 3, 4],
+    "volumes_map": null,
+    "surfaces_map": null
+  }
+}

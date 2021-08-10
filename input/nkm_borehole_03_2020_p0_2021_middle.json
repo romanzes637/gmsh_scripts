@@ -1,0 +1,64 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Cylinder",
+    "description": "NKM borehole with several containers. Part 1 - container"
+  },
+  "arguments": {
+    "factory": "geo",
+    "k": 0.5,
+    "ct": 1,
+    "ct0s": [0, 1, 1, 1, 1],
+    "ct1s": [1, 1, 1, 1, 0],
+    "radii_x": [0.2835, 0.4875, 0.5675, 1.0675, 7.5],
+    "radii_y": [0.2835, 0.4875, 0.5675, 1.0675, 7.5],
+    "heights": [0.25, 0.2, 0.2, 0.8, 0.21, 0.2, 0.25],
+    "layers_lcs": 1,
+    "volumes_names": ["RW", "Bentonite", "Steel", "Concrete", "Rock"],
+    "layers_volumes_names": [
+      [3, 3, 3, 3, 4],
+      [2, 2, 2, 3, 4],
+      [1, 1, 2, 3, 4],
+      [0, 1, 2, 3, 4],
+      [1, 1, 2, 3, 4],
+      [2, 2, 2, 3, 4],
+      [3, 3, 3, 3, 4]
+    ],
+    "surfaces_names": [
+      ["NX", "X", "NY", "Y", "NZ", "Z"],
+      ["InNX", "InX", "InNY", "InY", "NX", "X", "NY", "Y", "NZ", "Z"],
+      ["NX", "X", "NY", "Y", "NZ", "InNZ"],
+      ["NX", "X", "NY", "Y", "InZ", "Z"]
+    ],
+    "layers_surfaces_names": [
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0]
+    ],
+    "transfinite_h_data": [
+      [7, 0, 1],
+      [5, 0, 1],
+      [5, 0, 1],
+      [15, 0, 1],
+      [5, 0, 1],
+      [5, 0, 1],
+      [7, 0, 1]
+    ],
+    "transfinite_phi_data": [7, 0, 1],
+    "transfinite_r_data": [
+      [5, 0, 1],
+      [5, 0, 1],
+      [5, 0, 1],
+      [7, 0, 1],
+      [20, 0, 1.2]
+    ],
+    "transform_data": [[0, 0, 0, 0, 0, 0, 0, 0, 0]],
+    "layers_recs": 1,
+    "layers_trans": 1,
+    "layers_exists": 1
+  }
+}
