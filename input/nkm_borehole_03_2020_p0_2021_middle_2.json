@@ -12,11 +12,11 @@
     "ct1s": [1, 1, 1, 1, 0],
     "radii_x": [0.2835, 0.4875, 0.5675, 1.0675, 7.5],
     "radii_y": [0.2835, 0.4875, 0.5675, 1.0675, 7.5],
-    "heights": [0.13334],
+    "heights": [0.2],
     "layers_lcs": 1,
     "volumes_names": ["RW", "Bentonite", "Steel", "Concrete", "Rock"],
     "layers_volumes_names": [
-      [3, 3, 3, 3, 4]
+      [0, 1, 2, 3, 4]
     ],
     "surfaces_names": [
       ["NX2", "X2", "NY", "Y", "NZ", "Z"],
@@ -28,9 +28,9 @@
       [0, 0, 0, 0, 0]
     ],
     "transfinite_h_data": [
-      [7, 0, 1]
+      [25, 0, 1]
     ],
-    "transfinite_phi_data": [7, 0, 1],
+    "transfinite_phi_data": [9, 0, 1],
     "transfinite_r_data": [
       [5, 0, 1],
       [5, 0, 1],

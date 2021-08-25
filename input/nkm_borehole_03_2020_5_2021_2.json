@@ -19,15 +19,15 @@
     "surfaces_names": null,
     "xs": [0],
     "ys": [0],
-    "zs": [2.11, 2.11, 2.03833, 0.13334, 2.04833, 2.11],
+    "zs": [2.11, 2.11, 0.95, 0.2, 0.96, 2.11, 2.11],
     "lcs": null,
     "txs": null,
     "tys": null,
     "tzs": null,
     "inputs_transforms": [[[0.5, 0.5, 0]]],
     "types": ["complex", "empty"],
-    "type_map": [0, 0, 0, 0, 0, 0],
-    "inputs_map": [0, 0, 1, 2, 3, 4],
+    "type_map": [0, 0, 0, 0, 0, 0, 0],
+    "inputs_map": [0, 0, 1, 2, 3, 4, 4],
     "volumes_map": null,
     "surfaces_map": null
   }

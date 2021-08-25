@@ -6,7 +6,7 @@
   },
   "arguments": {
     "factory": "geo",
-    "inputs": ["input/experiment_2021_struct_rw.json"],
+    "inputs": ["input/experiment_2021_struct_rw_fill_steel.json"],
     "inputs_transforms": [[[0.5, 0.5, 0]]],
     "transform_data": null,
     "types": ["empty", "primitive", "complex"],
