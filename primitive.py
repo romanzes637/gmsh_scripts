@@ -134,7 +134,7 @@ class Primitive:
                  transfinite_data=None, transfinite_type=None,
                  volume_name=None, inner_volumes=None, surfaces_names=None,
                  in_surfaces_names=None, in_surfaces_mask=None,
-                 rec=None, trans=None, boolean_level=None):
+                 rec=None, trans=None, boolean_level=None, exists=None):
         t00 = time.perf_counter()
         if factory == 'occ':
             self.factory = gmsh.model.occ
@@ -182,6 +182,7 @@ class Primitive:
         self.bounding_box = None
         self.coordinates_evaluated = False
         self.boolean_level = boolean_level if boolean_level is not None else 0
+        self.exists = exists if exists is not None else 1
         if transform_data is None:
             transform_data = []
         elif isinstance(transform_data, list):

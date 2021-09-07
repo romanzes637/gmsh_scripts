@@ -31,7 +31,8 @@ class Matrix(Complex):
                  inputs_transforms=None, inputs_transforms_map=None,
                  inputs_transforms_coord_sys=None,
                  inputs_transforms_coord_sys_map=None,
-                 boolean_level_map=None
+                 boolean_level_map=None,
+                 exists_map=None
                  ):
         """
         Primitives, Complexes and Complex descendants
@@ -357,6 +358,11 @@ class Matrix(Complex):
             boolean_level_map = [0 for _ in range(ni)]
         elif not isinstance(boolean_level_map, list):
             boolean_level_map = [boolean_level_map for _ in range(ni)]
+        # boolean
+        if exists_map is None:
+            exists_map = [1 for _ in range(ni)]
+        elif not isinstance(exists_map, list):
+            exists_map = [exists_map for _ in range(ni)]
         # Process
         primitives = []
         for ci, gi in l2g.items():
@@ -425,7 +431,7 @@ def primitive(primitives, ci, gi, factory,
               curve_types, curve_types_map,
               curve_data, curve_data_map,
               curve_data_coord_sys, curve_data_coord_sys_map,
-              boolean_level_map,
+              boolean_level_map, exists_map,
               **kwargs):
     # Primitive curves data
     cd = copy.deepcopy(curve_data[curve_data_map[gi]])
@@ -462,7 +468,8 @@ def primitive(primitives, ci, gi, factory,
         rec=recs_map[gi],
         trans=trans_map[gi],
         transfinite_type=trans_type_map[gi],
-        boolean_level=boolean_level_map[gi]
+        boolean_level=boolean_level_map[gi],
+        exists=exists_map[gi]
     ))
 
 
@@ -516,7 +523,7 @@ def complex_in_primitive(primitives, ci, gi, factory, transform_data,
                          inputs_transforms, inputs_transforms_map,
                          inputs_transforms_coord_sys,
                          inputs_transforms_coord_sys_map,
-                         boolean_level_map,
+                         boolean_level_map, exists_map,
                          **kwargs):
     # Primitive curves data
     cd = copy.deepcopy(curve_data[curve_data_map[gi]])
@@ -578,7 +585,8 @@ def complex_in_primitive(primitives, ci, gi, factory, transform_data,
         in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
         rec=recs_map[gi],
         trans=trans_map[gi],
-        boolean_level=boolean_level_map[gi]
+        boolean_level=boolean_level_map[gi],
+        exists=exists_map[gi]
     ))
 
 
@@ -597,7 +605,7 @@ def complex_and_primitive(primitives, ci, gi, factory, transform_data,
                           inputs_transforms, inputs_transforms_map,
                           inputs_transforms_coord_sys,
                           inputs_transforms_coord_sys_map,
-                          boolean_level_map,
+                          boolean_level_map, exists_map,
                           **kwargs):
     # Primitive curves data
     cd = copy.deepcopy(curve_data[curve_data_map[gi]])
@@ -627,7 +635,7 @@ def complex_and_primitive(primitives, ci, gi, factory, transform_data,
     input_data = copy.deepcopy(inputs_datas[inputs_map[gi]])
     if input_data['arguments'].get('transform_data', None) is None:
         input_data['arguments']['transform_data'] = []
-    input_data['arguments']['transform_data'].extend(ts_cs)
+    input_data['arguments']['transform_data'].extend(in_ts)
     input_data['arguments']['transform_data'].extend(transform_data)
     input_data['arguments']['factory'] = factory
     # Create Complex
@@ -658,7 +666,8 @@ def complex_and_primitive(primitives, ci, gi, factory, transform_data,
         in_surfaces_mask=in_surfaces_masks[in_surfaces_masks_map[gi]],
         rec=recs_map[gi],
         trans=trans_map[gi],
-        boolean_level=boolean_level_map[gi]
+        boolean_level=boolean_level_map[gi],
+        exists=exists_map[gi]
     ))
 
 

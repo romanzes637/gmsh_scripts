@@ -42,6 +42,15 @@ class Complex:
                 ns_to_vs.setdefault(n, list()).append(v)
         return ns_to_vs
 
+    def get_map_vol_to_exists(self):
+        vs_to_e = dict()
+        for p in self.primitives:
+            e = p.exists
+            vs = p.volumes
+            for v in vs:
+                vs_to_e[v] = e
+        return vs_to_e
+
     def get_map_surface_to_primitives_indices(self):
         s_to_is = dict()
         for i, p in enumerate(self.primitives):

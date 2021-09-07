@@ -21,7 +21,7 @@ import point
 import uni
 from boolean import complex_self
 from support import boundary_surfaces_to_six_side_groups, \
-    get_boundary_surfaces, check_file, physical_surfaces, \
+    get_boundary_surfaces, check_file, \
     auto_complex_points_sizes_min_curve_in_volume, set_boundary_points_sizes, \
     auto_boundary_points_sizes_min_edge_in_surface, \
     set_points_sizes, get_interior_surfaces
@@ -79,9 +79,10 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--recombine', help='recombine',
                         action='store_true')
     parser.add_argument('-b', '--boolean', help='boolean', action='store_true')
-    parser.add_argument('-B', '--boundary_type', help='boundary',
-                        default='primitive', choices=['6', 'primitive', 'all',
-                                                      'path_to_file'])
+    parser.add_argument('-B', '--boundary_type',
+                        help='boundary type: 6, primitive, all, '
+                             'path_to_file_with_surfaces_map',
+                        default='primitive')
     parser.add_argument('-s', '--auto_size', type=float, metavar=1.0,
                         help='mesh auto size factor', default=None,
                         nargs='?', const=1.0)
@@ -132,7 +133,7 @@ if __name__ == '__main__':
         result = check_file(args['boundary_type'])
         with open(result['path']) as f:
             physical_surfaces_input = json.load(f)
-        physical_surfaces_kwargs = physical_surfaces_input['arguments']
+        physical_surfaces_map = physical_surfaces_input['arguments']
     # Logging
     if args['log_path'] is None:
         args['log_path'] = basename + '.log'
@@ -246,6 +247,9 @@ if __name__ == '__main__':
         for n, vs in ns_to_vs.items():
             tag = gmsh.model.addPhysicalGroup(3, vs)
             gmsh.model.setPhysicalName(3, tag, n)
+        vs_to_e = c.get_map_vol_to_exists()
+        to_remove = [(3, x) for x, y in vs_to_e.items() if not y]
+        gmsh.model.removeEntities(to_remove, recursive=False)
         logging.info(f'Volumes: {time.perf_counter() - t0:.3f}s')
         logging.info("Surfaces")
         t0 = time.perf_counter()
@@ -262,7 +266,7 @@ if __name__ == '__main__':
             bs = get_boundary_surfaces()
             for s in bs:
                 sn = None
-                psi = s2psi[s]  # [(primitive, surf local index)]
+                psi = s2psi.get(s, [])  # [(primitive, surf local index)]
                 if len(psi) != 0:
                     pi, si = psi[0]  # from first primitive
                     sn = c.primitives[pi].surfaces_names[si]
@@ -280,8 +284,10 @@ if __name__ == '__main__':
                 tag = gmsh.model.addPhysicalGroup(2, [s])
                 gmsh.model.setPhysicalName(2, tag, name)
         else:
-            logging.info("by explicit surfaces")
-            physical_surfaces(**physical_surfaces_kwargs)
+            logging.info("by surfaces map")
+            for name, surfaces in physical_surfaces_map.items():
+                tag = gmsh.model.addPhysicalGroup(2, surfaces)
+                gmsh.model.setPhysicalName(2, tag, name)
         logging.info(f'Surfaces: {time.perf_counter() - t0:.3f}s')
         if args['in_surfaces']:
             t0 = time.perf_counter()
@@ -292,7 +298,7 @@ if __name__ == '__main__':
             in_surfaces = get_interior_surfaces()
             for s in in_surfaces:
                 sn = None
-                psi = s2psi[s]
+                psi = s2psi.get(s, [])
                 if len(psi) != 0:
                     for pi, si in psi:
                         mask = c.primitives[pi].in_surf_mask
