@@ -7,58 +7,60 @@ import gmsh
 import numpy as np
 
 from support import volumes_groups_surfaces_registry
-import registry
+from registry import register_point, register_curve, register_curve_loop, \
+    register_surface, register_surface_loop, register_volume
 
 
-class Primitive:
+class Block:
     def __init__(self, factory, points, curves, transformations,
-                 auto_tag=False,
+                 register_tag=False,
                  parent=None, children=None,
                  internal_volumes_tags=None):
         # Points
         for i, p in enumerate(points):
-            points[i] = registry.register_point(factory, p, auto_tag)
-        pprint(points)
+            points[i] = register_point(factory, p, register_tag)
         # Curves Points
         for i, c in enumerate(curves):
             c.setdefault('points', [])
             for j, p in enumerate(c['points']):
-                curves[i]['points'][j] = registry.register_point(factory, p, auto_tag)
-            # Add points to curves
+                curves[i]['points'][j] = register_point(
+                    factory, p, register_tag)
+            # Add start and end points to curves
             p0 = points[self.curves_points[i][0]]
             p1 = points[self.curves_points[i][1]]
             c['points'] = [p0] + c['points'] + [p1]
         # Curves
         for i, c in enumerate(curves):
-            curves[i] = registry.register_curve(factory, c, auto_tag)
-        # Curve loops
+            curves[i] = register_curve(factory, c, register_tag)
+        # Curve Loops
         curve_loops = []
         for i in range(6):
             cl = {'curves': [curves[x]['kwargs']['tag'] * y for (x, y) in zip(
                 self.surfaces_curves[i], self.surfaces_curves_signs[i])]}
-            cl = registry.register_curve_loop(factory, cl, auto_tag)
+            cl = register_curve_loop(factory, cl, register_tag)
             curve_loops.append(cl)
         # Surfaces
         surfaces = []
         for i in range(6):
-            s = {'curve_loops': [curve_loops[i]]}
-            s = registry.register_surface(factory, s, auto_tag)
+            s = {'curve_loops': [curve_loops[i]], 'name': 'fill'}
+            s = register_surface(factory, s, register_tag)
             surfaces.append(s)
         # Surfaces Loops
         surfaces_loops = []
         surface_loop = {'surfaces': [x['kwargs']['tag'] for x in surfaces]}
-        surface_loop = registry.register_surface_loop(factory, surface_loop, auto_tag)
+        surface_loop = register_surface_loop(factory, surface_loop, register_tag)
         surfaces_loops.append(surface_loop)
         if internal_volumes_tags is not None:
-            gs = volumes_groups_surfaces_registry(internal_volumes_tags,
-                                                  registry.VOLUMES)
-            for g in gs:
-                sl = {'surfaces': g}
-                sl = registry.register_surface_loop(factory, sl, auto_tag)
-                surfaces_loops.append(sl)
+            pass
+            # gs = volumes_groups_surfaces_registry(internal_volumes_tags,
+            #                                       VOLUMES)
+            # for g in gs:
+            #     sl = {'surfaces': g}
+            #     sl = register_surface_loop(factory, sl, register_tag)
+            #     surfaces_loops.append(sl)
         # Volume
         volume = {'surfaces_loops': surfaces_loops}
-        volume = registry.register_volume(factory, volume, auto_tag)
+        volume = register_volume(factory, volume, register_tag)
         # pprint(registry.CURVES)
         # pprint(registry.SURFACES)
         # pprint(registry.SURFACES_LOOPS)
@@ -82,7 +84,6 @@ class Primitive:
     surfaces_curves = [
         [5, 9, 6, 10],  # NX
         [4, 11, 7, 8],  # X
-        # [3, 10, 2, 11],  # NY
         [11, 2, 10, 3],  # NY
         [0, 8, 1, 9],  # Y
         [0, 5, 3, 4],  # NZ
@@ -92,7 +93,6 @@ class Primitive:
     surfaces_curves_signs = [
         [1, 1, -1, -1],  # NX
         [-1, 1, 1, -1],  # X
-        # [-1, 1, 1, -1],  # NY
         [1, -1, -1, 1],  # NY
         [1, 1, -1, -1],  # Y
         [-1, -1, 1, 1],  # NZ
@@ -100,162 +100,6 @@ class Primitive:
     ]
 
 
-gmsh.initialize()
-model_name = 'a'
-factory = 'geo'
-gmsh.model.add(model_name)
-
-p2 = Primitive(factory=factory,
-               auto_tag=True,
-               points=[
-                   {'coordinates': [1, 1, 0],
-                    'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
-                    'kwargs': {'meshSize': 0.1}
-                    },
-                   {'coordinates': [0, 1, 0],
-                    'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
-                    'kwargs': {'meshSize': 0.1}
-                    },
-                   {'coordinates': [0, 0, 0],
-                    'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
-                    'kwargs': {'meshSize': 0.1}
-                    },
-                   {'coordinates': [1, 0, 0],
-                    'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
-                    'kwargs': {'meshSize': 0.1}
-                    },
-                   {'coordinates': [1, 1, 1],
-                    'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
-                    'kwargs': {'meshSize': 0.1}
-                    },
-                   {'coordinates': [0, 1, 1],
-                    'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
-                    'kwargs': {'meshSize': 0.1}
-                    },
-                   {'coordinates': [0, 0, 1],
-                    'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
-                    'kwargs': {'meshSize': 0.1}
-                    },
-                   {'coordinates': [1, 0, 1],
-                    'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
-                    'kwargs': {'meshSize': 0.1}
-                    },
-               ],
-               curves=[
-                   {'name': 'line'},
-                   {'name': 'circle_arc',
-                    'points': [
-                        {'coordinates': [0.5, 0.5, 0.5],
-                         'coordinate_system': 'cartesian',
-                         'kwargs': {'meshSize': 0.0}}
-                    ]
-                    },
-                   {'name': 'line',
-                    'points': [
-                        {'coordinates': [0.5, 0.5, 1.0],
-                         'coordinate_system': 'cartesian',
-                         'kwargs': {'meshSize': 0.0}},
-                        {'coordinates': [0.5, 0, 1.0],
-                         'coordinate_system': 'cartesian',
-                         'kwargs': {'meshSize': 0.0}}
-                    ]
-                    },
-                   {'name': 'line',
-                    'points': [
-                        {'coordinates': [0.5, 0.5, 1.0],
-                         'coordinate_system': 'cartesian',
-                         'kwargs': {'meshSize': 0.0}},
-                        {'coordinates': [0.5, 0, 1.0],
-                         'coordinate_system': 'cartesian',
-                         'kwargs': {'meshSize': 0.0}}
-                    ]
-                    },
-                   {'name': 'bspline',
-                    'points': [
-                        {'coordinates': [1.2, 0.2, 0.2],
-                         'coordinate_system': 'cartesian',
-                         'kwargs': {'meshSize': 0.0}},
-                        {'coordinates': [1, 0.5, 0.0],
-                         'coordinate_system': 'cartesian',
-                         'kwargs': {'meshSize': 0.0}},
-                        {'coordinates': [0.8, 0.8, -0.2],
-                         'coordinate_system': 'cartesian',
-                         'kwargs': {'meshSize': 0.0}}
-                    ]
-                    },
-                   {'name': 'bezier',
-                    'points': [
-                        {'coordinates': [-0.2, 0.2, 0.2],
-                         'coordinate_system': 'cartesian',
-                         'kwargs': {'meshSize': 0.1}},
-                        {'coordinates': [0.0, 0.5, 0],
-                         'coordinate_system': 'cartesian',
-                         'kwargs': {'meshSize': 0.1}},
-                        {'coordinates': [0.2, 0.8, -0.2],
-                         'coordinate_system': 'cartesian',
-                         'kwargs': {'meshSize': 0.1}}
-                    ]
-                    },
-                   {'name': 'polyline',
-                    'points': [
-                        {'coordinates': [-0.2, 0.2, 1.2],
-                         'coordinate_system': 'cartesian',
-                         'kwargs': {'meshSize': 0.5}},
-                        {'coordinates': [0, 0.5, 1.0],
-                         'coordinate_system': 'cartesian',
-                         'kwargs': {'meshSize': 0.5}},
-                        {'coordinates': [0.2, 0.8, 0.8],
-                         'coordinate_system': 'cartesian',
-                         'kwargs': {'meshSize': 0.5}}
-                    ]
-                    },
-                   {'name': 'spline',
-                    'points': [
-                        {'coordinates': [0.8, 0.2, 1.2],
-                         'coordinate_system': 'cartesian',
-                         'kwargs': {'meshSize': 0.0}},
-                        {'coordinates': [1, 0.5, 1.0],
-                         'coordinate_system': 'cartesian',
-                         'kwargs': {'meshSize': 0.0}},
-                        {'coordinates': [1.2, 0.8, 0.8],
-                         'coordinate_system': 'cartesian',
-                         'kwargs': {'meshSize': 0.0}}
-                    ]
-                    },
-                   {'name': 'line'},
-                   {'name': 'line'},
-                   {'name': 'line'},
-                   {'name': 'line'},
-               ],
-               transformations=[
-                   {
-                       'name': 'translation',
-                       'vector': [0, 0, 0],
-                       'coordinate_system': {'type': 'cartesian', 'origin': [0, 0, 0]}
-                   },
-                   {
-                       'name': 'rotation',
-                       'origin': [0, 0, 0],
-                       'direction': [0, 0, 1],
-                       'angle': np.pi / 3,
-                       'coordinate_system': {'type': 'cartesian', 'origin': [0, 0, 0]},
-                   },
-                   # dilation (enlargement or reduction)
-                   # reflection
-                   {
-                       'name': 'conversion',
-                       'coordinate_system': {'type': 'cartesian', 'origin': [0, 0, 4]},
-                   },
-               ]
-
-               )
-if factory == 'geo':
-    gmsh.model.geo.synchronize()
-else:
-    gmsh.model.occ.synchronize()
-gmsh.model.mesh.generate(3)
-gmsh.write('test.msh2')
-gmsh.finalize()
 # class Primitive:
 #     """
 #     Primitive is a basic object that topologically represents a cuboid
