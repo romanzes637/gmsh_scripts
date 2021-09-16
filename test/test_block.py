@@ -1,7 +1,7 @@
-from support import affine, rotation
 import unittest
 import numpy as np
 from itertools import product
+from pprint import pprint
 
 import gmsh
 
@@ -14,6 +14,8 @@ class TestBlock(unittest.TestCase):
     def test_init(self):
         kwargs = {
             'factory': ['geo', 'occ'],
+            # 'factory': ['occ'],
+            # 'register_tag': [True],
             'register_tag': [True, False],
             'output_format': ['msh2', 'geo_unrolled'
                               # 'vtk', 'stl',
@@ -30,7 +32,7 @@ class TestBlock(unittest.TestCase):
         cs = product(*kwargs.values())
         for c in cs:
             args = dict(zip(kwargs, c))
-            print(args)
+            pprint(args)
             is_na = False
             for na in not_allowed:
                 is_na = all([args[k] == na[k] for k in na])
@@ -42,14 +44,16 @@ class TestBlock(unittest.TestCase):
             model_name = f'test_init-{name_suffix}'
             reset_registry()
             gmsh.initialize()
+            # gmsh.option.setNumber("General.Terminal", 0)
             gmsh.model.add(model_name)
+            # B1
             b = Block(factory=args['factory'],
                       register_tag=args['register_tag'],
                       points=[
                           # P0
                           {'coordinates': [0.5, 0.5, -0.5],
                            'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
-                           'kwargs': {'meshSize': 0.1}
+                           'kwargs': {'meshSize': 0.}
                            },
                           # P1
                           {'coordinates': [-0.5, 0.5, -0.5],
@@ -84,7 +88,7 @@ class TestBlock(unittest.TestCase):
                           # P7
                           {'coordinates': [0.5, -0.75, 0.5],  # For ellipse arc
                            'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
-                           'kwargs': {'meshSize': 0.1}
+                           'kwargs': {'meshSize': 0.}
                            },
                       ],
                       curves=[
@@ -154,13 +158,13 @@ class TestBlock(unittest.TestCase):
                            'points': [
                                {'coordinates': [-0.4, 0.5, -0.25],
                                 'coordinate_system': 'cartesian',
-                                'kwargs': {'meshSize': 0.}},
+                                'kwargs': {'meshSize': 0.01}},
                                {'coordinates': [-0.5, 0.5, 0.],
                                 'coordinate_system': 'cartesian',
-                                'kwargs': {'meshSize': 0.}},
+                                'kwargs': {'meshSize': 0.01}},
                                {'coordinates': [-0.6, 0.5, 0.25],
                                 'coordinate_system': 'cartesian',
-                                'kwargs': {'meshSize': 0.}}
+                                'kwargs': {'meshSize': 0.01}}
                            ]
                            },
                           # Z3
@@ -179,32 +183,289 @@ class TestBlock(unittest.TestCase):
                            },
                           # Z4
                           {'name': 'line'}
-                      ],
-                      transformations=[
-                          {
-                              'name': 'translation',
-                              'vector': [0, 0, 0],
-                              'coordinate_system': {'type': 'cartesian', 'origin': [0, 0, 0]}
-                          },
-                          {
-                              'name': 'rotation',
-                              'origin': [0, 0, 0],
-                              'direction': [0, 0, 1],
-                              'angle': np.pi / 3,
-                              'coordinate_system': {'type': 'cartesian', 'origin': [0, 0, 0]},
-                          },
-                          # dilation (enlargement or reduction)
-                          # reflection
-                          {
-                              'name': 'conversion',
-                              'coordinate_system': {'type': 'cartesian', 'origin': [0, 0, 4]},
-                          },
-                      ]
-                      )
+                      ])
+            # B2
+            b2 = Block(factory=args['factory'],
+                       register_tag=args['register_tag'],
+                       points=[
+                           # P0
+                           {'coordinates': [-0.5, 0.5, -0.5],
+                            'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                            'kwargs': {'meshSize': 0.}
+                            },
+                           # P1
+                           {'coordinates': [-1.5, 0.5, -0.5],
+                            'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                            'kwargs': {'meshSize': 0.1}
+                            },
+                           # P2
+                           {'coordinates': [-1.5, -0.5, -0.5],
+                            'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                            'kwargs': {'meshSize': 0.1}
+                            },
+                           # P3
+                           {'coordinates': [-0.5, -0.5, -0.5],
+                            'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                            'kwargs': {'meshSize': 0.1}
+                            },
+                           # P4
+                           {'coordinates': [-0.5, 0.5, 0.5],
+                            'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                            'kwargs': {'meshSize': 0.1}
+                            },
+                           # P5
+                           {'coordinates': [-1.5, 0.5, 0.5],
+                            'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                            'kwargs': {'meshSize': 0.1}
+                            },
+                           # P6
+                           {'coordinates': [-1.5, -0.5, 0.5],
+                            'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                            'kwargs': {'meshSize': 0.1}
+                            },
+                           # P7
+                           {'coordinates': [-0.5, -0.5, 0.5],  # For ellipse arc
+                            'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                            'kwargs': {'meshSize': 0.}
+                            },
+                       ],
+                       curves=[
+                           # X1
+                           {'name': 'line'},
+                           # X2
+                           {'name': 'line',
+                            'points': [
+                                {'coordinates': [-0.75, 0., 0.],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.0}}]
+                            },
+                           # X3
+                           {'name': 'line',  # X2
+                            'points': [
+                                {'coordinates': [0.5, -0.5, 0.5],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.0}},
+                                {'coordinates': [0.25, -0.5, 0.5],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.0}}
+                            ]
+                            },
+                           # X4
+                           {'name': 'line'},
+                           # Y1
+                           {'name': 'spline',
+                            'points': [
+                                {'coordinates': [-0.4, -0.25, -0.5],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.0}},
+                                {'coordinates': [-0.5, 0., -0.5],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.0}},
+                                {'coordinates': [-0.6, 0.25, -0.5],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.0}}
+                            ]
+                            },
+                           # Y1
+                           {'name': 'line'},
+                           # Y2
+                           {'name': 'line'},
+                           # Y4
+                           {'name': 'bspline',
+                            'points': [
+                                {'coordinates': [-0.4, -0.25, 0.5],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.0}},
+                                {'coordinates': [-0.5, 0., 0.5],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.0}},
+                                {'coordinates': [-0.6, 0.25, 0.5],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.0}}
+                            ],
+                            'kwargs': {'degree': 3,
+                                       'weights': [],
+                                       'knots': [],
+                                       'multiplicities': []
+                                       }
+                            },
+                           # Z1
+                           {'name': 'bezier',
+                            'points': [
+                                {'coordinates': [-0.4, 0.5, -0.25],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.01}},
+                                {'coordinates': [-0.5, 0.5, 0.],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.01}},
+                                {'coordinates': [-0.6, 0.5, 0.25],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.01}}
+                            ]
+                            },
+                           # Z3
+                           {'name': 'line'},
+                           # Z4
+                           {'name': 'line'},
+                           # Z4
+                           {'name': 'polyline',
+                            'points': [
+                                {'coordinates': [-0.4, -0.5, -0.25],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.01}},
+                                {'coordinates': [-0.5, -0.5, 0.],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.01}},
+                                {'coordinates': [-0.6, -0.5, 0.25],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.01}}
+                            ]
+                            },
+                       ])
+            # B3 (B1 duplicate)
+            b3 = Block(factory=args['factory'],
+                       register_tag=args['register_tag'],
+                       points=[
+                           # P0
+                           {'coordinates': [0.5, 0.5, -0.5],
+                            'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                            'kwargs': {'meshSize': 0.}
+                            },
+                           # P1
+                           {'coordinates': [-0.5, 0.5, -0.5],
+                            'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                            'kwargs': {'meshSize': 0.1}
+                            },
+                           # P2
+                           {'coordinates': [-0.5, -0.5, -0.5],
+                            'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                            'kwargs': {'meshSize': 0.1}
+                            },
+                           # P3
+                           {'coordinates': [0.5, -0.5, -0.5],
+                            'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                            'kwargs': {'meshSize': 0.1}
+                            },
+                           # P4
+                           {'coordinates': [0.5, 0.5, 0.5],
+                            'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                            'kwargs': {'meshSize': 0.1}
+                            },
+                           # P5
+                           {'coordinates': [-0.5, 0.5, 0.5],
+                            'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                            'kwargs': {'meshSize': 0.1}
+                            },
+                           # P6
+                           {'coordinates': [-0.5, -0.5, 0.5],
+                            'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                            'kwargs': {'meshSize': 0.1}
+                            },
+                           # P7
+                           {'coordinates': [0.5, -0.75, 0.5],  # For ellipse arc
+                            'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                            'kwargs': {'meshSize': 0.}
+                            },
+                       ],
+                       curves=[
+                           # X1
+                           {'name': 'line'},
+                           # X2
+                           {'name': 'circle_arc',
+                            'points': [
+                                {'coordinates': [0., 0., 0.],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.0}}]
+                            },
+                           # X3
+                           {'name': 'ellipse_arc',  # X2
+                            'points': [
+                                {'coordinates': [0.5, -0.5, 0.5],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.0}},
+                                {'coordinates': [0.25, -0.5, 0.5],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.0}}
+                            ]
+                            },
+                           # X4
+                           {'name': 'line'},
+                           # Y1
+                           {'name': 'line'},
+                           # Y2
+                           {'name': 'spline',
+                            'points': [
+                                {'coordinates': [-0.4, -0.25, -0.5],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.0}},
+                                {'coordinates': [-0.5, 0., -0.5],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.0}},
+                                {'coordinates': [-0.6, 0.25, -0.5],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.0}}
+                            ]
+                            },
+                           # Y3
+                           {'name': 'bspline',
+                            'points': [
+                                {'coordinates': [-0.4, -0.25, 0.5],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.0}},
+                                {'coordinates': [-0.5, 0., 0.5],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.0}},
+                                {'coordinates': [-0.6, 0.25, 0.5],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.0}}
+                            ],
+                            'kwargs': {'degree': 3,
+                                       'weights': [],
+                                       'knots': [],
+                                       'multiplicities': []
+                                       }
+                            },
+                           # Y4
+                           {'name': 'line'},
+                           # Z1
+                           {'name': 'line'},
+                           # Z2
+                           {'name': 'bezier',
+                            'points': [
+                                {'coordinates': [-0.4, 0.5, -0.25],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.01}},
+                                {'coordinates': [-0.5, 0.5, 0.],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.01}},
+                                {'coordinates': [-0.6, 0.5, 0.25],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.01}}
+                            ]
+                            },
+                           # Z3
+                           {'name': 'polyline',
+                            'points': [
+                                {'coordinates': [-0.4, -0.5, -0.25],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.01}},
+                                {'coordinates': [-0.5, -0.5, 0.],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.01}},
+                                {'coordinates': [-0.6, -0.5, 0.25],
+                                 'coordinate_system': 'cartesian',
+                                 'kwargs': {'meshSize': 0.01}}
+                            ]
+                            },
+                           # Z4
+                           {'name': 'line'}
+                       ])
             if args['factory'] == 'geo':
                 gmsh.model.geo.synchronize()
-            else:
+            elif args['factory'] == 'occ':
                 gmsh.model.occ.synchronize()
+            else:
+                raise ValueError(args['factory'])
             gmsh.model.mesh.generate(3)
             gmsh.write(f'{model_name}.{args["output_format"]}')
             gmsh.finalize()

@@ -1,5 +1,6 @@
 from collections import deque
 import copy
+from pprint import pprint
 
 import gmsh
 
@@ -150,6 +151,7 @@ add_curve = {
         pointTags=[x['kwargs']['tag'] for x in curve['points']],
         **curve['kwargs']
     ),
+    # TODO gmsh warning
     ('geo', 'bspline'): lambda curve: gmsh.model.geo.addBSpline(
         pointTags=[x['kwargs']['tag'] for x in curve['points']],
         **curve['kwargs']
@@ -202,9 +204,9 @@ add_curve = {
 
 add_curve_loop = {
     'geo': lambda curve_loop: gmsh.model.geo.addCurveLoop(
-        curveTags=curve_loop['curves'], **curve_loop['kwargs']),
+        curveTags=curve_loop['curves_tags'], **curve_loop['kwargs']),
     'occ': lambda curve_loop: gmsh.model.occ.addCurveLoop(
-        curveTags=curve_loop['curves'], **curve_loop['kwargs']),
+        curveTags=curve_loop['curves_tags'], **curve_loop['kwargs']),
 }
 
 add_surface = {
@@ -228,9 +230,9 @@ add_surface = {
 
 add_surface_loop = {
     'geo': lambda surface_loop: gmsh.model.geo.addSurfaceLoop(
-        surfaceTags=surface_loop['surfaces'], **surface_loop['kwargs']),
+        surfaceTags=surface_loop['surfaces_tags'], **surface_loop['kwargs']),
     'occ': lambda surface_loop: gmsh.model.occ.addSurfaceLoop(
-        surfaceTags=surface_loop['surfaces'], **surface_loop['kwargs']),
+        surfaceTags=surface_loop['surfaces_tags'], **surface_loop['kwargs']),
 }
 
 add_volume = {
@@ -250,7 +252,7 @@ def register_point(factory, point, register_tag):
     key = tuple(round(x, POINT_TOL) for x in point['coordinates'])
     tag = POINTS.get(key, None)
     if tag is None:
-        if not register_tag:
+        if register_tag:
             global POINT_TAG
             point['kwargs']['tag'] = POINT_TAG
             tag = add_point[factory](point)
@@ -270,7 +272,7 @@ def register_curve(factory, curve, register_tag):
     key = tuple([name] + ps)
     tag = CURVES.get(key, None)
     if tag is None:
-        if not register_tag:
+        if register_tag:
             global CURVE_TAG
             curve['kwargs']['tag'] = CURVE_TAG
             tag = add_curve[(factory, name)](curve)
@@ -287,7 +289,7 @@ def register_curve(factory, curve, register_tag):
 
 def register_curve_loop(factory, curve_loop, register_tag):
     curve_loop = correct_kwargs(curve_loop, factory, 'curve_loop')
-    curves = curve_loop['curves']
+    curves = curve_loop['curves_tags']
     deq = deque(curves)
     keys = []
     for _ in range(len(deq)):
@@ -303,7 +305,7 @@ def register_curve_loop(factory, curve_loop, register_tag):
         if tag is not None:
             break
     if tag is None:
-        if not register_tag:
+        if register_tag:
             global CURVE_LOOP_TAG
             curve_loop['kwargs']['tag'] = CURVE_LOOP_TAG
             tag = add_curve_loop[factory](curve_loop)
@@ -320,44 +322,58 @@ def register_curve_loop(factory, curve_loop, register_tag):
 def register_surface(factory, surface, register_tag):
     surface = correct_kwargs(surface, factory, 'surface')
     name = surface['name']
-    if not register_tag:
-        global SURFACE_TAG
-        surface['kwargs']['tag'] = SURFACE_TAG
-        tag = add_surface[(factory, name)](surface)
-        SURFACE_TAG += 1
-    else:
-        surface['kwargs']['tag'] = -1
-        tag = add_surface[(factory, name)](surface)
+    key = tuple(x['kwargs']['tag'] for x in surface['curve_loops'])
+    tag = SURFACES.get(key, None)
+    if tag is None:
+        if register_tag:
+            global SURFACE_TAG
+            surface['kwargs']['tag'] = SURFACE_TAG
+            tag = add_surface[(factory, name)](surface)
+            SURFACE_TAG += 1
+            # FIXME Workaround occ auto increment curve loop and surface tags
+            if factory == 'occ':
+                global CURVE_LOOP_TAG
+                CURVE_LOOP_TAG += 1
+        else:
+            surface['kwargs']['tag'] = -1
+            tag = add_surface[(factory, name)](surface)
+        SURFACES[key] = tag
     surface['kwargs']['tag'] = tag
-    SURFACES[tag] = surface
     return surface
 
 
 def register_surface_loop(factory, surface_loop, register_tag):
     surface_loop = correct_kwargs(surface_loop, factory, 'surface_loop')
-    if not register_tag:
-        global SURFACE_LOOP_TAG
-        surface_loop['kwargs']['tag'] = SURFACE_LOOP_TAG
-        tag = add_surface_loop[factory](surface_loop)
-        SURFACE_LOOP_TAG += 1
-    else:
-        surface_loop['kwargs']['tag'] = -1
-        tag = add_surface_loop[factory](surface_loop)
+    key = tuple(surface_loop['surfaces_tags'])  # TODO use deque? 12x more keys
+    tag = SURFACES_LOOPS.get(key, None)
+    if tag is None:
+        # FIXME Workaround occ return only -1 tag
+        if register_tag or factory == 'occ':
+            global SURFACE_LOOP_TAG
+            surface_loop['kwargs']['tag'] = SURFACE_LOOP_TAG
+            tag = add_surface_loop[factory](surface_loop)
+            SURFACE_LOOP_TAG += 1
+        else:
+            surface_loop['kwargs']['tag'] = -1
+            tag = add_surface_loop[factory](surface_loop)
+        SURFACES_LOOPS[key] = tag
     surface_loop['kwargs']['tag'] = tag
-    SURFACES_LOOPS[tag] = surface_loop
     return surface_loop
 
 
 def register_volume(factory, volume, register_tag):
     volume = correct_kwargs(volume, factory, 'volume')
-    if not register_tag:
-        global VOLUME_TAG
-        volume['kwargs']['tag'] = VOLUME_TAG
-        tag = add_volume[factory](volume)
-        VOLUME_TAG += 1
-    else:
-        volume['kwargs']['tag'] = -1
-        tag = add_volume[factory](volume)
+    key = tuple(x['kwargs']['tag'] for x in volume['surfaces_loops'])
+    tag = VOLUMES.get(key, None)
+    if tag is None:
+        if register_tag:
+            global VOLUME_TAG
+            volume['kwargs']['tag'] = VOLUME_TAG
+            tag = add_volume[factory](volume)
+            VOLUME_TAG += 1
+        else:
+            volume['kwargs']['tag'] = -1
+            tag = add_volume[factory](volume)
+        VOLUMES[key] = tag
     volume['kwargs']['tag'] = tag
-    VOLUMES[tag] = volume
     return volume

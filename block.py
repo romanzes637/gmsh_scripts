@@ -12,7 +12,8 @@ from registry import register_point, register_curve, register_curve_loop, \
 
 
 class Block:
-    def __init__(self, factory, points, curves, transformations,
+    def __init__(self, factory, points, curves,
+                 transformations=None,
                  register_tag=False,
                  parent=None, children=None,
                  internal_volumes_tags=None):
@@ -35,7 +36,7 @@ class Block:
         # Curve Loops
         curve_loops = []
         for i in range(6):
-            cl = {'curves': [curves[x]['kwargs']['tag'] * y for (x, y) in zip(
+            cl = {'curves_tags': [curves[x]['kwargs']['tag'] * y for (x, y) in zip(
                 self.surfaces_curves[i], self.surfaces_curves_signs[i])]}
             cl = register_curve_loop(factory, cl, register_tag)
             curve_loops.append(cl)
@@ -47,7 +48,7 @@ class Block:
             surfaces.append(s)
         # Surfaces Loops
         surfaces_loops = []
-        surface_loop = {'surfaces': [x['kwargs']['tag'] for x in surfaces]}
+        surface_loop = {'surfaces_tags': [x['kwargs']['tag'] for x in surfaces]}
         surface_loop = register_surface_loop(factory, surface_loop, register_tag)
         surfaces_loops.append(surface_loop)
         if internal_volumes_tags is not None:
@@ -61,10 +62,6 @@ class Block:
         # Volume
         volume = {'surfaces_loops': surfaces_loops}
         volume = register_volume(factory, volume, register_tag)
-        # pprint(registry.CURVES)
-        # pprint(registry.SURFACES)
-        # pprint(registry.SURFACES_LOOPS)
-        # pprint(registry.VOLUMES)
 
     curves_points = [
         [1, 0], [5, 4], [6, 7], [2, 3],
