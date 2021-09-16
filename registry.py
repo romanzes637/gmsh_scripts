@@ -17,6 +17,7 @@ CURVE_LOOP_TAG = 1
 SURFACE_TAG = 1
 SURFACE_LOOP_TAG = 1
 VOLUME_TAG = 1
+RECOMBINED_SURFACES = set()
 
 POINT_KWARGS = {
     'geo': {'tag': -1, 'meshSize': 0.},
@@ -62,13 +63,19 @@ VOLUME_KWARGS = {
     'occ': {'tag': -1}
 }
 
+RECOMBINE_KWARGS = {
+    'geo': {'angle': 45.},
+    'occ': {}
+}
+
 name2kwargs = {
     'point': POINT_KWARGS,
     'curve': CURVE_KWARGS,
     'curve_loop': CURVE_LOOP_KWARGS,
     'surface': SURFACE_KWARGS,
     'surface_loop': SURFACE_LOOP_KWARGS,
-    'volume': VOLUME_KWARGS
+    'volume': VOLUME_KWARGS,
+    'recombine': RECOMBINE_KWARGS
 }
 
 
@@ -79,6 +86,7 @@ def reset():
     global SURFACES
     global SURFACES_LOOPS
     global VOLUMES
+    global RECOMBINED_SURFACES
     global POINT_TAG
     global CURVE_TAG
     global CURVE_LOOP_TAG
@@ -97,6 +105,7 @@ def reset():
     SURFACE_TAG = 1
     SURFACE_LOOP_TAG = 1
     VOLUME_TAG = 1
+    RECOMBINED_SURFACES = set()
 
 
 def correct_kwargs(entity, factory, name):
@@ -246,6 +255,13 @@ add_volume = {
     )
 }
 
+add_recombine = {
+    'geo': lambda rec: gmsh.model.geo.mesh.setRecombine(
+        dim=rec['dim'], tag=rec['tag'], **rec['kwargs']),
+    'occ': lambda rec: gmsh.model.mesh.setRecombine(
+        dim=rec['dim'], tag=rec['tag'], **rec['kwargs'])
+}
+
 
 def register_point(factory, point, register_tag):
     point = correct_kwargs(point, factory, 'point')
@@ -377,3 +393,17 @@ def register_volume(factory, volume, register_tag):
         VOLUMES[key] = tag
     volume['kwargs']['tag'] = tag
     return volume
+
+
+def register_recombine_surface(surface, factory):
+    tag = surface['kwargs']['tag']
+    if tag not in RECOMBINED_SURFACES:
+        rec = copy.deepcopy(surface['recombine'])
+        rec = correct_kwargs(rec, factory, 'recombine')
+        rec['dim'] = 2
+        rec['tag'] = tag
+        print(rec)
+        add_recombine[factory](rec)
+        RECOMBINED_SURFACES.add(tag)
+        surface['recombine'] = rec
+    return surface

@@ -8,15 +8,16 @@ import numpy as np
 
 from support import volumes_groups_surfaces_registry
 from registry import register_point, register_curve, register_curve_loop, \
-    register_surface, register_surface_loop, register_volume
+    register_surface, register_surface_loop, register_volume, register_recombine_surface
 
 
 class Block:
-    def __init__(self, factory, points, curves,
+    def __init__(self, factory, points, curves, surfaces=None,
                  transformations=None,
                  register_tag=False,
                  parent=None, children=None,
                  internal_volumes_tags=None):
+        self.factory = factory
         # Points
         for i, p in enumerate(points):
             points[i] = register_point(factory, p, register_tag)
@@ -41,11 +42,12 @@ class Block:
             cl = register_curve_loop(factory, cl, register_tag)
             curve_loops.append(cl)
         # Surfaces
-        surfaces = []
-        for i in range(6):
-            s = {'curve_loops': [curve_loops[i]], 'name': 'fill'}
-            s = register_surface(factory, s, register_tag)
-            surfaces.append(s)
+        surfaces = [{} for _ in range(6)] if surfaces is None else surfaces
+        for i, s in enumerate(surfaces):
+            surfaces[i].setdefault('name', 'fill')
+            surfaces[i].setdefault('curve_loops', [curve_loops[i]])
+            surfaces[i] = register_surface(factory, s, register_tag)
+        self.surfaces = surfaces
         # Surfaces Loops
         surfaces_loops = []
         surface_loop = {'surfaces_tags': [x['kwargs']['tag'] for x in surfaces]}
@@ -62,6 +64,7 @@ class Block:
         # Volume
         volume = {'surfaces_loops': surfaces_loops}
         volume = register_volume(factory, volume, register_tag)
+        self.volumes = [volume]
 
     curves_points = [
         [1, 0], [5, 4], [6, 7], [2, 3],
@@ -96,6 +99,14 @@ class Block:
         [1, -1, -1, 1],  # Z
     ]
 
+    def recombine(self):
+        # volumes_dim_tags = [(3, x['kwargs']['tag']) for x in self.volumes]
+        # surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
+        # print(self.surfaces)
+        # print(surfaces_dim_tags)
+        for i, s in enumerate(self.surfaces):
+            if 'recombine' in s:
+                self.surfaces[i] = register_recombine_surface(s, self.factory)
 
 # class Primitive:
 #     """

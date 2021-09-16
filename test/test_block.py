@@ -12,11 +12,13 @@ from block import Block
 class TestBlock(unittest.TestCase):
 
     def test_init(self):
+        gmsh.initialize()
         kwargs = {
             'factory': ['geo', 'occ'],
-            # 'factory': ['occ'],
-            # 'register_tag': [True],
+            # 'factory': ['geo'],
+            # 'register_tag': [True, False],
             'register_tag': [True, False],
+            'recombine_angle': [45.],
             'output_format': ['msh2', 'geo_unrolled'
                               # 'vtk', 'stl',
                               # 'brep', 'step'
@@ -42,9 +44,9 @@ class TestBlock(unittest.TestCase):
                 continue
             name_suffix = '-'.join(f'{k}_{v}' for k, v in args.items())
             model_name = f'test_init-{name_suffix}'
+            print(model_name)
             reset_registry()
-            gmsh.initialize()
-            # gmsh.option.setNumber("General.Terminal", 0)
+            gmsh.option.setNumber("General.Terminal", 0)
             gmsh.model.add(model_name)
             # B1
             b = Block(factory=args['factory'],
@@ -183,6 +185,20 @@ class TestBlock(unittest.TestCase):
                            },
                           # Z4
                           {'name': 'line'}
+                      ],
+                      surfaces=[
+                          # NX
+                          {},
+                          # X
+                          {'recombine': {}},
+                          # NY
+                          {'recombine': {}},
+                          # Y
+                          {'recombine': {}},
+                          # NZ
+                          {'recombine': {}},
+                          # Z
+                          {'recombine': {'kwargs': {'angle': args['recombine_angle']}}},
                       ])
             # B2
             b2 = Block(factory=args['factory'],
@@ -461,14 +477,24 @@ class TestBlock(unittest.TestCase):
                            {'name': 'line'}
                        ])
             if args['factory'] == 'geo':
+                b.recombine()
+                b2.recombine()
+                b3.recombine()
+            if args['factory'] == 'geo':
                 gmsh.model.geo.synchronize()
             elif args['factory'] == 'occ':
                 gmsh.model.occ.synchronize()
             else:
                 raise ValueError(args['factory'])
+            if args['factory'] == 'occ':
+                b.recombine()
+                b2.recombine()
+                b3.recombine()
             gmsh.model.mesh.generate(3)
             gmsh.write(f'{model_name}.{args["output_format"]}')
-            gmsh.finalize()
+            # reset_registry()
+            # gmsh.clear()
+        gmsh.finalize()
 
 
 if __name__ == '__main__':
