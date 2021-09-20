@@ -1,26 +1,28 @@
-import itertools
 import logging
-import time
 from pprint import pprint
-
-import gmsh
-import numpy as np
+import copy
 
 from support import volumes_groups_surfaces_registry
 from registry import register_point, register_curve, register_curve_loop, \
-    register_surface, register_surface_loop, register_volume, register_recombine_surface
+    register_surface, register_surface_loop, register_volume, \
+    register_recombine_surface, register_transfinite_curve, \
+    register_transfinite_surface, register_transfinite_volume
 
 
 class Block:
-    def __init__(self, factory, points, curves, surfaces=None,
-                 transformations=None,
-                 register_tag=False,
-                 parent=None, children=None,
-                 internal_volumes_tags=None):
+    def __init__(self, factory, points, curves=None, surfaces=None,
+                 volumes=None,
+                 transformations=None, register_tag=False,
+                 recombine_all=None,
+                 transfinite_all=None,
+                 parent=None, children=None):
         self.factory = factory
+        self.recombine_all = recombine_all
+        self.transfinite_all = transfinite_all
         # Points
         for i, p in enumerate(points):
             points[i] = register_point(factory, p, register_tag)
+        self.points = points
         # Curves Points
         for i, c in enumerate(curves):
             c.setdefault('points', [])
@@ -32,13 +34,18 @@ class Block:
             p1 = points[self.curves_points[i][1]]
             c['points'] = [p0] + c['points'] + [p1]
         # Curves
+        curves = [{'name': 'line'} for _ in
+                  range(12)] if curves is None else curves
         for i, c in enumerate(curves):
             curves[i] = register_curve(factory, c, register_tag)
+        self.curves = curves
         # Curve Loops
         curve_loops = []
         for i in range(6):
-            cl = {'curves_tags': [curves[x]['kwargs']['tag'] * y for (x, y) in zip(
-                self.surfaces_curves[i], self.surfaces_curves_signs[i])]}
+            cl = {'curves_tags': [curves[x]['kwargs']['tag'] * y for (x, y) in
+                                  zip(
+                                      self.surfaces_curves[i],
+                                      self.surfaces_curves_signs[i])]}
             cl = register_curve_loop(factory, cl, register_tag)
             curve_loops.append(cl)
         # Surfaces
@@ -51,26 +58,30 @@ class Block:
         # Surfaces Loops
         surfaces_loops = []
         surface_loop = {'surfaces_tags': [x['kwargs']['tag'] for x in surfaces]}
-        surface_loop = register_surface_loop(factory, surface_loop, register_tag)
+        surface_loop = register_surface_loop(factory, surface_loop,
+                                             register_tag)
         surfaces_loops.append(surface_loop)
-        if internal_volumes_tags is not None:
-            pass
-            # gs = volumes_groups_surfaces_registry(internal_volumes_tags,
-            #                                       VOLUMES)
-            # for g in gs:
-            #     sl = {'surfaces': g}
-            #     sl = register_surface_loop(factory, sl, register_tag)
-            #     surfaces_loops.append(sl)
+        # gs = volumes_groups_surfaces_registry(internal_volumes_tags,
+        #                                      VOLUMES)
+        # for g in gs:
+        #     sl = {'surfaces': g}
+        #     sl = register_surface_loop(factory, sl, register_tag)
+        #     surfaces_loops.append(sl)
         # Volume
-        volume = {'surfaces_loops': surfaces_loops}
-        volume = register_volume(factory, volume, register_tag)
-        self.volumes = [volume]
+        volumes = [{}] if volumes is None else volumes
+        volumes[0].update({'surfaces_loops': surfaces_loops})
+        volumes[0] = register_volume(factory, volumes[0], register_tag)
+        self.volumes = volumes
 
     curves_points = [
         [1, 0], [5, 4], [6, 7], [2, 3],
         [3, 0], [2, 1], [6, 5], [7, 4],
         [0, 4], [1, 5], [2, 6], [3, 7]
     ]
+
+    curves_directions = ['x', 'x', 'x', 'x',
+                         'y', 'y', 'y', 'y',
+                         'z', 'z', 'z', 'z']
 
     surfaces_points = [
         [2, 6, 5, 1],  # NX
@@ -99,14 +110,91 @@ class Block:
         [1, -1, -1, 1],  # Z
     ]
 
-    def recombine(self):
-        # volumes_dim_tags = [(3, x['kwargs']['tag']) for x in self.volumes]
-        # surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, combined=False)
-        # print(self.surfaces)
-        # print(surfaces_dim_tags)
+    def recombine_surfaces(self):
+        # Check all
+        if self.recombine_all is not None:
+            if isinstance(self.recombine_all, bool):
+                self.recombine_all = {}
+            elif isinstance(self.recombine_all, dict):
+                pass
+            else:
+                raise ValueError(self.recombine_all)
+            for i, s in enumerate(self.surfaces):
+                self.surfaces[i]['recombine'] = copy.deepcopy(
+                    self.recombine_all)
+        # Recombine
         for i, s in enumerate(self.surfaces):
             if 'recombine' in s:
                 self.surfaces[i] = register_recombine_surface(s, self.factory)
+
+    def transfinite_curves(self):
+        # Check all
+        if self.transfinite_all is not None:
+            if 'curves' in self.transfinite_all:
+                value = copy.deepcopy(self.transfinite_all['curves'])
+                for i, c in enumerate(self.curves):
+                    self.curves[i]['transfinite'] = value
+            elif 'curves_x' in self.transfinite_all \
+                and 'curves_y' in self.transfinite_all \
+                and 'curves_z' in self.transfinite_all:
+                for i, c in enumerate(self.curves):
+                    direction = self.curves_directions[i]
+                    key = f'curves_{direction}'
+                    value = copy.deepcopy(self.transfinite_all[key])
+                    self.curves[i]['transfinite'] = value
+            else:
+                raise ValueError(self.transfinite_all)
+        # Transfinite
+        for i, c in enumerate(self.curves):
+            if 'transfinite' in c:
+                self.curves[i] = register_transfinite_curve(c, self.factory)
+                print(self.curves[i])
+
+    def transfinite_surfaces(self):
+        # Check all
+        if self.transfinite_all is not None:
+            key = 'surfaces'
+            value = copy.deepcopy(self.transfinite_all.get(key, {}))
+            for i, s in enumerate(self.surfaces):
+                self.surfaces[i]['transfinite'] = value
+        # Transfinite
+        for i, s in enumerate(self.surfaces):
+            all_tr_curves = all('transfinite' in self.curves[x] for x in
+                                self.surfaces_curves[i])
+            if all_tr_curves and 'transfinite' in s:
+                s['transfinite']['cornerTags'] = [
+                    self.points[x]['kwargs']['tag']
+                    for x in self.surfaces_points[i]]
+                s['transfinite'].setdefault('kwargs', {})
+                s['transfinite']['kwargs']['arrangement'] = 'Right'
+                self.surfaces[i] = register_transfinite_surface(s, self.factory)
+
+    def transfinite_volume(self):
+        # Check all
+        if self.transfinite_all is not None:
+            key = 'volumes'
+            value = copy.deepcopy(self.transfinite_all.get(key, {}))
+            self.volumes[0]['transfinite'] = value
+        # Transfinite
+        v = self.volumes[0]
+        all_tr_surfaces = all('recombine' in x for x in self.surfaces)
+        same_rec_surfaces = len(
+            set('transfinite' in x for x in self.surfaces)) == 1
+        if 'transfinite' in v and all_tr_surfaces and same_rec_surfaces:
+            v['transfinite']['cornerTags'] = [x['kwargs']['tag']
+                                              for x in self.points]
+            self.volumes[0] = register_transfinite_volume(v, self.factory)
+
+    def recombine(self):
+        self.recombine_surfaces()
+
+    def transfinite(self):
+        # Curves
+        self.transfinite_curves()
+        # Surfaces
+        self.transfinite_surfaces()
+        # Volume
+        self.transfinite_volume()
 
 # class Primitive:
 #     """

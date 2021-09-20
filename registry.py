@@ -18,6 +18,9 @@ SURFACE_TAG = 1
 SURFACE_LOOP_TAG = 1
 VOLUME_TAG = 1
 RECOMBINED_SURFACES = set()
+TRANSFINITED_CURVES = set()
+TRANSFINITED_SURFACES = set()
+TRANSFINITED_VOLUMES = set()
 
 POINT_KWARGS = {
     'geo': {'tag': -1, 'meshSize': 0.},
@@ -68,6 +71,23 @@ RECOMBINE_KWARGS = {
     'occ': {}
 }
 
+TRANSFINITE_CURVE_KWARGS = {
+    'geo': {'meshType': "Progression",  # Bump
+            'coef': 1.},
+    'occ': {'meshType': "Progression",  # Bump, Beta
+            'coef': 1.}
+}
+
+TRANSFINITE_SURFACE_KWARGS = {
+    'geo': {'arrangement': "Left"},  # Left, Right, AlternateLeft, AlternateRight
+    'occ': {'arrangement': "Left"},  # Left, Right, AlternateLeft, AlternateRight
+}
+
+TRANSFINITE_VOLUME_KWARGS = {
+    'geo': {},
+    'occ': {}
+}
+
 name2kwargs = {
     'point': POINT_KWARGS,
     'curve': CURVE_KWARGS,
@@ -75,7 +95,10 @@ name2kwargs = {
     'surface': SURFACE_KWARGS,
     'surface_loop': SURFACE_LOOP_KWARGS,
     'volume': VOLUME_KWARGS,
-    'recombine': RECOMBINE_KWARGS
+    'recombine': RECOMBINE_KWARGS,
+    'transfinite_curve': TRANSFINITE_CURVE_KWARGS,
+    'transfinite_surface': TRANSFINITE_SURFACE_KWARGS,
+    'transfinite_volume': TRANSFINITE_VOLUME_KWARGS,
 }
 
 
@@ -86,13 +109,16 @@ def reset():
     global SURFACES
     global SURFACES_LOOPS
     global VOLUMES
-    global RECOMBINED_SURFACES
     global POINT_TAG
     global CURVE_TAG
     global CURVE_LOOP_TAG
     global SURFACE_TAG
     global SURFACE_LOOP_TAG
     global VOLUME_TAG
+    global RECOMBINED_SURFACES
+    global TRANSFINITED_CURVES
+    global TRANSFINITED_SURFACES
+    global TRANSFINITED_VOLUMES
     POINTS = {}
     CURVES = {}
     CURVE_LOOPS = {}
@@ -106,6 +132,9 @@ def reset():
     SURFACE_LOOP_TAG = 1
     VOLUME_TAG = 1
     RECOMBINED_SURFACES = set()
+    TRANSFINITED_CURVES = set()
+    TRANSFINITED_SURFACES = set()
+    TRANSFINITED_VOLUMES = set()
 
 
 def correct_kwargs(entity, factory, name):
@@ -262,6 +291,28 @@ add_recombine = {
         dim=rec['dim'], tag=rec['tag'], **rec['kwargs'])
 }
 
+add_transfinite_curve = {
+    'geo': lambda tr: gmsh.model.geo.mesh.setTransfiniteCurve(
+        tag=tr['tag'], nPoints=tr['nPoints'], **tr['kwargs']),
+    'occ': lambda tr: gmsh.model.mesh.setTransfiniteCurve(
+        tag=tr['tag'], numNodes=tr['nPoints'], **tr['kwargs']),
+}
+
+
+add_transfinite_surface = {
+    'geo': lambda tr: gmsh.model.geo.mesh.setTransfiniteSurface(
+        tag=tr['tag'], cornerTags=tr['cornerTags'], **tr['kwargs']),
+    'occ': lambda tr: gmsh.model.mesh.setTransfiniteSurface(
+        tag=tr['tag'], cornerTags=tr['cornerTags'], **tr['kwargs']),
+}
+
+add_transfinite_volume = {
+    'geo': lambda tr: gmsh.model.geo.mesh.setTransfiniteVolume(
+        tag=tr['tag'], cornerTags=tr['cornerTags'], **tr['kwargs']),
+    'occ': lambda tr: gmsh.model.mesh.setTransfiniteVolume(
+        tag=tr['tag'], cornerTags=tr['cornerTags'], **tr['kwargs']),
+}
+
 
 def register_point(factory, point, register_tag):
     point = correct_kwargs(point, factory, 'point')
@@ -402,8 +453,43 @@ def register_recombine_surface(surface, factory):
         rec = correct_kwargs(rec, factory, 'recombine')
         rec['dim'] = 2
         rec['tag'] = tag
-        print(rec)
         add_recombine[factory](rec)
         RECOMBINED_SURFACES.add(tag)
         surface['recombine'] = rec
     return surface
+
+
+def register_transfinite_curve(curve, factory):
+    tag = curve['kwargs']['tag']
+    if tag not in TRANSFINITED_CURVES:
+        tr = copy.deepcopy(curve['transfinite'])
+        tr = correct_kwargs(tr, factory, 'transfinite_curve')
+        tr['tag'] = tag
+        add_transfinite_curve[factory](tr)
+        TRANSFINITED_CURVES.add(tag)
+        curve['transfinite'] = tr
+    return curve
+
+
+def register_transfinite_surface(surface, factory):
+    tag = surface['kwargs']['tag']
+    if tag not in TRANSFINITED_SURFACES:
+        tr = copy.deepcopy(surface['transfinite'])
+        tr = correct_kwargs(tr, factory, 'transfinite_surface')
+        tr['tag'] = tag
+        add_transfinite_surface[factory](tr)
+        TRANSFINITED_SURFACES.add(tag)
+        surface['transfinite'] = tr
+    return surface
+
+
+def register_transfinite_volume(volume, factory):
+    tag = volume['kwargs']['tag']
+    if tag not in TRANSFINITED_VOLUMES:
+        tr = copy.deepcopy(volume['transfinite'])
+        tr = correct_kwargs(tr, factory, 'transfinite_volume')
+        tr['tag'] = tag
+        add_transfinite_volume[factory](tr)
+        TRANSFINITED_VOLUMES.add(tag)
+        volume['transfinite'] = tr
+    return volume
