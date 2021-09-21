@@ -1,77 +1,95 @@
 import logging
 from pprint import pprint
 import copy
+import time
 
-from support import volumes_groups_surfaces_registry
+from support import volumes_surfaces_to_volumes_groups_surfaces
 from registry import register_point, register_curve, register_curve_loop, \
     register_surface, register_surface_loop, register_volume, \
     register_recombine_surface, register_transfinite_curve, \
-    register_transfinite_surface, register_transfinite_volume
+    register_transfinite_surface, register_transfinite_volume, unregister_volume
 
 
 class Block:
-    def __init__(self, factory, points, curves=None, surfaces=None,
-                 volumes=None,
-                 transformations=None, register_tag=False,
-                 recombine_all=None,
-                 transfinite_all=None,
+    def __init__(self, factory='geo',
+                 points=None, curves=None, surfaces=None, volumes=None,
+                 register_tag=False, do_register=True, do_unregister=False,
+                 do_register_children=True, do_unregister_children=True,
+                 transformations=None,
+                 recombine_all=None, transfinite_all=None,
                  parent=None, children=None):
         self.factory = factory
+        if points is None:
+            self.points = [
+                {'coordinates': [0.5, 0.5, -0.5],
+                 'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                 'kwargs': {'meshSize': 0.1}},
+                {'coordinates': [-0.5, 0.5, -0.5],
+                 'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                 'kwargs': {'meshSize': 0.1}},
+                {'coordinates': [-0.5, -0.5, -0.5],
+                 'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                 'kwargs': {'meshSize': 0.1}},
+                {'coordinates': [0.5, -0.5, -0.5],
+                 'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                 'kwargs': {'meshSize': 0.1}},
+                {'coordinates': [0.5, 0.5, 0.5],
+                 'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                 'kwargs': {'meshSize': 0.1}},
+                {'coordinates': [-0.5, 0.5, 0.5],
+                 'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                 'kwargs': {'meshSize': 0.1}},
+                {'coordinates': [-0.5, -0.5, 0.5],
+                 'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                 'kwargs': {'meshSize': 0.1}},
+                {'coordinates': [0.5, -0.5, 0.5],
+                 'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
+                 'kwargs': {'meshSize': 0.1}}]
+        elif isinstance(points, list):
+            self.points = []
+            if len(points) == 8:
+                for p in points:
+                    if isinstance(p, dict):
+                        new_p = p
+                    elif isinstance(p, list):
+                        if len(p) == 3 and not isinstance(p[0], list):
+                            new_p = {'coordinates': p,
+                                     'coordinate_system':
+                                         {'name': 'cartesian',
+                                          'origin': [0, 0, 0]},
+                                     'kwargs': {'meshSize': 0.}}
+                        elif len(p) == 4 and not isinstance(p[0], list):
+                            new_p = {'coordinates': p[:3],
+                                     'coordinate_system':
+                                         {'name': 'cartesian',
+                                          'origin': [0, 0, 0]},
+                                     'kwargs': {'meshSize': p[3]}}
+                        else:
+                            raise ValueError(p)
+                    else:
+                        raise ValueError(p)
+                    self.points.append(new_p)
+        else:
+            raise ValueError(points)
+        self.curves = [{'name': 'line'} for _ in range(12)] if curves is None else curves
+        self.surfaces = [{} for _ in range(6)] if surfaces is None else surfaces
+        self.volumes = [{}] if volumes is None else volumes
+        self.register_tag = register_tag
+        self.do_register = do_register
+        self.do_unregister = do_unregister
+        self.do_register_children = do_register_children
+        self.do_unregister_children = do_unregister_children
+        self.transformations = [] if transformations is None else transformations
         self.recombine_all = recombine_all
         self.transfinite_all = transfinite_all
-        # Points
-        for i, p in enumerate(points):
-            points[i] = register_point(factory, p, register_tag)
-        self.points = points
-        # Curves Points
-        for i, c in enumerate(curves):
-            c.setdefault('points', [])
-            for j, p in enumerate(c['points']):
-                curves[i]['points'][j] = register_point(
-                    factory, p, register_tag)
-            # Add start and end points to curves
-            p0 = points[self.curves_points[i][0]]
-            p1 = points[self.curves_points[i][1]]
-            c['points'] = [p0] + c['points'] + [p1]
-        # Curves
-        curves = [{'name': 'line'} for _ in
-                  range(12)] if curves is None else curves
-        for i, c in enumerate(curves):
-            curves[i] = register_curve(factory, c, register_tag)
-        self.curves = curves
-        # Curve Loops
-        curve_loops = []
-        for i in range(6):
-            cl = {'curves_tags': [curves[x]['kwargs']['tag'] * y for (x, y) in
-                                  zip(
-                                      self.surfaces_curves[i],
-                                      self.surfaces_curves_signs[i])]}
-            cl = register_curve_loop(factory, cl, register_tag)
-            curve_loops.append(cl)
-        # Surfaces
-        surfaces = [{} for _ in range(6)] if surfaces is None else surfaces
-        for i, s in enumerate(surfaces):
-            surfaces[i].setdefault('name', 'fill')
-            surfaces[i].setdefault('curve_loops', [curve_loops[i]])
-            surfaces[i] = register_surface(factory, s, register_tag)
-        self.surfaces = surfaces
-        # Surfaces Loops
-        surfaces_loops = []
-        surface_loop = {'surfaces_tags': [x['kwargs']['tag'] for x in surfaces]}
-        surface_loop = register_surface_loop(factory, surface_loop,
-                                             register_tag)
-        surfaces_loops.append(surface_loop)
-        # gs = volumes_groups_surfaces_registry(internal_volumes_tags,
-        #                                      VOLUMES)
-        # for g in gs:
-        #     sl = {'surfaces': g}
-        #     sl = register_surface_loop(factory, sl, register_tag)
-        #     surfaces_loops.append(sl)
-        # Volume
-        volumes = [{}] if volumes is None else volumes
-        volumes[0].update({'surfaces_loops': surfaces_loops})
-        volumes[0] = register_volume(factory, volumes[0], register_tag)
-        self.volumes = volumes
+        self.parent = parent
+        self.children = [] if children is None else children
+        # Support
+        self.curves_loops = [{} for _ in range(6)]
+        self.surfaces_loops = [{}]
+        self.is_registered = False
+        self.is_recombined = False
+        self.is_transfinited = False
 
     curves_points = [
         [1, 0], [5, 4], [6, 7], [2, 3],
@@ -110,6 +128,119 @@ class Block:
         [1, -1, -1, 1],  # Z
     ]
 
+    def register(self):
+        # Children
+        if self.do_register_children:
+            for i, c in enumerate(self.children):
+                c.register()
+        # Self
+        if not self.do_register:
+            return
+        if self.is_registered:
+            return
+        # Points
+        # t0 = time.perf_counter()
+        self.register_points()
+        # print(f'register_points: {time.perf_counter() - t0}s')
+        # Curves Points
+        # t0 = time.perf_counter()
+        self.register_curve_points()
+        # print(f'register_curve_points: {time.perf_counter() - t0}s')
+        # Curves
+        # t0 = time.perf_counter()
+        self.register_curves()
+        # print(f'register_curves: {time.perf_counter() - t0}s')
+        # Curve Loops
+        # t0 = time.perf_counter()
+        self.register_curves_loops()
+        # print(f'register_curves_loops: {time.perf_counter() - t0}s')
+        # Surfaces
+        # t0 = time.perf_counter()
+        self.register_surfaces()
+        # print(f'register_surfaces: {time.perf_counter() - t0}s')
+        # Surfaces Loops
+        # t0 = time.perf_counter()
+        self.register_surfaces_loops()
+        # print(f'register_surfaces_loops: {time.perf_counter() - t0}s')
+        # Volume
+        # t0 = time.perf_counter()
+        self.register_volumes()
+        # print(f'register_volumes: {time.perf_counter() - t0}s')
+
+
+    def register_points(self):
+        for i, p in enumerate(self.points):
+            self.points[i] = register_point(self.factory, p, self.register_tag)
+
+    def register_curve_points(self):
+        for i, c in enumerate(self.curves):
+            c.setdefault('points', [])
+            for j, p in enumerate(c['points']):
+                c['points'][j] = register_point(self.factory, p, self.register_tag)
+            # Add start and end points to curves
+            p0 = self.points[self.curves_points[i][0]]
+            p1 = self.points[self.curves_points[i][1]]
+            c['points'] = [p0] + c['points'] + [p1]
+
+    def register_curves(self):
+        for i, c in enumerate(self.curves):
+            self.curves[i] = register_curve(self.factory, c, self.register_tag)
+
+    def register_curves_loops(self):
+        for i, cl in enumerate(self.curves_loops):
+            cl.setdefault('curves_tags', [
+                self.curves[x]['kwargs']['tag'] * y for (x, y) in zip(
+                    self.surfaces_curves[i], self.surfaces_curves_signs[i])])
+            self.curves_loops[i] = register_curve_loop(self.factory, cl, self.register_tag)
+
+    def register_surfaces(self):
+        for i, s in enumerate(self.surfaces):
+            s.setdefault('name', 'fill')
+            s.setdefault('curve_loops', [self.curves_loops[i]])
+            self.surfaces[i] = register_surface(self.factory, s, self.register_tag)
+
+    def register_surfaces_loops(self):
+        # External
+        sl = self.surfaces_loops[0]
+        sl.setdefault('surfaces_tags', [x['kwargs']['tag'] for x in self.surfaces])
+        self.surfaces_loops[0] = register_surface_loop(self.factory, sl, self.register_tag)
+        # Internal
+        internal_volumes = []
+        for i, c in enumerate(self.children):
+            if c.do_register:
+                if not c.is_registered:
+                    raise ValueError('Register children before parent!')
+                internal_volumes.append(c.volumes)
+        volumes_surfaces = [y['surfaces_loops'][0]['surfaces_tags']
+                            for x in internal_volumes for y in x]
+        surfaces_groups = volumes_surfaces_to_volumes_groups_surfaces(
+            volumes_surfaces)
+        for g in surfaces_groups:
+            sl = {'surfaces_tags': g}
+            sl = register_surface_loop(self.factory, sl, self.register_tag)
+            self.surfaces_loops.append(sl)
+
+    def register_volumes(self):
+        v = self.volumes[0]
+        v.setdefault('surfaces_loops', self.surfaces_loops)
+        self.volumes[0] = register_volume(self.factory, v, self.register_tag)
+        self.is_registered = True
+
+    def unregister(self):
+        # Children
+        if self.do_unregister_children:
+            for i, c in enumerate(self.children):
+                c.unregister()
+        # Self
+        if not self.do_unregister:
+            return
+        if self.is_registered:
+            for i, v in enumerate(self.volumes):
+                self.volumes[i] = unregister_volume(self.factory, v,
+                                                    self.register_tag)
+        else:
+            raise ValueError('Block is not registered')
+
     def recombine_surfaces(self):
         # Check all
         if self.recombine_all is not None:
@@ -135,8 +266,8 @@ class Block:
                 for i, c in enumerate(self.curves):
                     self.curves[i]['transfinite'] = value
             elif 'curves_x' in self.transfinite_all \
-                and 'curves_y' in self.transfinite_all \
-                and 'curves_z' in self.transfinite_all:
+                    and 'curves_y' in self.transfinite_all \
+                    and 'curves_z' in self.transfinite_all:
                 for i, c in enumerate(self.curves):
                     direction = self.curves_directions[i]
                     key = f'curves_{direction}'
@@ -148,7 +279,6 @@ class Block:
         for i, c in enumerate(self.curves):
             if 'transfinite' in c:
                 self.curves[i] = register_transfinite_curve(c, self.factory)
-                print(self.curves[i])
 
     def transfinite_surfaces(self):
         # Check all
@@ -186,15 +316,27 @@ class Block:
             self.volumes[0] = register_transfinite_volume(v, self.factory)
 
     def recombine(self):
+        # Children
+        for i, c in enumerate(self.children):
+            c.recombine()
+        if self.is_recombined:
+            return
         self.recombine_surfaces()
+        self.is_recombined = True
 
     def transfinite(self):
+        # Children
+        for i, c in enumerate(self.children):
+            c.transfinite()
+        if self.is_transfinited:
+            return
         # Curves
         self.transfinite_curves()
         # Surfaces
         self.transfinite_surfaces()
         # Volume
         self.transfinite_volume()
+        self.is_transfinited = True
 
 # class Primitive:
 #     """

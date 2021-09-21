@@ -1,13 +1,14 @@
 from collections import deque
 import copy
 from pprint import pprint
+import time
 
 import gmsh
 
 POINT_TOL = 8
 POINTS = {}
 CURVES = {}
-CURVE_LOOPS = {}
+CURVES_LOOPS = {}
 SURFACES = {}
 SURFACES_LOOPS = {}
 VOLUMES = {}
@@ -105,7 +106,7 @@ name2kwargs = {
 def reset():
     global POINTS
     global CURVES
-    global CURVE_LOOPS
+    global CURVES_LOOPS
     global SURFACES
     global SURFACES_LOOPS
     global VOLUMES
@@ -121,7 +122,7 @@ def reset():
     global TRANSFINITED_VOLUMES
     POINTS = {}
     CURVES = {}
-    CURVE_LOOPS = {}
+    CURVES_LOOPS = {}
     SURFACES = {}
     SURFACES_LOOPS = {}
     VOLUMES = {}
@@ -368,7 +369,7 @@ def register_curve_loop(factory, curve_loop, register_tag):
         keys.append(tuple(deq))
     tag = None
     for k in keys:
-        tag = CURVE_LOOPS.get(k, None)
+        tag = CURVES_LOOPS.get(k, None)
         if tag is not None:
             break
     if tag is None:
@@ -381,7 +382,7 @@ def register_curve_loop(factory, curve_loop, register_tag):
             tag = add_curve_loop[factory](curve_loop)
             curve_loop['kwargs']['tag'] = tag
         for k in keys:
-            CURVE_LOOPS[k] = tag
+            CURVES_LOOPS[k] = tag
     curve_loop['kwargs']['tag'] = tag
     return curve_loop
 
@@ -395,7 +396,9 @@ def register_surface(factory, surface, register_tag):
         if register_tag:
             global SURFACE_TAG
             surface['kwargs']['tag'] = SURFACE_TAG
+            t0 = time.perf_counter()
             tag = add_surface[(factory, name)](surface)
+            print(f'ADD {factory} {time.perf_counter() - t0}')
             SURFACE_TAG += 1
             # FIXME Workaround occ auto increment curve loop and surface tags
             if factory == 'occ':
@@ -403,7 +406,9 @@ def register_surface(factory, surface, register_tag):
                 CURVE_LOOP_TAG += 1
         else:
             surface['kwargs']['tag'] = -1
+            t0 = time.perf_counter()
             tag = add_surface[(factory, name)](surface)
+            print(f'ADD {factory} {time.perf_counter() - t0}')
         SURFACES[key] = tag
     surface['kwargs']['tag'] = tag
     return surface
@@ -492,4 +497,13 @@ def register_transfinite_volume(volume, factory):
         add_transfinite_volume[factory](tr)
         TRANSFINITED_VOLUMES.add(tag)
         volume['transfinite'] = tr
+    return volume
+
+
+# TODO remove from registry
+def unregister_volume(factory, volume, register_tag):
+    tag = volume['kwargs']['tag']
+    dim_tag = [3, tag]
+    gmsh.model.removeEntities([dim_tag], recursive=True)
+    del volume['kwargs']['tag']
     return volume
