@@ -15,7 +15,7 @@ class Block:
                  points=None, curves=None, surfaces=None, volumes=None,
                  register_tag=False, do_register=True, do_unregister=False,
                  do_register_children=True, do_unregister_children=True,
-                 transformations=None,
+                 transforms=None,
                  recombine_all=None, transfinite_all=None,
                  parent=None, children=None):
         self.factory = factory
@@ -79,7 +79,7 @@ class Block:
         self.do_unregister = do_unregister
         self.do_register_children = do_register_children
         self.do_unregister_children = do_unregister_children
-        self.transformations = [] if transformations is None else transformations
+        self.transforms = [] if transforms is None else transforms
         self.recombine_all = recombine_all
         self.transfinite_all = transfinite_all
         self.parent = parent
