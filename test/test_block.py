@@ -839,6 +839,122 @@ class TestBlock(unittest.TestCase):
             gmsh.model.mesh.generate(3)
             gmsh.write(f'{model_name}.{kws["output_format"]}')
 
+    @gmsh_decorator
+    def test_transform(self):
+        kwargs = {
+            # 'factory': ['geo', 'occ'],
+            'factory': ['geo'],
+            # 'register_tag': [True, False],
+            # 'register_tag': [True, False],
+            # 'recombine_angle': [45.],
+            # 'transfinite_curve_mesh_type': ['Progression', 'Bump', 'Beta'],
+            # 'transfinite_curve_coef': [0.75, 1.0, 1.5],
+            'output_format': ['msh2', 'geo_unrolled'
+                              # 'vtk', 'stl',
+                              # 'brep', 'step'
+                              ]
+            # auto, msh1, msh2, msh22, msh3, msh4, msh40, msh41, msh, unv,
+            # vtk, wrl, mail, stl, p3d, mesh, bdf, cgns, med, diff, ir3, inp,
+            # ply2, celum, su2, x3d, dat, neu, m, key
+        }
+        filter_kwargs = [{'factory': 'geo',
+                          'output_format': 'brep'},
+                         {'factory': 'geo',
+                          'output_format': 'step'}]
+        kwargs_combs = make_kwargs_combinations(kwargs, filter_kwargs)
+        for kws in kwargs_combs:
+            name_suffix = '-'.join(f'{k}_{v}' for k, v in kws.items())
+            model_name = f'test_transform-{name_suffix}'
+            gmsh.model.add(model_name)
+            print(model_name)
+            reset_registry()
+            factory = kws.get('factory', 'geo')
+            b1 = Block(factory=factory,
+                       points=[[0.5, 0.5, -0.5],
+                               [-0.5, 0.5, -0.5],
+                               [-0.5, -0.5, -0.5],
+                               [0.5, -0.5, -0.5],
+                               [0.5, 0.5, 0.5],
+                               [-0.5, 0.5, 0.5],
+                               [-0.5, -0.5, 0.5],
+                               [0.5, -0.5, 0.5]],
+                       transforms=[{'name': 'translate', 'delta': [0, 1, 2]},
+                                   {'name': 'translate', 'delta': [1, -1, 2]}]
+                       )
+            b2 = Block(factory=factory,
+                       points=[[0.25, 0.25, -0.4],
+                               [-0.25, 0.25, -0.4],
+                               [-0.25, -0.25, -0.4],
+                               [0.25, -0.25, -0.4],
+                               [0.25, 0.25, -0.3],
+                               [-0.25, 0.25, -0.3],
+                               [-0.25, -0.25, -0.3],
+                               [0.25, -0.25, -0.3]],
+                       transforms=[{'name': 'translate',
+                                    'delta': [0.01, 0.01, 0.04]},
+                                   {'name': 'rotate',
+                                    'origin': [0.01, 0.01, 0.04],
+                                    'direction': [1, 0, 0],
+                                    'angle': 10}],
+                       parent=b1
+                       )
+            b1.children.append(b2)
+            b3 = Block(factory=factory,
+                       points=[[0.25, 0.25, -0.3],
+                               [-0.25, 0.25, -0.3],
+                               [-0.25, -0.25, -0.3],
+                               [0.25, -0.25, -0.3],
+                               [0.25, 0.25, -0.2],
+                               [-0.25, 0.25, -0.2],
+                               [-0.25, -0.25, -0.2],
+                               [0.25, -0.25, -0.2],
+                               'block'],
+                       transforms=['block_to_cartesian',
+                                   [0, 0, 0, 1, 0, 0, -15],
+                                   [0, 0, 0.1],
+                                   [0, 0, 1, 10]],
+                       parent=b1)
+            b1.children.append(b3)
+            b4 = Block(factory=factory,
+                       points=[[0.25, 0.25, -0.3],
+                               [-0.25, 0.25, -0.3],
+                               [-0.25, -0.25, -0.3],
+                               [0.25, -0.25, -0.3],
+                               [0.25, 0.25, -0.2],
+                               [-0.25, 0.25, -0.2],
+                               [-0.25, -0.25, -0.2],
+                               [0.25, -0.25, -0.2],
+                               'block'],
+                       curves=[
+                           [[-0.20, 0.24, -0.3], [-0.15, 0.26, -0.3], 'block'],
+                           ['circle_arc', [[0., 0., -0.2, 1.], 'block']],
+                           [],
+                           [],
+                           [],
+                           [],
+                           [],
+                           [],
+                           [],
+                           [],
+                           [],
+                           []],
+                       transforms=['block_to_cartesian',
+                                   [0, 0, 0, 1, 0, 0, -15],
+                                   [0, 0, 0.3],
+                                   [0, 0, 1, 10]],
+                       parent=b1)
+            b1.children.append(b4)
+            b1.transform()
+            b1.register()
+            if factory == 'geo':
+                gmsh.model.geo.synchronize()
+            elif factory == 'occ':
+                gmsh.model.occ.synchronize()
+            else:
+                raise ValueError(factory)
+            gmsh.model.mesh.generate(3)
+            gmsh.write(f'{model_name}.{kws["output_format"]}')
+
 
 if __name__ == '__main__':
     unittest.main()

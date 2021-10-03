@@ -4,7 +4,7 @@ import numpy as np
 
 from transform import CoordinateSystem, Point, Translate, RotateCartesian, \
     CylindricalToCartesian, ToroidalToCartesian, TokamakToCartesian, SphericalToCartesian, \
-    BlockToCartesian, BlockCS
+    BlockToCartesian, Block
 
 
 class TestTransform(unittest.TestCase):
@@ -15,7 +15,7 @@ class TestTransform(unittest.TestCase):
         cs_sph = CoordinateSystem('spherical', 3, np.array([0, 0, 0]))
         cs_tor = CoordinateSystem('toroidal', 4, np.array([0, 0, 0, 0]))
         cs_tok = CoordinateSystem('tokamak', 6, np.array([0, 0, 0, 0, 0, 0]))
-        cs_blo = BlockCS(ps=np.array([
+        cs_blo = Block(ps=np.array([
             [1, 1, 0], [0, 1, 0], [0, 0, 0], [1, 0, 0],
             [1, 1, 1], [0, 1, 1], [0, 0, 1], [1, 0, 1]
         ]))
@@ -26,8 +26,8 @@ class TestTransform(unittest.TestCase):
         p_tok = Point(cs_tok, np.array([1, np.radians(30), np.radians(45),
                                         5, 1.1, 1.2]))
         p_blo = Point(cs_blo, np.array([0.5, -0.5, 0]))
-        t1 = Translate(cs_car, cs_car, cs_car, delta=np.array([0, 1, 2]))
-        t2 = Translate(cs_car, cs_car, cs_car, delta=np.array([0, 1, 2]))
+        t1 = Translate(delta=np.array([0, 1, 2]))
+        t2 = Translate(delta=np.array([0, 1, 2]))
         cyl2car = CylindricalToCartesian()
         tor2car = ToroidalToCartesian()
         tok2car = TokamakToCartesian()
@@ -35,7 +35,7 @@ class TestTransform(unittest.TestCase):
         blo2car = BlockToCartesian(cs_from=cs_blo)
         r1 = RotateCartesian(origin=np.array([0, 0, 0]),
                              direction=np.array([1, 0, 0]),
-                             angle=np.radians(30))
+                             angle=np.deg2rad(30))
         p = reduce(lambda x, y: y(x), [r1, t1, t2], p_car)
         print(p.vs)
         p = reduce(lambda x, y: y(x), [cyl2car, r1, t1, t2], p_cyl)

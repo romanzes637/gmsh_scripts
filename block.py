@@ -2,8 +2,10 @@ import logging
 from pprint import pprint
 import copy
 import time
+import numpy as np
 
 from support import volumes_surfaces_to_volumes_groups_surfaces
+from transform import Point, cs_factory, transform_factory, reduce_transforms
 from registry import register_point, register_curve, register_curve_loop, \
     register_surface, register_surface_loop, register_volume, \
     register_recombine_surface, register_transfinite_curve, \
@@ -46,32 +48,35 @@ class Block:
                  'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
                  'kwargs': {'meshSize': 0.1}}]
         elif isinstance(points, list):
-            self.points = []
-            if len(points) == 8:
-                for p in points:
-                    if isinstance(p, dict):
-                        new_p = p
-                    elif isinstance(p, list):
-                        if len(p) == 3 and not isinstance(p[0], list):
-                            new_p = {'coordinates': p,
-                                     'coordinate_system':
-                                         {'name': 'cartesian',
-                                          'origin': [0, 0, 0]},
-                                     'kwargs': {'meshSize': 0.}}
-                        elif len(p) == 4 and not isinstance(p[0], list):
-                            new_p = {'coordinates': p[:3],
-                                     'coordinate_system':
-                                         {'name': 'cartesian',
-                                          'origin': [0, 0, 0]},
-                                     'kwargs': {'meshSize': p[3]}}
-                        else:
-                            raise ValueError(p)
-                    else:
-                        raise ValueError(p)
-                    self.points.append(new_p)
+            self.points = self.parse_points(points)
         else:
             raise ValueError(points)
-        self.curves = [{'name': 'line'} for _ in range(12)] if curves is None else curves
+        self.curves = [{} for _ in range(12)] if curves is None else curves
+        for i, c in enumerate(self.curves):
+            if isinstance(c, dict):
+                pass
+            elif isinstance(c, list):
+                new_c = {}
+                if len(c) > 0:
+                    if not isinstance(c[0], str):
+                        new_c['name'] = 'polyline'
+                        new_c['points'] = c
+                    else:
+                        if len(c) == 2:
+                            new_c['name'] = c[0]
+                            new_c['points'] = c[1]
+                        elif len(c) == 3:
+                            new_c['name'] = c[0]
+                            new_c['points'] = c[1]
+                            new_c['kwargs'] = c[2]
+                        else:
+                            raise ValueError(c)
+                self.curves[i] = new_c
+            else:
+                raise ValueError(c)
+            self.curves[i].setdefault('name', 'line')
+            self.curves[i].setdefault('points', [])
+            self.curves[i]['points'] = self.parse_points(self.curves[i]['points'])
         self.surfaces = [{} for _ in range(6)] if surfaces is None else surfaces
         self.volumes = [{}] if volumes is None else volumes
         self.register_tag = register_tag
@@ -80,6 +85,33 @@ class Block:
         self.do_register_children = do_register_children
         self.do_unregister_children = do_unregister_children
         self.transforms = [] if transforms is None else transforms
+        for i, t in enumerate(self.transforms):
+            if isinstance(t, str):
+                name, kwargs = t, {}
+            elif isinstance(t, list):
+                if len(t) == 3:
+                    name, kwargs = 'translate', {'delta': t}
+                elif len(t) == 4:
+                    name = 'rotate'
+                    kwargs = {'origin': [0, 0, 0],
+                              'direction': t[:3],
+                              'angle': t[3]}
+                elif len(t) == 7:
+                    name = 'rotate'
+                    kwargs = {'origin': t[:3],
+                              'direction': t[3:6],
+                              'angle': t[6]}
+                else:
+                    raise ValueError(t)
+            else:
+                name = t.pop('name')
+                kwargs = t
+            if 'angle' in kwargs:
+                kwargs['angle'] = np.deg2rad(kwargs['angle'])
+            if name.startswith('block'):
+                ps = np.array([p['coordinates'] for p in parent.points])
+                kwargs['cs_from'] = cs_factory['block'](ps=ps)
+            self.transforms[i] = transform_factory[name](**kwargs)
         self.recombine_all = recombine_all
         self.transfinite_all = transfinite_all
         self.parent = parent
@@ -128,6 +160,39 @@ class Block:
         [1, -1, -1, 1],  # Z
     ]
 
+    def parse_points(self, points):
+        new_points = []
+        if len(points) == 0:
+            return new_points
+        cs_name = 'cartesian'
+        if isinstance(points[-1], str):
+            points, cs_name = points[:-1], points[-1]
+        for p in points:
+            if isinstance(p, dict):
+                cs = p.get('coordinate_system', cs_name)
+                if isinstance(cs, str):
+                    p['coordinate_system'] = {'name': cs}
+                new_p = p
+            elif isinstance(p, list):
+                if len(p) == 3 and not isinstance(p[0], list):
+                    new_p = {'coordinates': p,
+                             'coordinate_system':
+                                 {'name': cs_name,
+                                  'origin': [0, 0, 0]},
+                             'kwargs': {'meshSize': 0.}}
+                elif len(p) == 4 and not isinstance(p[0], list):
+                    new_p = {'coordinates': p[:3],
+                             'coordinate_system':
+                                 {'name': cs_name,
+                                  'origin': [0, 0, 0]},
+                             'kwargs': {'meshSize': p[3]}}
+                else:
+                    raise ValueError(p)
+            else:
+                raise ValueError(p)
+            new_points.append(new_p)
+        return new_points
+
     def register(self):
         # Children
         if self.do_register_children:
@@ -167,6 +232,34 @@ class Block:
         self.register_volumes()
         # print(f'register_volumes: {time.perf_counter() - t0}s')
 
+    def transform(self):
+        for i, c in enumerate(self.children):
+            c.transforms.extend(self.transforms)
+            c.transform()
+        for i, p in enumerate(self.points):
+            cs_kwargs = copy.deepcopy(p.get('coordinate_system', {}))
+            cs_name = cs_kwargs.pop('name', 'cartesian')
+            if cs_name.startswith('block'):
+                ps = np.array([p['coordinates'] for p in self.parent.points])
+                cs_kwargs['ps'] = ps
+            cs = cs_factory[cs_name](**cs_kwargs)
+            vs = p.get('coordinates', np.zeros(3))
+            point = Point(cs=cs, vs=vs)
+            point = reduce_transforms(self.transforms, point)
+            self.points[i]['coordinates'] = point.vs
+        # Curve Points
+        for i, c in enumerate(self.curves):
+            for j, p in enumerate(c['points']):
+                cs_kwargs = p.get('coordinate_system', {})
+                cs_name = cs_kwargs.pop('name', 'cartesian')
+                if cs_name.startswith('block'):
+                    ps = np.array([p['coordinates'] for p in self.parent.points])
+                    cs_kwargs['ps'] = ps
+                cs = cs_factory[cs_name](**cs_kwargs)
+                vs = p.get('coordinates', np.zeros(3))
+                point = Point(cs=cs, vs=vs)
+                point = reduce_transforms(self.transforms, point)
+                self.curves[i]['points'][j]['coordinates'] = point.vs
 
     def register_points(self):
         for i, p in enumerate(self.points):
@@ -174,7 +267,6 @@ class Block:
 
     def register_curve_points(self):
         for i, c in enumerate(self.curves):
-            c.setdefault('points', [])
             for j, p in enumerate(c['points']):
                 c['points'][j] = register_point(self.factory, p, self.register_tag)
             # Add start and end points to curves
