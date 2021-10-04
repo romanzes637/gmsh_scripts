@@ -1,0 +1,20 @@
+{
+  "metadata": {
+    "class": "Block"
+  },
+  "data": {
+    "factory": "geo",
+    "children": [
+      "input/test_block_2.json",
+      "input/test_block_2.json",
+      "input/test_block_3.json",
+      "input/test_block_3.json"
+    ],
+    "children_transforms": [
+      [[0, 0, -0.1]],
+      [[0, 0, 0.1]],
+      [[0, 0, 0.3]],
+      [[0, 0, -0.3]]
+    ]
+  }
+}

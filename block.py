@@ -19,7 +19,7 @@ class Block:
                  do_register_children=True, do_unregister_children=True,
                  transforms=None,
                  recombine_all=None, transfinite_all=None,
-                 parent=None, children=None):
+                 parent=None, children=None, children_transforms=None):
         self.factory = factory
         self.points = self.parse_points(points)
         self.curves = self.parse_curves(curves)
@@ -35,6 +35,11 @@ class Block:
         self.transfinite_all = transfinite_all
         self.parent = parent
         self.children = [] if children is None else children
+        if children_transforms is None:
+            children_transforms = [[] for _ in self.children]
+        for i, t in enumerate(children_transforms):
+            children_transforms[i] = self.parse_transforms(t, parent)
+        self.children_transforms = children_transforms
         # Support
         self.curves_loops = [{} for _ in range(6)]
         self.surfaces_loops = [{}]
@@ -198,9 +203,11 @@ class Block:
                               'angle': t[6]}
                 else:
                     raise ValueError(t)
-            else:
+            elif isinstance(t, dict):
                 name = t.pop('name')
                 kwargs = t
+            else:
+                raise ValueError(t)
             if 'angle' in kwargs:
                 kwargs['angle'] = np.deg2rad(kwargs['angle'])
             if name.startswith('block'):
@@ -248,9 +255,16 @@ class Block:
         self.register_volumes()
         # print(f'register_volumes: {time.perf_counter() - t0}s')
 
+    def add_child(self, child, transforms=None):
+        transforms = [] if transforms is None else transforms
+        self.children.append(child)
+        transforms = self.parse_transforms(transforms, self.parent)
+        self.children_transforms.append(transforms)
+
     def transform(self):
         # Children
         for i, c in enumerate(self.children):
+            c.transforms.extend(self.children_transforms[i])
             c.transforms.extend(self.transforms)
             c.transform()
         for i, p in enumerate(self.points):

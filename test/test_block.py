@@ -898,7 +898,7 @@ class TestBlock(unittest.TestCase):
                                     'angle': 10}],
                        parent=b1
                        )
-            b1.children.append(b2)
+            b1.add_child(b2)
             b3 = Block(factory=factory,
                        points=[[0.25, 0.25, -0.3],
                                [-0.25, 0.25, -0.3],
@@ -914,7 +914,7 @@ class TestBlock(unittest.TestCase):
                                    [0, 0, 0.1],
                                    [0, 0, 1, 10]],
                        parent=b1)
-            b1.children.append(b3)
+            b1.add_child(child=b3, transforms=[[0, 0, -0.1]])
             b4 = Block(factory=factory,
                        points=[[0.25, 0.25, -0.3],
                                [-0.25, 0.25, -0.3],
@@ -944,7 +944,7 @@ class TestBlock(unittest.TestCase):
                                    [0, 0, 0.3],
                                    [0, 0, 1, 10]],
                        parent=b1)
-            b1.children.append(b4)
+            b1.add_child(b4)
             b5 = Block(factory=factory,
                        points=[[0.25, 0.25, -0.5, 0.05],
                                [-0.25, 0.25, -0.5, 0.05],
@@ -975,7 +975,7 @@ class TestBlock(unittest.TestCase):
                                    [0, 0, 1, 10]
                                    ],
                        parent=b4)
-            b4.children.append(b5)
+            b4.add_child(b5)
             b6 = Block(factory=factory,
                        points=[[0.1, 20, 0.35],
                                [0.05, 20, 0.35],
@@ -989,6 +989,7 @@ class TestBlock(unittest.TestCase):
                        parent=b1,
                        transforms=['cylindrical_to_cartesian', [0.01, 0.01, 0]])
             b1.children.append(b6)
+            b1.children_transforms.append([])
             b7 = Block(factory=factory,
                        points=[[0.08, 10, 0.37],
                                [0.07, 10, 0.37],
@@ -1001,7 +1002,7 @@ class TestBlock(unittest.TestCase):
                                'cylindrical'],
                        parent=b6,
                        transforms=['cylindrical_to_cartesian', [0, 0, 0.01]])
-            b6.children.append(b7)
+            b6.add_child(b7)
             b1.transform()
             b1.register()
             if factory == 'geo':
