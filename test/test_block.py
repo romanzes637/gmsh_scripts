@@ -842,8 +842,8 @@ class TestBlock(unittest.TestCase):
     @gmsh_decorator
     def test_transform(self):
         kwargs = {
-            # 'factory': ['geo', 'occ'],
-            'factory': ['geo'],
+            'factory': ['geo', 'occ'],
+            # 'factory': ['geo'],
             # 'register_tag': [True, False],
             # 'register_tag': [True, False],
             # 'recombine_angle': [45.],
@@ -923,27 +923,85 @@ class TestBlock(unittest.TestCase):
                                [0.25, 0.25, -0.2],
                                [-0.25, 0.25, -0.2],
                                [-0.25, -0.25, -0.2],
-                               [0.25, -0.25, -0.2],
+                               [0.25, -0.3, -0.2],
                                'block'],
                        curves=[
-                           [[-0.20, 0.24, -0.3], [-0.15, 0.26, -0.3], 'block'],
+                           [[-0.20, 0.24, -0.3], [-0.15, 0.26, -0.3], 'block'],  # polyline
                            ['circle_arc', [[0., 0., -0.2, 1.], 'block']],
+                           ['ellipse_arc', [[0.1, -0.25, -0.2], [0.25, -0.25, -0.2], 'block']],
+                           ['spline', [[-0.1, -0.22, -0.3], [0.1, -0.28, -0.3], 'block']],
+                           ['bspline', [[0.27, -0.1, -0.3], [0.23, 0.1, -0.3], 'block']],
+                           ['bezier', [[-0.27, -0.1, -0.3], [-0.23, 0.1, -0.3], 'block']],
+                           ['polyline', [[-0.27, -0.1, -0.2], [-0.23, 0.1, -0.2], 'block']],
                            [],
                            [],
                            [],
-                           [],
-                           [],
-                           [],
-                           [],
-                           [],
-                           [],
-                           []],
+                           [],  # line
+                           {}  # line
+                       ],
                        transforms=['block_to_cartesian',
                                    [0, 0, 0, 1, 0, 0, -15],
                                    [0, 0, 0.3],
                                    [0, 0, 1, 10]],
                        parent=b1)
             b1.children.append(b4)
+            b5 = Block(factory=factory,
+                       points=[[0.25, 0.25, -0.5, 0.05],
+                               [-0.25, 0.25, -0.5, 0.05],
+                               [-0.25, -0.25, -0.5, 0.05],
+                               [0.25, -0.25, -0.5, 0.05],
+                               [0.25, 0.25, -0.1, 0.05],
+                               [-0.25, 0.25, -0.1, 0.05],
+                               [-0.25, -0.25, -0.1, 0.05],
+                               [0.25, -0.3, -0.1, 0.05],
+                               'block'],
+                       curves=[
+                           [[-0.20, 0.24, -0.5], [-0.15, 0.26, -0.5], 'block'],  # polyline
+                           [],  # ['circle_arc', [[0., 0., -0.5], 'block']], BUG because parent block is deformed
+                           ['ellipse_arc', [[0.1, -0.25, -0.1], [0.25, -0.25, -0.1], 'block']],
+                           ['spline', [[-0.1, -0.22, -0.5], [0.1, -0.28, -0.5], 'block']],
+                           ['bspline', [[0.27, -0.1, -0.5], [0.23, 0.1, -0.5], 'block']],
+                           ['bezier', [[-0.27, -0.1, -0.5], [-0.23, 0.1, -0.5], 'block']],
+                           ['polyline', [[-0.27, -0.1, -0.1], [-0.23, 0.1, -0.1], 'block']],
+                           [],
+                           [],
+                           [],
+                           [],  # line
+                           {}  # line
+                       ],
+                       transforms=['block_to_cartesian',
+                                   [0, 0, 0, 1, 0, 0, -15],
+                                   [0, 0, -0.01],
+                                   [0, 0, 1, 10]
+                                   ],
+                       parent=b4)
+            b4.children.append(b5)
+            b6 = Block(factory=factory,
+                       points=[[0.1, 20, 0.35],
+                               [0.05, 20, 0.35],
+                               [0.05, 5, 0.35],
+                               [0.1, 5, 0.35],
+                               [0.1, 20, 0.4],
+                               [0.05, 20, 0.4],
+                               [0.05, 5, 0.4],
+                               [0.1, 5, 0.4],
+                               'cylindrical'],
+                       parent=b1,
+                       transforms=['cylindrical_to_cartesian', [0.01, 0.01, 0]])
+            b1.children.append(b6)
+            b7 = Block(factory=factory,
+                       points=[[0.08, 10, 0.37],
+                               [0.07, 10, 0.37],
+                               [0.07, 15, 0.37],
+                               [0.08, 15, 0.37],
+                               [0.08, 10, 0.38],
+                               [0.07, 10, 0.38],
+                               [0.07, 15, 0.38],
+                               [0.08, 15, 0.38],
+                               'cylindrical'],
+                       parent=b6,
+                       transforms=['cylindrical_to_cartesian', [0, 0, 0.01]])
+            b6.children.append(b7)
             b1.transform()
             b1.register()
             if factory == 'geo':
