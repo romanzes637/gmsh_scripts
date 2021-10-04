@@ -45,7 +45,7 @@ class Tokamak(CoordinateSystem):
 
 
 class Block(CoordinateSystem):
-    def __init__(self, ps, origin=np.zeros(3), order=None, **kwargs):
+    def __init__(self, ps=None, origin=np.zeros(3), order=None, **kwargs):
         """Local Block Coordinate System
 
         xi [-1, 1]
@@ -58,6 +58,9 @@ class Block(CoordinateSystem):
             origin (np.array or list): origin of coordinate system
         """
         super().__init__(dim=3, origin=origin, **kwargs)
+        if ps is None:
+            ps = [[1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1],
+                  [1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1]]
         self.ps = ps if isinstance(ps, np.ndarray) else np.array(ps)
         if order is None:
             self.order = np.array(

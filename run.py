@@ -52,8 +52,6 @@ def init_block_tree(block_tree, top_block_path, factory):
     def recurse(parent, parent_path, blocks):
         blocks.append(parent)
         children_paths = block_tree['blocks_children'].get(parent_path, [])
-        print(parent_path)
-        print(children_paths)
         for i, child_path in enumerate(children_paths):
             child_kwargs = copy.deepcopy(block_tree['blocks_kwargs'][child_path])
             child_class_name = child_kwargs['metadata']['class']
@@ -198,7 +196,6 @@ if __name__ == '__main__':
     blocks = init_block_tree(block_tree=block_tree,
                              top_block_path=top_block_path,
                              factory=factory)
-    print(len(blocks))
     top_block = blocks[0]
     logging.info(f'Initialize: {time.perf_counter() - t0:.3f}s')
     t0 = time.perf_counter()
@@ -207,6 +204,13 @@ if __name__ == '__main__':
     t0 = time.perf_counter()
     top_block.register()
     logging.info(f'Register: {time.perf_counter() - t0:.3f}s')
+    if factory == 'geo':
+        t0 = time.perf_counter()
+        top_block.recombine()
+        logging.info(f'Recombine: {time.perf_counter() - t0:.3f}s')
+        t0 = time.perf_counter()
+        top_block.transfinite()
+        logging.info(f'Transfinite: {time.perf_counter() - t0:.3f}s')
     t0 = time.perf_counter()
     if factory == 'geo':
         gmsh.model.geo.synchronize()
@@ -215,6 +219,13 @@ if __name__ == '__main__':
     else:
         raise ValueError(factory)
     logging.info(f'Synchronize: {time.perf_counter() - t0:.3f}s')
+    if factory == 'occ':
+        t0 = time.perf_counter()
+        top_block.recombine()
+        logging.info(f'Recombine: {time.perf_counter() - t0:.3f}s')
+        t0 = time.perf_counter()
+        top_block.transfinite()
+        logging.info(f'Transfinite: {time.perf_counter() - t0:.3f}s')
     t0 = time.perf_counter()
     gmsh.model.mesh.generate(3)
     logging.info(f'Mesh: {time.perf_counter() - t0:.3f}s')
@@ -222,6 +233,7 @@ if __name__ == '__main__':
     gmsh.write(args['output_path'])
     logging.info(f'Write: {time.perf_counter() - t0:.3f}s')
     gmsh.finalize()
+
     # if not args['test']:
     # if args['boolean']:
     #     if input_data['arguments']['factory'] != 'occ':

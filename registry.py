@@ -79,6 +79,8 @@ TRANSFINITE_CURVE_KWARGS = {
             'coef': 1.}
 }
 
+TRANSFINITE_CURVE_TYPES = ['Progression', 'Bump', 'Beta']
+
 TRANSFINITE_SURFACE_KWARGS = {
     'geo': {'arrangement': "Left"},  # Left, Right, AlternateLeft, AlternateRight
     'occ': {'arrangement': "Left"},  # Left, Right, AlternateLeft, AlternateRight
@@ -396,9 +398,9 @@ def register_surface(factory, surface, register_tag):
         if register_tag:
             global SURFACE_TAG
             surface['kwargs']['tag'] = SURFACE_TAG
-            t0 = time.perf_counter()
+            # t0 = time.perf_counter()
             tag = add_surface[(factory, name)](surface)
-            print(f'ADD {factory} {time.perf_counter() - t0}')
+            # print(f'ADD {factory} {time.perf_counter() - t0}')
             SURFACE_TAG += 1
             # FIXME Workaround occ auto increment curve loop and surface tags
             if factory == 'occ':
@@ -406,9 +408,9 @@ def register_surface(factory, surface, register_tag):
                 CURVE_LOOP_TAG += 1
         else:
             surface['kwargs']['tag'] = -1
-            t0 = time.perf_counter()
+            # t0 = time.perf_counter()
             tag = add_surface[(factory, name)](surface)
-            print(f'ADD {factory} {time.perf_counter() - t0}')
+            # print(f'ADD {factory} {time.perf_counter() - t0}')
         SURFACES[key] = tag
     surface['kwargs']['tag'] = tag
     return surface
@@ -470,6 +472,8 @@ def register_transfinite_curve(curve, factory):
         tr = copy.deepcopy(curve['transfinite'])
         tr = correct_kwargs(tr, factory, 'transfinite_curve')
         tr['tag'] = tag
+        if isinstance(tr['kwargs']['meshType'], int):
+            tr['kwargs']['meshType'] = TRANSFINITE_CURVE_TYPES[tr['kwargs']['meshType']]
         add_transfinite_curve[factory](tr)
         TRANSFINITED_CURVES.add(tag)
         curve['transfinite'] = tr

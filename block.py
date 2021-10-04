@@ -32,7 +32,7 @@ class Block:
         self.do_unregister_children = do_unregister_children
         self.transforms = self.parse_transforms(transforms, parent)
         self.recombine_all = recombine_all
-        self.transfinite_all = transfinite_all
+        self.transfinite_all = self.parse_transfinite_all(transfinite_all)
         self.parent = parent
         self.children = [] if children is None else children
         if children_transforms is None:
@@ -111,45 +111,86 @@ class Block:
                 {'coordinates': [0.5, -0.5, 0.5],
                  'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
                  'kwargs': {'meshSize': 0.1}}]
-        if isinstance(points, list):
-            new_points = []
-            if len(points) == 0:
-                return points
-            cs_name = 'cartesian'
-            coord_system = cs_factory[cs_name]()
-            dim = coord_system.dim
-            if isinstance(points[-1], str):
-                points, cs_name = points[:-1], points[-1]
-            for p in points:
-                if isinstance(p, dict):
-                    cs = p.get('coordinate_system', cs_name)
-                    if isinstance(cs, str):
-                        p['coordinate_system'] = {'name': cs}
-                    new_p = p
-                elif isinstance(p, list):
-                    if len(p) == dim and not isinstance(p[0], list):
-                        new_p = {'coordinates': p,
-                                 'coordinate_system':
-                                     {'name': cs_name,
-                                      'origin': [0, 0, 0]},
-                                 'kwargs': {'meshSize': 0.}}
-                    elif len(p) == dim + 1 and not isinstance(p[0], list):
-                        new_p = {'coordinates': p[:3],
-                                 'coordinate_system':
-                                     {'name': cs_name,
-                                      'origin': [0, 0, 0]},
-                                 'kwargs': {'meshSize': p[3]}}
+        elif isinstance(points, list):
+            if len(points) == 0:  # Could be on curves points
+                points = []
+            # dx/dy/dz, cs
+            elif all([len(points) == 2, any([isinstance(points[0], float),
+                                             isinstance(points[0], int)]),
+                      isinstance(points[1], str)]):
+                a, cs_name = 0.5 * points[0], points[1]
+                points = [[a, a, -a], [-a, a, -a], [-a, -a, -a], [a, -a, -a],
+                          [a, a, a], [-a, a, a], [-a, -a, a], [a, -a, a],
+                          cs_name]
+                points = self.parse_points(points)
+            # dx, dy, dz
+            elif all([len(points) == 3,
+                      any([isinstance(points[0], float),
+                           isinstance(points[0], int)]),
+                      any([isinstance(points[1], float),
+                           isinstance(points[1], int)]),
+                      any([isinstance(points[2], float),
+                           isinstance(points[2], int)])]):
+                a, b, c = 0.5 * points[0], 0.5 * points[1], 0.5 * points[2]
+                points = [[a, b, -c], [-a, b, -c], [-a, -b, -c], [a, -b, -c],
+                          [a, b, c], [-a, b, c], [-a, -b, c], [a, -b, c]]
+                points = self.parse_points(points)
+            # dx, dy, dz, cs
+            elif all([len(points) == 4,
+                      any([isinstance(points[0], float),
+                           isinstance(points[0], int)]),
+                      any([isinstance(points[1], float),
+                           isinstance(points[1], int)]),
+                      any([isinstance(points[2], float),
+                           isinstance(points[2], int)]),
+                      isinstance(points[3], str)]):
+                a, b, c = 0.5 * points[0], 0.5 * points[1], 0.5 * points[2]
+                cs_name = points[3]
+                points = [[a, b, -c], [-a, b, -c], [-a, -b, -c], [a, -b, -c],
+                          [a, b, c], [-a, b, c], [-a, -b, c], [a, -b, c],
+                          cs_name]
+                points = self.parse_points(points)
+            else:  # [[x1, y1, z1, ...], [x2, y2, z2, ...], ...]
+                new_points = []
+                cs_name = 'cartesian'
+                if isinstance(points[-1], str):
+                    points, cs_name = points[:-1], points[-1]
+                dim = cs_factory[cs_name]().dim
+                for p in points:
+                    if isinstance(p, dict):
+                        cs = p.get('coordinate_system', cs_name)
+                        if isinstance(cs, str):
+                            p['coordinate_system'] = {'name': cs}
+                        new_p = p
+                    elif isinstance(p, list):
+                        if len(p) == dim and not isinstance(p[0], list):
+                            new_p = {'coordinates': p,
+                                     'coordinate_system':
+                                         {'name': cs_name,
+                                          'origin': [0, 0, 0]},
+                                     'kwargs': {'meshSize': 0.}}
+                        elif len(p) == dim + 1 and not isinstance(p[0], list):
+                            new_p = {'coordinates': p[:3],
+                                     'coordinate_system':
+                                         {'name': cs_name,
+                                          'origin': [0, 0, 0]},
+                                     'kwargs': {'meshSize': p[3]}}
+                        else:
+                            raise ValueError(p)
                     else:
                         raise ValueError(p)
-                else:
-                    raise ValueError(p)
-                if cs_name == 'cylindrical':
-                    new_p['coordinates'][1] = np.deg2rad(new_p['coordinates'][1])
-                elif cs_name in ['spherical', 'toroidal', 'tokamak']:
-                    new_p['coordinates'][1] = np.deg2rad(new_p['coordinates'][1])
-                    new_p['coordinates'][2] = np.deg2rad(new_p['coordinates'][2])
-                new_points.append(new_p)
-            points = new_points
+                    if cs_name == 'cylindrical':
+                        new_p['coordinates'][1] = np.deg2rad(new_p['coordinates'][1])
+                    elif cs_name in ['spherical', 'toroidal', 'tokamak']:
+                        new_p['coordinates'][1] = np.deg2rad(new_p['coordinates'][1])
+                        new_p['coordinates'][2] = np.deg2rad(new_p['coordinates'][2])
+                    new_points.append(new_p)
+                points = new_points
+        elif isinstance(points, float) or isinstance(points, int):  # dx/dy/dz
+            a = 0.5 * points
+            points = [[a, a, -a], [-a, a, -a], [-a, -a, -a], [a, -a, -a],
+                      [a, a, a], [-a, a, a], [-a, -a, a], [a, -a, a]]
+            points = self.parse_points(points)
         else:
             raise ValueError(points)
         return points
@@ -215,6 +256,55 @@ class Block:
                 kwargs['cs_from'] = cs_factory['block'](ps=ps)
             transforms[i] = transform_factory[name](**kwargs)
         return transforms
+
+    def parse_transfinite_all(self, transfinite_all):
+        if isinstance(transfinite_all, dict):
+            if 'curves' in transfinite_all:
+                value = copy.deepcopy(transfinite_all['curves'])
+                for i, c in enumerate(self.curves):
+                    self.curves[i]['transfinite'] = value
+            elif all(['curves_x' in transfinite_all,
+                      'curves_y' in transfinite_all,
+                      'curves_z' in transfinite_all]):
+                for i, c in enumerate(self.curves):
+                    direction = self.curves_directions[i]
+                    key = f'curves_{direction}'
+                    value = copy.deepcopy(transfinite_all[key])
+                    self.curves[i]['transfinite'] = value
+            else:
+                raise ValueError(transfinite_all)
+            # Surfaces
+            key = 'surfaces'
+            value = copy.deepcopy(self.transfinite_all.get(key, {}))
+            for i, s in enumerate(self.surfaces):
+                self.surfaces[i]['transfinite'] = value
+            # Volume
+            key = 'volumes'
+            value = copy.deepcopy(self.transfinite_all.get(key, {}))
+            self.volumes[0]['transfinite'] = value
+        elif isinstance(transfinite_all, list):
+            if len(transfinite_all) == 3:
+                # Curves
+                d2i = {'curves_x': 0, 'curves_y': 1, 'curves_z': 2}
+                for i, c in enumerate(self.curves):
+                    direction = self.curves_directions[i]
+                    key = f'curves_{direction}'
+                    index = d2i[key]
+                    values = transfinite_all[index]
+                    value = {'nPoints': values[0],
+                             'kwargs': {'meshType': values[1],
+                                        'coef': values[2]}}
+                    self.curves[i]['transfinite'] = value
+                # Surfaces
+                for i, s in enumerate(self.surfaces):
+                    self.surfaces[i]['transfinite'] = {}
+                # Volume
+                self.volumes[0]['transfinite'] = {}
+        elif transfinite_all is None:
+            pass
+        else:
+            raise ValueError(transfinite_all)
+        return transfinite_all
 
     def register(self):
         # Children
@@ -382,34 +472,12 @@ class Block:
                 self.surfaces[i] = register_recombine_surface(s, self.factory)
 
     def transfinite_curves(self):
-        # Check all
-        if self.transfinite_all is not None:
-            if 'curves' in self.transfinite_all:
-                value = copy.deepcopy(self.transfinite_all['curves'])
-                for i, c in enumerate(self.curves):
-                    self.curves[i]['transfinite'] = value
-            elif 'curves_x' in self.transfinite_all \
-                    and 'curves_y' in self.transfinite_all \
-                    and 'curves_z' in self.transfinite_all:
-                for i, c in enumerate(self.curves):
-                    direction = self.curves_directions[i]
-                    key = f'curves_{direction}'
-                    value = copy.deepcopy(self.transfinite_all[key])
-                    self.curves[i]['transfinite'] = value
-            else:
-                raise ValueError(self.transfinite_all)
         # Transfinite
         for i, c in enumerate(self.curves):
             if 'transfinite' in c:
                 self.curves[i] = register_transfinite_curve(c, self.factory)
 
     def transfinite_surfaces(self):
-        # Check all
-        if self.transfinite_all is not None:
-            key = 'surfaces'
-            value = copy.deepcopy(self.transfinite_all.get(key, {}))
-            for i, s in enumerate(self.surfaces):
-                self.surfaces[i]['transfinite'] = value
         # Transfinite
         for i, s in enumerate(self.surfaces):
             all_tr_curves = all('transfinite' in self.curves[x] for x in
@@ -423,11 +491,6 @@ class Block:
                 self.surfaces[i] = register_transfinite_surface(s, self.factory)
 
     def transfinite_volume(self):
-        # Check all
-        if self.transfinite_all is not None:
-            key = 'volumes'
-            value = copy.deepcopy(self.transfinite_all.get(key, {}))
-            self.volumes[0]['transfinite'] = value
         # Transfinite
         v = self.volumes[0]
         all_tr_surfaces = all('recombine' in x for x in self.surfaces)
