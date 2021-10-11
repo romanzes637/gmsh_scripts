@@ -68,27 +68,29 @@ VOLUME_KWARGS = {
 }
 
 RECOMBINE_KWARGS = {
-    'geo': {'angle': 45.},
-    'occ': {}
+    'geo': {'tag': None, 'dim': None, 'angle': 45.},
+    'occ': {'tag': None, 'dim': None}
 }
 
 TRANSFINITE_CURVE_KWARGS = {
-    'geo': {'meshType': "Progression",  # Bump
-            'coef': 1.},
-    'occ': {'meshType': "Progression",  # Bump, Beta
-            'coef': 1.}
+    'geo': {'tag': None, 'nPoints': 2, 'meshType': "Progression", 'coef': 1.},
+    'occ': {'tag': None, 'nPoints': 2, 'meshType': "Progression", 'coef': 1.}
 }
 
 TRANSFINITE_CURVE_TYPES = ['Progression', 'Bump', 'Beta']
 
 TRANSFINITE_SURFACE_KWARGS = {
-    'geo': {'arrangement': "Left"},  # Left, Right, AlternateLeft, AlternateRight
-    'occ': {'arrangement': "Left"},  # Left, Right, AlternateLeft, AlternateRight
+    'geo': {'tag': None,
+            'cornerTags': None,
+            'arrangement': 'Left'},  # Left, Right, AlternateLeft, AlternateRight
+    'occ': {'tag': None,
+            'cornerTags': None,
+            'arrangement': 'Left'},  # Left, Right, AlternateLeft, AlternateRight
 }
 
 TRANSFINITE_VOLUME_KWARGS = {
-    'geo': {},
-    'occ': {}
+    'geo': {'tag': None, 'cornerTags': None},
+    'occ': {'tag': None, 'cornerTags': None}
 }
 
 name2kwargs = {
@@ -141,17 +143,17 @@ def reset():
 
 
 def correct_kwargs(entity, factory, name):
-    kwargs_dict = name2kwargs[name]
+    kwargs = {k: v for k, v in entity.__dict__.items() if not k.startswith('__')}
     if name in ['curve', 'surface']:
-        default_kwargs = kwargs_dict[(factory, entity['name'])]
+        default_kwargs = name2kwargs[name][(factory, entity.name)]
     else:
-        default_kwargs = kwargs_dict[factory]
-    if 'kwargs' not in entity:
-        entity['kwargs'] = copy.deepcopy(default_kwargs)
+        default_kwargs = name2kwargs[name][factory]
+    if 'kwargs' not in kwargs:
+        kwargs['kwargs'] = copy.deepcopy(default_kwargs)
     else:
-        entity['kwargs'] = {k: v for k, v in entity['kwargs'].items()
+        kwargs['kwargs'] = {k: v for k, v in kwargs['kwargs'].items()
                             if k in default_kwargs}
-    return entity
+    return kwargs
 
 
 add_point = {
@@ -171,73 +173,73 @@ add_point = {
 
 add_curve = {
     ('geo', 'line'): lambda curve: gmsh.model.geo.addLine(
-        startTag=curve['points'][0]['kwargs']['tag'],
-        endTag=curve['points'][-1]['kwargs']['tag'],
+        startTag=curve['points'][0].tag,
+        endTag=curve['points'][-1].tag,
         **curve['kwargs']
     ),
     ('geo', 'circle_arc'): lambda curve: gmsh.model.geo.addCircleArc(
-        startTag=curve['points'][0]['kwargs']['tag'],
-        centerTag=curve['points'][1]['kwargs']['tag'],
-        endTag=curve['points'][-1]['kwargs']['tag'],
+        startTag=curve['points'][0].tag,
+        centerTag=curve['points'][1].tag,
+        endTag=curve['points'][-1].tag,
         **curve['kwargs']
     ),
     ('geo', 'ellipse_arc'): lambda curve: gmsh.model.geo.addEllipseArc(
-        startTag=curve['points'][0]['kwargs']['tag'],
-        centerTag=curve['points'][1]['kwargs']['tag'],
-        majorTag=curve['points'][2]['kwargs']['tag'],
-        endTag=curve['points'][-1]['kwargs']['tag'],
+        startTag=curve['points'][0].tag,
+        centerTag=curve['points'][1].tag,
+        majorTag=curve['points'][2].tag,
+        endTag=curve['points'][-1].tag,
         **curve['kwargs']
     ),
     ('geo', 'spline'): lambda curve: gmsh.model.geo.addSpline(
-        pointTags=[x['kwargs']['tag'] for x in curve['points']],
+        pointTags=[x.tag for x in curve['points']],
         **curve['kwargs']
     ),
     # TODO gmsh warning
     ('geo', 'bspline'): lambda curve: gmsh.model.geo.addBSpline(
-        pointTags=[x['kwargs']['tag'] for x in curve['points']],
+        pointTags=[x.tag for x in curve['points']],
         **curve['kwargs']
     ),
     ('geo', 'bezier'): lambda curve: gmsh.model.geo.addBezier(
-        pointTags=[x['kwargs']['tag'] for x in curve['points']],
+        pointTags=[x.tag for x in curve['points']],
         **curve['kwargs']
     ),
     ('geo', 'polyline'): lambda curve: gmsh.model.geo.addPolyline(
-        pointTags=[x['kwargs']['tag'] for x in curve['points']],
+        pointTags=[x.tag for x in curve['points']],
         **curve['kwargs']
     ),
     ('occ', 'line'): lambda curve: gmsh.model.occ.addLine(
-        startTag=curve['points'][0]['kwargs']['tag'],
-        endTag=curve['points'][-1]['kwargs']['tag'],
+        startTag=curve['points'][0].tag,
+        endTag=curve['points'][-1].tag,
         **curve['kwargs']
     ),
     ('occ', 'circle_arc'): lambda curve: gmsh.model.occ.addCircleArc(
-        startTag=curve['points'][0]['kwargs']['tag'],
-        centerTag=curve['points'][1]['kwargs']['tag'],
-        endTag=curve['points'][-1]['kwargs']['tag'],
+        startTag=curve['points'][0].tag,
+        centerTag=curve['points'][1].tag,
+        endTag=curve['points'][-1].tag,
         **curve['kwargs']
     ),
     ('occ', 'ellipse_arc'): lambda curve: gmsh.model.occ.addEllipseArc(
-        startTag=curve['points'][0]['kwargs']['tag'],
-        centerTag=curve['points'][1]['kwargs']['tag'],
-        majorTag=curve['points'][2]['kwargs']['tag'],
-        endTag=curve['points'][-1]['kwargs']['tag'],
+        startTag=curve['points'][0].tag,
+        centerTag=curve['points'][1].tag,
+        majorTag=curve['points'][2].tag,
+        endTag=curve['points'][-1].tag,
         **curve['kwargs']
     ),
     ('occ', 'spline'): lambda curve: gmsh.model.occ.addSpline(
-        pointTags=[x['kwargs']['tag'] for x in curve['points']],
+        pointTags=[x.tag for x in curve['points']],
         **curve['kwargs']
     ),
     ('occ', 'bspline'): lambda curve: gmsh.model.occ.addBSpline(
-        pointTags=[x['kwargs']['tag'] for x in curve['points']],
+        pointTags=[x.tag for x in curve['points']],
         **curve['kwargs']
     ),
     ('occ', 'bezier'): lambda curve: gmsh.model.occ.addBezier(
-        pointTags=[x['kwargs']['tag'] for x in curve['points']],
+        pointTags=[x.tag for x in curve['points']],
         **curve['kwargs']
     ),
     # FIXME Workaround bspline with degree 1 instead of polyline for occ factory
     ('occ', 'polyline'): lambda curve: gmsh.model.occ.addBSpline(
-        pointTags=[x['kwargs']['tag'] for x in curve['points']],
+        pointTags=[x.tag for x in curve['points']],
         degree=1,
         **curve['kwargs']
     ),
@@ -252,19 +254,19 @@ add_curve_loop = {
 
 add_surface = {
     ('geo', 'fill'): lambda surface: gmsh.model.geo.addSurfaceFilling(
-        wireTags=[x['kwargs']['tag'] for x in surface['curve_loops']],
+        wireTags=[x.tag for x in surface['curves_loops']],
         **surface['kwargs']
     ),
     ('geo', 'plane'): lambda surface: gmsh.model.geo.addPlaneSurface(
-        wireTags=[x['kwargs']['tag'] for x in surface['curve_loops']],
+        wireTags=[x.tag for x in surface['curves_loops']],
         **surface['kwargs']
     ),
     ('occ', 'fill'): lambda surface: gmsh.model.occ.addSurfaceFilling(
-        wireTag=[x['kwargs']['tag'] for x in surface['curve_loops']][0],
+        wireTag=[x.tag for x in surface['curves_loops']][0],
         **surface['kwargs']
     ),
     ('occ', 'plane'): lambda surface: gmsh.model.occ.addPlaneSurface(
-        wireTags=[x['kwargs']['tag'] for x in surface['curve_loops']][0],
+        wireTags=[x.tag for x in surface['curve_loops']][0],
         **surface['kwargs']
     )
 }
@@ -278,88 +280,77 @@ add_surface_loop = {
 
 add_volume = {
     'geo': lambda volume: gmsh.model.geo.addVolume(
-        shellTags=[x['kwargs']['tag'] for x in volume['surfaces_loops']],
-        **volume['kwargs']
+        shellTags=[x.tag for x in volume['surfaces_loops']], **volume['kwargs']
     ),
     'occ': lambda volume: gmsh.model.occ.addVolume(
-        shellTags=[x['kwargs']['tag'] for x in volume['surfaces_loops']],
-        **volume['kwargs']
+        shellTags=[x.tag for x in volume['surfaces_loops']], **volume['kwargs']
     )
 }
 
 add_recombine = {
-    'geo': lambda rec: gmsh.model.geo.mesh.setRecombine(
-        dim=rec['dim'], tag=rec['tag'], **rec['kwargs']),
-    'occ': lambda rec: gmsh.model.mesh.setRecombine(
-        dim=rec['dim'], tag=rec['tag'], **rec['kwargs'])
+    'geo': lambda x: gmsh.model.geo.mesh.setRecombine(**x['kwargs']),
+    'occ': lambda x: gmsh.model.mesh.setRecombine(**x['kwargs'])
 }
 
 add_transfinite_curve = {
-    'geo': lambda tr: gmsh.model.geo.mesh.setTransfiniteCurve(
-        tag=tr['tag'], nPoints=tr['nPoints'], **tr['kwargs']),
-    'occ': lambda tr: gmsh.model.mesh.setTransfiniteCurve(
-        tag=tr['tag'], numNodes=tr['nPoints'], **tr['kwargs']),
+    'geo': lambda x: gmsh.model.geo.mesh.setTransfiniteCurve(**x['kwargs']),
+    'occ': lambda x: gmsh.model.mesh.setTransfiniteCurve(**x['kwargs'])
 }
 
-
 add_transfinite_surface = {
-    'geo': lambda tr: gmsh.model.geo.mesh.setTransfiniteSurface(
-        tag=tr['tag'], cornerTags=tr['cornerTags'], **tr['kwargs']),
-    'occ': lambda tr: gmsh.model.mesh.setTransfiniteSurface(
-        tag=tr['tag'], cornerTags=tr['cornerTags'], **tr['kwargs']),
+    'geo': lambda x: gmsh.model.geo.mesh.setTransfiniteSurface(**x['kwargs']),
+    'occ': lambda x: gmsh.model.mesh.setTransfiniteSurface(**x['kwargs']),
 }
 
 add_transfinite_volume = {
-    'geo': lambda tr: gmsh.model.geo.mesh.setTransfiniteVolume(
-        tag=tr['tag'], cornerTags=tr['cornerTags'], **tr['kwargs']),
-    'occ': lambda tr: gmsh.model.mesh.setTransfiniteVolume(
-        tag=tr['tag'], cornerTags=tr['cornerTags'], **tr['kwargs']),
+    'geo': lambda x: gmsh.model.geo.mesh.setTransfiniteVolume(**x['kwargs']),
+    'occ': lambda x: gmsh.model.mesh.setTransfiniteVolume(**x['kwargs']),
 }
 
 
 def register_point(factory, point, register_tag):
-    point = correct_kwargs(point, factory, 'point')
-    key = tuple(round(x, POINT_TOL) for x in point['coordinates'])
+    key = tuple(round(x, POINT_TOL) for x in point.coordinates)
     tag = POINTS.get(key, None)
     if tag is None:
+        point_kwargs = correct_kwargs(point, factory, 'point')
         if register_tag:
             global POINT_TAG
-            point['kwargs']['tag'] = POINT_TAG
-            tag = add_point[factory](point)
+            point_kwargs['kwargs']['tag'] = POINT_TAG
+            tag = add_point[factory](point_kwargs)
             POINT_TAG += 1
         else:
-            point['kwargs']['tag'] = -1
-            tag = add_point[factory](point)
+            point_kwargs['kwargs']['tag'] = -1
+            tag = add_point[factory](point_kwargs)
         POINTS[key] = tag
-    point['kwargs']['tag'] = tag
+    point.tag = tag
     return point
 
 
 def register_curve(factory, curve, register_tag):
-    curve = correct_kwargs(curve, factory, 'curve')
-    name = curve['name']
-    ps = [x['kwargs']['tag'] for x in curve['points']]
+    name = curve.name
+    ps = [x.tag for x in curve.points]
     key = tuple([name] + ps)
     tag = CURVES.get(key, None)
     if tag is None:
+        curve_kwargs = correct_kwargs(curve, factory, 'curve')
         if register_tag:
             global CURVE_TAG
-            curve['kwargs']['tag'] = CURVE_TAG
-            tag = add_curve[(factory, name)](curve)
+            curve_kwargs['kwargs']['tag'] = CURVE_TAG
+            tag = add_curve[(factory, name)](curve_kwargs)
             CURVE_TAG += 1
         else:
-            curve['kwargs']['tag'] = -1
-            tag = add_curve[(factory, name)](curve)
+            curve_kwargs['kwargs']['tag'] = -1
+            tag = add_curve[(factory, name)](curve_kwargs)
         CURVES[key] = tag
         rev_key = tuple([name] + list(reversed(ps)))
         CURVES[rev_key] = -tag
-    curve['kwargs']['tag'] = tag
+    curve.tag = tag
     return curve
 
 
-def register_curve_loop(factory, curve_loop, register_tag):
-    curve_loop = correct_kwargs(curve_loop, factory, 'curve_loop')
-    curves = curve_loop['curves_tags']
+def register_curve_loop(factory, curve_loop, use_register_tag):
+    curves = [x.tag * y for (x, y) in zip(curve_loop.curves,
+                                          curve_loop.curves_signs)]
     deq = deque(curves)
     keys = []
     for _ in range(len(deq)):
@@ -375,139 +366,130 @@ def register_curve_loop(factory, curve_loop, register_tag):
         if tag is not None:
             break
     if tag is None:
-        if register_tag:
+        curve_loop_kwargs = correct_kwargs(curve_loop, factory, 'curve_loop')
+        curve_loop_kwargs['curves_tags'] = curves
+        if use_register_tag:
             global CURVE_LOOP_TAG
-            curve_loop['kwargs']['tag'] = CURVE_LOOP_TAG
-            tag = add_curve_loop[factory](curve_loop)
+            curve_loop_kwargs['kwargs']['tag'] = CURVE_LOOP_TAG
+            tag = add_curve_loop[factory](curve_loop_kwargs)
             CURVE_LOOP_TAG += 1
         else:
-            tag = add_curve_loop[factory](curve_loop)
-            curve_loop['kwargs']['tag'] = tag
+            curve_loop_kwargs['kwargs']['tag'] = -1
+            tag = add_curve_loop[factory](curve_loop_kwargs)
         for k in keys:
             CURVES_LOOPS[k] = tag
-    curve_loop['kwargs']['tag'] = tag
+    curve_loop.tag = tag
     return curve_loop
 
 
-def register_surface(factory, surface, register_tag):
-    surface = correct_kwargs(surface, factory, 'surface')
-    name = surface['name']
-    key = tuple(x['kwargs']['tag'] for x in surface['curve_loops'])
+def register_surface(factory, surface, use_register_tag):
+    name = surface.name
+    key = tuple(x.tag for x in surface.curves_loops)
     tag = SURFACES.get(key, None)
     if tag is None:
-        if register_tag:
+        surface_kwargs = correct_kwargs(surface, factory, 'surface')
+        if use_register_tag:
             global SURFACE_TAG
-            surface['kwargs']['tag'] = SURFACE_TAG
-            # t0 = time.perf_counter()
-            tag = add_surface[(factory, name)](surface)
-            # print(f'ADD {factory} {time.perf_counter() - t0}')
+            surface_kwargs['kwargs']['tag'] = SURFACE_TAG
+            tag = add_surface[(factory, name)](surface_kwargs)
             SURFACE_TAG += 1
             # FIXME Workaround occ auto increment curve loop and surface tags
             if factory == 'occ':
                 global CURVE_LOOP_TAG
                 CURVE_LOOP_TAG += 1
         else:
-            surface['kwargs']['tag'] = -1
-            # t0 = time.perf_counter()
-            tag = add_surface[(factory, name)](surface)
-            # print(f'ADD {factory} {time.perf_counter() - t0}')
+            surface_kwargs['kwargs']['tag'] = -1
+            tag = add_surface[(factory, name)](surface_kwargs)
         SURFACES[key] = tag
-    surface['kwargs']['tag'] = tag
+    surface.tag = tag
     return surface
 
 
 def register_surface_loop(factory, surface_loop, register_tag):
-    surface_loop = correct_kwargs(surface_loop, factory, 'surface_loop')
-    key = tuple(surface_loop['surfaces_tags'])  # TODO use deque? 12x more keys
+    key = tuple(x.tag for x in surface_loop.surfaces)  # TODO use deque? 12x more keys
     tag = SURFACES_LOOPS.get(key, None)
     if tag is None:
+        surface_loop_kwargs = correct_kwargs(surface_loop, factory, 'surface_loop')
+        surface_loop_kwargs['surfaces_tags'] = key
         # FIXME Workaround occ return only -1 tag
         if register_tag or factory == 'occ':
             global SURFACE_LOOP_TAG
-            surface_loop['kwargs']['tag'] = SURFACE_LOOP_TAG
-            tag = add_surface_loop[factory](surface_loop)
+            surface_loop_kwargs['kwargs']['tag'] = SURFACE_LOOP_TAG
+            tag = add_surface_loop[factory](surface_loop_kwargs)
             SURFACE_LOOP_TAG += 1
         else:
-            surface_loop['kwargs']['tag'] = -1
-            tag = add_surface_loop[factory](surface_loop)
+            surface_loop_kwargs['kwargs']['tag'] = -1
+            tag = add_surface_loop[factory](surface_loop_kwargs)
         SURFACES_LOOPS[key] = tag
-    surface_loop['kwargs']['tag'] = tag
+    surface_loop.tag = tag
     return surface_loop
 
 
-def register_volume(factory, volume, register_tag):
-    volume = correct_kwargs(volume, factory, 'volume')
-    key = tuple(x['kwargs']['tag'] for x in volume['surfaces_loops'])
+def register_volume(factory, volume, use_register_tag):
+    key = tuple(x.tag for x in volume.surfaces_loops)
     tag = VOLUMES.get(key, None)
     if tag is None:
-        if register_tag:
+        volume_kwargs = correct_kwargs(volume, factory, 'volume')
+        if use_register_tag:
             global VOLUME_TAG
-            volume['kwargs']['tag'] = VOLUME_TAG
-            tag = add_volume[factory](volume)
+            volume_kwargs['kwargs']['tag'] = VOLUME_TAG
+            tag = add_volume[factory](volume_kwargs)
             VOLUME_TAG += 1
         else:
-            volume['kwargs']['tag'] = -1
-            tag = add_volume[factory](volume)
+            volume_kwargs['kwargs']['tag'] = -1
+            tag = add_volume[factory](volume_kwargs)
         VOLUMES[key] = tag
-    volume['kwargs']['tag'] = tag
+    volume.tag = tag
     return volume
 
 
 def register_recombine_surface(surface, factory):
-    tag = surface['kwargs']['tag']
+    tag = surface.tag
     if tag not in RECOMBINED_SURFACES:
-        rec = copy.deepcopy(surface['recombine'])
-        rec = correct_kwargs(rec, factory, 'recombine')
-        rec['dim'] = 2
-        rec['tag'] = tag
+        rec = correct_kwargs(surface.quadrate, factory, 'recombine')
+        rec['kwargs']['dim'] = 2
+        rec['kwargs']['tag'] = tag
         add_recombine[factory](rec)
         RECOMBINED_SURFACES.add(tag)
-        surface['recombine'] = rec
     return surface
 
 
 def register_transfinite_curve(curve, factory):
-    tag = curve['kwargs']['tag']
+    tag = curve.tag
     if tag not in TRANSFINITED_CURVES:
-        tr = copy.deepcopy(curve['transfinite'])
-        tr = correct_kwargs(tr, factory, 'transfinite_curve')
-        tr['tag'] = tag
+        tr = correct_kwargs(curve.structure, factory, 'transfinite_curve')
+        tr['kwargs']['tag'] = tag
         if isinstance(tr['kwargs']['meshType'], int):
             tr['kwargs']['meshType'] = TRANSFINITE_CURVE_TYPES[tr['kwargs']['meshType']]
         add_transfinite_curve[factory](tr)
         TRANSFINITED_CURVES.add(tag)
-        curve['transfinite'] = tr
     return curve
 
 
 def register_transfinite_surface(surface, factory):
-    tag = surface['kwargs']['tag']
+    tag = surface.tag
     if tag not in TRANSFINITED_SURFACES:
-        tr = copy.deepcopy(surface['transfinite'])
-        tr = correct_kwargs(tr, factory, 'transfinite_surface')
-        tr['tag'] = tag
+        tr = correct_kwargs(surface.structure, factory, 'transfinite_surface')
+        tr['kwargs']['tag'] = tag
         add_transfinite_surface[factory](tr)
         TRANSFINITED_SURFACES.add(tag)
-        surface['transfinite'] = tr
     return surface
 
 
 def register_transfinite_volume(volume, factory):
-    tag = volume['kwargs']['tag']
+    tag = volume.tag
     if tag not in TRANSFINITED_VOLUMES:
-        tr = copy.deepcopy(volume['transfinite'])
-        tr = correct_kwargs(tr, factory, 'transfinite_volume')
-        tr['tag'] = tag
+        tr = correct_kwargs(volume.structure, factory, 'transfinite_volume')
+        tr['kwargs']['tag'] = tag
         add_transfinite_volume[factory](tr)
         TRANSFINITED_VOLUMES.add(tag)
-        volume['transfinite'] = tr
     return volume
 
 
 # TODO remove from registry
 def unregister_volume(factory, volume, register_tag):
-    tag = volume['kwargs']['tag']
+    tag = volume.tag
     dim_tag = [3, tag]
     gmsh.model.removeEntities([dim_tag], recursive=True)
-    del volume['kwargs']['tag']
+    volume.tag = None
     return volume

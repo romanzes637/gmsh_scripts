@@ -206,10 +206,10 @@ if __name__ == '__main__':
     logging.info(f'Register: {time.perf_counter() - t0:.3f}s')
     if factory == 'geo':
         t0 = time.perf_counter()
-        top_block.recombine()
+        # top_block.recombine()
         logging.info(f'Recombine: {time.perf_counter() - t0:.3f}s')
         t0 = time.perf_counter()
-        top_block.transfinite()
+        # top_block.transfinite()
         logging.info(f'Transfinite: {time.perf_counter() - t0:.3f}s')
     t0 = time.perf_counter()
     if factory == 'geo':

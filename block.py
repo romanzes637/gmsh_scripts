@@ -5,27 +5,63 @@ import time
 import numpy as np
 
 from support import volumes_surfaces_to_volumes_groups_surfaces
-from transform import Point, cs_factory, transform_factory, reduce_transforms
+from transform import factory as transform_factory
+from transform import reduce_transforms
 from registry import register_point, register_curve, register_curve_loop, \
     register_surface, register_surface_loop, register_volume, \
     register_recombine_surface, register_transfinite_curve, \
     register_transfinite_surface, register_transfinite_volume, unregister_volume
+from coordinate_system import factory as cs_factory
+from point import Point
+from curve import Curve
+from curve_loop import CurveLoop
+from surface import Surface
+from surface_loop import SurfaceLoop
+from volume import Volume
+from structure import Structure
+from quadrate import Quadrate
 
 
 class Block:
     def __init__(self, factory='geo',
                  points=None, curves=None, surfaces=None, volumes=None,
-                 register_tag=False, do_register=True, do_unregister=False,
+                 do_register=True, use_register_tag=False, do_unregister=False,
                  do_register_children=True, do_unregister_children=True,
                  transforms=None,
                  recombine_all=None, transfinite_all=None,
-                 parent=None, children=None, children_transforms=None):
+                 parent=None, children=None, children_transforms=None,
+                 boolean_level=None):
+        """Basic building block of the mesh
+
+        Block is a cuboid with 8 points, 12 curves, 6 surfaces and 1 volume.
+
+        Note:
+            If boolean_level is not None then no internal volumes of children.
+
+        Args:
+            points(list of dict, list of list, list): 8 corner points of the block
+            curves(list of dict, list of list, list, list of Curve): 12 edge curves of the block
+            surfaces(list of dict, list of list, list, list of Surface): 6 boundary surfaces of the block
+            volumes(list of dict, list of list, list, list of Volume): volumes of the block (1 by now, TODO several volumes)
+            do_register(bool): register Block in the registry
+            use_register_tag(bool): use tag from registry instead tag from gmsh
+            do_unregister(bool): unregister Block from the registry
+            do_register_children(bool): invoke register for children
+            do_unregister_children(bool): invoke unregister for children
+            transforms(list of dict, list of list, list of Transform): points and curves points transforms (Translation, Rotation, Coordinate Change, etc)
+            recombine_all(list of dict, bool): transform triangles to quadrangles for surfaces and tetrahedra to hexahedra for volumes
+            transfinite_all(list of dict, list of list, list of Transform): make structured mesh instead of unstructured by some rule
+            parent(Block): parent of the Block
+            children(list of Block): children of the Block
+            children_transforms(list of list of dict, list of list of list, list of list of Transform): transforms for children Blocks
+            boolean_level(int): Block boolean level, if the Block level > another Block level, then intersected volume joins to the Block, if levels are equal third Block is created, if None - don't do boolean
+        """
         self.factory = factory
         self.points = self.parse_points(points)
         self.curves = self.parse_curves(curves)
-        self.surfaces = [{} for _ in range(6)] if surfaces is None else surfaces
-        self.volumes = [{}] if volumes is None else volumes
-        self.register_tag = register_tag
+        self.surfaces = self.parse_surfaces(surfaces)
+        self.volumes = self.parse_volumes(volumes)
+        self.register_tag = use_register_tag
         self.do_register = do_register
         self.do_unregister = do_unregister
         self.do_register_children = do_register_children
@@ -40,9 +76,10 @@ class Block:
         for i, t in enumerate(children_transforms):
             children_transforms[i] = self.parse_transforms(t, parent)
         self.children_transforms = children_transforms
+        self.boolean_level = boolean_level
         # Support
-        self.curves_loops = [{} for _ in range(6)]
-        self.surfaces_loops = [{}]
+        self.curves_loops = [CurveLoop() for _ in range(6)]
+        self.surfaces_loops = [SurfaceLoop()]
         self.is_registered = False
         self.is_recombined = False
         self.is_transfinited = False
@@ -86,31 +123,15 @@ class Block:
 
     def parse_points(self, points):
         if points is None:
-            points = [
-                {'coordinates': [0.5, 0.5, -0.5],
-                 'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
-                 'kwargs': {'meshSize': 0.1}},
-                {'coordinates': [-0.5, 0.5, -0.5],
-                 'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
-                 'kwargs': {'meshSize': 0.1}},
-                {'coordinates': [-0.5, -0.5, -0.5],
-                 'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
-                 'kwargs': {'meshSize': 0.1}},
-                {'coordinates': [0.5, -0.5, -0.5],
-                 'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
-                 'kwargs': {'meshSize': 0.1}},
-                {'coordinates': [0.5, 0.5, 0.5],
-                 'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
-                 'kwargs': {'meshSize': 0.1}},
-                {'coordinates': [-0.5, 0.5, 0.5],
-                 'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
-                 'kwargs': {'meshSize': 0.1}},
-                {'coordinates': [-0.5, -0.5, 0.5],
-                 'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
-                 'kwargs': {'meshSize': 0.1}},
-                {'coordinates': [0.5, -0.5, 0.5],
-                 'coordinate_system': {'name': 'cartesian', 'origin': [0, 0, 0]},
-                 'kwargs': {'meshSize': 0.1}}]
+            points = [[0.5, 0.5, -0.5],
+                      [-0.5, 0.5, -0.5],
+                      [-0.5, -0.5, -0.5],
+                      [0.5, -0.5, -0.5],
+                      [0.5, 0.5, 0.5],
+                      [0.5, 0.5, 0.5],
+                      [0.5, 0.5, 0.5],
+                      [0.5, 0.5, 0.5]]
+            points = self.parse_points(points)
         elif isinstance(points, list):
             if len(points) == 0:  # Could be on curves points
                 points = []
@@ -155,35 +176,33 @@ class Block:
                 cs_name = 'cartesian'
                 if isinstance(points[-1], str):
                     points, cs_name = points[:-1], points[-1]
-                dim = cs_factory[cs_name]().dim
+                cs = cs_factory[cs_name]()
                 for p in points:
                     if isinstance(p, dict):
-                        cs = p.get('coordinate_system', cs_name)
-                        if isinstance(cs, str):
-                            p['coordinate_system'] = {'name': cs}
-                        new_p = p
+                        cs_kwargs = p.get('coordinate_system', 'cartesian')
+                        if isinstance(cs_kwargs, str):
+                            p['coordinate_system'] = cs_factory[cs_kwargs]()
+                        elif isinstance(cs_kwargs, dict):
+                            cs_name = cs_kwargs.pop('name')
+                            p['coordinate_system'] = cs_factory[cs_name](**cs_kwargs)
+                        new_p = Point(**p)
                     elif isinstance(p, list):
-                        if len(p) == dim and not isinstance(p[0], list):
-                            new_p = {'coordinates': p,
-                                     'coordinate_system':
-                                         {'name': cs_name,
-                                          'origin': [0, 0, 0]},
-                                     'kwargs': {'meshSize': 0.}}
-                        elif len(p) == dim + 1 and not isinstance(p[0], list):
-                            new_p = {'coordinates': p[:3],
-                                     'coordinate_system':
-                                         {'name': cs_name,
-                                          'origin': [0, 0, 0]},
-                                     'kwargs': {'meshSize': p[3]}}
+                        if len(p) == cs.dim and not isinstance(p[0], list):
+                            new_p = Point(coordinates=p, coordinate_system=cs)
+                        elif len(p) == cs.dim + 1 and not isinstance(p[0], list):
+                            cs = cs_factory['cartesian']()
+                            new_p = Point(coordinates=p[:3],
+                                          coordinate_system=cs,
+                                          meshSize=p[3])
                         else:
                             raise ValueError(p)
                     else:
                         raise ValueError(p)
                     if cs_name == 'cylindrical':
-                        new_p['coordinates'][1] = np.deg2rad(new_p['coordinates'][1])
+                        new_p.coordinates[1] = np.deg2rad(new_p.coordinates[1])
                     elif cs_name in ['spherical', 'toroidal', 'tokamak']:
-                        new_p['coordinates'][1] = np.deg2rad(new_p['coordinates'][1])
-                        new_p['coordinates'][2] = np.deg2rad(new_p['coordinates'][2])
+                        new_p.coordinates[1] = np.deg2rad(new_p.coordinates[1])
+                        new_p.coordinates[2] = np.deg2rad(new_p.coordinates[2])
                     new_points.append(new_p)
                 points = new_points
         elif isinstance(points, float) or isinstance(points, int):  # dx/dy/dz
@@ -199,30 +218,49 @@ class Block:
         curves = [{} for _ in range(12)] if curves is None else curves
         for i, c in enumerate(curves):
             if isinstance(c, dict):
-                pass
+                curves[i] = Curve(**c)
             elif isinstance(c, list):
-                new_c = {}
+                new_c = Curve()
                 if len(c) > 0:
                     if not isinstance(c[0], str):
-                        new_c['name'] = 'polyline'
-                        new_c['points'] = c
+                        Curve.name = 'polyline'
+                        Curve.points = c
                     else:
                         if len(c) == 2:
-                            new_c['name'] = c[0]
-                            new_c['points'] = c[1]
+                            Curve.name = c[0]
+                            Curve.points = c[1]
                         elif len(c) == 3:
-                            new_c['name'] = c[0]
-                            new_c['points'] = c[1]
-                            new_c['kwargs'] = c[2]
+                            Curve.name = c[0]
+                            Curve.points = c[1]
+                            Curve.kwargs = c[2]
                         else:
                             raise ValueError(c)
                 curves[i] = new_c
             else:
                 raise ValueError(c)
-            curves[i].setdefault('name', 'line')
-            curves[i].setdefault('points', [])
-            curves[i]['points'] = self.parse_points(curves[i]['points'])
+            curves[i].points = self.parse_points(curves[i].points)
         return curves
+
+    def parse_surfaces(self, surfaces):
+        if surfaces is None:
+            surfaces = [{} for _ in range(6)]
+        for i, s in enumerate(surfaces):
+            if isinstance(s, dict):
+                surfaces[i] = Surface(**s)
+            else:
+                raise ValueError(s)
+            surfaces[i].name = 'fill'
+        return surfaces
+
+    def parse_volumes(self, volumes):
+        if volumes is None:
+            volumes = [{}]
+        for i, v in enumerate(volumes):
+            if isinstance(v, dict):
+                volumes[i] = Volume(**v)
+            else:
+                raise ValueError(v)
+        return volumes
 
     def parse_transforms(self, transforms, parent):
         transforms = [] if transforms is None else transforms
@@ -252,7 +290,7 @@ class Block:
             if 'angle' in kwargs:
                 kwargs['angle'] = np.deg2rad(kwargs['angle'])
             if name.startswith('block'):
-                ps = [x['coordinates'] for x in parent.points]
+                ps = [x.coordinates for x in parent.points]
                 kwargs['cs_from'] = cs_factory['block'](ps=ps)
             transforms[i] = transform_factory[name](**kwargs)
         return transforms
@@ -262,7 +300,7 @@ class Block:
             if 'curves' in transfinite_all:
                 value = copy.deepcopy(transfinite_all['curves'])
                 for i, c in enumerate(self.curves):
-                    self.curves[i]['transfinite'] = value
+                    self.curves[i].structure = Structure(**value)
             elif all(['curves_x' in transfinite_all,
                       'curves_y' in transfinite_all,
                       'curves_z' in transfinite_all]):
@@ -270,18 +308,20 @@ class Block:
                     direction = self.curves_directions[i]
                     key = f'curves_{direction}'
                     value = copy.deepcopy(transfinite_all[key])
-                    self.curves[i]['transfinite'] = value
+                    self.curves[i].structure = Structure(**value)
             else:
                 raise ValueError(transfinite_all)
             # Surfaces
             key = 'surfaces'
-            value = copy.deepcopy(self.transfinite_all.get(key, {}))
+            value = copy.deepcopy(self.transfinite_all.get(
+                key, {'name': 'surface'}))
             for i, s in enumerate(self.surfaces):
-                self.surfaces[i]['transfinite'] = value
+                self.surfaces[i].structure = Structure(**value)
             # Volume
             key = 'volumes'
-            value = copy.deepcopy(self.transfinite_all.get(key, {}))
-            self.volumes[0]['transfinite'] = value
+            value = copy.deepcopy(self.transfinite_all.get(
+                key, {'name': 'volume'}))
+            self.volumes[0].structure = Structure(**value)
         elif isinstance(transfinite_all, list):
             if len(transfinite_all) == 3:
                 # Curves
@@ -291,15 +331,16 @@ class Block:
                     key = f'curves_{direction}'
                     index = d2i[key]
                     values = transfinite_all[index]
-                    value = {'nPoints': values[0],
-                             'kwargs': {'meshType': values[1],
-                                        'coef': values[2]}}
-                    self.curves[i]['transfinite'] = value
+                    value = {'name': 'curve',
+                             'nPoints': values[0],
+                             'meshType': values[1],
+                             'coef': values[2]}
+                    self.curves[i].structure = Structure(**value)
                 # Surfaces
                 for i, s in enumerate(self.surfaces):
-                    self.surfaces[i]['transfinite'] = {}
+                    self.surfaces[i].structure = Structure(name='surface')
                 # Volume
-                self.volumes[0]['transfinite'] = {}
+                self.volumes[0].structure = Structure(name='volume')
         elif transfinite_all is None:
             pass
         else:
@@ -358,29 +399,17 @@ class Block:
             c.transforms.extend(self.transforms)
             c.transform()
         for i, p in enumerate(self.points):
-            cs_kwargs = copy.deepcopy(p.get('coordinate_system', {}))
-            cs_name = cs_kwargs.pop('name', 'cartesian')
-            if cs_name.startswith('block'):
-                ps = [x['coordinates'] for x in self.parent.points]
-                cs_kwargs['ps'] = ps
-            cs = cs_factory[cs_name](**cs_kwargs)
-            vs = p.get('coordinates', np.zeros(3))
-            p2 = Point(cs=cs, vs=vs)
-            p2 = reduce_transforms(self.transforms, p2)
-            self.points[i]['coordinates'] = p2.vs
+            if isinstance(p.coordinate_system, cs_factory['block']):
+                p.coordinate_system.ps = [x.coordinates
+                                          for x in self.parent.points]
+            self.points[i] = reduce_transforms(self.transforms, p)
         # Curve Points
         for i, c in enumerate(self.curves):
-            for j, p in enumerate(c['points']):
-                cs_kwargs = p.get('coordinate_system', {})
-                cs_name = cs_kwargs.pop('name', 'cartesian')
-                if cs_name.startswith('block'):
-                    ps = [x['coordinates'] for x in self.parent.points]
-                    cs_kwargs['ps'] = ps
-                cs = cs_factory[cs_name](**cs_kwargs)
-                vs = p.get('coordinates', np.zeros(3))
-                p2 = Point(cs=cs, vs=vs)
-                p2 = reduce_transforms(self.transforms, p2)
-                self.curves[i]['points'][j]['coordinates'] = p2.vs
+            for j, p in enumerate(c.points):
+                if isinstance(p.coordinate_system, cs_factory['block']):
+                    p.coordinate_system.ps = [x.coordinates
+                                              for x in self.parent.points]
+                self.curves[i].points[j] = reduce_transforms(self.transforms, p)
 
     def register_points(self):
         for i, p in enumerate(self.points):
@@ -388,12 +417,12 @@ class Block:
 
     def register_curve_points(self):
         for i, c in enumerate(self.curves):
-            for j, p in enumerate(c['points']):
-                c['points'][j] = register_point(self.factory, p, self.register_tag)
+            for j, p in enumerate(c.points):
+                c.points[j] = register_point(self.factory, p, self.register_tag)
             # Add start and end points to curves
             p0 = self.points[self.curves_points[i][0]]
             p1 = self.points[self.curves_points[i][1]]
-            c['points'] = [p0] + c['points'] + [p1]
+            c.points = [p0] + c.points + [p1]
 
     def register_curves(self):
         for i, c in enumerate(self.curves):
@@ -401,22 +430,22 @@ class Block:
 
     def register_curves_loops(self):
         for i, cl in enumerate(self.curves_loops):
-            cl.setdefault('curves_tags', [
-                self.curves[x]['kwargs']['tag'] * y for (x, y) in zip(
-                    self.surfaces_curves[i], self.surfaces_curves_signs[i])])
-            self.curves_loops[i] = register_curve_loop(self.factory, cl, self.register_tag)
+            self.curves_loops[i].curves = [self.curves[x] for x in self.surfaces_curves[i]]
+            self.curves_loops[i].curves_signs = self.surfaces_curves_signs[i]
+            self.curves_loops[i] = register_curve_loop(self.factory,
+                                                       self.curves_loops[i],
+                                                       self.register_tag)
 
     def register_surfaces(self):
         for i, s in enumerate(self.surfaces):
-            s.setdefault('name', 'fill')
-            s.setdefault('curve_loops', [self.curves_loops[i]])
-            self.surfaces[i] = register_surface(self.factory, s, self.register_tag)
+            self.surfaces[i].curves_loops = [self.curves_loops[i]]
+            self.surfaces[i] = register_surface(self.factory, self.surfaces[i], self.register_tag)
 
     def register_surfaces_loops(self):
         # External
-        sl = self.surfaces_loops[0]
-        sl.setdefault('surfaces_tags', [x['kwargs']['tag'] for x in self.surfaces])
-        self.surfaces_loops[0] = register_surface_loop(self.factory, sl, self.register_tag)
+        self.surfaces_loops[0].surfaces = self.surfaces
+        self.surfaces_loops[0] = register_surface_loop(
+            self.factory, self.surfaces_loops[0], self.register_tag)
         # Internal
         internal_volumes = []
         for i, c in enumerate(self.children):
@@ -424,18 +453,19 @@ class Block:
                 if not c.is_registered:
                     raise ValueError('Register children before parent!')
                 internal_volumes.append(c.volumes)
-        volumes_surfaces = [y['surfaces_loops'][0]['surfaces_tags']
-                            for x in internal_volumes for y in x]
+        volumes_surfaces = [[z.tag for z in y.surfaces_loops[0].surfaces]
+                            for x in internal_volumes
+                            for y in x]
         surfaces_groups = volumes_surfaces_to_volumes_groups_surfaces(
             volumes_surfaces)
         for g in surfaces_groups:
-            sl = {'surfaces_tags': g}
+            sl = SurfaceLoop(surfaces=[Surface(tag=x) for x in g])
             sl = register_surface_loop(self.factory, sl, self.register_tag)
             self.surfaces_loops.append(sl)
 
     def register_volumes(self):
         v = self.volumes[0]
-        v.setdefault('surfaces_loops', self.surfaces_loops)
+        v.surfaces_loops = self.surfaces_loops
         self.volumes[0] = register_volume(self.factory, v, self.register_tag)
         self.is_registered = True
 
@@ -464,41 +494,39 @@ class Block:
             else:
                 raise ValueError(self.recombine_all)
             for i, s in enumerate(self.surfaces):
-                self.surfaces[i]['recombine'] = copy.deepcopy(
-                    self.recombine_all)
+                self.surfaces[i].quadrate = Quadrate(**self.recombine_all)
         # Recombine
         for i, s in enumerate(self.surfaces):
-            if 'recombine' in s:
+            if s.quadrate is not None:
                 self.surfaces[i] = register_recombine_surface(s, self.factory)
 
     def transfinite_curves(self):
         # Transfinite
         for i, c in enumerate(self.curves):
-            if 'transfinite' in c:
+            if c.structure is not None:
                 self.curves[i] = register_transfinite_curve(c, self.factory)
 
     def transfinite_surfaces(self):
         # Transfinite
         for i, s in enumerate(self.surfaces):
-            all_tr_curves = all('transfinite' in self.curves[x] for x in
+            all_tr_curves = all(self.curves[x].structure is not None for x in
                                 self.surfaces_curves[i])
-            if all_tr_curves and 'transfinite' in s:
-                s['transfinite']['cornerTags'] = [
+            if all_tr_curves and s.structure is not None:
+                s.structure.kwargs['cornerTags'] = [
                     self.points[x]['kwargs']['tag']
                     for x in self.surfaces_points[i]]
-                s['transfinite'].setdefault('kwargs', {})
-                s['transfinite']['kwargs']['arrangement'] = 'Right'
+                s.structure.kwargs['arrangement'] = 'Right'
                 self.surfaces[i] = register_transfinite_surface(s, self.factory)
 
     def transfinite_volume(self):
         # Transfinite
         v = self.volumes[0]
-        all_tr_surfaces = all('recombine' in x for x in self.surfaces)
+        all_tr_surfaces = all(x.quadrate is not None for x in self.surfaces)
         same_rec_surfaces = len(
-            set('transfinite' in x for x in self.surfaces)) == 1
-        if 'transfinite' in v and all_tr_surfaces and same_rec_surfaces:
-            v['transfinite']['cornerTags'] = [x['kwargs']['tag']
-                                              for x in self.points]
+            set(x.structure is not None for x in self.surfaces)) == 1
+        if v.structure is not None and all_tr_surfaces and same_rec_surfaces:
+            v.structure.kwargs['cornerTags'] = [x['kwargs']['tag']
+                                                for x in self.points]
             self.volumes[0] = register_transfinite_volume(v, self.factory)
 
     def recombine(self):

@@ -72,7 +72,7 @@ class TestBlock(unittest.TestCase):
             # B1
             b = Block(
                 factory=kws['factory'],
-                register_tag=kws['register_tag'],
+                use_register_tag=kws['register_tag'],
                 points=[
                     # P0
                     {'coordinates': [0.5, 0.5, -0.5],
@@ -349,7 +349,7 @@ class TestBlock(unittest.TestCase):
             # B2
             b2 = Block(
                 factory=kws['factory'],
-                register_tag=kws['register_tag'],
+                use_register_tag=kws['register_tag'],
                 points=[
                     # P0
                     {'coordinates': [-0.5, 0.5, -0.5],
@@ -534,7 +534,7 @@ class TestBlock(unittest.TestCase):
             # B3 (B1 duplicate)
             b3 = Block(
                 factory=kws['factory'],
-                register_tag=kws['register_tag'],
+                use_register_tag=kws['register_tag'],
                 points=[
                     # P0
                     {'coordinates': [0.5, 0.5, -0.5],
@@ -748,7 +748,7 @@ class TestBlock(unittest.TestCase):
                                [-0.5, 0.5, 0.5],
                                [-0.5, -0.5, 0.5],
                                [0.5, -0.5, 0.5]],
-                       register_tag=register_tag
+                       use_register_tag=register_tag
                        )
             b2 = Block(factory=factory,
                        points=[[0.25, 0.25, -0.4],
@@ -759,7 +759,7 @@ class TestBlock(unittest.TestCase):
                                [-0.25, 0.25, -0.3],
                                [-0.25, -0.25, -0.3],
                                [0.25, -0.25, -0.3]],
-                       register_tag=register_tag,
+                       use_register_tag=register_tag,
                        parent=b1)
             b1.children.append(b2)
             b3 = Block(factory=factory,
@@ -771,7 +771,7 @@ class TestBlock(unittest.TestCase):
                                [-0.25, 0.25, -0.2],
                                [-0.25, -0.25, -0.2],
                                [0.25, -0.25, -0.2]],
-                       register_tag=register_tag,
+                       use_register_tag=register_tag,
                        parent=b1)
             b1.children.append(b3)
             b4 = Block(factory=factory,
@@ -783,7 +783,7 @@ class TestBlock(unittest.TestCase):
                                [-0.25, 0.25, 0.3],
                                [-0.25, -0.25, 0.3],
                                [0.25, -0.25, 0.3]],
-                       register_tag=register_tag,
+                       use_register_tag=register_tag,
                        parent=b1)
             b1.children.append(b4)
             b4_1 = Block(factory=factory,
@@ -795,7 +795,7 @@ class TestBlock(unittest.TestCase):
                                  [-0.2, 0.2, 0.2],
                                  [-0.2, -0.2, 0.2],
                                  [0.2, -0.2, 0.2]],
-                         register_tag=register_tag,
+                         use_register_tag=register_tag,
                          parent=b4)
             b4.children.append(b4_1)
             b4_2 = Block(factory=factory,
@@ -807,7 +807,7 @@ class TestBlock(unittest.TestCase):
                                  [-0.2, 0.2, 0.25],
                                  [-0.2, -0.2, 0.25],
                                  [0.2, -0.2, 0.25]],
-                         register_tag=register_tag,
+                         use_register_tag=register_tag,
                          do_register=True,
                          do_unregister=True,
                          parent=b4)
@@ -821,7 +821,7 @@ class TestBlock(unittest.TestCase):
                                    [-0.1, 0.1, 0.24],
                                    [-0.1, -0.1, 0.24],
                                    [0.1, -0.1, 0.24]],
-                           register_tag=register_tag,
+                           use_register_tag=register_tag,
                            do_register=True,
                            do_unregister=True,
                            parent=b4_2)

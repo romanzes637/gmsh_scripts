@@ -1,83 +1,11 @@
 import numpy as np
 from functools import reduce
 
-
-class Point:
-    def __init__(self, cs, vs):
-        """
-        Args:
-          cs (CoordinateSystem): CoordinateSystem
-          vs (np.array): coordinates values
-        """
-        self.cs = cs
-        self.vs = vs if isinstance(vs, np.ndarray) else np.array(vs)
+from coordinate_system import factory as cs_factory
 
 
-class CoordinateSystem:
-    def __init__(self, dim=None, origin=None, **kwargs):
-        self.dim = dim
-        self.origin = origin if isinstance(origin, np.ndarray) else np.array(origin)
-
-
-class Cartesian(CoordinateSystem):
-    def __init__(self, origin=np.zeros(3), **kwargs):
-        super().__init__(dim=3, origin=origin, **kwargs)
-
-
-class Cylindrical(CoordinateSystem):
-    def __init__(self, origin=np.zeros(3), **kwargs):
-        super().__init__(dim=3, origin=origin, **kwargs)
-
-
-class Spherical(CoordinateSystem):
-    def __init__(self, origin=np.zeros(3), **kwargs):
-        super().__init__(dim=3, origin=origin, **kwargs)
-
-
-class Toroidal(CoordinateSystem):
-    def __init__(self, origin=np.zeros(4), **kwargs):
-        super().__init__(dim=4, origin=origin, **kwargs)
-
-
-class Tokamak(CoordinateSystem):
-    def __init__(self, origin=np.zeros(6), **kwargs):
-        super().__init__(dim=6, origin=origin, **kwargs)
-
-
-class Block(CoordinateSystem):
-    def __init__(self, ps=None, origin=np.zeros(3), order=None, **kwargs):
-        """Local Block Coordinate System
-
-        xi [-1, 1]
-        eta [-1, 1]
-        zeta [-1, 1]
-
-        Args:
-            ps (np.array or list of list): points coordinates of the block
-            order (np.array or list of list): order of points
-            origin (np.array or list): origin of coordinate system
-        """
-        super().__init__(dim=3, origin=origin, **kwargs)
-        if ps is None:
-            ps = [[1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1],
-                  [1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1]]
-        self.ps = ps if isinstance(ps, np.ndarray) else np.array(ps)
-        if order is None:
-            self.order = np.array(
-                [[1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1],
-                 [1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1]])
-        else:
-            self.order = order if isinstance(order, np.ndarray) else np.array(order)
-
-
-cs_factory = {
-    'cartesian': Cartesian,
-    'cylindrical': Cylindrical,
-    'spherical': Spherical,
-    'toroidal': Toroidal,
-    'tokamak': Tokamak,
-    'block': Block
-}
+def reduce_transforms(transforms, point):
+    return reduce(lambda x, y: y(x), transforms, point)
 
 
 class Transform:
@@ -88,9 +16,9 @@ class Transform:
             cs_to (CoordinateSystem): CoordinateSystem to
             cs_self (CoordinateSystem): CoordinateSystem self
         """
-        self.cs_from = CoordinateSystem() if cs_from is None else cs_from
-        self.cs_to = CoordinateSystem() if cs_to is None else cs_to
-        self.cs_self = CoordinateSystem() if cs_self is None else cs_self
+        self.cs_from = cs_factory['coordinate_system']() if cs_from is None else cs_from
+        self.cs_to = cs_factory['coordinate_system']() if cs_to is None else cs_to
+        self.cs_self = cs_factory['coordinate_system']() if cs_self is None else cs_self
 
     def __call__(self, p):
         """
@@ -116,7 +44,7 @@ class Translate(Transform):
 
     def __call__(self, p):
         p = super().__call__(p)
-        p.vs += self.delta
+        p.coordinates += self.delta
         return p
 
 
@@ -146,9 +74,9 @@ class Rotate(Transform):
     def __call__(self, p):
         p = super().__call__(p)
         m = self.rotation_matrix
-        vs = p.vs - self.origin
-        vs = np.dot(vs, m.T)
-        p.vs = vs + self.origin
+        cs = p.coordinates - self.origin
+        cs = np.dot(cs, m.T)
+        p.coordinates = cs + self.origin
         return p
 
 
@@ -160,15 +88,16 @@ class CylindricalToCartesian(Transform):
         phi - azimuthal angle [0, 2*pi) (counterclockwise from X to Y),
         z - height
         """
-        super().__init__(Cylindrical(), Cartesian(), **kwargs)
+        super().__init__(cs_factory['cylindrical'](), cs_factory['cartesian'](),
+                         **kwargs)
 
     def __call__(self, p):
         p = super().__call__(p)
-        if isinstance(p.cs, Cartesian):  # FIXME workaround for double any_to_cartesian
+        if isinstance(p.coordinate_system, cs_factory['cartesian']):  # FIXME workaround for double any_to_cartesian
             return p
-        r, phi, z = p.vs
-        p.vs = np.array([r * np.cos(phi), r * np.sin(phi), z])
-        p.cs = self.cs_to
+        r, phi, z = p.coordinates
+        p.coordinates = np.array([r * np.cos(phi), r * np.sin(phi), z])
+        p.coordinate_system = self.cs_to
         return p
 
 
@@ -180,17 +109,18 @@ class SphericalToCartesian(Transform):
         phi - azimuthal angle [0, 2*pi) (counterclockwise from X to Y),
         theta - polar angle [0, pi] [from top to bottom, i.e XY-plane is pi/2]
         """
-        super().__init__(Spherical(), Cartesian(), **kwargs)
+        super().__init__(cs_factory['spherical'](), cs_factory['cartesian'](), 
+                         **kwargs)
 
     def __call__(self, p):
         p = super().__call__(p)
-        if isinstance(p.cs, Cartesian):
+        if isinstance(p.coordinate_system, cs_factory['cartesian']()):
             return p
-        r, phi, theta = p.vs
-        p.vs = np.array([r * np.cos(phi) * np.sin(theta),
+        r, phi, theta = p.coordinates
+        p.coordinates = np.array([r * np.cos(phi) * np.sin(theta),
                          r * np.sin(phi) * np.sin(theta),
                          r * np.cos(theta)])
-        p.cs = self.cs_to
+        p.coordinate_system = self.cs_to
         return p
 
 
@@ -203,17 +133,18 @@ class ToroidalToCartesian(Transform):
         theta - outer angle [0, 2*pi)
         r2 - outer radius
         """
-        super().__init__(Toroidal(), Cartesian(), **kwargs)
+        super().__init__(cs_factory['toroidal'](), cs_factory['cartesian'](), 
+                         **kwargs)
 
     def __call__(self, p):
         p = super().__call__(p)
-        if isinstance(p.cs, Cartesian):
+        if isinstance(p.coordinate_system, cs_factory['cartesian']()):
             return p
-        r, phi, theta, r2 = p.vs
-        p.vs = np.array([r2 * np.cos(theta) + r * np.cos(phi) * np.cos(theta),
+        r, phi, theta, r2 = p.coordinates
+        p.coordinates = np.array([r2 * np.cos(theta) + r * np.cos(phi) * np.cos(theta),
                          r2 * np.sin(theta) + r * np.cos(phi) * np.sin(theta),
                          r * np.sin(phi)])
-        p.cs = self.cs_to
+        p.coordinate_system = self.cs_to
         return p
 
 
@@ -228,24 +159,25 @@ class TokamakToCartesian(Transform):
         kxy - inner radius XY scale coefficient in positive outer radius direction
         kz - inner radius Z scale coefficient
         """
-        super().__init__(Toroidal(), Cartesian(), **kwargs)
+        super().__init__(cs_factory['tokamak'](), cs_factory['cartesian'](), 
+                         **kwargs)
 
     def __call__(self, p):
         p = super().__call__(p)
-        if isinstance(p.cs, Cartesian):
+        if isinstance(p.coordinate_system, cs_factory['cartesian']()):
             return p
-        r, phi, theta, r2, kxy, kz = p.vs
+        r, phi, theta, r2, kxy, kz = p.coordinates
         if 0 <= phi <= 0.5 * np.pi or 1.5 * np.pi <= phi <= 2 * np.pi:
-            p.vs = np.array([
+            p.coordinates = np.array([
                 r2 * np.cos(theta) + kxy * r * np.cos(phi) * np.cos(theta),
                 r2 * np.sin(theta) + kxy * r * np.cos(phi) * np.sin(theta),
                 kz * r * np.sin(phi)])
         else:
-            p.vs = np.array([
+            p.coordinates = np.array([
                 r2 * np.cos(theta) + r * np.cos(phi) * np.cos(theta),
                 r2 * np.sin(theta) + r * np.cos(phi) * np.sin(theta),
                 kz * r * np.sin(phi)])
-        p.cs = self.cs_to
+        p.coordinate_system = self.cs_to
         return p
 
 
@@ -257,23 +189,24 @@ class BlockToCartesian(Transform):
         Args:
             cs_from(Block): Block Coordinate System
         """
-        super().__init__(cs_from=cs_from, cs_to=Cartesian(), **kwargs)
+        super().__init__(cs_from=cs_from, cs_to=cs_factory['cartesian'](), 
+                         **kwargs)
 
     def __call__(self, p):
         p = super().__call__(p)
         # if isinstance(self.cs_from, Cartesian):
         #     return p
-        xi, eta, zeta = p.vs  # Point coordinates
+        xi, eta, zeta = p.coordinates  # Point coordinates
         ps = self.cs_from.ps  # Block points coordinates
         order = self.cs_from.order  # Block points order
         n = np.array([0.125 * (1 + x * xi) * (1 + y * eta) * (1 + z * zeta)
                       for x, y, z in order])
-        p.vs = n.dot(ps)
-        p.cs = self.cs_to
+        p.coordinates = n.dot(ps)
+        p.coordinate_system = self.cs_to
         return p
 
 
-transform_factory = {
+factory = {
     'translate': Translate,
     'rotate': Rotate,
     'cylindrical_to_cartesian': CylindricalToCartesian,
@@ -282,7 +215,3 @@ transform_factory = {
     'tokamak_to_cartesian': TokamakToCartesian,
     'block_to_cartesian': BlockToCartesian
 }
-
-
-def reduce_transforms(transforms, point):
-    return reduce(lambda x, y: y(x), transforms, point)
