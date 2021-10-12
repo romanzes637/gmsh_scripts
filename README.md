@@ -1,8 +1,7 @@
 ![readme](/images/readme.png)
 
 # gmsh_scripts
-Mixed (structured/unstructured) 3D mesh generator with curved cuboid elements 
-(Primitives) based on [gmsh](https://gmsh.info/)
+Mixed (structured/unstructured) MultiBlock 3D mesh generator based on [gmsh](https://gmsh.info/)
 
 ## Installation
 1. Download and install python https://www.python.org/downloads/
