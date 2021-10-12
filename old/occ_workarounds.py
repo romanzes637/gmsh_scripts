@@ -108,7 +108,7 @@ def correct_and_transfinite_primitive(primitive_obj, ss, cs):
     """
     result = correct_primitive(primitive_obj)
     if result:
-        result = primitive_obj.transfinite(ss, cs)
+        result = primitive_obj.structure(ss, cs)
     else:
         result = None
     return result
@@ -125,7 +125,7 @@ def correct_and_transfinite_complex(complex_obj, ss, cs):
     transfinite_rs = []
     for i, p in enumerate(complex_obj.primitives):
         if correction_rs[i]:
-            result = p.transfinite(ss, cs)
+            result = p.structure(ss, cs)
             transfinite_rs.append(result)
         else:
             transfinite_rs.append(None)
@@ -141,7 +141,7 @@ def transfinite_complex(complex_obj, ss, cs):
     """
     transfinite_rs = []
     for i, p in enumerate(complex_obj.primitives):
-        result = p.transfinite(ss, cs)
+        result = p.structure(ss, cs)
         transfinite_rs.append(result)
     return transfinite_rs
 
@@ -156,7 +156,7 @@ def transfinite_and_recombine_complex(complex_obj, ss, cs):
     """
     transfinite_rs = transfinite_complex(complex_obj, ss, cs)
     for i, p in enumerate(complex_obj.primitives):
-        p.recombine()
+        p.quadrate()
     return transfinite_rs
 
 
@@ -172,9 +172,9 @@ def correct_and_transfinite_and_recombine_complex(complex_obj, ss, cs):
     transfinite_rs = []
     for i, p in enumerate(complex_obj.primitives):
         if correction_rs[i]:
-            result = p.transfinite(ss, cs)
+            result = p.structure(ss, cs)
             transfinite_rs.append(result)
-            p.recombine()
+            p.quadrate()
         else:
             transfinite_rs.append(None)
     return transfinite_rs
@@ -189,8 +189,8 @@ def correct_and_transfinite_and_recombine_primitive(primitive_obj, ss, cs):
     """
     result = correct_primitive(primitive_obj)
     if result:
-        result = primitive_obj.transfinite(ss, cs)
-        primitive_obj.recombine()
+        result = primitive_obj.structure(ss, cs)
+        primitive_obj.quadrate()
     else:
         result = None
     return result

@@ -120,8 +120,8 @@ if __name__ == '__main__':
             auto_complex_points_sizes_min_curve_in_volume(c, pss, size)
         if is_recombine:
             print('Recombine')
-            e.recombine()
-            c.recombine()
+            e.quadrate()
+            c.quadrate()
         print('Physical')
         print("Volumes")
         print('Environment')

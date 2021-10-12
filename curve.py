@@ -6,8 +6,9 @@ class Curve:
             tag(int): unique id
             name(str): type
             zone(str): zone
-            points (list of Point): curve points
-            structure (Structure): curve structure
+            points(list of Point): curve points
+            structure(Structure): curve structure
+            kwargs(dict): other keyword arguments
         """
         self.tag = tag
         self.name = name

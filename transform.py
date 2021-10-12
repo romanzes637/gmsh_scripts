@@ -210,7 +210,7 @@ factory = {
     'translate': Translate,
     'rotate': Rotate,
     'cylindrical_to_cartesian': CylindricalToCartesian,
-    'Spherical_to_cartesian': SphericalToCartesian,
+    'spherical_to_cartesian': SphericalToCartesian,
     'toroidal_to_cartesian': ToroidalToCartesian,
     'tokamak_to_cartesian': TokamakToCartesian,
     'block_to_cartesian': BlockToCartesian

@@ -9,8 +9,8 @@ from transform import factory as transform_factory
 from transform import reduce_transforms
 from registry import register_point, register_curve, register_curve_loop, \
     register_surface, register_surface_loop, register_volume, \
-    register_recombine_surface, register_transfinite_curve, \
-    register_transfinite_surface, register_transfinite_volume, unregister_volume
+    register_quadrate_surface, register_structure_curve, \
+    register_structure_surface, register_structure_volume, unregister_volume
 from coordinate_system import factory as cs_factory
 from point import Point
 from curve import Curve
@@ -28,12 +28,56 @@ class Block:
                  do_register=True, use_register_tag=False, do_unregister=False,
                  do_register_children=True, do_unregister_children=True,
                  transforms=None,
-                 recombine_all=None, transfinite_all=None,
+                 quadrate_all=None, structure_all=None,
                  parent=None, children=None, children_transforms=None,
                  boolean_level=None):
         """Basic building block of the mesh
 
         Block is a cuboid with 8 points, 12 curves, 6 surfaces and 1 volume.
+
+        | **Axes**
+        | Y
+        | Z X
+        | NX, NY and NZ are negative X, Y and Z directions
+
+        | **Points**
+        | NZ:
+        | P1 P0
+        | P2 P3
+        | Z:
+        | P5 P4
+        | P6 P7
+
+        | **Curves**
+        | X direction curves from P0 by right-hand rule:
+        | C0: P1 -> P0
+        | C1: P5 -> P4
+        | C2: P6 -> P7
+        | C3: P2 -> P3
+        | Y direction curves from P0 by right-hand rule:
+        | C4: P3 -> P0
+        | C5: P2 -> P1
+        | C6: P6 -> P5
+        | C7: P7 -> P4
+        | Z direction curves from P0 by right-hand rule:
+        | C8:  P0 -> P4
+        | C9:  P1 -> P5
+        | C10: P2 -> P6
+        | C11: P3 -> P7
+
+        | **Surfaces**
+        | NX surface
+        | S0: C5  -> C9  -> -C6 -> -C10
+        | X surface
+        | S1: -C4 -> C11 -> C7  -> -C8
+        | NY surface
+        | S2: -C3 -> C10 -> C2  -> -C11
+        | Y surface
+        | S3: C0  -> C8  -> -C1 -> -C9
+        | NZ surface
+        | S4: -C0 -> -C5 ->  C3 -> C4
+        | Z surface
+        | S5: C1  -> -C7 -> -C2 -> C6
 
         Note:
             If boolean_level is not None then no internal volumes of children.
@@ -49,8 +93,8 @@ class Block:
             do_register_children(bool): invoke register for children
             do_unregister_children(bool): invoke unregister for children
             transforms(list of dict, list of list, list of Transform): points and curves points transforms (Translation, Rotation, Coordinate Change, etc)
-            recombine_all(list of dict, bool): transform triangles to quadrangles for surfaces and tetrahedra to hexahedra for volumes
-            transfinite_all(list of dict, list of list, list of Transform): make structured mesh instead of unstructured by some rule
+            quadrate_all(list of dict, bool): transform triangles to quadrangles for surfaces and tetrahedra to hexahedra for volumes
+            structure_all(list of dict, list of list, list of Transform): make structured mesh instead of unstructured by some rule
             parent(Block): parent of the Block
             children(list of Block): children of the Block
             children_transforms(list of list of dict, list of list of list, list of list of Transform): transforms for children Blocks
@@ -67,8 +111,8 @@ class Block:
         self.do_register_children = do_register_children
         self.do_unregister_children = do_unregister_children
         self.transforms = self.parse_transforms(transforms, parent)
-        self.recombine_all = recombine_all
-        self.transfinite_all = self.parse_transfinite_all(transfinite_all)
+        self.quadrate_all = quadrate_all
+        self.structure_all = self.parse_structure_all(structure_all)
         self.parent = parent
         self.children = [] if children is None else children
         if children_transforms is None:
@@ -81,8 +125,8 @@ class Block:
         self.curves_loops = [CurveLoop() for _ in range(6)]
         self.surfaces_loops = [SurfaceLoop()]
         self.is_registered = False
-        self.is_recombined = False
-        self.is_transfinited = False
+        self.is_quadrated = False
+        self.is_structured = False
 
     curves_points = [
         [1, 0], [5, 4], [6, 7], [2, 3],
@@ -132,39 +176,42 @@ class Block:
                       [0.5, 0.5, 0.5],
                       [0.5, 0.5, 0.5]]
             points = self.parse_points(points)
+        elif isinstance(points, float) or isinstance(points, int):  # dx/dy/dz
+            a = 0.5 * points
+            points = [[a, a, -a], [-a, a, -a], [-a, -a, -a], [a, -a, -a],
+                      [a, a, a], [-a, a, a], [-a, -a, a], [a, -a, a]]
+            points = self.parse_points(points)
         elif isinstance(points, list):
             if len(points) == 0:  # Could be on curves points
                 points = []
             # dx/dy/dz, cs
-            elif all([len(points) == 2, any([isinstance(points[0], float),
-                                             isinstance(points[0], int)]),
-                      isinstance(points[1], str)]):
+            elif len(points) == 2 and all([any([isinstance(points[0], float),
+                                                isinstance(points[0], int)]),
+                                           isinstance(points[1], str)]):
                 a, cs_name = 0.5 * points[0], points[1]
                 points = [[a, a, -a], [-a, a, -a], [-a, -a, -a], [a, -a, -a],
                           [a, a, a], [-a, a, a], [-a, -a, a], [a, -a, a],
                           cs_name]
                 points = self.parse_points(points)
             # dx, dy, dz
-            elif all([len(points) == 3,
-                      any([isinstance(points[0], float),
-                           isinstance(points[0], int)]),
-                      any([isinstance(points[1], float),
-                           isinstance(points[1], int)]),
-                      any([isinstance(points[2], float),
-                           isinstance(points[2], int)])]):
+            elif len(points) == 3 and all([any([isinstance(points[0], float),
+                                                isinstance(points[0], int)]),
+                                           any([isinstance(points[1], float),
+                                                isinstance(points[1], int)]),
+                                           any([isinstance(points[2], float),
+                                                isinstance(points[2], int)])]):
                 a, b, c = 0.5 * points[0], 0.5 * points[1], 0.5 * points[2]
                 points = [[a, b, -c], [-a, b, -c], [-a, -b, -c], [a, -b, -c],
                           [a, b, c], [-a, b, c], [-a, -b, c], [a, -b, c]]
                 points = self.parse_points(points)
             # dx, dy, dz, cs
-            elif all([len(points) == 4,
-                      any([isinstance(points[0], float),
-                           isinstance(points[0], int)]),
-                      any([isinstance(points[1], float),
-                           isinstance(points[1], int)]),
-                      any([isinstance(points[2], float),
-                           isinstance(points[2], int)]),
-                      isinstance(points[3], str)]):
+            elif len(points) == 4 and all([any([isinstance(points[0], float),
+                                                isinstance(points[0], int)]),
+                                           any([isinstance(points[1], float),
+                                                isinstance(points[1], int)]),
+                                           any([isinstance(points[2], float),
+                                                isinstance(points[2], int)]),
+                                           isinstance(points[3], str)]):
                 a, b, c = 0.5 * points[0], 0.5 * points[1], 0.5 * points[2]
                 cs_name = points[3]
                 points = [[a, b, -c], [-a, b, -c], [-a, -b, -c], [a, -b, -c],
@@ -172,44 +219,40 @@ class Block:
                           cs_name]
                 points = self.parse_points(points)
             else:  # [[x1, y1, z1, ...], [x2, y2, z2, ...], ...]
-                new_points = []
                 cs_name = 'cartesian'
                 if isinstance(points[-1], str):
                     points, cs_name = points[:-1], points[-1]
                 cs = cs_factory[cs_name]()
-                for p in points:
+                for i, p in enumerate(points):
+                    kwargs = {}
                     if isinstance(p, dict):
+                        kwargs = p
                         cs_kwargs = p.get('coordinate_system', 'cartesian')
                         if isinstance(cs_kwargs, str):
-                            p['coordinate_system'] = cs_factory[cs_kwargs]()
+                            kwargs['coordinate_system'] = cs_factory[cs_kwargs]()
                         elif isinstance(cs_kwargs, dict):
                             cs_name = cs_kwargs.pop('name')
-                            p['coordinate_system'] = cs_factory[cs_name](**cs_kwargs)
-                        new_p = Point(**p)
+                            kwargs['coordinate_system'] = cs_factory[cs_name](
+                                **cs_kwargs)
                     elif isinstance(p, list):
                         if len(p) == cs.dim and not isinstance(p[0], list):
-                            new_p = Point(coordinates=p, coordinate_system=cs)
-                        elif len(p) == cs.dim + 1 and not isinstance(p[0], list):
-                            cs = cs_factory['cartesian']()
-                            new_p = Point(coordinates=p[:3],
-                                          coordinate_system=cs,
-                                          meshSize=p[3])
+                            kwargs['coordinates'] = p
+                            kwargs['coordinate_system'] = cs
+                        elif len(p) == cs.dim + 1 and not isinstance(p[0],
+                                                                     list):
+                            kwargs['coordinates'] = p[:3]
+                            kwargs['coordinate_system'] = cs_factory['cartesian']()
+                            kwargs['meshSize'] = p[3]
                         else:
                             raise ValueError(p)
                     else:
                         raise ValueError(p)
                     if cs_name == 'cylindrical':
-                        new_p.coordinates[1] = np.deg2rad(new_p.coordinates[1])
+                        kwargs['coordinates'][1] = np.deg2rad(kwargs['coordinates'][1])
                     elif cs_name in ['spherical', 'toroidal', 'tokamak']:
-                        new_p.coordinates[1] = np.deg2rad(new_p.coordinates[1])
-                        new_p.coordinates[2] = np.deg2rad(new_p.coordinates[2])
-                    new_points.append(new_p)
-                points = new_points
-        elif isinstance(points, float) or isinstance(points, int):  # dx/dy/dz
-            a = 0.5 * points
-            points = [[a, a, -a], [-a, a, -a], [-a, -a, -a], [a, -a, -a],
-                      [a, a, a], [-a, a, a], [-a, -a, a], [a, -a, a]]
-            points = self.parse_points(points)
+                        kwargs['coordinates'][1] = np.deg2rad(kwargs['coordinates'][1])
+                        kwargs['coordinates'][2] = np.deg2rad(kwargs['coordinates'][2])
+                    points[i] = Point(**kwargs)
         else:
             raise ValueError(points)
         return points
@@ -217,49 +260,53 @@ class Block:
     def parse_curves(self, curves):
         curves = [{} for _ in range(12)] if curves is None else curves
         for i, c in enumerate(curves):
+            kwargs = {}
             if isinstance(c, dict):
-                curves[i] = Curve(**c)
+                kwargs = c
+                kwargs['points'] = self.parse_points(kwargs.get('points', []))
             elif isinstance(c, list):
-                new_c = Curve()
                 if len(c) > 0:
                     if not isinstance(c[0], str):
-                        Curve.name = 'polyline'
-                        Curve.points = c
+                        kwargs['name'] = 'polyline'
+                        kwargs['points'] = self.parse_points(c)
                     else:
                         if len(c) == 2:
-                            Curve.name = c[0]
-                            Curve.points = c[1]
+                            kwargs['name'] = c[0]
+                            kwargs['points'] = self.parse_points(c[1])
                         elif len(c) == 3:
-                            Curve.name = c[0]
-                            Curve.points = c[1]
-                            Curve.kwargs = c[2]
+                            kwargs['name'] = c[0]
+                            kwargs['points'] = self.parse_points(c[1])
+                            kwargs['kwargs'] = c[2]
                         else:
                             raise ValueError(c)
-                curves[i] = new_c
+                else:
+                    kwargs['name'] = 'line'
             else:
                 raise ValueError(c)
-            curves[i].points = self.parse_points(curves[i].points)
+            curves[i] = Curve(**kwargs)
         return curves
 
     def parse_surfaces(self, surfaces):
-        if surfaces is None:
-            surfaces = [{} for _ in range(6)]
+        surfaces = [{} for _ in range(6)] if surfaces is None else surfaces
         for i, s in enumerate(surfaces):
+            kwargs = {}
             if isinstance(s, dict):
-                surfaces[i] = Surface(**s)
+                kwargs = s
             else:
                 raise ValueError(s)
-            surfaces[i].name = 'fill'
+            kwargs['name'] = 'fill'  # Must be!
+            surfaces[i] = Surface(**kwargs)
         return surfaces
 
     def parse_volumes(self, volumes):
-        if volumes is None:
-            volumes = [{}]
+        volumes = [{}] if volumes is None else volumes
         for i, v in enumerate(volumes):
+            kwargs = {}
             if isinstance(v, dict):
-                volumes[i] = Volume(**v)
+                kwargs = v
             else:
                 raise ValueError(v)
+            volumes[i] = Volume(**kwargs)
         return volumes
 
     def parse_transforms(self, transforms, parent):
@@ -295,42 +342,42 @@ class Block:
             transforms[i] = transform_factory[name](**kwargs)
         return transforms
 
-    def parse_transfinite_all(self, transfinite_all):
-        if isinstance(transfinite_all, dict):
-            if 'curves' in transfinite_all:
-                value = copy.deepcopy(transfinite_all['curves'])
+    def parse_structure_all(self, structure_all):
+        if isinstance(structure_all, dict):
+            if 'curves' in structure_all:
+                value = copy.deepcopy(structure_all['curves'])
                 for i, c in enumerate(self.curves):
                     self.curves[i].structure = Structure(**value)
-            elif all(['curves_x' in transfinite_all,
-                      'curves_y' in transfinite_all,
-                      'curves_z' in transfinite_all]):
+            elif all(['curves_x' in structure_all,
+                      'curves_y' in structure_all,
+                      'curves_z' in structure_all]):
                 for i, c in enumerate(self.curves):
                     direction = self.curves_directions[i]
                     key = f'curves_{direction}'
-                    value = copy.deepcopy(transfinite_all[key])
+                    value = copy.deepcopy(structure_all[key])
                     self.curves[i].structure = Structure(**value)
             else:
-                raise ValueError(transfinite_all)
+                raise ValueError(structure_all)
             # Surfaces
             key = 'surfaces'
-            value = copy.deepcopy(self.transfinite_all.get(
+            value = copy.deepcopy(self.structure_all.get(
                 key, {'name': 'surface'}))
             for i, s in enumerate(self.surfaces):
                 self.surfaces[i].structure = Structure(**value)
             # Volume
             key = 'volumes'
-            value = copy.deepcopy(self.transfinite_all.get(
+            value = copy.deepcopy(self.structure_all.get(
                 key, {'name': 'volume'}))
             self.volumes[0].structure = Structure(**value)
-        elif isinstance(transfinite_all, list):
-            if len(transfinite_all) == 3:
+        elif isinstance(structure_all, list):
+            if len(structure_all) == 3:
                 # Curves
                 d2i = {'curves_x': 0, 'curves_y': 1, 'curves_z': 2}
                 for i, c in enumerate(self.curves):
                     direction = self.curves_directions[i]
                     key = f'curves_{direction}'
                     index = d2i[key]
-                    values = transfinite_all[index]
+                    values = structure_all[index]
                     value = {'name': 'curve',
                              'nPoints': values[0],
                              'meshType': values[1],
@@ -341,11 +388,11 @@ class Block:
                     self.surfaces[i].structure = Structure(name='surface')
                 # Volume
                 self.volumes[0].structure = Structure(name='volume')
-        elif transfinite_all is None:
+        elif structure_all is None:
             pass
         else:
-            raise ValueError(transfinite_all)
-        return transfinite_all
+            raise ValueError(structure_all)
+        return structure_all
 
     def register(self):
         # Children
@@ -400,6 +447,9 @@ class Block:
             c.transform()
         for i, p in enumerate(self.points):
             if isinstance(p.coordinate_system, cs_factory['block']):
+                if self.parent is None:
+                    raise ValueError(
+                        'The parent must exist with Block Coordinate System!')
                 p.coordinate_system.ps = [x.coordinates
                                           for x in self.parent.points]
             self.points[i] = reduce_transforms(self.transforms, p)
@@ -407,6 +457,9 @@ class Block:
         for i, c in enumerate(self.curves):
             for j, p in enumerate(c.points):
                 if isinstance(p.coordinate_system, cs_factory['block']):
+                    if self.parent is None:
+                        raise ValueError(
+                            'The parent must exist with Block Coordinate System!')
                     p.coordinate_system.ps = [x.coordinates
                                               for x in self.parent.points]
                 self.curves[i].points[j] = reduce_transforms(self.transforms, p)
@@ -430,7 +483,8 @@ class Block:
 
     def register_curves_loops(self):
         for i, cl in enumerate(self.curves_loops):
-            self.curves_loops[i].curves = [self.curves[x] for x in self.surfaces_curves[i]]
+            self.curves_loops[i].curves = [self.curves[x] for x in
+                                           self.surfaces_curves[i]]
             self.curves_loops[i].curves_signs = self.surfaces_curves_signs[i]
             self.curves_loops[i] = register_curve_loop(self.factory,
                                                        self.curves_loops[i],
@@ -439,7 +493,8 @@ class Block:
     def register_surfaces(self):
         for i, s in enumerate(self.surfaces):
             self.surfaces[i].curves_loops = [self.curves_loops[i]]
-            self.surfaces[i] = register_surface(self.factory, self.surfaces[i], self.register_tag)
+            self.surfaces[i] = register_surface(self.factory, self.surfaces[i],
+                                                self.register_tag)
 
     def register_surfaces_loops(self):
         # External
@@ -486,27 +541,27 @@ class Block:
 
     def recombine_surfaces(self):
         # Check all
-        if self.recombine_all is not None:
-            if isinstance(self.recombine_all, bool):
-                self.recombine_all = {}
-            elif isinstance(self.recombine_all, dict):
+        if self.quadrate_all is not None:
+            if isinstance(self.quadrate_all, bool):
+                self.quadrate_all = {}
+            elif isinstance(self.quadrate_all, dict):
                 pass
             else:
-                raise ValueError(self.recombine_all)
+                raise ValueError(self.quadrate_all)
             for i, s in enumerate(self.surfaces):
-                self.surfaces[i].quadrate = Quadrate(**self.recombine_all)
+                self.surfaces[i].quadrate = Quadrate(**self.quadrate_all)
         # Recombine
         for i, s in enumerate(self.surfaces):
             if s.quadrate is not None:
-                self.surfaces[i] = register_recombine_surface(s, self.factory)
+                self.surfaces[i] = register_quadrate_surface(s, self.factory)
 
-    def transfinite_curves(self):
+    def structure_curves(self):
         # Transfinite
         for i, c in enumerate(self.curves):
             if c.structure is not None:
-                self.curves[i] = register_transfinite_curve(c, self.factory)
+                self.curves[i] = register_structure_curve(c, self.factory)
 
-    def transfinite_surfaces(self):
+    def structure_surfaces(self):
         # Transfinite
         for i, s in enumerate(self.surfaces):
             all_tr_curves = all(self.curves[x].structure is not None for x in
@@ -516,9 +571,9 @@ class Block:
                     self.points[x]['kwargs']['tag']
                     for x in self.surfaces_points[i]]
                 s.structure.kwargs['arrangement'] = 'Right'
-                self.surfaces[i] = register_transfinite_surface(s, self.factory)
+                self.surfaces[i] = register_structure_surface(s, self.factory)
 
-    def transfinite_volume(self):
+    def structure_volume(self):
         # Transfinite
         v = self.volumes[0]
         all_tr_surfaces = all(x.quadrate is not None for x in self.surfaces)
@@ -527,147 +582,27 @@ class Block:
         if v.structure is not None and all_tr_surfaces and same_rec_surfaces:
             v.structure.kwargs['cornerTags'] = [x['kwargs']['tag']
                                                 for x in self.points]
-            self.volumes[0] = register_transfinite_volume(v, self.factory)
+            self.volumes[0] = register_structure_volume(v, self.factory)
 
-    def recombine(self):
+    def quadrate(self):
         # Children
         for i, c in enumerate(self.children):
-            c.recombine()
-        if self.is_recombined:
+            c.quadrate()
+        if self.is_quadrated:
             return
         self.recombine_surfaces()
-        self.is_recombined = True
+        self.is_quadrated = True
 
-    def transfinite(self):
+    def structure(self):
         # Children
         for i, c in enumerate(self.children):
-            c.transfinite()
-        if self.is_transfinited:
+            c.structure()
+        if self.is_structured:
             return
         # Curves
-        self.transfinite_curves()
+        self.structure_curves()
         # Surfaces
-        self.transfinite_surfaces()
+        self.structure_surfaces()
         # Volume
-        self.transfinite_volume()
-        self.is_transfinited = True
-
-# class Primitive:
-#     """
-#     Primitive is a basic object that topologically represents a cuboid
-#     i.e. a convex polyhedron bounded by six quadrilateral faces, whose polyhedral graph is the same as that of a cube.
-#
-#     | Primitive has 8 points, 12 curves, 6 surfaces and 1 volume.
-#     | Primitive is the only object that can be meshed in a structured mesh.
-#     | Primitive can contain internal volumes, if so it cannot be meshed in a structured mesh.
-#
-#     | **Object structure**
-#
-#     | **Axes**
-#     | Y
-#     | Z X
-#     | NX, NY and NZ are negative X, Y and Z directions
-#
-#     | **Points**
-#     | NZ:
-#     | P1 P0
-#     | P2 P3
-#     | Z:
-#     | P5 P4
-#     | P6 P7
-#
-#     | **Curves**
-#     | X direction curves from P0 by right-hand rule:
-#     | C0: P1 -> P0
-#     | C1: P5 -> P4
-#     | C2: P6 -> P7
-#     | C3: P2 -> P3
-#     | Y direction curves from P0 by right-hand rule:
-#     | C4: P3 -> P0
-#     | C5: P2 -> P1
-#     | C6: P6 -> P5
-#     | C7: P7 -> P4
-#     | Z direction curves from P0 by right-hand rule:
-#     | C8:  P0 -> P4
-#     | C9:  P1 -> P5
-#     | C10: P2 -> P6
-#     | C11: P3 -> P7
-#
-#     | **Surfaces**
-#     | NX surface
-#     | S0: C5  -> C9  -> -C6 -> -C10
-#     | X surface
-#     | S1: -C4 -> C11 -> C7  -> -C8
-#     | NY surface
-#     | S2: -C3 -> C10 -> C2  -> -C11
-#     | Y surface
-#     | S3: C0  -> C8  -> -C1 -> -C9
-#     | NZ surface
-#     | S4: -C0 -> -C5 ->  C3 -> C4
-#     | Z surface
-#     | S5: C1  -> -C7 -> -C2 -> C6
-#
-#     Args:
-#         factory (str): gmsh factory
-#             - 'geo' - gmsh
-#             - 'occ' - OpenCASCADE
-#         point_data (:obj:`numpy.ndarray`, optional): could be
-#             - | Coordinates of points with characteristic lengths
-#               | [[P0_X, P0_Y, P0_Z, P0_LC],
-#               | [[P1_X, P1_Y, P1_Z, P1_LC],
-#               | ...,
-#               | [P7_X, P7_Y, P7_Z, P7_LC]]
-#             - | Coordinates of points
-#               | [[P0_X, P0_Y, P0_Z],
-#               | [[P1_X, P1_Y, P1_Z],
-#               | ...,
-#               | [P7_X, P7_Y, P7_Z]]
-#             - | Lengths by axes with characteristic length
-#               | [L_X, L_Y, L_Z, LC]
-#             - | Lengths by axes
-#               | [L_X, L_Y, L_Z]
-#         transform_data (list of transformation, optional):
-#             transformations of points,
-#             where transformation is a 2-tuple of data and mask
-#
-#             - | [[DX, DY, DZ], [P0_M, P1_M, ..., P7_M]]
-#             - | [[RDX, RDY, RDZ, RA], [P0_M, P1_M, ..., P7_M]]
-#             - | [[ROX, ROY, ROZ, RDX, RDY, RDZ, RA], [P0_M, P1_M, ..., P7_M]]
-#             | where:
-#             - | DX, DY, DZ - displacement
-#             - | ROX, ROY, ROZ - origin of rotation
-#             - | RDX, RDY, RDZ - direction of rotation
-#             - | RA - angle of rotation
-#             - | P0_M, P1_M, ..., P7_M - masks of points (0 - do transformation, 1 - do not)
-#         curve_types (list of int):
-#             [C0_TYPE, C1_TYPE, ..., C11_TYPE],
-#
-#             | TYPE:
-#             - | 0 - line,
-#             - | 1 - circle,
-#             - | 2 - ellipse (FIXME not implemented for occ factory),
-#             - | 3 - spline,
-#             - | 4 - bspline (number of curve points > 1),
-#             - | 5 - bezier curve
-#         curve_data (list of list of list of float):
-#             [[[line1_point1_x, line1_point1_y, line1_point1_z, line1_point1_lc],
-#             ...], ..., [[line_12..., ...], ...]]] or
-#             [[[line1_point1_x, line1_point1_y, line1_point1_z], ...],
-#             ..., [[line_12_point_1, ...], ...]]]
-#         transfinite_data (list of list of float):
-#             [[line1 number of nodes, type, coefficient], ..., [line12 ...]]
-#             or [[x_lines number of nodes, type, coefficient], [y_lines ...],
-#             [z_lines ...]]
-#             types: 0 - progression, 1 - bump
-#         transfinite_type (int): 0, 1, 2 or 4 determines orientation
-#             of surfaces' tetrahedra at structured volume
-#         volume_name (str): primitive's volumes physical name
-#         inner_volumes (list of int): inner volumes,
-#             no effect at 'occ' factory, if point_data is None wrap these volumes
-#             as Primitive.volumes
-#         surfaces_names (list of str): names of boundary surfaces in order:
-#             NX, X, NY, Y, NZ, Z.
-#         rec (int): Recombine Primitive?
-#         trans (int): Transfinite Primitive?
-#     """
-#
+        self.structure_volume()
+        self.is_structured = True

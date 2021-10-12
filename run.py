@@ -221,10 +221,10 @@ if __name__ == '__main__':
     logging.info(f'Synchronize: {time.perf_counter() - t0:.3f}s')
     if factory == 'occ':
         t0 = time.perf_counter()
-        top_block.recombine()
+        top_block.quadrate()
         logging.info(f'Recombine: {time.perf_counter() - t0:.3f}s')
         t0 = time.perf_counter()
-        top_block.transfinite()
+        top_block.structure()
         logging.info(f'Transfinite: {time.perf_counter() - t0:.3f}s')
     t0 = time.perf_counter()
     gmsh.model.mesh.generate(3)

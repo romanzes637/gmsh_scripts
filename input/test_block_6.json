@@ -5,7 +5,7 @@
   "data": {
     "factory": "geo",
     "points": [0.01, 0.01, 0.005, "block"],
-    "recombine_all": true,
-    "transfinite_all": [[3, 0, 1], [4, 0, 1], [5, 0, 1]]
+    "quadrate_all": true,
+    "structure_all": [[3, 0, 1], [4, 0, 1], [5, 0, 1]]
   }
 }

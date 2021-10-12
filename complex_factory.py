@@ -211,12 +211,12 @@ if __name__ == '__main__':
             logging.info('Transfinite')
             t0 = time.perf_counter()
             ss, cs = set(), set()  # surfaces, curves
-            c.transfinite(ss, cs)
+            c.structure(ss, cs)
             logging.info(f'Transfinite: {time.perf_counter() - t0:.3f}s')
         if args['recombine']:
             logging.info('Recombine')
             t0 = time.perf_counter()
-            c.recombine()
+            c.quadrate()
             logging.info(f'Recombine: {time.perf_counter() - t0:.3f}s')
         if args['auto_size'] is not None:
             logging.info('Auto Size: {}'.format(args['auto_size']))

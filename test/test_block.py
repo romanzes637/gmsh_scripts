@@ -493,7 +493,7 @@ class TestBlock(unittest.TestCase):
                      ]
                      },
                 ],
-                recombine_all=True,
+                quadrate_all=True,
                 #   transfinite_all={
                 #     'curves': {
                 #       'nPoints': 15,
@@ -504,7 +504,7 @@ class TestBlock(unittest.TestCase):
                 #         'coef': args.get('transfinite_curve_coef', 1.)
                 #       }}}
                 # ),
-                transfinite_all={
+                structure_all={
                     'curves_x': {
                         'nPoints': 10,
                         'kwargs': {
@@ -684,12 +684,12 @@ class TestBlock(unittest.TestCase):
             b3.register()
             print(f'Register: {time.perf_counter() - t0}s')
             if kws['factory'] == 'geo':
-                b.recombine()
-                b2.recombine()
-                b3.recombine()
-                b.transfinite()
-                b2.transfinite()
-                b3.transfinite()
+                b.quadrate()
+                b2.quadrate()
+                b3.quadrate()
+                b.structure()
+                b2.structure()
+                b3.structure()
             if kws['factory'] == 'geo':
                 gmsh.model.geo.synchronize()
             elif kws['factory'] == 'occ':
@@ -697,12 +697,12 @@ class TestBlock(unittest.TestCase):
             else:
                 raise ValueError(kws['factory'])
             if kws['factory'] == 'occ':
-                b.recombine()
-                b2.recombine()
-                b3.recombine()
-                b.transfinite()
-                b2.transfinite()
-                b3.transfinite()
+                b.quadrate()
+                b2.quadrate()
+                b3.quadrate()
+                b.structure()
+                b2.structure()
+                b3.structure()
             gmsh.model.mesh.generate(3)
             gmsh.write(f'{model_name}.{kws["output_format"]}')
             # reset_registry()

@@ -22,7 +22,7 @@ class Complex:
     def transfinite(self, transfinited_surfaces, transfinited_curves):
         # results = list()
         for p in self.primitives:
-            p.transfinite(transfinited_surfaces, transfinited_curves)
+            p.structure(transfinited_surfaces, transfinited_curves)
             # result = p.transfinite(transfinited_surfaces, transfinited_curves)
             # results.append(result)
         # return results
@@ -82,4 +82,4 @@ class Complex:
 
     def recombine(self):
         for p in self.primitives:
-            p.recombine()
+            p.quadrate()
