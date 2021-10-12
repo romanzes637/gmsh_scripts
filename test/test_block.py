@@ -1014,6 +1014,110 @@ class TestBlock(unittest.TestCase):
             gmsh.model.mesh.generate(3)
             gmsh.write(f'{model_name}.{kws["output_format"]}')
 
+    @gmsh_decorator
+    def test_boolean(self):
+        kwargs = {
+            'factory': ['occ'],
+            # 'factory': ['geo'],
+            # 'register_tag': [True, False],
+            # 'register_tag': [True, False],
+            # 'recombine_angle': [45.],
+            # 'transfinite_curve_mesh_type': ['Progression', 'Bump', 'Beta'],
+            # 'transfinite_curve_coef': [0.75, 1.0, 1.5],
+            'output_format': [
+                'msh2', 'geo_unrolled'
+              # 'vtk', 'stl',
+              # 'brep', 'step'
+              ]
+            # auto, msh1, msh2, msh22, msh3, msh4, msh40, msh41, msh, unv,
+            # vtk, wrl, mail, stl, p3d, mesh, bdf, cgns, med, diff, ir3, inp,
+            # ply2, celum, su2, x3d, dat, neu, m, key
+        }
+        filter_kwargs = [{'factory': 'geo',
+                          'output_format': 'brep'},
+                         {'factory': 'geo',
+                          'output_format': 'step'}]
+        kwargs_combs = make_kwargs_combinations(kwargs, filter_kwargs)
+        for kws in kwargs_combs:
+            name_suffix = '-'.join(f'{k}_{v}' for k, v in kws.items())
+            model_name = f'test_boolean-{name_suffix}'
+            gmsh.model.add(model_name)
+            print(model_name)
+            reset_registry()
+            factory = kws.get('factory', 'geo')
+            b1 = Block(factory=factory,
+                       points=[[0.5, 0.5, -0.5],
+                               [-0.5, 0.5, -0.5],
+                               [-0.5, -0.5, -0.5],
+                               [0.5, -0.5, -0.5],
+                               [0.5, 0.5, 0.5],
+                               [-0.5, 0.5, 0.5],
+                               [-0.5, -0.5, 0.5],
+                               [0.5, -0.5, 0.5]],
+                       boolean_level=0
+                       )
+            b2 = Block(factory=factory,
+                       points=[[0.5, 0.5, -0.5],
+                               [-0.5, 0.5, -0.5],
+                               [-0.5, -0.5, -0.5],
+                               [0.5, -0.5, -0.5],
+                               [0.5, 0.5, 0.5],
+                               [-0.5, 0.5, 0.5],
+                               [-0.5, -0.5, 0.5],
+                               [0.5, -0.5, 0.5],
+                               'block'],
+                       transforms=['block_to_cartesian'],
+                       parent=b1,
+                       boolean_level=1
+                       )
+            b1.add_child(b2)
+            b3 = Block(factory=factory,
+                       points=[[0.5, 0.5, -0.1],
+                               [-0.5, 0.5, -0.1],
+                               [-0.5, -0.5, -0.1],
+                               [0.5, -0.5, -0.1],
+                               [0.5, 0.5, 0.5],
+                               [-0.5, 0.5, 0.5],
+                               [-0.5, -0.5, 0.5],
+                               [0.5, -0.5, 0.5],
+                               'block'],
+                       transforms=['block_to_cartesian'],
+                       parent=b2,
+                       boolean_level=2
+                       )
+            b2.add_child(b3)
+            b4 = Block(factory=factory,
+                       points=[[0.5, 0.5, -0.5],
+                               [-0.5, 0.5, -0.5],
+                               [-0.5, -0.5, -0.5],
+                               [0.5, -0.5, -0.5],
+                               [0.5, 0.5, 0.1],
+                               [-0.5, 0.5, 0.1],
+                               [-0.5, -0.5, 0.1],
+                               [0.5, -0.5, 0.1],
+                               'block'],
+                       transforms=['block_to_cartesian'],
+                       parent=b2,
+                       boolean_level=3
+                       )
+            b2.add_child(b4)
+            b1.transform()
+            b1.register()
+            if factory == 'occ':
+                gmsh.model.occ.synchronize()  # for bounding box
+                b1.boolean()
+            if factory == 'geo':
+                gmsh.model.geo.synchronize()
+            elif factory == 'occ':
+                gmsh.model.occ.removeAllDuplicates()
+                gmsh.model.occ.synchronize()
+            else:
+                raise ValueError(factory)
+            print(gmsh.model.getEntities(3))
+            # gmsh.model.occ.synchronize()
+            gmsh.model.mesh.generate(3)
+            gmsh.write(f'{model_name}.{kws["output_format"]}')
+
 
 if __name__ == '__main__':
     unittest.main()
