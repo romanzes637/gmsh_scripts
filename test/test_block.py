@@ -837,7 +837,8 @@ class TestBlock(unittest.TestCase):
             else:
                 raise ValueError(kws['factory'])
             b1.unregister()
-            gmsh.model.mesh.generate(3)
+            if kws['output_format'] != 'geo_unrolled':
+                gmsh.model.mesh.generate(3)
             gmsh.write(f'{model_name}.{kws["output_format"]}')
 
     @gmsh_decorator
@@ -1012,7 +1013,8 @@ class TestBlock(unittest.TestCase):
                 gmsh.model.occ.synchronize()
             else:
                 raise ValueError(factory)
-            gmsh.model.mesh.generate(3)
+            if kws['output_format'] != 'geo_unrolled':
+                gmsh.model.mesh.generate(3)
             gmsh.write(f'{model_name}.{kws["output_format"]}')
 
     @gmsh_decorator
@@ -1021,16 +1023,16 @@ class TestBlock(unittest.TestCase):
             'factory': ['occ'],
             'boolean_type': ['with_bboxes', 'without_bboxes'],
             # 'factory': ['geo'],
-            # 'register_tag': [True, False],
+            'register_tag': [True, False],
             # 'register_tag': [True, False],
             # 'recombine_angle': [45.],
             # 'transfinite_curve_mesh_type': ['Progression', 'Bump', 'Beta'],
             # 'transfinite_curve_coef': [0.75, 1.0, 1.5],
             'output_format': [
-                # 'msh2',
-                'geo_unrolled'
-              # 'vtk', 'stl',
-              # 'brep', 'step'
+                'geo_unrolled',
+                'msh2',
+                # 'vtk', 'stl',
+                # 'brep', 'step'
               ]
             # auto, msh1, msh2, msh22, msh3, msh4, msh40, msh41, msh, unv,
             # vtk, wrl, mail, stl, p3d, mesh, bdf, cgns, med, diff, ir3, inp,
@@ -1105,6 +1107,7 @@ class TestBlock(unittest.TestCase):
                        transforms=['block_to_cartesian'],
                        parent=b2,
                        boolean_level=2,
+                       do_unregister=True,
                        volumes=[{'zone': 'ca'}]
                        )
             b2.add_child(b4)
@@ -1121,6 +1124,7 @@ class TestBlock(unittest.TestCase):
                        transforms=['block_to_cartesian'],
                        parent=b1,
                        boolean_level=2,
+                       do_unregister=True,
                        volumes=[{'zone': 'bb'}]
                        )
             b1.add_child(b5)
@@ -1135,10 +1139,13 @@ class TestBlock(unittest.TestCase):
                 if kws['boolean_type'] == 'without_bboxes':
                     boolean(b1)
                 elif kws['boolean_type'] == 'with_bboxes':
-                    gmsh.model.occ.synchronize()
+                    gmsh.model.occ.synchronize()  # for evaluation of bboxes
                     boolean_with_bounding_boxes(b1)
                 gmsh.model.occ.removeAllDuplicates()
                 print(f'boolean: {time.perf_counter() - t0}')
+            t0 = time.perf_counter()
+            b1.unregister()
+            print(f'unregister: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             if factory == 'geo':
                 gmsh.model.geo.synchronize()
@@ -1147,18 +1154,27 @@ class TestBlock(unittest.TestCase):
             else:
                 raise ValueError(factory)
             print(f'synchronize: {time.perf_counter() - t0}')
+            if factory == 'occ':
+                t0 = time.perf_counter()
+                b1.quadrate()
+                print(f'quadrate: {time.perf_counter() - t0}')
+                t0 = time.perf_counter()
+                b1.structure()
+                print(f'structure: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
-            blocks = b1.get_all_blocks()
             zone2tag = {}
+            blocks = b1.get_all_blocks()
             for i, b in enumerate(blocks):
                 for v in b.volumes:
-                    zone2tag.setdefault(v.zone, []).append(v.tag)
+                    if v.tag is not None:
+                        zone2tag.setdefault(v.zone, []).append(v.tag)
             for zone, tags in zone2tag.items():
                 tag = gmsh.model.addPhysicalGroup(3, tags)
                 gmsh.model.setPhysicalName(3, tag, zone)
             print(f'zones: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
-            gmsh.model.mesh.generate(3)
+            if kws['output_format'] != 'geo_unrolled':
+                gmsh.model.mesh.generate(3)
             print(f'mesh: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             gmsh.write(f'{model_name}.{kws["output_format"]}')

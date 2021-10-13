@@ -18,6 +18,7 @@ from support import boundary_surfaces_to_six_side_groups, \
     auto_complex_points_sizes_min_curve_in_volume, set_boundary_points_sizes, \
     auto_boundary_points_sizes_min_edge_in_surface, \
     set_points_sizes, get_interior_surfaces
+from boolean import boolean, boolean_with_bounding_boxes
 
 block_factory = {
     'Block': block.Block
@@ -84,7 +85,8 @@ if __name__ == '__main__':
     parser.add_argument('-T', '--test', help='test mode', action='store_true')
     parser.add_argument('-r', '--recombine', help='recombine',
                         action='store_true')
-    parser.add_argument('-b', '--boolean', help='boolean', action='store_true')
+    parser.add_argument('-b', '--boolean', help='boolean', default=None,
+                        choices=['without-bboxes', 'with-bboxes'])
     parser.add_argument('-B', '--boundary_type',
                         help='boundary type: 6, primitive, all, '
                              'path_to_file_with_surfaces_map',
@@ -206,11 +208,24 @@ if __name__ == '__main__':
     logging.info(f'Register: {time.perf_counter() - t0:.3f}s')
     if factory == 'geo':
         t0 = time.perf_counter()
-        # top_block.recombine()
+        top_block.quadrate()
         logging.info(f'Recombine: {time.perf_counter() - t0:.3f}s')
         t0 = time.perf_counter()
-        # top_block.transfinite()
+        top_block.structure()
         logging.info(f'Transfinite: {time.perf_counter() - t0:.3f}s')
+    if factory == 'occ':
+        if args['boolean'] is not None:
+            for b in blocks:  # TODO Do it or not?
+                if b.boolean_level is None:
+                    b.boolean_level = 0
+            t0 = time.perf_counter()
+            if args['boolean'] == 'without-bboxes':
+                boolean(top_block)
+            elif args['boolean'] == 'with-bboxes':
+                gmsh.model.occ.synchronize()  # for evaluation of bboxes
+                boolean_with_bounding_boxes(top_block)
+            gmsh.model.occ.removeAllDuplicates()
+            logging.info(f'Boolean: {time.perf_counter() - t0:.3f}s')
     t0 = time.perf_counter()
     if factory == 'geo':
         gmsh.model.geo.synchronize()

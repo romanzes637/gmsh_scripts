@@ -27,10 +27,10 @@ def boolean_with_bounding_boxes(block):
     logging.info(f'n_blocks: {n_blocks}')
     bbs = []
     for b in blocks:
-        # FIXME wrong bboxes!
-        bboxes = np.array([gmsh.model.getBoundingBox(3, x.tag) for x in b.volumes])
-        bbox = np.concatenate([bboxes[:, :3].min(axis=0),
-                               bboxes[:, 3:].max(axis=0)])
+        # FIXME wrong bounding boxes!
+        vs_bbs = np.array([gmsh.model.getBoundingBox(3, x.tag) for x in b.volumes])
+        bbox = np.concatenate([vs_bbs[:, :3].min(axis=0),
+                               vs_bbs[:, 3:].max(axis=0)])
         bbs.append(bbox)
     n_combinations = int(0.5 * (n_blocks * n_blocks - n_blocks))
     logging.info(f'n_combinations: {n_combinations}')
@@ -41,10 +41,9 @@ def boolean_with_bounding_boxes(block):
         bb0, bb1 = bbs[i0], bbs[i1]
         # Check bbox intersection
         do_boolean = True
-        # xmin, ymin, zmin, xmax, ymax, zmax
-        if any((bb0[0] > bb1[3] or bb0[3] < bb1[0],  # xmin > xmax or xmax < xmin
-                bb0[1] > bb1[4] or bb0[1] > bb1[4],  # ymin > ymax or ymax < ymin
-                bb0[2] > bb1[5] or bb0[2] > bb1[5])):  # zmin > zmax or zmax < zmin
+        # for x, y, z: min > max, max < min
+        if any((bb0[0] > bb1[3], bb0[3] < bb1[0], bb0[1] > bb1[4],
+                bb0[1] > bb1[4], bb0[2] > bb1[5], bb0[2] > bb1[5])):
             do_boolean = False
         logging.info(f'bbox intersection: {do_boolean}')
         # Do boolean operation
@@ -53,7 +52,7 @@ def boolean_with_bounding_boxes(block):
             block_by_block(b0, b1)
 
 
-def block_by_block(b0, b1):
+def block_by_block(b0, b1, zone_separator='-'):
     # Object/Tool choice
     if b0.boolean_level is None or b1.boolean_level is None:
         return
@@ -105,7 +104,7 @@ def block_by_block(b0, b1):
                 new_zs = {zs[x] for x in old_ids}
                 if None not in new_zs:
                     v = Volume(tag=new_tag,
-                               zone='-'.join(sorted(new_zs)),
+                               zone=zone_separator.join(sorted(new_zs)),
                                name=v.name,
                                structure=v.structure,
                                quadrate=v.quadrate)

@@ -526,22 +526,29 @@ class Block:
         self.volumes[0] = register_volume(self.factory, v, self.register_tag)
         self.is_registered = True
 
-    def unregister(self):
+    def unregister(self, zone_filters=('-',)):
         # Children
         if self.do_unregister_children:
             for i, c in enumerate(self.children):
-                c.unregister()
+                c.unregister(zone_filters)
         # Self
         if not self.do_unregister:
             return
         if self.is_registered:
             for i, v in enumerate(self.volumes):
-                self.volumes[i] = unregister_volume(self.factory, v,
-                                                    self.register_tag)
+                check = True
+                if v.zone is not None:
+                    for f in zone_filters:
+                        if f in v.zone:
+                            check = False
+                            break
+                if check:
+                    self.volumes[i] = unregister_volume(self.factory, v,
+                                                        self.register_tag)
         else:
             raise ValueError('Block is not registered')
 
-    def recombine_surfaces(self):
+    def quadrate_surfaces(self):
         # Check all
         if self.quadrate_all is not None:
             if isinstance(self.quadrate_all, bool):
@@ -552,53 +559,55 @@ class Block:
                 raise ValueError(self.quadrate_all)
             for i, s in enumerate(self.surfaces):
                 self.surfaces[i].quadrate = Quadrate(**self.quadrate_all)
-        # Recombine
+        # Quadrate
         for i, s in enumerate(self.surfaces):
             if s.quadrate is not None:
                 self.surfaces[i] = register_quadrate_surface(s, self.factory)
 
     def structure_curves(self):
-        # Transfinite
+        # Structure
         for i, c in enumerate(self.curves):
             if c.structure is not None:
                 self.curves[i] = register_structure_curve(c, self.factory)
 
     def structure_surfaces(self):
-        # Transfinite
+        # Structure
         for i, s in enumerate(self.surfaces):
             all_tr_curves = all(self.curves[x].structure is not None for x in
                                 self.surfaces_curves[i])
             if all_tr_curves and s.structure is not None:
                 s.structure.kwargs['cornerTags'] = [
-                    self.points[x]['kwargs']['tag']
-                    for x in self.surfaces_points[i]]
+                    self.points[x].tag for x in self.surfaces_points[i]]
                 s.structure.kwargs['arrangement'] = 'Right'
                 self.surfaces[i] = register_structure_surface(s, self.factory)
 
     def structure_volume(self):
-        # Transfinite
+        # Structure
         v = self.volumes[0]
         all_tr_surfaces = all(x.quadrate is not None for x in self.surfaces)
         same_rec_surfaces = len(
             set(x.structure is not None for x in self.surfaces)) == 1
         if v.structure is not None and all_tr_surfaces and same_rec_surfaces:
-            v.structure.kwargs['cornerTags'] = [x['kwargs']['tag']
-                                                for x in self.points]
+            v.structure.kwargs['cornerTags'] = [x.tag for x in self.points]
             self.volumes[0] = register_structure_volume(v, self.factory)
 
     def quadrate(self):
         # Children
         for i, c in enumerate(self.children):
             c.quadrate()
+        if self.boolean_level is not None:  # TODO quadrate after boolean
+            return
         if self.is_quadrated:
             return
-        self.recombine_surfaces()
+        self.quadrate_surfaces()
         self.is_quadrated = True
 
     def structure(self):
         # Children
         for i, c in enumerate(self.children):
             c.structure()
+        if self.boolean_level is not None:  # TODO structure after boolean
+            return
         if self.is_structured:
             return
         # Curves
