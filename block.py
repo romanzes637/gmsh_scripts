@@ -609,99 +609,17 @@ class Block:
         self.structure_volume()
         self.is_structured = True
 
-    def boolean(self):
-        import gmsh
-
-        blocks = []
+    def get_all_blocks(self):
+        """
+        Recursively collect blocks through children
+        Returns:
+            blocks(list of Block): list of blocks
+        """
         def get_blocks(block, blocks):
             blocks.append(block)
-            for c in block.children:
-                get_blocks(c, blocks)
+            for b in block.children:
+                get_blocks(b, blocks)
 
-        get_blocks(self, blocks)
-        print([x.volumes[0].tag for x in blocks])
-        bboxes = []
-        for b in blocks:
-            vs = [x.tag for x in b.volumes]
-            x_mins, y_mins, z_mins, x_maxs, y_maxs, z_maxs, = [], [], [], [], [], []
-            for v in vs:
-                x_min, y_min, z_min, x_max, y_max, z_max = gmsh.model.getBoundingBox(3, v)
-                x_mins.append(x_min)
-                y_mins.append(y_min)
-                z_mins.append(z_min)
-                x_maxs.append(x_max)
-                y_maxs.append(y_max)
-                z_maxs.append(z_max)
-            bbox = [min(x_mins), min(y_mins), min(z_mins),
-                    max(x_maxs), max(y_maxs), max(z_maxs)]
-            bboxes.append(bbox)
-        print(bboxes)
-        combs = list(itertools.combinations(range(len(blocks)), 2))
-        while len(combs) > 0:
-            new_blocks = []
-            for bc in combs:
-                print(bc)
-                b0, b1 = blocks[bc[0]], blocks[bc[1]]
-                if b0.boolean_level is None or b1.boolean_level is None:
-                    continue
-                # elif b0.boolean_level == b1.boolean_level:
-                #     continue
-                elif b0.boolean_level >= b1.boolean_level:
-                    obj = b1
-                    tool = b0
-                elif b0.boolean_level < b1.boolean_level:
-                    obj = b0
-                    tool = b1
-                else:
-                    raise ValueError(b0.boolean_level, b1.boolean_level)
-                # Block volumes
-                obj_vs = [(3, x.tag) for x in obj.volumes]
-                tool_vs = [(3, x.tag) for x in tool.volumes]
-                print(obj_vs, tool_vs)
-                # Boolean operation
-                out_vs, old_to_new = gmsh.model.occ.fragment(
-                    objectDimTags=obj_vs,
-                    toolDimTags=tool_vs,
-                    removeObject=True,
-                    removeTool=True)
-                print(out_vs, old_to_new)
-                # New volumes counter (Shared volumes have counter > 1)
-                out_vs_cnt = {}
-                for vs in old_to_new:
-                    for v in vs:
-                        tag = v[1]
-                        out_vs_cnt.setdefault(tag, 0)
-                        out_vs_cnt[tag] += 1
-                print(out_vs_cnt)
-                # New volumes
-                new_obj_vs = old_to_new[:len(obj_vs)]
-                new_tool_vs = old_to_new[len(obj_vs):]
-                print(new_obj_vs, new_tool_vs)
-                # Update object volumes
-                new_volumes = []
-                for i, old_v in enumerate(obj.volumes):
-                    vs = new_obj_vs[i]
-                    for new_v in vs:
-                        new_tag = new_v[1]
-                        if out_vs_cnt[new_tag] == 1:  # Don't add shared volume
-                            new_volumes.append(Volume(tag=new_tag,
-                                                      zone=old_v.zone,
-                                                      name=old_v.name,
-                                                      structure=old_v.structure,
-                                                      quadrate=old_v.quadrate))
-                obj.volumes = new_volumes
-                # Update tool volumes
-                new_volumes = []
-                for i, old_v in enumerate(tool.volumes):
-                    vs = new_tool_vs[i]
-                    for new_v in vs:
-                        new_tag = new_v[1]
-                        new_volumes.append(Volume(tag=new_tag,
-                                                  zone=old_v.zone,
-                                                  name=old_v.name,
-                                                  structure=old_v.structure,
-                                                  quadrate=old_v.quadrate))
-                tool.volumes = new_volumes
-                print([x.tag for x in obj.volumes])
-                print([x.tag for x in tool.volumes])
-            combs = new_blocks
+        bs = []
+        get_blocks(self, bs)
+        return bs

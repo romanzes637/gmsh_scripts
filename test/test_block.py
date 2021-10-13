@@ -7,6 +7,7 @@ import time
 import gmsh
 
 from registry import reset as reset_registry
+from boolean import boolean, boolean_with_bounding_boxes
 from block import Block
 
 
@@ -1018,6 +1019,7 @@ class TestBlock(unittest.TestCase):
     def test_boolean(self):
         kwargs = {
             'factory': ['occ'],
+            'boolean_type': ['with_bboxes', 'without_bboxes'],
             # 'factory': ['geo'],
             # 'register_tag': [True, False],
             # 'register_tag': [True, False],
@@ -1025,7 +1027,8 @@ class TestBlock(unittest.TestCase):
             # 'transfinite_curve_mesh_type': ['Progression', 'Bump', 'Beta'],
             # 'transfinite_curve_coef': [0.75, 1.0, 1.5],
             'output_format': [
-                'msh2', 'geo_unrolled'
+                # 'msh2',
+                'geo_unrolled'
               # 'vtk', 'stl',
               # 'brep', 'step'
               ]
@@ -1054,7 +1057,8 @@ class TestBlock(unittest.TestCase):
                                [-0.5, 0.5, 0.5],
                                [-0.5, -0.5, 0.5],
                                [0.5, -0.5, 0.5]],
-                       boolean_level=0
+                       boolean_level=1,
+                       volumes=[{'zone': 'a'}]
                        )
             b2 = Block(factory=factory,
                        points=[[0.5, 0.5, -0.5],
@@ -1068,7 +1072,8 @@ class TestBlock(unittest.TestCase):
                                'block'],
                        transforms=['block_to_cartesian'],
                        parent=b1,
-                       boolean_level=1
+                       boolean_level=0,
+                       volumes=[{'zone': 'ba'}]
                        )
             b1.add_child(b2)
             b3 = Block(factory=factory,
@@ -1083,7 +1088,8 @@ class TestBlock(unittest.TestCase):
                                'block'],
                        transforms=['block_to_cartesian'],
                        parent=b2,
-                       boolean_level=2
+                       boolean_level=2,
+                       volumes=[{'zone': 'cb'}]
                        )
             b2.add_child(b3)
             b4 = Block(factory=factory,
@@ -1098,25 +1104,65 @@ class TestBlock(unittest.TestCase):
                                'block'],
                        transforms=['block_to_cartesian'],
                        parent=b2,
-                       boolean_level=3
+                       boolean_level=2,
+                       volumes=[{'zone': 'ca'}]
                        )
             b2.add_child(b4)
+            b5 = Block(factory=factory,
+                       points=[[0.95, 0.95, 0.1],
+                               [0.90, 0.95, 0.1],
+                               [0.90, 0.90, 0.1],
+                               [0.95, 0.90, 0.1],
+                               [0.95, 0.95, 0.2],
+                               [0.90, 0.95, 0.2],
+                               [0.90, 0.90, 0.2],
+                               [0.95, 0.90, 0.2],
+                               'block'],
+                       transforms=['block_to_cartesian'],
+                       parent=b1,
+                       boolean_level=2,
+                       volumes=[{'zone': 'bb'}]
+                       )
+            b1.add_child(b5)
+            t0 = time.perf_counter()
             b1.transform()
+            print(f'transform: {time.perf_counter() - t0}')
+            t0 = time.perf_counter()
             b1.register()
+            print(f'register: {time.perf_counter() - t0}')
             if factory == 'occ':
-                gmsh.model.occ.synchronize()  # for bounding box
-                b1.boolean()
+                t0 = time.perf_counter()
+                if kws['boolean_type'] == 'without_bboxes':
+                    boolean(b1)
+                elif kws['boolean_type'] == 'with_bboxes':
+                    gmsh.model.occ.synchronize()
+                    boolean_with_bounding_boxes(b1)
+                gmsh.model.occ.removeAllDuplicates()
+                print(f'boolean: {time.perf_counter() - t0}')
+            t0 = time.perf_counter()
             if factory == 'geo':
                 gmsh.model.geo.synchronize()
             elif factory == 'occ':
-                gmsh.model.occ.removeAllDuplicates()
                 gmsh.model.occ.synchronize()
             else:
                 raise ValueError(factory)
-            print(gmsh.model.getEntities(3))
-            # gmsh.model.occ.synchronize()
+            print(f'synchronize: {time.perf_counter() - t0}')
+            t0 = time.perf_counter()
+            blocks = b1.get_all_blocks()
+            zone2tag = {}
+            for i, b in enumerate(blocks):
+                for v in b.volumes:
+                    zone2tag.setdefault(v.zone, []).append(v.tag)
+            for zone, tags in zone2tag.items():
+                tag = gmsh.model.addPhysicalGroup(3, tags)
+                gmsh.model.setPhysicalName(3, tag, zone)
+            print(f'zones: {time.perf_counter() - t0}')
+            t0 = time.perf_counter()
             gmsh.model.mesh.generate(3)
+            print(f'mesh: {time.perf_counter() - t0}')
+            t0 = time.perf_counter()
             gmsh.write(f'{model_name}.{kws["output_format"]}')
+            print(f'write: {time.perf_counter() - t0}')
 
 
 if __name__ == '__main__':
