@@ -7,12 +7,15 @@ import itertools
 
 from support import volumes_surfaces_to_volumes_groups_surfaces
 from transform import factory as transform_factory
+from transform import BlockToCartesian
 from transform import reduce_transforms
 from registry import register_point, register_curve, register_curve_loop, \
     register_surface, register_surface_loop, register_volume, \
     register_quadrate_surface, register_structure_curve, \
     register_structure_surface, register_structure_volume, unregister_volume
 from coordinate_system import factory as cs_factory
+from coordinate_system import Cartesian, Cylindrical, Spherical, Toroidal, Tokamak
+from coordinate_system import Block as BlockCS
 from point import Point
 from curve import Curve
 from curve_loop import CurveLoop
@@ -24,6 +27,75 @@ from quadrate import Quadrate
 
 
 class Block:
+    """Basic building block of the mesh
+
+    Block is a cuboid with 8 points, 12 curves, 6 surfaces and 1 volume.
+
+    | **Axes**
+    | Y
+    | Z X
+    | NX, NY and NZ are negative X, Y and Z directions
+
+    | **Points**
+    | NZ:
+    | P1 P0
+    | P2 P3
+    | Z:
+    | P5 P4
+    | P6 P7
+
+    | **Curves**
+    | X direction curves from P0 by right-hand rule:
+    | C0: P1 -> P0
+    | C1: P5 -> P4
+    | C2: P6 -> P7
+    | C3: P2 -> P3
+    | Y direction curves from P0 by right-hand rule:
+    | C4: P3 -> P0
+    | C5: P2 -> P1
+    | C6: P6 -> P5
+    | C7: P7 -> P4
+    | Z direction curves from P0 by right-hand rule:
+    | C8:  P0 -> P4
+    | C9:  P1 -> P5
+    | C10: P2 -> P6
+    | C11: P3 -> P7
+
+    | **Surfaces**
+    | NX surface
+    | S0: C5  -> C9  -> -C6 -> -C10
+    | X surface
+    | S1: -C4 -> C11 -> C7  -> -C8
+    | NY surface
+    | S2: -C3 -> C10 -> C2  -> -C11
+    | Y surface
+    | S3: C0  -> C8  -> -C1 -> -C9
+    | NZ surface
+    | S4: -C0 -> -C5 ->  C3 -> C4
+    | Z surface
+    | S5: C1  -> -C7 -> -C2 -> C6
+
+    Note:
+        If boolean_level is not None then no internal volumes of children.
+
+    Args:
+        points(list of dict, list of list, list): 8 corner points of the block
+        curves(list of dict, list of list, list, list of Curve): 12 edge curves of the block
+        surfaces(list of dict, list of list, list, list of Surface): 6 boundary surfaces of the block
+        volumes(list of dict, list of list, list, list of Volume): volumes of the block (1 by now, TODO several volumes)
+        do_register(bool): register Block in the registry
+        use_register_tag(bool): use tag from registry instead tag from gmsh
+        do_unregister(bool): unregister Block from the registry
+        do_register_children(bool): invoke register for children
+        do_unregister_children(bool): invoke unregister for children
+        transforms(list of dict, list of list, list of Transform): points and curves points transforms (Translation, Rotation, Coordinate Change, etc)
+        quadrate_all(list of dict, bool): transform triangles to quadrangles for surfaces and tetrahedra to hexahedra for volumes
+        structure_all(list of dict, list of list, list of Transform): make structured mesh instead of unstructured by some rule
+        parent(Block): parent of the Block
+        children(list of Block): children of the Block
+        children_transforms(list of list of dict, list of list of list, list of list of Transform): transforms for children Blocks
+        boolean_level(int): Block boolean level, if the Block level > another Block level, then intersected volume joins to the Block, if levels are equal third Block is created, if None - don't do boolean
+    """
     def __init__(self, factory='geo',
                  points=None, curves=None, surfaces=None, volumes=None,
                  do_register=True, use_register_tag=False, do_unregister=False,
@@ -32,75 +104,6 @@ class Block:
                  quadrate_all=None, structure_all=None,
                  parent=None, children=None, children_transforms=None,
                  boolean_level=None):
-        """Basic building block of the mesh
-
-        Block is a cuboid with 8 points, 12 curves, 6 surfaces and 1 volume.
-
-        | **Axes**
-        | Y
-        | Z X
-        | NX, NY and NZ are negative X, Y and Z directions
-
-        | **Points**
-        | NZ:
-        | P1 P0
-        | P2 P3
-        | Z:
-        | P5 P4
-        | P6 P7
-
-        | **Curves**
-        | X direction curves from P0 by right-hand rule:
-        | C0: P1 -> P0
-        | C1: P5 -> P4
-        | C2: P6 -> P7
-        | C3: P2 -> P3
-        | Y direction curves from P0 by right-hand rule:
-        | C4: P3 -> P0
-        | C5: P2 -> P1
-        | C6: P6 -> P5
-        | C7: P7 -> P4
-        | Z direction curves from P0 by right-hand rule:
-        | C8:  P0 -> P4
-        | C9:  P1 -> P5
-        | C10: P2 -> P6
-        | C11: P3 -> P7
-
-        | **Surfaces**
-        | NX surface
-        | S0: C5  -> C9  -> -C6 -> -C10
-        | X surface
-        | S1: -C4 -> C11 -> C7  -> -C8
-        | NY surface
-        | S2: -C3 -> C10 -> C2  -> -C11
-        | Y surface
-        | S3: C0  -> C8  -> -C1 -> -C9
-        | NZ surface
-        | S4: -C0 -> -C5 ->  C3 -> C4
-        | Z surface
-        | S5: C1  -> -C7 -> -C2 -> C6
-
-        Note:
-            If boolean_level is not None then no internal volumes of children.
-
-        Args:
-            points(list of dict, list of list, list): 8 corner points of the block
-            curves(list of dict, list of list, list, list of Curve): 12 edge curves of the block
-            surfaces(list of dict, list of list, list, list of Surface): 6 boundary surfaces of the block
-            volumes(list of dict, list of list, list, list of Volume): volumes of the block (1 by now, TODO several volumes)
-            do_register(bool): register Block in the registry
-            use_register_tag(bool): use tag from registry instead tag from gmsh
-            do_unregister(bool): unregister Block from the registry
-            do_register_children(bool): invoke register for children
-            do_unregister_children(bool): invoke unregister for children
-            transforms(list of dict, list of list, list of Transform): points and curves points transforms (Translation, Rotation, Coordinate Change, etc)
-            quadrate_all(list of dict, bool): transform triangles to quadrangles for surfaces and tetrahedra to hexahedra for volumes
-            structure_all(list of dict, list of list, list of Transform): make structured mesh instead of unstructured by some rule
-            parent(Block): parent of the Block
-            children(list of Block): children of the Block
-            children_transforms(list of list of dict, list of list of list, list of list of Transform): transforms for children Blocks
-            boolean_level(int): Block boolean level, if the Block level > another Block level, then intersected volume joins to the Block, if levels are equal third Block is created, if None - don't do boolean
-        """
         self.factory = factory
         self.points = self.parse_points(points)
         self.curves = self.parse_curves(curves)
@@ -166,17 +169,16 @@ class Block:
         [1, -1, -1, 1],  # Z
     ]
 
-    def parse_points(self, points):
-        points = [] if points is None else points
-        if isinstance(points, float) or isinstance(points, int):  # dx/dy/dz
+    @staticmethod
+    def parse_points(points):
+        if isinstance(points, float) or isinstance(points, int):  # lx/ly/lz
             a = 0.5 * points
             points = [[a, a, -a], [-a, a, -a], [-a, -a, -a], [a, -a, -a],
                       [a, a, a], [-a, a, a], [-a, -a, a], [a, -a, a]]
-            points = self.parse_points(points)
         elif isinstance(points, list):
             if len(points) == 0:
                 pass
-            # dx/dy/dz, cs
+            # lx/ly/lz, coordinate_system
             elif len(points) == 2 and all([any([isinstance(points[0], float),
                                                 isinstance(points[0], int)]),
                                            isinstance(points[1], str)]):
@@ -184,8 +186,7 @@ class Block:
                 points = [[a, a, -a], [-a, a, -a], [-a, -a, -a], [a, -a, -a],
                           [a, a, a], [-a, a, a], [-a, -a, a], [a, -a, a],
                           cs_name]
-                points = self.parse_points(points)
-            # dx, dy, dz
+            # lx, ly, lz
             elif len(points) == 3 and all([any([isinstance(points[0], float),
                                                 isinstance(points[0], int)]),
                                            any([isinstance(points[1], float),
@@ -195,8 +196,7 @@ class Block:
                 a, b, c = 0.5 * points[0], 0.5 * points[1], 0.5 * points[2]
                 points = [[a, b, -c], [-a, b, -c], [-a, -b, -c], [a, -b, -c],
                           [a, b, c], [-a, b, c], [-a, -b, c], [a, -b, c]]
-                points = self.parse_points(points)
-            # dx, dy, dz, cs
+            # lx, ly, lz, coordinate_system
             elif len(points) == 4 and all([any([isinstance(points[0], float),
                                                 isinstance(points[0], int)]),
                                            any([isinstance(points[1], float),
@@ -209,51 +209,9 @@ class Block:
                 points = [[a, b, -c], [-a, b, -c], [-a, -b, -c], [a, -b, -c],
                           [a, b, c], [-a, b, c], [-a, -b, c], [a, -b, c],
                           cs_name]
-                points = self.parse_points(points)
-            else:  # [[x1, y1, z1, ...], [x2, y2, z2, ...], ...]
-                if isinstance(points[-1], str):
-                    points, cs_name = points[:-1], p[-1]
-                else:
-                    points, cs_name = points, 'cartesian'
-                for i, p in enumerate(points):
-                    kwargs = {}
-                    if isinstance(p, dict):
-                        kwargs = p
-                        cs_kwargs = p.get('coordinate_system', cs_name)
-                        if isinstance(cs_kwargs, str):
-                            p_cs_name = cs_kwargs
-                            cs_kwargs = {}
-                        elif isinstance(cs_kwargs, dict):
-                            p_cs_name = cs_kwargs.pop('name')
-                        else:
-                            raise ValueError(p)
-                        cs = cs_factory[p_cs_name](**cs_kwargs)
-                        kwargs['coordinate_system'] = cs
-                    elif isinstance(p, list):
-                        if isinstance(p[-1], str):
-                            p, p_cs_name = p[:-1], p[-1]
-                        else:
-                            p, p_cs_name = p, cs_name
-                        cs = cs_factory[cs_name]()
-                        kwargs['coordinate_system'] = cs
-                        if len(p) == cs.dim:
-                            kwargs['coordinates'] = p
-                        elif len(p) == cs.dim + 1:
-                            kwargs['coordinates'] = p[:-1]
-                            kwargs['meshSize'] = p[-1]
-                        else:
-                            raise ValueError(p)
-                    else:
-                        raise ValueError(p)
-                    if p_cs_name == 'cylindrical':
-                        kwargs['coordinates'][1] = np.deg2rad(kwargs['coordinates'][1])
-                    elif p_cs_name in ['spherical', 'toroidal', 'tokamak']:
-                        kwargs['coordinates'][1] = np.deg2rad(kwargs['coordinates'][1])
-                        kwargs['coordinates'][2] = np.deg2rad(kwargs['coordinates'][2])
-                    points[i] = Point(**kwargs)
         else:
             raise ValueError(points)
-        return points
+        return Point.parse_points(points)
 
     def parse_curves(self, curves):
         curves = [{} for _ in range(12)] if curves is None else curves
@@ -261,7 +219,7 @@ class Block:
             kwargs = {}
             if isinstance(c, dict):
                 kwargs = c
-                kwargs['points'] = self.parse_points(kwargs.get('points', []))
+                kwargs['points'] = Point.parse_points(kwargs.get('points', []))
             elif isinstance(c, list):
                 if len(c) > 0:
                     if not isinstance(c[0], str):
@@ -270,10 +228,10 @@ class Block:
                     else:
                         if len(c) == 2:
                             kwargs['name'] = c[0]
-                            kwargs['points'] = self.parse_points(c[1])
+                            kwargs['points'] = Point.parse_points(c[1])
                         elif len(c) == 3:
                             kwargs['name'] = c[0]
-                            kwargs['points'] = self.parse_points(c[1])
+                            kwargs['points'] = Point.parse_points(c[1])
                             kwargs['kwargs'] = c[2]
                         else:
                             raise ValueError(c)
@@ -307,7 +265,8 @@ class Block:
             volumes[i] = Volume(**kwargs)
         return volumes
 
-    def parse_transforms(self, transforms, parent):
+    @staticmethod
+    def parse_transforms(transforms, parent):
         transforms = [] if transforms is None else transforms
         for i, t in enumerate(transforms):
             if isinstance(t, str):
@@ -334,9 +293,9 @@ class Block:
                 raise ValueError(t)
             if 'angle' in kwargs:
                 kwargs['angle'] = np.deg2rad(kwargs['angle'])
-            if name.startswith('block'):
+            if transform_factory[name] == BlockToCartesian:
                 ps = [x.coordinates for x in parent.points]
-                kwargs['cs_from'] = cs_factory['block'](ps=ps)
+                kwargs['cs_from'] = BlockCS(ps=ps)
             transforms[i] = transform_factory[name](**kwargs)
         return transforms
 
@@ -444,7 +403,7 @@ class Block:
             c.transforms.extend(self.transforms)
             c.transform()
         for i, p in enumerate(self.points):
-            if isinstance(p.coordinate_system, cs_factory['block']):
+            if isinstance(p.coordinate_system, BlockCS):
                 if self.parent is None:
                     raise ValueError(
                         'The parent must exist with Block Coordinate System!')
@@ -454,7 +413,7 @@ class Block:
         # Curve Points
         for i, c in enumerate(self.curves):
             for j, p in enumerate(c.points):
-                if isinstance(p.coordinate_system, cs_factory['block']):
+                if isinstance(p.coordinate_system, BlockCS):
                     if self.parent is None:
                         raise ValueError(
                             'The parent must exist with Block Coordinate System!')

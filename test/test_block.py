@@ -851,10 +851,12 @@ class TestBlock(unittest.TestCase):
             # 'recombine_angle': [45.],
             # 'transfinite_curve_mesh_type': ['Progression', 'Bump', 'Beta'],
             # 'transfinite_curve_coef': [0.75, 1.0, 1.5],
-            'output_format': ['msh2', 'geo_unrolled'
-                              # 'vtk', 'stl',
-                              # 'brep', 'step'
-                              ]
+            'output_format': [
+                'geo_unrolled',
+                'msh2',
+                # 'vtk', 'stl',
+                # 'brep', 'step'
+            ]
             # auto, msh1, msh2, msh22, msh3, msh4, msh40, msh41, msh, unv,
             # vtk, wrl, mail, stl, p3d, mesh, bdf, cgns, med, diff, ir3, inp,
             # ply2, celum, su2, x3d, dat, neu, m, key
@@ -990,8 +992,7 @@ class TestBlock(unittest.TestCase):
                                'cylindrical'],
                        parent=b1,
                        transforms=['cylindrical_to_cartesian', [0.01, 0.01, 0]])
-            b1.children.append(b6)
-            b1.children_transforms.append([])
+            b1.add_child(b6)
             b7 = Block(factory=factory,
                        points=[[0.08, 10, 0.37],
                                [0.07, 10, 0.37],
@@ -1033,7 +1034,7 @@ class TestBlock(unittest.TestCase):
                 'msh2',
                 # 'vtk', 'stl',
                 # 'brep', 'step'
-              ]
+            ]
             # auto, msh1, msh2, msh22, msh3, msh4, msh40, msh41, msh, unv,
             # vtk, wrl, mail, stl, p3d, mesh, bdf, cgns, med, diff, ir3, inp,
             # ply2, celum, su2, x3d, dat, neu, m, key
@@ -1196,7 +1197,7 @@ class TestBlock(unittest.TestCase):
                 'msh2',
                 # 'vtk', 'stl',
                 # 'brep', 'step'
-              ]
+            ]
             # auto, msh1, msh2, msh22, msh3, msh4, msh40, msh41, msh, unv,
             # vtk, wrl, mail, stl, p3d, mesh, bdf, cgns, med, diff, ir3, inp,
             # ply2, celum, su2, x3d, dat, neu, m, key
@@ -1216,10 +1217,10 @@ class TestBlock(unittest.TestCase):
             b1 = Block(factory=factory,
                        points=[{'coordinates': [0.5, 0.5, -0.5],
                                 'zone': 'p1'},
-                               {'coordinates': [-0.5, 0.5, -0.5],
-                                'zone': 'p2'},
-                               {'coordinates': [-0.5, -0.5, -0.5],
-                                'zone': 'p3'},
+                               # {'coordinates': [-0.5, 0.5, -0.5],
+                               #  'zone': 'p2'},
+                               [-0.5, 0.5, -0.5, 'p2'],
+                               [-0.5, -0.5, -0.5],
                                {'coordinates': [0.5, -0.5, -0.5],
                                 'zone': 'p4'},
                                {'coordinates': [0.5, 0.5, 0.5],

@@ -41,9 +41,9 @@ class Block(CoordinateSystem):
         zeta [-1, 1]
 
         Args:
-            ps (np.array or list of list): points coordinates of the block
-            order (np.array or list of list): order of points
-            origin (np.array or list): origin of coordinate system
+            ps (np.ndarray or list of list): points coordinates of the block
+            order (np.ndarray or list of list): order of points
+            origin (np.ndarray or list): origin of coordinate system
         """
         super().__init__(dim=3, origin=origin, **kwargs)
         if ps is None:
@@ -59,11 +59,24 @@ class Block(CoordinateSystem):
 
 
 factory = {
-    'coordinate_system': CoordinateSystem,
-    'cartesian': Cartesian,
-    'cylindrical': Cylindrical,
-    'spherical': Spherical,
-    'toroidal': Toroidal,
-    'tokamak': Tokamak,
-    'block': Block
+    CoordinateSystem.__name__: CoordinateSystem,
+    CoordinateSystem.__name__.lower(): CoordinateSystem,
+    'cs': CoordinateSystem,
+    Cartesian.__name__: Cartesian,
+    Cartesian.__name__.lower(): Cartesian,
+    'car': Cartesian,
+    Cylindrical.__name__: Cylindrical,
+    Cylindrical.__name__.lower(): Cylindrical,
+    'cyl': Cylindrical,
+    Spherical.__name__: Spherical,
+    Spherical.__name__.lower(): Spherical,
+    'sph': Spherical,
+    Toroidal.__name__: Toroidal,
+    Toroidal.__name__.lower(): Toroidal,
+    'tor': Toroidal,
+    Tokamak.__name__: Tokamak,
+    'tok': Tokamak,
+    Block.__name__: Block,
+    Block.__name__.lower(): Block,
+    'blo': Block
 }

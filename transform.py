@@ -1,7 +1,8 @@
 import numpy as np
 from functools import reduce
 
-from coordinate_system import factory as cs_factory
+from coordinate_system import CoordinateSystem, Cartesian, Cylindrical, \
+    Spherical, Toroidal, Tokamak, Block
 
 
 def reduce_transforms(transforms, point):
@@ -9,21 +10,22 @@ def reduce_transforms(transforms, point):
 
 
 class Transform:
+    """
+    Args:
+        cs_from (CoordinateSystem): CoordinateSystem from
+        cs_to (CoordinateSystem): CoordinateSystem to
+        cs_self (CoordinateSystem): CoordinateSystem self
+    """
+
     def __init__(self, cs_from=None, cs_to=None, cs_self=None, **kwargs):
-        """
-        Args:
-            cs_from (CoordinateSystem): CoordinateSystem from
-            cs_to (CoordinateSystem): CoordinateSystem to
-            cs_self (CoordinateSystem): CoordinateSystem self
-        """
-        self.cs_from = cs_factory['coordinate_system']() if cs_from is None else cs_from
-        self.cs_to = cs_factory['coordinate_system']() if cs_to is None else cs_to
-        self.cs_self = cs_factory['coordinate_system']() if cs_self is None else cs_self
+        self.cs_from = CoordinateSystem() if cs_from is None else cs_from
+        self.cs_to = CoordinateSystem() if cs_to is None else cs_to
+        self.cs_self = CoordinateSystem() if cs_self is None else cs_self
 
     def __call__(self, p):
         """
         Args:
-            p(Point): point to transform
+            p (Point): point to transform
 
         Returns:
             Point: transformed point
@@ -35,7 +37,7 @@ class Transform:
 class Translate(Transform):
     """
     Args:
-        delta (np.array or list): displacement
+        delta (list or np.ndarray): displacement
     """
 
     def __init__(self, delta, **kwargs):
@@ -52,8 +54,8 @@ class Rotate(Transform):
     """
     TODO only for 3D coordinate systems
     Args:
-        origin (np.array or list): origin of rotation
-        direction (np.array or list): rotation axis
+        origin (list or np.ndarray): origin of rotation
+        direction (list or np.ndarray): rotation axis
         angle (float): counterclockwise angle of rotation in radians [0, 2*pi)
     """
 
@@ -81,19 +83,19 @@ class Rotate(Transform):
 
 
 class CylindricalToCartesian(Transform):
+    """
+    [r, phi, z] -> [x, y, z]
+    r - radius [0, inf),
+    phi - azimuthal angle [0, 2*pi) (counterclockwise from X to Y),
+    z - height
+    """
+
     def __init__(self, **kwargs):
-        """
-        [r, phi, z] -> [x, y, z]
-        r - radius [0, inf),
-        phi - azimuthal angle [0, 2*pi) (counterclockwise from X to Y),
-        z - height
-        """
-        super().__init__(cs_factory['cylindrical'](), cs_factory['cartesian'](),
-                         **kwargs)
+        super().__init__(cs_from=Cylindrical(), cs_to=Cartesian(), **kwargs)
 
     def __call__(self, p):
         p = super().__call__(p)
-        if isinstance(p.coordinate_system, cs_factory['cartesian']):  # FIXME workaround for double any_to_cartesian
+        if isinstance(p.coordinate_system, Cartesian):  # FIXME workaround for double any_to_cartesian
             return p
         r, phi, z = p.coordinates
         p.coordinates = np.array([r * np.cos(phi), r * np.sin(phi), z])
@@ -102,69 +104,69 @@ class CylindricalToCartesian(Transform):
 
 
 class SphericalToCartesian(Transform):
+    """
+    [r, phi, theta] -> [x, y, z]
+    r - radius [0, inf),
+    phi - azimuthal angle [0, 2*pi) (counterclockwise from X to Y),
+    theta - polar angle [0, pi] [from top to bottom, i.e XY-plane is pi/2]
+    """
+
     def __init__(self, **kwargs):
-        """
-        [r, phi, theta] -> [x, y, z]
-        r - radius [0, inf),
-        phi - azimuthal angle [0, 2*pi) (counterclockwise from X to Y),
-        theta - polar angle [0, pi] [from top to bottom, i.e XY-plane is pi/2]
-        """
-        super().__init__(cs_factory['spherical'](), cs_factory['cartesian'](), 
-                         **kwargs)
+        super().__init__(cs_from=Spherical(), cs_to=Cartesian(), **kwargs)
 
     def __call__(self, p):
         p = super().__call__(p)
-        if isinstance(p.coordinate_system, cs_factory['cartesian']()):
+        if isinstance(p.coordinate_system, Cartesian):
             return p
         r, phi, theta = p.coordinates
         p.coordinates = np.array([r * np.cos(phi) * np.sin(theta),
-                         r * np.sin(phi) * np.sin(theta),
-                         r * np.cos(theta)])
+                                  r * np.sin(phi) * np.sin(theta),
+                                  r * np.cos(theta)])
         p.coordinate_system = self.cs_to
         return p
 
 
 class ToroidalToCartesian(Transform):
+    """
+    [r, phi, theta, r2] -> [x, y, z]
+    r - inner radius (r < r2)
+    phi - inner angle [0, 2*pi)
+    theta - outer angle [0, 2*pi)
+    r2 - outer radius
+    """
+
     def __init__(self, **kwargs):
-        """
-        [r, phi, theta, r2] -> [x, y, z]
-        r - inner radius (r < r2)
-        phi - inner angle [0, 2*pi)
-        theta - outer angle [0, 2*pi)
-        r2 - outer radius
-        """
-        super().__init__(cs_factory['toroidal'](), cs_factory['cartesian'](), 
-                         **kwargs)
+        super().__init__(cs_from=Toroidal(), cs_to=Cartesian(), **kwargs)
 
     def __call__(self, p):
         p = super().__call__(p)
-        if isinstance(p.coordinate_system, cs_factory['cartesian']()):
+        if isinstance(p.coordinate_system, Cartesian):
             return p
         r, phi, theta, r2 = p.coordinates
         p.coordinates = np.array([r2 * np.cos(theta) + r * np.cos(phi) * np.cos(theta),
-                         r2 * np.sin(theta) + r * np.cos(phi) * np.sin(theta),
-                         r * np.sin(phi)])
+                                  r2 * np.sin(theta) + r * np.cos(phi) * np.sin(theta),
+                                  r * np.sin(phi)])
         p.coordinate_system = self.cs_to
         return p
 
 
 class TokamakToCartesian(Transform):
+    """
+    [r, phi, theta, r2, kxy, kz] -> [x, y, z]
+    r - inner radius (r < r2)
+    phi - inner angle [0, 2*pi)
+    theta - outer angle [0, 2*pi)
+    r2 - outer radius
+    kxy - inner radius XY scale coefficient in positive outer radius direction
+    kz - inner radius Z scale coefficient
+    """
+
     def __init__(self, **kwargs):
-        """
-        [r, phi, theta, r2, kxy, kz] -> [x, y, z]
-        r - inner radius (r < r2)
-        phi - inner angle [0, 2*pi)
-        theta - outer angle [0, 2*pi)
-        r2 - outer radius
-        kxy - inner radius XY scale coefficient in positive outer radius direction
-        kz - inner radius Z scale coefficient
-        """
-        super().__init__(cs_factory['tokamak'](), cs_factory['cartesian'](), 
-                         **kwargs)
+        super().__init__(cs_from=Tokamak(), cs_to=Cartesian(), **kwargs)
 
     def __call__(self, p):
         p = super().__call__(p)
-        if isinstance(p.coordinate_system, cs_factory['cartesian']()):
+        if isinstance(p.coordinate_system, Cartesian):
             return p
         r, phi, theta, r2, kxy, kz = p.coordinates
         if 0 <= phi <= 0.5 * np.pi or 1.5 * np.pi <= phi <= 2 * np.pi:
@@ -182,15 +184,15 @@ class TokamakToCartesian(Transform):
 
 
 class BlockToCartesian(Transform):
+    """
+    [xi, eta, zeta] -> [x, y, z]
+    xi, eta, zeta - local block coordinates
+    Args:
+        cs_from(Block): Block Coordinate System
+    """
+
     def __init__(self, cs_from, **kwargs):
-        """
-        [xi, eta, zeta] -> [x, y, z]
-        xi, eta, zeta - local block coordinates
-        Args:
-            cs_from(Block): Block Coordinate System
-        """
-        super().__init__(cs_from=cs_from, cs_to=cs_factory['cartesian'](), 
-                         **kwargs)
+        super().__init__(cs_from=cs_from, cs_to=Cartesian(), **kwargs)
 
     def __call__(self, p):
         p = super().__call__(p)
@@ -207,11 +209,26 @@ class BlockToCartesian(Transform):
 
 
 factory = {
-    'translate': Translate,
-    'rotate': Rotate,
+    Transform.__name__: Transform,
+    Translate.__name__: Translate,
+    Translate.__name__.lower(): Translate,
+    'tra': Translate,
+    Rotate.__name__: Rotate,
+    Rotate.__name__.lower(): Rotate,
+    'rot': Rotate,
+    CylindricalToCartesian.__name__: CylindricalToCartesian,
     'cylindrical_to_cartesian': CylindricalToCartesian,
+    'cyl2car': CylindricalToCartesian,
+    SphericalToCartesian.__name__: SphericalToCartesian,
     'spherical_to_cartesian': SphericalToCartesian,
+    'sph2car': SphericalToCartesian,
+    ToroidalToCartesian.__name__: ToroidalToCartesian,
     'toroidal_to_cartesian': ToroidalToCartesian,
+    'tor2car': ToroidalToCartesian,
+    TokamakToCartesian.__name__: TokamakToCartesian,
     'tokamak_to_cartesian': TokamakToCartesian,
-    'block_to_cartesian': BlockToCartesian
+    'tok2car': TokamakToCartesian,
+    BlockToCartesian.__name__: BlockToCartesian,
+    'block_to_cartesian': BlockToCartesian,
+    'blo2car': BlockToCartesian
 }
