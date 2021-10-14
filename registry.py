@@ -74,7 +74,7 @@ RECOMBINE_KWARGS = {
 
 TRANSFINITE_CURVE_KWARGS = {
     'geo': {'tag': None, 'nPoints': 2, 'meshType': "Progression", 'coef': 1.},
-    'occ': {'tag': None, 'nPoints': 2, 'meshType': "Progression", 'coef': 1.}
+    'occ': {'tag': None, 'numNodes': 2, 'meshType': "Progression", 'coef': 1.}
 }
 
 TRANSFINITE_CURVE_TYPES = ['Progression', 'Bump', 'Beta']
@@ -153,6 +153,11 @@ def correct_kwargs(entity, factory, name):
     else:
         kwargs['kwargs'] = {k: v for k, v in kwargs['kwargs'].items()
                             if k in default_kwargs}
+    if name in ['structure_curve']:
+        if 'nPoints' in kwargs['kwargs'] and factory == 'occ':
+            kwargs['kwargs']['numNodes'] = kwargs['kwargs'].pop('nPoints')
+        if isinstance(kwargs['kwargs']['meshType'], int):
+            kwargs['kwargs']['meshType'] = TRANSFINITE_CURVE_TYPES[kwargs['kwargs']['meshType']]
     return kwargs
 
 
@@ -459,8 +464,6 @@ def register_structure_curve(curve, factory):
     if tag not in STRUCTURED_CURVES:
         tr = correct_kwargs(curve.structure, factory, 'structure_curve')
         tr['kwargs']['tag'] = tag
-        if isinstance(tr['kwargs']['meshType'], int):
-            tr['kwargs']['meshType'] = TRANSFINITE_CURVE_TYPES[tr['kwargs']['meshType']]
         add_structure_curve[factory](tr)
         STRUCTURED_CURVES.add(tag)
     return curve

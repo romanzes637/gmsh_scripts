@@ -2,9 +2,11 @@ import unittest
 from functools import reduce
 import numpy as np
 
-from transform import Point, Translate, Rotate, \
-    CylindricalToCartesian, ToroidalToCartesian, TokamakToCartesian, SphericalToCartesian, \
-    BlockToCartesian, Block, Cartesian, Cylindrical, Spherical, Toroidal, Tokamak
+from point import Point
+from coordinate_system import Block, Cartesian, Cylindrical, Spherical, \
+    Toroidal, Tokamak
+from transform import Translate, Rotate, CylindricalToCartesian, \
+ToroidalToCartesian, TokamakToCartesian, SphericalToCartesian, BlockToCartesian
 
 
 class TestTransform(unittest.TestCase):

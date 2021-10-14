@@ -167,24 +167,15 @@ class Block:
     ]
 
     def parse_points(self, points):
-        if points is None:
-            points = [[0.5, 0.5, -0.5],
-                      [-0.5, 0.5, -0.5],
-                      [-0.5, -0.5, -0.5],
-                      [0.5, -0.5, -0.5],
-                      [0.5, 0.5, 0.5],
-                      [0.5, 0.5, 0.5],
-                      [0.5, 0.5, 0.5],
-                      [0.5, 0.5, 0.5]]
-            points = self.parse_points(points)
-        elif isinstance(points, float) or isinstance(points, int):  # dx/dy/dz
+        points = [] if points is None else points
+        if isinstance(points, float) or isinstance(points, int):  # dx/dy/dz
             a = 0.5 * points
             points = [[a, a, -a], [-a, a, -a], [-a, -a, -a], [a, -a, -a],
                       [a, a, a], [-a, a, a], [-a, -a, a], [a, -a, a]]
             points = self.parse_points(points)
         elif isinstance(points, list):
-            if len(points) == 0:  # Could be on curves points
-                points = []
+            if len(points) == 0:
+                pass
             # dx/dy/dz, cs
             elif len(points) == 2 and all([any([isinstance(points[0], float),
                                                 isinstance(points[0], int)]),
@@ -220,37 +211,43 @@ class Block:
                           cs_name]
                 points = self.parse_points(points)
             else:  # [[x1, y1, z1, ...], [x2, y2, z2, ...], ...]
-                cs_name = 'cartesian'
                 if isinstance(points[-1], str):
-                    points, cs_name = points[:-1], points[-1]
-                cs = cs_factory[cs_name]()
+                    points, cs_name = points[:-1], p[-1]
+                else:
+                    points, cs_name = points, 'cartesian'
                 for i, p in enumerate(points):
                     kwargs = {}
                     if isinstance(p, dict):
                         kwargs = p
-                        cs_kwargs = p.get('coordinate_system', 'cartesian')
+                        cs_kwargs = p.get('coordinate_system', cs_name)
                         if isinstance(cs_kwargs, str):
-                            kwargs['coordinate_system'] = cs_factory[cs_kwargs]()
+                            p_cs_name = cs_kwargs
+                            cs_kwargs = {}
                         elif isinstance(cs_kwargs, dict):
-                            cs_name = cs_kwargs.pop('name')
-                            kwargs['coordinate_system'] = cs_factory[cs_name](
-                                **cs_kwargs)
+                            p_cs_name = cs_kwargs.pop('name')
+                        else:
+                            raise ValueError(p)
+                        cs = cs_factory[p_cs_name](**cs_kwargs)
+                        kwargs['coordinate_system'] = cs
                     elif isinstance(p, list):
-                        if len(p) == cs.dim and not isinstance(p[0], list):
+                        if isinstance(p[-1], str):
+                            p, p_cs_name = p[:-1], p[-1]
+                        else:
+                            p, p_cs_name = p, cs_name
+                        cs = cs_factory[cs_name]()
+                        kwargs['coordinate_system'] = cs
+                        if len(p) == cs.dim:
                             kwargs['coordinates'] = p
-                            kwargs['coordinate_system'] = cs
-                        elif len(p) == cs.dim + 1 and not isinstance(p[0],
-                                                                     list):
-                            kwargs['coordinates'] = p[:3]
-                            kwargs['coordinate_system'] = cs_factory['cartesian']()
-                            kwargs['meshSize'] = p[3]
+                        elif len(p) == cs.dim + 1:
+                            kwargs['coordinates'] = p[:-1]
+                            kwargs['meshSize'] = p[-1]
                         else:
                             raise ValueError(p)
                     else:
                         raise ValueError(p)
-                    if cs_name == 'cylindrical':
+                    if p_cs_name == 'cylindrical':
                         kwargs['coordinates'][1] = np.deg2rad(kwargs['coordinates'][1])
-                    elif cs_name in ['spherical', 'toroidal', 'tokamak']:
+                    elif p_cs_name in ['spherical', 'toroidal', 'tokamak']:
                         kwargs['coordinates'][1] = np.deg2rad(kwargs['coordinates'][1])
                         kwargs['coordinates'][2] = np.deg2rad(kwargs['coordinates'][2])
                     points[i] = Point(**kwargs)

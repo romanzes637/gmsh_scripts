@@ -1180,6 +1180,117 @@ class TestBlock(unittest.TestCase):
             gmsh.write(f'{model_name}.{kws["output_format"]}')
             print(f'write: {time.perf_counter() - t0}')
 
+    @gmsh_decorator
+    def test_zones(self):
+        kwargs = {
+            # 'factory': ['occ'],
+            # 'boolean_type': ['with_bboxes', 'without_bboxes'],
+            'factory': ['geo', 'occ'],
+            # 'register_tag': [True, False],
+            # 'register_tag': [True, False],
+            # 'recombine_angle': [45.],
+            # 'transfinite_curve_mesh_type': ['Progression', 'Bump', 'Beta'],
+            # 'transfinite_curve_coef': [0.75, 1.0, 1.5],
+            'output_format': [
+                'geo_unrolled',
+                'msh2',
+                # 'vtk', 'stl',
+                # 'brep', 'step'
+              ]
+            # auto, msh1, msh2, msh22, msh3, msh4, msh40, msh41, msh, unv,
+            # vtk, wrl, mail, stl, p3d, mesh, bdf, cgns, med, diff, ir3, inp,
+            # ply2, celum, su2, x3d, dat, neu, m, key
+        }
+        filter_kwargs = [{'factory': 'geo',
+                          'output_format': 'brep'},
+                         {'factory': 'geo',
+                          'output_format': 'step'}]
+        kwargs_combs = make_kwargs_combinations(kwargs, filter_kwargs)
+        for kws in kwargs_combs:
+            name_suffix = '-'.join(f'{k}_{v}' for k, v in kws.items())
+            model_name = f'test_zones-{name_suffix}'
+            gmsh.model.add(model_name)
+            print(model_name)
+            reset_registry()
+            factory = kws.get('factory', 'geo')
+            b1 = Block(factory=factory,
+                       points=[{'coordinates': [0.5, 0.5, -0.5],
+                                'zone': 'p1'},
+                               {'coordinates': [-0.5, 0.5, -0.5],
+                                'zone': 'p2'},
+                               {'coordinates': [-0.5, -0.5, -0.5],
+                                'zone': 'p3'},
+                               {'coordinates': [0.5, -0.5, -0.5],
+                                'zone': 'p4'},
+                               {'coordinates': [0.5, 0.5, 0.5],
+                                'zone': 'p5'},
+                               {'coordinates': [-0.5, 0.5, 0.5],
+                                'zone': 'p6'},
+                               {'coordinates': [-0.5, -0.5, 0.5],
+                                'zone': 'p7'},
+                               {'coordinates': [0.5, -0.5, 0.5],
+                                'zone': 'p8'}],
+                       curves=[{'zone': 'x1'}, {'zone': 'x2'},
+                               {'zone': 'x3'}, {'zone': 'x4'},
+                               {'zone': 'y1'}, {'zone': 'y2'},
+                               {'zone': 'y3'}, {'zone': 'y4'},
+                               {'zone': 'z1'}, {'zone': 'z2'},
+                               {'zone': 'z3'}, {'zone': 'z4'}],
+                       surfaces=[{'zone': 'nx'}, {'zone': 'x'}, {'zone': 'ny'},
+                                 {'zone': 'y'}, {'zone': 'nz'}, {'zone': 'z'}],
+                       volumes=[{'zone': 'v'}]
+                       )
+            t0 = time.perf_counter()
+            b1.transform()
+            print(f'transform: {time.perf_counter() - t0}')
+            t0 = time.perf_counter()
+            b1.register()
+            print(f'register: {time.perf_counter() - t0}')
+            t0 = time.perf_counter()
+            if factory == 'geo':
+                gmsh.model.geo.synchronize()
+            elif factory == 'occ':
+                gmsh.model.occ.synchronize()
+            else:
+                raise ValueError(factory)
+            print(f'synchronize: {time.perf_counter() - t0}')
+            if factory == 'occ':
+                t0 = time.perf_counter()
+                b1.quadrate()
+                print(f'quadrate: {time.perf_counter() - t0}')
+                t0 = time.perf_counter()
+                b1.structure()
+                print(f'structure: {time.perf_counter() - t0}')
+            t0 = time.perf_counter()
+            blocks = b1.get_all_blocks()
+            for dim in range(0, 4):
+                zone2tag = {}
+                for i, b in enumerate(blocks):
+                    if dim == 0:
+                        xs = b.points
+                    elif dim == 1:
+                        xs = b.curves
+                    elif dim == 2:
+                        xs = b.surfaces
+                    elif dim == 3:
+                        xs = b.volumes
+                    for x in xs:
+                        if x.zone is not None and x.tag is not None:
+                            zone2tag.setdefault(x.zone, []).append(x.tag)
+                print(dim)
+                print(zone2tag)
+                for zone, tags in zone2tag.items():
+                    tag = gmsh.model.addPhysicalGroup(dim, tags)
+                    gmsh.model.setPhysicalName(dim, tag, zone)
+            print(f'zones: {time.perf_counter() - t0}')
+            t0 = time.perf_counter()
+            if kws['output_format'] != 'geo_unrolled':
+                gmsh.model.mesh.generate(3)
+            print(f'mesh: {time.perf_counter() - t0}')
+            t0 = time.perf_counter()
+            gmsh.write(f'{model_name}.{kws["output_format"]}')
+            print(f'write: {time.perf_counter() - t0}')
+
 
 if __name__ == '__main__':
     unittest.main()
