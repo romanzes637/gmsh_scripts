@@ -59,9 +59,6 @@ class Block(CoordinateSystem):
 
 
 factory = {
-    CoordinateSystem.__name__: CoordinateSystem,
-    CoordinateSystem.__name__.lower(): CoordinateSystem,
-    'cs': CoordinateSystem,
     Cartesian.__name__: Cartesian,
     Cartesian.__name__.lower(): Cartesian,
     'car': Cartesian,
