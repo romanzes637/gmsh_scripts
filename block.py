@@ -211,7 +211,7 @@ class Block:
                           cs_name]
         else:
             raise ValueError(points)
-        return Point.parse_points(points)
+        return Point.parse_points(points, do_deg2rad=True)
 
     def parse_curves(self, curves):
         curves = [{} for _ in range(12)] if curves is None else curves
@@ -219,7 +219,8 @@ class Block:
             kwargs = {}
             if isinstance(c, dict):
                 kwargs = c
-                kwargs['points'] = Point.parse_points(kwargs.get('points', []))
+                kwargs['points'] = Point.parse_points(kwargs.get('points', []),
+                                                      do_deg2rad=True)
             elif isinstance(c, list):
                 if len(c) > 0:
                     if not isinstance(c[0], str):
@@ -228,10 +229,12 @@ class Block:
                     else:
                         if len(c) == 2:
                             kwargs['name'] = c[0]
-                            kwargs['points'] = Point.parse_points(c[1])
+                            kwargs['points'] = Point.parse_points(
+                                c[1], do_deg2rad=True)
                         elif len(c) == 3:
                             kwargs['name'] = c[0]
-                            kwargs['points'] = Point.parse_points(c[1])
+                            kwargs['points'] = Point.parse_points(
+                                c[1], do_deg2rad=True)
                             kwargs['kwargs'] = c[2]
                         else:
                             raise ValueError(c)

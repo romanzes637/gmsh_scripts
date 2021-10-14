@@ -242,6 +242,26 @@ if __name__ == '__main__':
         top_block.structure()
         logging.info(f'Transfinite: {time.perf_counter() - t0:.3f}s')
     t0 = time.perf_counter()
+    blocks = top_block.get_all_blocks()
+    for dim in range(0, 4):
+        zone2tag = {}
+        for i, b in enumerate(blocks):
+            if dim == 0:
+                xs = b.points
+            elif dim == 1:
+                xs = b.curves
+            elif dim == 2:
+                xs = b.surfaces
+            elif dim == 3:
+                xs = b.volumes
+            for x in xs:
+                if x.zone is not None and x.tag is not None:
+                    zone2tag.setdefault(x.zone, []).append(x.tag)
+        for zone, tags in zone2tag.items():
+            tag = gmsh.model.addPhysicalGroup(dim, tags)
+            gmsh.model.setPhysicalName(dim, tag, zone)
+    print(f'zones: {time.perf_counter() - t0}')
+    t0 = time.perf_counter()
     gmsh.model.mesh.generate(3)
     logging.info(f'Mesh: {time.perf_counter() - t0:.3f}s')
     t0 = time.perf_counter()

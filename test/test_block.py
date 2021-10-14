@@ -853,7 +853,7 @@ class TestBlock(unittest.TestCase):
             # 'transfinite_curve_coef': [0.75, 1.0, 1.5],
             'output_format': [
                 'geo_unrolled',
-                'msh2',
+                # 'msh2',
                 # 'vtk', 'stl',
                 # 'brep', 'step'
             ]
@@ -928,6 +928,7 @@ class TestBlock(unittest.TestCase):
                                [-0.25, 0.25, -0.2],
                                [-0.25, -0.25, -0.2],
                                [0.25, -0.3, -0.2],
+                               0.2,
                                'block'],
                        curves=[
                            [[-0.20, 0.24, -0.3], [-0.15, 0.26, -0.3], 'block'],  # polyline
@@ -989,6 +990,7 @@ class TestBlock(unittest.TestCase):
                                [0.05, 20, 0.4],
                                [0.05, 5, 0.4],
                                [0.1, 5, 0.4],
+                               0.03,
                                'cylindrical'],
                        parent=b1,
                        transforms=['cylindrical_to_cartesian', [0.01, 0.01, 0]])
@@ -1002,6 +1004,7 @@ class TestBlock(unittest.TestCase):
                                [0.07, 10, 0.38],
                                [0.07, 15, 0.38],
                                [0.08, 15, 0.38],
+                               0.05,
                                'cylindrical'],
                        parent=b6,
                        transforms=['cylindrical_to_cartesian', [0, 0, 0.01]])

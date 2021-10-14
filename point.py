@@ -69,14 +69,14 @@ class Point:
             a = args[0]
             n_nums = 0  # number of numerical items in a
             for x in a:
-                if not isinstance(x, float) and not isinstance(x, int):
-                    break
-                else:
+                if isinstance(x, float) or isinstance(x, int):
                     n_nums += 1
+                else:
+                    break
             nums, others = a[:n_nums], a[n_nums:]
             # Process others
             if len(others) == 0:
-                coordinate_system = Point.parse_coordinate_system(coordinate_system)  # default
+                pass  # default
             elif len(others) == 1:  # coordinate system or zone
                 o1 = others[0]
                 if isinstance(o1, str):
@@ -84,9 +84,8 @@ class Point:
                         coordinate_system = Point.parse_coordinate_system(o1)
                         logging.warning(f'May be a name conflict between zone and coordinate system: {o1}')
                     else:  # zone
-                        coordinate_system = Point.parse_coordinate_system(coordinate_system)  # default
                         zone = o1
-                else:
+                else:  # coordinate system
                     coordinate_system = Point.parse_coordinate_system(o1)
             elif len(others) == 2:  # coordinate system and zone
                 o1, o2 = others
@@ -95,9 +94,10 @@ class Point:
             else:
                 raise ValueError(a)
             # Split nums into coordinates and meshSize
-            if n_nums == coordinate_system.dim:  # coordinates, ...
+            dim = coordinate_system.dim if coordinate_system is not None else Cartesian().dim
+            if n_nums == dim:  # coordinates, ...
                 coordinates = nums
-            elif n_nums - 1 == coordinate_system.dim:  # coordinates, meshSize, ...
+            elif n_nums - 1 == dim:  # coordinates, meshSize, ...
                 coordinates = nums[:-1]
                 kwargs['meshSize'] = nums[-1]
             else:
@@ -107,51 +107,104 @@ class Point:
         return tag, zone, coordinate_system, coordinates, kwargs
 
     @staticmethod
-    def parse_points(points):
+    def parse_points(points=None, do_deg2rad=False):
         """Parse list of raw points
         Patterns
         1. [[], [], [], ...]
-        2. [[], [], [], ..., coordinate_system]
-        3. [{}, {}, {}, ...]
-        4. [{}, {}, {}, ..., coordinate_system]
+        2. [[], [], [], ..., meshSize]
+        3. [[], [], [], ..., coordinate_system]
+        4. [[], [], [], ..., zone]
+        5. [[], [], [], ..., meshSize, coordinate_system]
+        6. [[], [], [], ..., coordinate_system, zone]
+        7. [[], [], [], ..., meshSize, zone]
+        8. [[], [], [], ..., meshSize, coordinate_system, zone]
+        9. [{}, {}, {}, ...]
+        10. [{}, {}, {}, ..., meshSize]
+        11. [{}, {}, {}, ..., coordinate_system]
+        12. [{}, {}, {}, ..., zone]
+        13. [{}, {}, {}, ..., meshSize, coordinate_system]
+        14. [{}, {}, {}, ..., coordinate_system, zone]
+        15. [{}, {}, {}, ..., meshSize, zone]
+        16. [{}, {}, {}, ..., meshSize, coordinate_system, zone]
 
         Args:
-            points (list of list or list of dict): raw points
+            points (list or None): raw points
+            do_deg2rad (bool): do degrees to radians conversion
 
         Returns:
-            points (list of Point): points
+            list of Point: points objects
         """
         points = [] if points is None else points
-        if len(points) == 0:
-            pass
-        elif isinstance(points[-1], str):
-            points, cs_name = points[:-1], points[-1]
-            for i, p in enumerate(points):  # Add coordinate system if not
-                if isinstance(p, dict):
-                    points[i].setdefault('coordinate_system', cs_name)
-                elif isinstance(p, list):
-                    add_cs = True
-                    for x in p:
-                        if x in cs_factory:  # CS already exists
-                            add_cs = False
-                            break
-                    if add_cs:
-                        n_nums = 0
-                        for x in p:
-                            if not isinstance(x, float) and not isinstance(x, int):
-                                break
-                            else:
-                                n_nums += 1
-                        points[i] = p[:n_nums] + [cs_name] + p[n_nums:]
-            points = Point.parse_points(points)
-        else:
+        # Evaluate number of points
+        n_points = 0
+        for p in points:
+            if isinstance(p, list) or isinstance(p, dict):
+                n_points += 1
+            else:
+                break
+        # Split points and others
+        points, others = points[:n_points], points[n_points:]
+        if len(others) > 0:
+            ms, cs, z = None, None, None  # meshSize, coordinate_system, zone
+            if len(others) == 1:
+                o1 = others[0]
+                if isinstance(o1, float) or isinstance(o1, int):
+                    ms = o1
+                elif isinstance(o1, str):
+                    if o1 in cs_factory:  # coordinate system
+                        cs = o1
+                        logging.warning(f'May be a name conflict between zone and coordinate system: {o1}')
+                    else:  # zone
+                        z = o1
+                else:
+                    raise ValueError(others, o1)
+            elif len(others) == 2:
+                o1, o2 = others
+                if isinstance(o1, str) and isinstance(o2, str):
+                    cs, z = o1, o2
+                elif isinstance(o1, float) or isinstance(o1, int):
+                    ms = o1
+                    if o2 in cs_factory:  # coordinate system
+                        cs = o2
+                        logging.warning(f'May be a name conflict between zone and coordinate system: {o2}')
+                    else:  # zone
+                        z = o2
+                else:
+                    raise ValueError(others)
+            elif len(others) == 3:
+                ms, cs, z = others
+            else:
+                raise ValueError(others)
             for i, p in enumerate(points):
                 if isinstance(p, dict):
-                    p = Point(**p)
+                    p.setdefault('coordinate_system', cs)
+                    p.setdefault('zone', z)
+                    if ms is not None:
+                        p.setdefault('meshSize', ms)
                 elif isinstance(p, list):
-                    p = Point(p)
+                    tag, zone, coordinate_system, coordinates, kwargs = Point.parse_args([p])
+                    p = {}
+                    p['tag'] = tag
+                    p['coordinates'] = coordinates
+                    p['coordinate_system'] = coordinate_system if coordinate_system is not None else cs
+                    p['zone'] = zone if zone is not None else z
+                    p.update(kwargs)
+                    if ms is not None:
+                        p.setdefault('meshSize', ms)
                 else:
                     raise ValueError(p)
+                points[i] = p
+        # Make objects
+        for i, p in enumerate(points):
+            if isinstance(p, dict):
+                points[i] = Point(**p)
+            elif isinstance(p, list):
+                points[i] = Point(p)
+            else:
+                raise ValueError(p)
+        # Change degrees to radians
+        if do_deg2rad:
+            for p in points:
                 if isinstance(p.coordinate_system, Cylindrical):
                     p.coordinates[1] = np.deg2rad(p.coordinates[1])
                 elif any([isinstance(p.coordinate_system, Spherical),
@@ -159,7 +212,6 @@ class Point:
                           isinstance(p.coordinate_system, Tokamak)]):
                     p.coordinates[1] = np.deg2rad(p.coordinates[1])
                     p.coordinates[2] = np.deg2rad(p.coordinates[2])
-                points[i] = p
         return points
 
 
