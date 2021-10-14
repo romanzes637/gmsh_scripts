@@ -1,14 +1,17 @@
 import unittest
 import numpy as np
 from itertools import product
-from pprint import pprint
+import logging
 import time
+import logging
 
 import gmsh
 
 from registry import reset as reset_registry
 from boolean import boolean, boolean_with_bounding_boxes
 from block import Block
+
+logging.basicConfig(level=logging.INFO)
 
 
 def gmsh_decorator(f):
@@ -67,7 +70,7 @@ class TestBlock(unittest.TestCase):
         for kws in kwargs_combs:
             name_suffix = '-'.join(f'{k}_{v}' for k, v in kws.items())
             model_name = f'test_init-{name_suffix}'
-            print(model_name)
+            logging.info(model_name)
             reset_registry()
             gmsh.model.add(model_name)
             # B1
@@ -683,7 +686,7 @@ class TestBlock(unittest.TestCase):
             b.register()
             b2.register()
             b3.register()
-            print(f'Register: {time.perf_counter() - t0}s')
+            logging.info(f'Register: {time.perf_counter() - t0}s')
             if kws['factory'] == 'geo':
                 b.quadrate()
                 b2.quadrate()
@@ -736,7 +739,7 @@ class TestBlock(unittest.TestCase):
             name_suffix = '-'.join(f'{k}_{v}' for k, v in kws.items())
             model_name = f'test_children-{name_suffix}'
             gmsh.model.add(model_name)
-            print(model_name)
+            logging.info(model_name)
             reset_registry()
             factory = kws.get('factory', 'geo')
             register_tag = kws.get('register_tag', False)
@@ -829,7 +832,7 @@ class TestBlock(unittest.TestCase):
             b4_2.children.append(b4_2_1)
             t0 = time.perf_counter()
             b1.register()
-            print(f'Register: {time.perf_counter() - t0}s')
+            logging.info(f'Register: {time.perf_counter() - t0}s')
             if kws['factory'] == 'geo':
                 gmsh.model.geo.synchronize()
             elif kws['factory'] == 'occ':
@@ -870,7 +873,7 @@ class TestBlock(unittest.TestCase):
             name_suffix = '-'.join(f'{k}_{v}' for k, v in kws.items())
             model_name = f'test_transform-{name_suffix}'
             gmsh.model.add(model_name)
-            print(model_name)
+            logging.info(model_name)
             reset_registry()
             factory = kws.get('factory', 'geo')
             b1 = Block(factory=factory,
@@ -1051,7 +1054,7 @@ class TestBlock(unittest.TestCase):
             name_suffix = '-'.join(f'{k}_{v}' for k, v in kws.items())
             model_name = f'test_boolean-{name_suffix}'
             gmsh.model.add(model_name)
-            print(model_name)
+            logging.info(model_name)
             reset_registry()
             factory = kws.get('factory', 'geo')
             b1 = Block(factory=factory,
@@ -1134,10 +1137,10 @@ class TestBlock(unittest.TestCase):
             b1.add_child(b5)
             t0 = time.perf_counter()
             b1.transform()
-            print(f'transform: {time.perf_counter() - t0}')
+            logging.info(f'transform: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             b1.register()
-            print(f'register: {time.perf_counter() - t0}')
+            logging.info(f'register: {time.perf_counter() - t0}')
             if factory == 'occ':
                 t0 = time.perf_counter()
                 if kws['boolean_type'] == 'without_bboxes':
@@ -1146,10 +1149,10 @@ class TestBlock(unittest.TestCase):
                     gmsh.model.occ.synchronize()  # for evaluation of bboxes
                     boolean_with_bounding_boxes(b1)
                 gmsh.model.occ.removeAllDuplicates()
-                print(f'boolean: {time.perf_counter() - t0}')
+                logging.info(f'boolean: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             b1.unregister()
-            print(f'unregister: {time.perf_counter() - t0}')
+            logging.info(f'unregister: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             if factory == 'geo':
                 gmsh.model.geo.synchronize()
@@ -1157,14 +1160,14 @@ class TestBlock(unittest.TestCase):
                 gmsh.model.occ.synchronize()
             else:
                 raise ValueError(factory)
-            print(f'synchronize: {time.perf_counter() - t0}')
+            logging.info(f'synchronize: {time.perf_counter() - t0}')
             if factory == 'occ':
                 t0 = time.perf_counter()
                 b1.quadrate()
-                print(f'quadrate: {time.perf_counter() - t0}')
+                logging.info(f'quadrate: {time.perf_counter() - t0}')
                 t0 = time.perf_counter()
                 b1.structure()
-                print(f'structure: {time.perf_counter() - t0}')
+                logging.info(f'structure: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             zone2tag = {}
             blocks = b1.get_all_blocks()
@@ -1175,14 +1178,14 @@ class TestBlock(unittest.TestCase):
             for zone, tags in zone2tag.items():
                 tag = gmsh.model.addPhysicalGroup(3, tags)
                 gmsh.model.setPhysicalName(3, tag, zone)
-            print(f'zones: {time.perf_counter() - t0}')
+            logging.info(f'zones: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             if kws['output_format'] != 'geo_unrolled':
                 gmsh.model.mesh.generate(3)
-            print(f'mesh: {time.perf_counter() - t0}')
+            logging.info(f'mesh: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             gmsh.write(f'{model_name}.{kws["output_format"]}')
-            print(f'write: {time.perf_counter() - t0}')
+            logging.info(f'write: {time.perf_counter() - t0}')
 
     @gmsh_decorator
     def test_zones(self):
@@ -1214,7 +1217,7 @@ class TestBlock(unittest.TestCase):
             name_suffix = '-'.join(f'{k}_{v}' for k, v in kws.items())
             model_name = f'test_zones-{name_suffix}'
             gmsh.model.add(model_name)
-            print(model_name)
+            logging.info(model_name)
             reset_registry()
             factory = kws.get('factory', 'geo')
             b1 = Block(factory=factory,
@@ -1246,10 +1249,10 @@ class TestBlock(unittest.TestCase):
                        )
             t0 = time.perf_counter()
             b1.transform()
-            print(f'transform: {time.perf_counter() - t0}')
+            logging.info(f'transform: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             b1.register()
-            print(f'register: {time.perf_counter() - t0}')
+            logging.info(f'register: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             if factory == 'geo':
                 gmsh.model.geo.synchronize()
@@ -1257,14 +1260,14 @@ class TestBlock(unittest.TestCase):
                 gmsh.model.occ.synchronize()
             else:
                 raise ValueError(factory)
-            print(f'synchronize: {time.perf_counter() - t0}')
+            logging.info(f'synchronize: {time.perf_counter() - t0}')
             if factory == 'occ':
                 t0 = time.perf_counter()
                 b1.quadrate()
-                print(f'quadrate: {time.perf_counter() - t0}')
+                logging.info(f'quadrate: {time.perf_counter() - t0}')
                 t0 = time.perf_counter()
                 b1.structure()
-                print(f'structure: {time.perf_counter() - t0}')
+                logging.info(f'structure: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             blocks = b1.get_all_blocks()
             for dim in range(0, 4):
@@ -1281,19 +1284,19 @@ class TestBlock(unittest.TestCase):
                     for x in xs:
                         if x.zone is not None and x.tag is not None:
                             zone2tag.setdefault(x.zone, []).append(x.tag)
-                print(dim)
-                print(zone2tag)
+                logging.info(dim)
+                logging.info(zone2tag)
                 for zone, tags in zone2tag.items():
                     tag = gmsh.model.addPhysicalGroup(dim, tags)
                     gmsh.model.setPhysicalName(dim, tag, zone)
-            print(f'zones: {time.perf_counter() - t0}')
+            logging.info(f'zones: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             if kws['output_format'] != 'geo_unrolled':
                 gmsh.model.mesh.generate(3)
-            print(f'mesh: {time.perf_counter() - t0}')
+            logging.info(f'mesh: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             gmsh.write(f'{model_name}.{kws["output_format"]}')
-            print(f'write: {time.perf_counter() - t0}')
+            logging.info(f'write: {time.perf_counter() - t0}')
 
 
 if __name__ == '__main__':

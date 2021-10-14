@@ -63,6 +63,23 @@ class Point:
 
     @staticmethod
     def parse_args(args):
+        """Parse list
+        Patterns:
+        1. [coordinates]
+        2. [coordinates, meshSize]
+        3. [coordinates, coordinate_system]
+        4. [coordinates, zone]
+        5. [coordinates, meshSize, coordinate_system]
+        5. [coordinates, coordinate_system, zone]
+        5. [coordinates, meshSize, zone]
+        5. [coordinates, meshSize, coordinate_system, zone]
+
+        Args:
+            args (list):
+
+        Returns:
+            int or None, str or None, CoordinateSystem or None, list of float, dict:
+        """
         tag, zone = None, None
         coordinate_system, coordinates, kwargs = None, None, {}
         if len(args) == 1 and isinstance(args[0], list):  # init by list
@@ -185,9 +202,7 @@ class Point:
                         p.setdefault('meshSize', ms)
                 elif isinstance(p, list):
                     tag, zone, coordinate_system, coordinates, kwargs = Point.parse_args([p])
-                    p = {}
-                    p['tag'] = tag
-                    p['coordinates'] = coordinates
+                    p = {'tag': tag, 'coordinates': coordinates}
                     p['coordinate_system'] = coordinate_system if coordinate_system is not None else cs
                     p['zone'] = zone if zone is not None else z
                     p.update(kwargs)

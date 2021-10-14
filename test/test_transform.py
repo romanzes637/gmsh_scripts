@@ -1,12 +1,15 @@
 import unittest
 from functools import reduce
 import numpy as np
+import logging
 
 from point import Point
 from coordinate_system import Block, Cartesian, Cylindrical, Spherical, \
     Toroidal, Tokamak
 from transform import Translate, Rotate, CylindricalToCartesian, \
-ToroidalToCartesian, TokamakToCartesian, SphericalToCartesian, BlockToCartesian
+    ToroidalToCartesian, TokamakToCartesian, SphericalToCartesian, BlockToCartesian
+
+logging.basicConfig(level=logging.INFO)
 
 
 class TestTransform(unittest.TestCase):
