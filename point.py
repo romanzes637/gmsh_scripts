@@ -111,9 +111,7 @@ class Point:
             else:
                 raise ValueError(a)
             # Split nums into coordinates and meshSize
-            if coordinate_system is None:
-                coordinate_system = Point.parse_coordinate_system(coordinate_system)
-            dim = coordinate_system.dim
+            dim = coordinate_system.dim if coordinate_system is not None else Cartesian().dim
             if n_nums == dim:  # coordinates, ...
                 coordinates = nums
             elif n_nums - 1 == dim:  # coordinates, meshSize, ...

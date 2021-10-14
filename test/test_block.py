@@ -856,7 +856,7 @@ class TestBlock(unittest.TestCase):
             # 'transfinite_curve_coef': [0.75, 1.0, 1.5],
             'output_format': [
                 'geo_unrolled',
-                # 'msh2',
+                'msh2',
                 # 'vtk', 'stl',
                 # 'brep', 'step'
             ]
