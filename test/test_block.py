@@ -10,6 +10,7 @@ import gmsh
 from registry import reset as reset_registry
 from boolean import boolean, boolean_with_bounding_boxes
 from block import Block
+from zone import Block as BlockRule
 
 logging.basicConfig(level=logging.INFO)
 
@@ -1270,25 +1271,29 @@ class TestBlock(unittest.TestCase):
                 logging.info(f'structure: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             blocks = b1.get_all_blocks()
-            for dim in range(0, 4):
-                zone2tag = {}
-                for i, b in enumerate(blocks):
-                    if dim == 0:
-                        xs = b.points
-                    elif dim == 1:
-                        xs = b.curves
-                    elif dim == 2:
-                        xs = b.surfaces
-                    elif dim == 3:
-                        xs = b.volumes
-                    for x in xs:
-                        if x.zone is not None and x.tag is not None:
-                            zone2tag.setdefault(x.zone, []).append(x.tag)
-                logging.info(dim)
-                logging.info(zone2tag)
-                for zone, tags in zone2tag.items():
-                    tag = gmsh.model.addPhysicalGroup(dim, tags)
-                    gmsh.model.setPhysicalName(dim, tag, zone)
+            # for dim in range(0, 4):
+            #     zone2tag = {}
+            #     for i, b in enumerate(blocks):
+            #         if dim == 0:
+            #             xs = b.points
+            #         elif dim == 1:
+            #             xs = b.curves
+            #         elif dim == 2:
+            #             xs = b.surfaces
+            #         elif dim == 3:
+            #             xs = b.volumes
+            #         for x in xs:
+            #             if x.zone is not None and x.tag is not None:
+            #                 zone2tag.setdefault(x.zone, []).append(x.tag)
+            #     logging.info(dim)
+            #     logging.info(zone2tag)
+            #     for zonble, tags in zone2tag.items():
+            #         tag = gmsh.model.addPhysicalGroup(dim, tags)
+            #         gmsh.model.setPhysicalName(dim, tag, zone)
+            br = BlockRule()
+            for b in blocks:
+                print(b.volumes)
+                br(b.volumes)
             logging.info(f'zones: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             if kws['output_format'] != 'geo_unrolled':
