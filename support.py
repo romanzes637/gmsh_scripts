@@ -14,6 +14,72 @@ import gmsh
 # in getBoundary ierr.value)
 # ValueError: ('gmshModelGetBoundary
 
+def flatten(iterable, types=(list,)):
+    """Flatten iterable through types
+
+    Args:
+        iterable: some iterable
+        types: types to recurse
+
+    Returns:
+        generator of object: elements
+    """
+    if isinstance(iterable, types):
+        for element in iterable:
+            yield from flatten(element, types)
+    else:
+        yield iterable
+
+
+class DataTree:
+    """Volumes data tree
+
+    Args:
+        vs_dt (list of tuple): Volumes dim-tags
+
+    Attributes:
+        vs_dt (list of tuple): Volumes dim-tags
+        vs_ss_dt (list of tuple): Surfaces dim-tags of volumes
+        vs_ss_cs_dt (list of tuple): Curves dim-tags of surfaces of volumes
+        vs_ss_cs_ps_dt (list of tuple): Points dim-tags of curves of surfaces of volumes
+        ps_dt_to_cs (dict): Points dim-tags to coordinates
+    """
+
+    def __init__(self, vs_dt):
+        vs_ss_dt = []  # Surfaces dim-tags of volumes
+        vs_ss_cs_dt = []  # Curves dim-tags of surfaces of volumes
+        vs_ss_cs_ps_dt = []  # Points dim-tags of curves of surfaces of volumes
+        for v_dt in vs_dt:
+            # Surfaces dim-tags of the volume
+            ss_dt = gmsh.model.getBoundary(dimTags=[v_dt], combined=False,
+                                           oriented=True, recursive=False)
+            ss_cs_dt = []  # Curves dim-tags of surfaces
+            ss_cs_ps_dt = []  # Points dim-tags of curves of surfaces
+            for s_dt in ss_dt:
+                # Curves dim-tags of the surface
+                cs_dt = gmsh.model.getBoundary(dimTags=[s_dt], combined=False,
+                                               oriented=True, recursive=False)
+                ss_cs_dt.append(cs_dt)
+                cs_ps_dt = []  # Points dim-tags of curves
+                for c_dt in cs_dt:
+                    # Points of the the curve
+                    ps_dt = gmsh.model.getBoundary(dimTags=[c_dt],
+                                                   combined=False,
+                                                   oriented=True,
+                                                   recursive=False)
+                    cs_ps_dt.append(ps_dt)
+                ss_cs_ps_dt.append(cs_ps_dt)
+            vs_ss_dt.append(ss_dt)
+            vs_ss_cs_dt.append(ss_cs_dt)
+            vs_ss_cs_ps_dt.append(ss_cs_ps_dt)
+        ps_dt = set(flatten(vs_ss_cs_ps_dt))
+        ps_dt_to_cs = {x: gmsh.model.getBoundingBox(*x)[:3] for x in ps_dt}
+        self.vs_dt = vs_dt
+        self.vs_ss_dt = vs_ss_dt
+        self.vs_ss_cs_dt = vs_ss_cs_dt
+        self.vs_ss_cs_ps_dt = vs_ss_cs_ps_dt
+        self.ps_dt_to_cs = ps_dt_to_cs
+
 
 def get_volume_points_edges_data(volume):
     """

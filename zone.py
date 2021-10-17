@@ -3,20 +3,7 @@ from pprint import pprint
 import gmsh
 import numpy as np
 
-
-class Zone:
-    """Zone
-    Args:
-        name (str): zone name
-        dim (int): zone dim
-    Attributes:
-        name (str): zone name
-        dim (int): zone dim
-    """
-
-    def __init__(self, name, dim):
-        self.name = name
-        self.dim = dim
+from support import DataTree, flatten
 
 
 class ZoneMap:
@@ -39,9 +26,30 @@ class Rule:
     def __init__(self):
         pass
 
-    def __call__(self, volumes):
+    def __call__(self, block):
         zm = ZoneMap()
         return zm
+
+
+class BlockSimple(Rule):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, block):
+        zm = ZoneMap()
+        for dim in range(0, 4):
+            zone2tag = {}
+            if dim == 0:
+                xs = b.points
+            elif dim == 1:
+                xs = b.curves
+            elif dim == 2:
+                xs = b.surfaces
+            elif dim == 3:
+                xs = b.volumes
+            for x in xs:
+                if x.zone is not None and x.tag is not None:
+                    zone2tag.setdefault(x.zone, []).append(x.tag)
 
 
 class Block(Rule):
@@ -64,62 +72,17 @@ class Block(Rule):
             self.surfaces_names = surfaces_names
         self.volume_name = 'B' if volume_name is None else volume_name
 
-    def __call__(self, volumes):
-        vs_dt = []  # Volumes dim-tags
-        vs_ss_dt = []  # Surfaces dim-tags of volumes
-        vs_ss_cs_dt = []  # Curves dim-tags of surfaces of volumes
-        vs_ss_cs_ps_dt = []
-        for v in volumes:
-            # Volume dim-tag
-            v_dt = (3, v.tag)
-            print(v_dt, v.zone)
-            vs_dt.append(v_dt)
-            # Surfaces dim-tags of the volume
-            ss_dt = gmsh.model.getBoundary(dimTags=[v_dt], combined=False,
-                                           oriented=True, recursive=False)
-            ss_cs_dt = []  # Curves dim-tags of surfaces
-            ss_cs_ps_dt = []  # Points dim-tags of curves of surfaces
-            for s_dt in ss_dt:
-                # Curves dim-tags of the surface
-                cs_dt = gmsh.model.getBoundary(dimTags=[s_dt], combined=False,
-                                               oriented=True, recursive=False)
-                ss_cs_dt.append(cs_dt)
-                cs_ps_dt = []  # Points dim-tags of curves
-                for c_dt in cs_dt:
-                    # Points of the the curve
-                    ps_dt = gmsh.model.getBoundary(dimTags=[c_dt],
-                                                   combined=False,
-                                                   oriented=True,
-                                                   recursive=False)
-                    cs_ps_dt.append(ps_dt)
-                ss_cs_ps_dt.append(cs_ps_dt)
-            vs_ss_dt.append(ss_dt)
-            vs_ss_cs_dt.append(ss_cs_dt)
-            vs_ss_cs_ps_dt.append(ss_cs_ps_dt)
-        print('Volumes')
-        pprint(vs_dt)
-        print('Surfaces')
-        pprint(vs_ss_dt)
-        print('Curves')
-        pprint(vs_ss_cs_dt)
-        print('Points')
-        pprint(vs_ss_cs_ps_dt)
-
-        def flatten(x):
-            if isinstance(x, list):
-                for y in x:
-                    yield from flatten(y)
-            else:
-                yield x
-
-        ps_dt = set(flatten(vs_ss_cs_ps_dt))  # Unique points
-        # Points coordinates
-        dt2cs = {x: gmsh.model.getBoundingBox(*x)[:3] for x in ps_dt}
-        print(dt2cs)
-        # Zones
+    def __call__(self, block):
+        vs_dt = [(3, x.tag) for x in block.volumes]
+        dt = DataTree(vs_dt)
+        vs_dt = dt.vs_dt
+        vs_ss_dt = dt.vs_ss_dt
+        vs_ss_cs_dt = dt.vs_ss_cs_dt
+        vs_ss_cs_ps_dt = dt.vs_ss_cs_ps_dt
+        ps_dt_to_cs = dt.ps_dt_to_cs
         for v_i, v_dt in enumerate(vs_dt):
             v_ps_dt = list(set(flatten(vs_ss_cs_ps_dt[v_i])))
-            v_ps_cs = np.array([dt2cs[x] for x in v_ps_dt])
+            v_ps_cs = np.array([ps_dt_to_cs[x] for x in v_ps_dt])
             v_c = np.mean(v_ps_cs, axis=0)  # Centroid of the volume
             cs2ws = Direction(zones=['NX', 'X', 'NY', 'Y', 'NZ', 'Z'],
                               zones_directions=[[[-1, 0, 0]], [[1, 0, 0]],
@@ -143,7 +106,7 @@ class Block(Rule):
             for s_i, s_dt in enumerate(vs_ss_dt[v_i]):
                 print('Surface', s_i, s_dt)
                 s_ps_dt = set(flatten(vs_ss_cs_ps_dt[v_i][s_i]))
-                s_ps_cs = np.array([dt2cs[x] for x in s_ps_dt])
+                s_ps_cs = np.array([ps_dt_to_cs[x] for x in s_ps_dt])
                 print(s_ps_cs)
                 s_ws = cs2ws(s_ps_cs)
                 print(s_ws)

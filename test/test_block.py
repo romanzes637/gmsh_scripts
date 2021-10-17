@@ -1013,6 +1013,7 @@ class TestBlock(unittest.TestCase):
                        parent=b6,
                        transforms=['cylindrical_to_cartesian', [0, 0, 0.01]])
             b6.add_child(b7)
+            b1.plot_tree()
             b1.transform()
             b1.register()
             if factory == 'geo':
@@ -1170,9 +1171,10 @@ class TestBlock(unittest.TestCase):
                 b1.structure()
                 logging.info(f'structure: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
+            b1.plot_tree(file_name=model_name,
+                         label_type='volume_zone', group_type='volume_zone')
             zone2tag = {}
-            blocks = b1.get_all_blocks()
-            for i, b in enumerate(blocks):
+            for i, b in enumerate(b1):
                 for v in b.volumes:
                     if v.tag is not None:
                         zone2tag.setdefault(v.zone, []).append(v.tag)
@@ -1270,30 +1272,16 @@ class TestBlock(unittest.TestCase):
                 b1.structure()
                 logging.info(f'structure: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
-            blocks = b1.get_all_blocks()
-            # for dim in range(0, 4):
-            #     zone2tag = {}
-            #     for i, b in enumerate(blocks):
-            #         if dim == 0:
-            #             xs = b.points
-            #         elif dim == 1:
-            #             xs = b.curves
-            #         elif dim == 2:
-            #             xs = b.surfaces
-            #         elif dim == 3:
-            #             xs = b.volumes
-            #         for x in xs:
-            #             if x.zone is not None and x.tag is not None:
-            #                 zone2tag.setdefault(x.zone, []).append(x.tag)
-            #     logging.info(dim)
-            #     logging.info(zone2tag)
-            #     for zonble, tags in zone2tag.items():
-            #         tag = gmsh.model.addPhysicalGroup(dim, tags)
-            #         gmsh.model.setPhysicalName(dim, tag, zone)
+            blocks = [x for x in b1]
+            print(blocks)
             br = BlockRule()
+            # br = BlockSimple()
             for b in blocks:
-                print(b.volumes)
-                br(b.volumes)
+                zm = br(b)
+                print(zm)
+        #     for zone, tags in zone2tag.items():
+        #         tag = gmsh.model.addPhysicalGroup(dim, tags)
+        #         gmsh.model.setPhysicalName(dim, tag, zone)
             logging.info(f'zones: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             if kws['output_format'] != 'geo_unrolled':

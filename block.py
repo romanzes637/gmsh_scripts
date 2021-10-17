@@ -2,8 +2,9 @@ import logging
 from pprint import pprint
 import copy
 import time
+from pathlib import Path
+
 import numpy as np
-import itertools
 
 from support import volumes_surfaces_to_volumes_groups_surfaces
 from transform import factory as transform_factory
@@ -13,8 +14,6 @@ from registry import register_point, register_curve, register_curve_loop, \
     register_surface, register_surface_loop, register_volume, \
     register_quadrate_surface, register_structure_curve, \
     register_structure_surface, register_structure_volume, unregister_volume
-from coordinate_system import factory as cs_factory
-from coordinate_system import Cartesian, Cylindrical, Spherical, Toroidal, Tokamak
 from coordinate_system import Block as BlockCS
 from point import Point
 from curve import Curve
@@ -96,6 +95,7 @@ class Block:
         children_transforms(list of list of dict, list of list of list, list of list of Transform): transforms for children Blocks
         boolean_level(int): Block boolean level, if the Block level > another Block level, then intersected volume joins to the Block, if levels are equal third Block is created, if None - don't do boolean
     """
+
     def __init__(self, factory='geo',
                  points=None, curves=None, surfaces=None, volumes=None,
                  do_register=True, use_register_tag=False, do_unregister=False,
@@ -103,7 +103,7 @@ class Block:
                  transforms=None,
                  quadrate_all=None, structure_all=None,
                  parent=None, children=None, children_transforms=None,
-                 boolean_level=None):
+                 boolean_level=None, file_name=None):
         self.factory = factory
         self.points = self.parse_points(points)
         self.curves = self.parse_curves(curves)
@@ -125,6 +125,7 @@ class Block:
             children_transforms[i] = self.parse_transforms(t, parent)
         self.children_transforms = children_transforms
         self.boolean_level = boolean_level
+        self.file_name = file_name
         # Support
         self.curves_loops = [CurveLoop() for _ in range(6)]
         self.surfaces_loops = [SurfaceLoop()]
@@ -577,17 +578,128 @@ class Block:
         self.structure_volume()
         self.is_structured = True
 
-    def get_all_blocks(self):
-        """
-        Recursively collect blocks through children
-        Returns:
-            blocks(list of Block): list of blocks
-        """
-        def get_blocks(block, blocks):
-            blocks.append(block)
-            for b in block.children:
-                get_blocks(b, blocks)
+    def __iter__(self):
+        """Iterate children of the block recursively
 
-        bs = []
-        get_blocks(self, bs)
-        return bs
+        Examples:
+            Tree
+
+            0
+                00
+                    001
+
+                    002
+                01
+                    011
+
+                    012
+
+            Iterator
+
+            0, 00, 001, 002, 01, 011, 012
+
+        Returns:
+            generator of Block: blocks
+        """
+        yield self
+        for child in self.children:
+            yield from iter(child)
+
+    def make_tree(self):
+        """Tree of blocks
+
+        Returns:
+            dict: children of blocks
+        """
+        tree = {}
+        for b in self:  # See __iter__
+            tree.setdefault(b.parent, []).append(b)
+        return tree
+
+    def plot_tree(self, file_name=None, height='600px', width='600px',
+                  hierarchical=True, show_buttons=True, label_type='file_name',
+                  group_type='file_name', title_type='file_name',
+                  bgcolor='black', font_color='white'):
+        def get_value(b, t):
+            if t == 'file_name':
+                v = b.file_name
+            elif t == 'volume_zone':
+                v = '_'.join((x.zone for x in b.volumes if x.zone is not None))
+                if len(v) == 0:
+                    v = None
+            elif t == 'id':
+                v = id(b)
+            elif t == 'type':
+                v = type(b).__name__
+            else:
+                v = None
+            return v
+        if file_name is None:
+            if self.file_name is not None:
+                file_name = f"{Path(self.file_name).with_suffix('').name}-tree"
+            else:
+                file_name = f'{id(self)}-tree'
+        logging.info(f'Tree of {id(self)} with label by {label_type} '
+                     f'title by {title_type} '
+                     f'and group by {group_type}')
+        prev_parent = None
+        parent2depth = {prev_parent: 0}
+        depth2nodes = {}
+        parent2children = {}
+        cnt = 0  # nodes counter
+        for b in self:  # See __iter__
+            cnt += 1
+            parent = b.parent
+            if parent not in parent2depth:
+                parent2depth[parent] = parent2depth[prev_parent] + 1
+            prev_parent = parent
+            depth = parent2depth[parent]
+            depth2nodes.setdefault(depth, []).append(b)
+            parent2children.setdefault(parent, []).append(b)
+            label = get_value(self, label_type)
+            label = label if label is not None else ''
+            logging.info(f'{"_" * depth}{id(b)} {label}')
+        d2n = ", ".join(f"{k}-{len(v)}" for k, v in depth2nodes.items())
+        logging.info(f'Number of nodes: {cnt}')
+        logging.info(f'Nodes by depth: {d2n}')
+        logging.info(f'Max depth: {max(depth2nodes)}')
+        try:
+            logging.info(f'pyvis network')
+            from pyvis.network import Network
+
+            n = Network(height=height, width=width, directed=True,
+                        layout=hierarchical, bgcolor=bgcolor,
+                        font_color=font_color)
+            if show_buttons:
+                n.show_buttons()
+            nodes, edges, groups = set(), set(), {}
+            for p, cs in parent2children.items():
+                if p is None:  # Skip root
+                    continue
+                if p not in nodes:
+                    g = get_value(p, group_type)
+                    groups.setdefault(g, len(groups))
+                    label = get_value(p, label_type)
+                    label = label if label is not None else ' '
+                    n.add_node(id(p), label=label, group=groups[g],
+                               value=len(p.children), level=parent2depth[p.parent],
+                               title=get_value(p, title_type))
+                    nodes.add(p)
+                for c in cs:
+                    if c not in nodes:
+                        g = get_value(c, group_type)
+                        groups.setdefault(g, len(groups))
+                        label = get_value(c, label_type)
+                        label = label if label is not None else ' '
+                        n.add_node(id(c), label=label, group=groups[g],
+                                   value=len(c.children), level=parent2depth[c.parent],
+                                   title=get_value(c, title_type))
+                        nodes.add(c)
+                    if (p, c) not in edges:
+                        n.add_edge(id(p), id(c))
+                        edges.add((p, c))
+            p = Path(file_name).with_suffix('.html')
+            logging.info(f'Writing pyvis network to {p}')
+            n.write_html(str(p))
+        except Exception as e:
+            logging.warning(e)

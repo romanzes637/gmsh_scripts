@@ -9,36 +9,39 @@ from volume import Volume
 
 
 def boolean(block):
-    blocks = block.get_all_blocks()
-    n_blocks = len(blocks)
+    n_blocks = 0
+    for _ in block:
+        n_blocks += 1
     logging.info(f'n_blocks: {n_blocks}')
     n_combinations = int(0.5 * (n_blocks * n_blocks - n_blocks))
     logging.info(f'n_combinations: {n_combinations}')
     cnt = 0
-    for b0, b1 in itertools.combinations(blocks, 2):
+    for b0, b1 in itertools.combinations(block, 2):
         cnt += 1
         logging.info(f'{cnt}/{n_combinations}')
         block_by_block(b0, b1)
 
 
 def boolean_with_bounding_boxes(block):
-    blocks = block.get_all_blocks()
-    n_blocks = len(blocks)
+    def get_bb(b):
+        bbs = np.array([gmsh.model.getBoundingBox(3, x.tag) for x in b.volumes])
+        bb = np.concatenate([bbs[:, :3].min(axis=0), bbs[:, 3:].max(axis=0)])
+        return bb
+
+    b2bb = {}
+    n_blocks = 0
+    for b in block:
+        b2bb[b] = get_bb(b)
+        n_blocks += 1
     logging.info(f'n_blocks: {n_blocks}')
-    bbs = []
-    for b in blocks:
-        # FIXME wrong bounding boxes!
-        vs_bbs = np.array([gmsh.model.getBoundingBox(3, x.tag) for x in b.volumes])
-        bbox = np.concatenate([vs_bbs[:, :3].min(axis=0),
-                               vs_bbs[:, 3:].max(axis=0)])
-        bbs.append(bbox)
     n_combinations = int(0.5 * (n_blocks * n_blocks - n_blocks))
     logging.info(f'n_combinations: {n_combinations}')
     cnt = 0
-    for i0, i1 in itertools.combinations(range(n_blocks), 2):
+    for b0, b1 in itertools.combinations(block, 2):
         cnt += 1
         logging.info(f'{cnt}/{n_combinations}')
-        bb0, bb1 = bbs[i0], bbs[i1]
+        bb0 = b2bb[b0]
+        bb1 = b2bb[b1]
         # Check bbox intersection
         do_boolean = True
         # for x, y, z: min > max, max < min
@@ -48,7 +51,6 @@ def boolean_with_bounding_boxes(block):
         logging.info(f'bbox intersection: {do_boolean}')
         # Do boolean operation
         if do_boolean:
-            b0, b1 = blocks[i0], blocks[i1]
             block_by_block(b0, b1)
 
 
