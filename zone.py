@@ -1,11 +1,11 @@
-import gmsh
 import numpy as np
+import gmsh
 
 from support import DataTree, flatten
 
 
 class Rule:
-    """Get zone to dim-tags map from block
+    """
     """
 
     def __init__(self):
@@ -41,77 +41,120 @@ class BlockSimple(Rule):
                 if len(zs) == 1:  # Boundary entities only
                     z = zs[0]
                     z2dt.setdefault(z, []).append(dt)
-        return z2dt
+        # Add zones
+        for zone, tags in z2dt.items():
+            dims, tags = [x[0] for x in tags], [x[1] for x in tags]
+            dim = dims[0]
+            tag = gmsh.model.addPhysicalGroup(dim, tags)
+            gmsh.model.setPhysicalName(dim, tag, zone)
 
 
-class Block(Rule):
-    def __init__(self, point_names=None, curves_names=None, surfaces_names=None,
-                 volume_name=None):
+class BlockDirection(Rule):
+    def __init__(self, zones=None, zones_directions=None):
         super().__init__()
-        if point_names is None:
-            self.point_names = ['X_Y_NZ', 'NX_Y_NZ', 'NX_NY_NZ', 'X_NY_NZ',
-                                'X_Y_Z', 'NX_Y_Z', 'NX_NY_Z', 'X_NY_Z']
+        self.zones = ['NX', 'X', 'NY', 'Y', 'NZ', 'Z'] if zones is None else zones
+        if zones_directions is None:
+            self.zones_directions = [[[-1, 0, 0]], [[1, 0, 0]],
+                                     [[0, -1, 0]], [[0, 1, 0]],
+                                     [[0, 0, -1]], [[0, 0, 1]]]
         else:
-            self.point_names = point_names
-        if curves_names is None:
-            self.curves_names = ['X1', 'X2', 'X3', 'X4', 'Y1', 'Y2', 'Y3', 'Y4',
-                                 'Z1', 'Z2', 'Z3', 'Z4']
-        else:
-            self.curves_names = curves_names
-        if surfaces_names is None:
-            self.surfaces_names = ['NX', 'X', 'NY', 'Y', 'NZ', 'Z']
-        else:
-            self.surfaces_names = surfaces_names
-        self.volume_name = 'B' if volume_name is None else volume_name
+            self.zones_directions = zones_directions
 
     def __call__(self, block):
-        vs_dt = [(3, x.tag) for x in block.volumes]
-        dt = DataTree(vs_dt)
-        vs_dt = dt.vs_dt
-        vs_ss_dt = dt.vs_ss_dt
-        vs_ss_cs_dt = dt.vs_ss_cs_dt
-        vs_ss_cs_ps_dt = dt.vs_ss_cs_ps_dt
-        ps_dt_to_cs = dt.ps_dt_to_cs
-        for v_i, v_dt in enumerate(vs_dt):
-            v_ps_dt = list(set(flatten(vs_ss_cs_ps_dt[v_i])))
-            v_ps_cs = np.array([ps_dt_to_cs[x] for x in v_ps_dt])
-            v_c = np.mean(v_ps_cs, axis=0)  # Centroid of the volume
-            cs2ws = Direction(zones=['NX', 'X', 'NY', 'Y', 'NZ', 'Z'],
-                              zones_directions=[[[-1, 0, 0]], [[1, 0, 0]],
-                                                [[0, -1, 0]], [[0, 1, 0]],
-                                                [[0, 0, -1]], [[0, 0, 1]]],
-                              origin=v_c)
-            print('Points')
-            p_ws = cs2ws(v_ps_cs)
-            print(p_ws)
-            p_ws_max = np.amax(p_ws, axis=0)
-            print(p_ws_max)
-            p_ws_max_is = np.argwhere(np.isclose(p_ws, p_ws_max))
-            print(p_ws_max_is)
-            p2z = {}
-            for z_i, p_i in p_ws_max_is:
-                p2z.setdefault(p_i, []).append(z_i)
-            print(p2z)
-            for p_i, z_is in p2z.items():
-                p_z = '_'.join([cs2ws.zones[x] for x in z_is])
-                print(v_ps_dt[p_i], p_z)
-            for s_i, s_dt in enumerate(vs_ss_dt[v_i]):
-                print('Surface', s_i, s_dt)
-                s_ps_dt = set(flatten(vs_ss_cs_ps_dt[v_i][s_i]))
-                s_ps_cs = np.array([ps_dt_to_cs[x] for x in s_ps_dt])
-                print(s_ps_cs)
-                s_ws = cs2ws(s_ps_cs)
-                print(s_ws)
-                s_ws_sum = np.sum(s_ws, axis=1)
-                print(s_ws_sum)
-                s_ws_max = np.amax(s_ws_sum)
-                print(s_ws_max)
-                s_ws_max_is = np.argwhere(np.isclose(s_ws_sum, s_ws_max))
-                print(s_ws_max_is)
-                s_z = '_'.join([cs2ws.zones[x] for x in s_ws_max_is[0]])
-                print(s_dt, s_z)
-        z2dt = {}
-        return z2dt
+        dt2zs = []  # tag to zone maps for each volume
+        for b in block:
+            vs_zs = [x.zone for x in b.volumes if x.tag is not None]
+            vs_dt = [(3, x.tag) for x in b.volumes if x.tag is not None]
+            tree = DataTree(vs_dt)
+            for v_i, v_dt in enumerate(tree.vs_dt):
+                dt2z = {}
+                # Volume zone
+                v_z = vs_zs[v_i]
+                dt2z[v_dt] = v_z
+                # Volume points
+                # Points dim-tags
+                v_ps_dt = list(set(flatten(tree.vs_ss_cs_ps_dt[v_i])))
+                # Points coordinates
+                v_ps_cs = np.array([tree.ps_dt_to_cs[x] for x in v_ps_dt])
+                print(v_ps_cs)
+                v_c = np.mean(v_ps_cs, axis=0)  # Centroid of the volume
+                print(v_c, v_z)
+                # Coordinates weights by direction
+                cs2ws = Direction(zones=self.zones,
+                                  zones_directions=self.zones_directions,
+                                  origin=v_c)
+                p_ws = cs2ws(v_ps_cs)  # Points zones weights
+                p_ws_max = np.amax(p_ws, axis=0)
+                p_ws_max_is = np.argwhere(np.isclose(p_ws, p_ws_max))
+                p2z = {}
+                for z_i, p_i in p_ws_max_is:
+                    p2z.setdefault(p_i, []).append(z_i)
+                for p_i, z_is in p2z.items():
+                    p_z = '_'.join([cs2ws.zones[x] for x in z_is])
+                    p_dt = v_ps_dt[p_i]
+                    dt2z[p_dt] = p_z
+                print('Surfaces')
+                print(tree.vs_ss_dt[v_i])
+                for s_i, s_dt in enumerate(tree.vs_ss_dt[v_i]):
+                    cs2ws = Direction(zones=self.zones,
+                                      zones_directions=self.zones_directions,
+                                      origin=v_c)
+                    # Points dim-tags
+                    s_ps_dt = set(flatten(tree.vs_ss_cs_ps_dt[v_i][s_i]))
+                    # Points coordinates
+                    s_ps_cs = np.array([tree.ps_dt_to_cs[x] for x in s_ps_dt])
+                    s_ws = cs2ws(s_ps_cs)
+                    s_ws_sum = np.sum(s_ws, axis=1)
+                    s_ws_max = np.amax(s_ws_sum)
+                    s_ws_max_is = np.argwhere(np.isclose(s_ws_sum, s_ws_max))
+                    print(s_ws_max_is)
+                    s_z = '_'.join([cs2ws.zones[x[0]] for x in s_ws_max_is])
+                    dt2z[s_dt] = s_z
+                    # Curves
+                    for c_i, c_dt in enumerate(tree.vs_ss_cs_dt[v_i][s_i]):
+                        # print(c_dt)
+                        c_ps_dt = set(flatten(tree.vs_ss_cs_ps_dt[v_i][s_i][c_i]))
+                        # print(c_ps_dt)
+                        c_ps_cs = np.array([tree.ps_dt_to_cs[x] for x in c_ps_dt])
+                        # print(c_ps_cs)
+                        cs2ws = Direction(zones=self.zones,
+                                          zones_directions=self.zones_directions,
+                                          origin=c_ps_cs[0])
+                        c_ps_cs = [c_ps_cs[1]]
+                        # print(c_ps_cs)
+                        c_ws = cs2ws(c_ps_cs)
+                        # print(c_ws)
+                        c_ws = np.abs(c_ws)
+                        c_ws_sum = np.sum(c_ws, axis=1)
+                        c_ws_max = np.amax(c_ws_sum)
+                        # print(c_ws_max)
+                        c_ws_max_is = np.argwhere(np.isclose(c_ws, c_ws_max))
+                        # print(c_ws_max_is)
+                        c_z = '_'.join([cs2ws.zones[x[0]] for x in c_ws_max_is])
+                        dt2z[(c_dt[0], abs(c_dt[1]))] = c_z
+                dt2zs.append(dt2z)
+        z2dt = {}  # zone to dim-tags map
+        print(dt2zs)
+        for dim in range(4):  # 0 - points, 1 - curves, 2 - surfaces, 3 - volumes
+            es_dt = gmsh.model.getEntities(dim)
+            for dt in es_dt:
+                zs = []  # zones
+                for dt2z in dt2zs:
+                    if dt in dt2z:
+                        zs.append(dt2z[dt])
+                if dim == 2:
+                    if len(zs) == 1:  # Boundary entities only
+                        z2dt.setdefault(zs[0], []).append(dt)
+                elif len(zs) > 0:
+                    z2dt.setdefault(zs[0], []).append(dt)
+        print(z2dt)
+        # Add zones
+        for z, dts in z2dt.items():
+            unique_dims = {x[0] for x in dts}
+            for dim in unique_dims:
+                tags = [x[1] for x in dts if x[0] == dim]
+                tag = gmsh.model.addPhysicalGroup(dim, tags)
+                gmsh.model.setPhysicalName(dim, tag, z)
 
 
 # TODO distance, box, cylinder, ball etc

@@ -10,7 +10,7 @@ import gmsh
 from registry import reset as reset_registry
 from boolean import boolean, boolean_with_bounding_boxes
 from block import Block
-from zone import Block as BlockRule, BlockSimple
+from zone import BlockDirection, BlockSimple
 
 logging.basicConfig(level=logging.INFO)
 
@@ -1030,7 +1030,8 @@ class TestBlock(unittest.TestCase):
     def test_boolean(self):
         kwargs = {
             'factory': ['occ'],
-            'boolean_type': ['with_bboxes', 'without_bboxes'],
+            'boolean_type': ['with_bboxes',
+                             'without_bboxes'],
             # 'factory': ['geo'],
             'register_tag': [True, False],
             # 'register_tag': [True, False],
@@ -1173,14 +1174,9 @@ class TestBlock(unittest.TestCase):
             t0 = time.perf_counter()
             b1.plot_tree(file_name=model_name,
                          label_type='volume_zone', group_type='volume_zone')
-            zone2tag = {}
-            for i, b in enumerate(b1):
-                for v in b.volumes:
-                    if v.tag is not None:
-                        zone2tag.setdefault(v.zone, []).append(v.tag)
-            for zone, tags in zone2tag.items():
-                tag = gmsh.model.addPhysicalGroup(3, tags)
-                gmsh.model.setPhysicalName(3, tag, zone)
+            logging.info(f'tree: {time.perf_counter() - t0}')
+            t0 = time.perf_counter()
+            BlockDirection()(b1)
             logging.info(f'zones: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             if kws['output_format'] != 'geo_unrolled':
@@ -1433,15 +1429,7 @@ class TestBlock(unittest.TestCase):
                 b0.structure()
                 logging.info(f'structure: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
-            z2tg = BlockSimple()(b0)
-            for zone, tags in z2tg.items():
-                dims, tags = [x[0] for x in tags], [x[1] for x in tags]
-                if len(set(dims)) == 1:
-                    dim = dims[0]
-                else:
-                    raise ValueError(tags)
-                tag = gmsh.model.addPhysicalGroup(dim, tags)
-                gmsh.model.setPhysicalName(dim, tag, zone)
+            BlockSimple()(b0)
             logging.info(f'zones: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             if kws['output_format'] != 'geo_unrolled':

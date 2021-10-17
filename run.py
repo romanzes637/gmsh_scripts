@@ -252,12 +252,7 @@ if __name__ == '__main__':
     t0 = time.perf_counter()
     if args['boolean'] is None:
         t0 = time.perf_counter()
-        z2tg = BlockSimple()(top_block)
-        for zone, tags in z2tg.items():
-            dims, tags = [x[0] for x in tags], [x[1] for x in tags]
-            dim = dims[0]
-            tag = gmsh.model.addPhysicalGroup(dim, tags)
-            gmsh.model.setPhysicalName(dim, tag, zone)
+        BlockSimple()(top_block)
     else:
         pass
     logging.info(f'zones: {time.perf_counter() - t0}')
