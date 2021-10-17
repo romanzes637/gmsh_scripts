@@ -1,34 +1,18 @@
-from pprint import pprint
-
 import gmsh
 import numpy as np
 
 from support import DataTree, flatten
 
 
-class ZoneMap:
-    """Zone name to tags map
-
-    """
-
-    def __init__(self, points=None, curves=None, surfaces=None, volumes=None):
-        self.points = {} if points is None else points
-        self.curves = {} if curves is None else curves
-        self.surfaces = {} if surfaces is None else surfaces
-        self.volumes = {} if volumes is None else volumes
-
-
 class Rule:
-    """Converts volumes to ZoneMap
-
+    """Get zone to dim-tags map from block
     """
 
     def __init__(self):
         pass
 
     def __call__(self, block):
-        zm = ZoneMap()
-        return zm
+        pass
 
 
 class BlockSimple(Rule):
@@ -36,20 +20,28 @@ class BlockSimple(Rule):
         super().__init__()
 
     def __call__(self, block):
-        zm = ZoneMap()
-        for dim in range(0, 4):
-            zone2tag = {}
-            if dim == 0:
-                xs = b.points
-            elif dim == 1:
-                xs = b.curves
-            elif dim == 2:
-                xs = b.surfaces
-            elif dim == 3:
-                xs = b.volumes
-            for x in xs:
-                if x.zone is not None and x.tag is not None:
-                    zone2tag.setdefault(x.zone, []).append(x.tag)
+        dt2zs = []  # tag to zone maps
+        for b in block:
+            dt2z = {}  # tag to zone map
+            for i, entities in enumerate([b.points, b.curves,
+                                          b.surfaces, b.volumes]):
+                for e in entities:
+                    dt, z = (i, e.tag), e.zone
+                    if dt is not None and e.zone is not None:
+                        dt2z[dt] = z
+            dt2zs.append(dt2z)
+        z2dt = {}  # zone to dim-tags map
+        for dim in range(4):  # 0 - points, 1 - curves, 2 - surfaces, 3 - volumes
+            es_dt = gmsh.model.getEntities(dim)
+            for dt in es_dt:
+                zs = []  # zones
+                for dt2z in dt2zs:
+                    if dt in dt2z:
+                        zs.append(dt2z[dt])
+                if len(zs) == 1:  # Boundary entities only
+                    z = zs[0]
+                    z2dt.setdefault(z, []).append(dt)
+        return z2dt
 
 
 class Block(Rule):
@@ -118,8 +110,8 @@ class Block(Rule):
                 print(s_ws_max_is)
                 s_z = '_'.join([cs2ws.zones[x] for x in s_ws_max_is[0]])
                 print(s_dt, s_z)
-        zm = ZoneMap()
-        return zm
+        z2dt = {}
+        return z2dt
 
 
 # TODO distance, box, cylinder, ball etc

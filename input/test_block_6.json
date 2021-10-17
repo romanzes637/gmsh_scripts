@@ -6,6 +6,7 @@
     "factory": "geo",
     "points": [0.01, 0.01, 0.005, "block"],
     "quadrate_all": true,
-    "structure_all": [[3, 0, 1], [4, 0, 1], [5, 0, 1]]
+    "structure_all": [[3, 0, 1], [4, 0, 1], [5, 0, 1]],
+    "zone_all": "b6"
   }
 }

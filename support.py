@@ -73,12 +73,11 @@ class DataTree:
             vs_ss_cs_dt.append(ss_cs_dt)
             vs_ss_cs_ps_dt.append(ss_cs_ps_dt)
         ps_dt = set(flatten(vs_ss_cs_ps_dt))
-        ps_dt_to_cs = {x: gmsh.model.getBoundingBox(*x)[:3] for x in ps_dt}
+        self.ps_dt_to_cs = {x: gmsh.model.getBoundingBox(*x)[:3] for x in ps_dt}
         self.vs_dt = vs_dt
         self.vs_ss_dt = vs_ss_dt
         self.vs_ss_cs_dt = vs_ss_cs_dt
         self.vs_ss_cs_ps_dt = vs_ss_cs_ps_dt
-        self.ps_dt_to_cs = ps_dt_to_cs
 
 
 def get_volume_points_edges_data(volume):

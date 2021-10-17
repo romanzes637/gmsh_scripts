@@ -101,7 +101,7 @@ class Block:
                  do_register=True, use_register_tag=False, do_unregister=False,
                  do_register_children=True, do_unregister_children=True,
                  transforms=None,
-                 quadrate_all=None, structure_all=None,
+                 quadrate_all=None, structure_all=None, zone_all=None,
                  parent=None, children=None, children_transforms=None,
                  boolean_level=None, file_name=None):
         self.factory = factory
@@ -117,6 +117,7 @@ class Block:
         self.transforms = self.parse_transforms(transforms, parent)
         self.quadrate_all = quadrate_all
         self.structure_all = self.parse_structure_all(structure_all)
+        self.zone_all = self.parse_zone_all(zone_all)
         self.parent = parent
         self.children = [] if children is None else children
         if children_transforms is None:
@@ -172,6 +173,7 @@ class Block:
 
     @staticmethod
     def parse_points(points):
+        points = [] if points is None else points
         if isinstance(points, float) or isinstance(points, int):  # lx/ly/lz
             a = 0.5 * points
             points = [[a, a, -a], [-a, a, -a], [-a, -a, -a], [a, -a, -a],
@@ -354,6 +356,35 @@ class Block:
         else:
             raise ValueError(structure_all)
         return structure_all
+
+    def parse_zone_all(self, zone_all):
+        if isinstance(zone_all, str):  # Volumes zone
+            for v in self.volumes:
+                v.zone = zone_all
+        elif isinstance(zone_all, list):
+            if isinstance(zone_all[0], str):
+                for i, v in enumerate(self.volumes):
+                    v.zone = zone_all[i]
+            else:
+                if len(zone_all) == 1:  # Volumes zones
+                    v_zs = zone_all[0]
+                    for i, v in enumerate(self.volumes):
+                        v.zone = v_zs[i]
+                elif len(zone_all) == 2:  # Volumes ans surfaces zones
+                    v_zs, s_zs = zone_all[0], zone_all[1]
+                    self.parse_zone_all(v_zs)
+                    for i, s in enumerate(self.surfaces):
+                        s.zone = s_zs[i]
+                elif len(zone_all) == 3:  # Volumes ans surfaces zones
+                    v_s_zs, c_zs = zone_all[:2], zone_all[2]
+                    self.parse_zone_all(v_s_zs)
+                    for i, c in enumerate(self.curves):
+                        c.zone = c_zs[i]
+                elif len(zone_all) == 4:  # Volumes ans surfaces zones
+                    v_s_c_zs, p_zs = zone_all[:3], zone_all[3]
+                    self.parse_zone_all(v_s_c_zs)
+                    for i, p in enumerate(self.points):
+                        p.zone = p_zs[i]
 
     def register(self):
         # Children
@@ -634,6 +665,7 @@ class Block:
             else:
                 v = None
             return v
+
         if file_name is None:
             if self.file_name is not None:
                 file_name = f"{Path(self.file_name).with_suffix('').name}-tree"

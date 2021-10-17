@@ -10,7 +10,7 @@ import gmsh
 from registry import reset as reset_registry
 from boolean import boolean, boolean_with_bounding_boxes
 from block import Block
-from zone import Block as BlockRule
+from zone import Block as BlockRule, BlockSimple
 
 logging.basicConfig(level=logging.INFO)
 
@@ -1223,6 +1223,7 @@ class TestBlock(unittest.TestCase):
             logging.info(model_name)
             reset_registry()
             factory = kws.get('factory', 'geo')
+            b0 = Block(factory=factory, do_register=False)
             b1 = Block(factory=factory,
                        points=[{'coordinates': [0.5, 0.5, -0.5],
                                 'zone': 'p1'},
@@ -1248,13 +1249,173 @@ class TestBlock(unittest.TestCase):
                                {'zone': 'z3'}, {'zone': 'z4'}],
                        surfaces=[{'zone': 'nx'}, {'zone': 'x'}, {'zone': 'ny'},
                                  {'zone': 'y'}, {'zone': 'nz'}, {'zone': 'z'}],
-                       volumes=[{'zone': 'v'}]
+                       volumes=[{'zone': 'v'}],
+                       parent=b0
                        )
+            b0.add_child(b1)
+            b2 = Block(factory=factory,
+                       points=[{'coordinates': [0.5, 0.5, -0.5],
+                                'zone': 'p1'},
+                               # {'coordinates': [-0.5, 0.5, -0.5],
+                               #  'zone': 'p2'},
+                               [-0.5, 0.5, -0.5, 'p2'],
+                               [-0.5, -0.5, -0.5],
+                               {'coordinates': [0.5, -0.5, -0.5],
+                                'zone': 'p4'},
+                               {'coordinates': [0.5, 0.5, 0.5],
+                                'zone': 'p5'},
+                               {'coordinates': [-0.5, 0.5, 0.5],
+                                'zone': 'p6'},
+                               {'coordinates': [-0.5, -0.5, 0.5],
+                                'zone': 'p7'},
+                               {'coordinates': [0.5, -0.5, 0.5],
+                                'zone': 'p8'}],
+                       curves=[{'zone': 'x1'}, {'zone': 'x2'},
+                               {'zone': 'x3'}, {'zone': 'x4'},
+                               {'zone': 'y1'}, {'zone': 'y2'},
+                               {'zone': 'y3'}, {'zone': 'y4'},
+                               {'zone': 'z1'}, {'zone': 'z2'},
+                               {'zone': 'z3'}, {'zone': 'z4'}],
+                       surfaces=[{'zone': 'nx'}, {'zone': 'x'}, {'zone': 'ny'},
+                                 {'zone': 'y'}, {'zone': 'nz'}, {'zone': 'z'}],
+                       zone_all='v2',
+                       parent=b0
+                       )
+            b0.add_child(b2, [[1, 0, 0]])
+            b3 = Block(factory=factory,
+                       points=[{'coordinates': [0.5, 0.5, -0.5],
+                                'zone': 'p1'},
+                               # {'coordinates': [-0.5, 0.5, -0.5],
+                               #  'zone': 'p2'},
+                               [-0.5, 0.5, -0.5, 'p2'],
+                               [-0.5, -0.5, -0.5],
+                               {'coordinates': [0.5, -0.5, -0.5],
+                                'zone': 'p4'},
+                               {'coordinates': [0.5, 0.5, 0.5],
+                                'zone': 'p5'},
+                               {'coordinates': [-0.5, 0.5, 0.5],
+                                'zone': 'p6'},
+                               {'coordinates': [-0.5, -0.5, 0.5],
+                                'zone': 'p7'},
+                               {'coordinates': [0.5, -0.5, 0.5],
+                                'zone': 'p8'}],
+                       curves=[{'zone': 'x1'}, {'zone': 'x2'},
+                               {'zone': 'x3'}, {'zone': 'x4'},
+                               {'zone': 'y1'}, {'zone': 'y2'},
+                               {'zone': 'y3'}, {'zone': 'y4'},
+                               {'zone': 'z1'}, {'zone': 'z2'},
+                               {'zone': 'z3'}, {'zone': 'z4'}],
+                       surfaces=[{'zone': 'nx'}, {'zone': 'x'}, {'zone': 'ny'},
+                                 {'zone': 'y'}, {'zone': 'nz'}, {'zone': 'z'}],
+                       zone_all=['v3'],
+                       parent=b0
+                       )
+            b0.add_child(b3, [[-1, 0, 0]])
+            b4 = Block(factory=factory,
+                       points=[{'coordinates': [0.5, 0.5, -0.5],
+                                'zone': 'p1'},
+                               # {'coordinates': [-0.5, 0.5, -0.5],
+                               #  'zone': 'p2'},
+                               [-0.5, 0.5, -0.5, 'p2'],
+                               [-0.5, -0.5, -0.5],
+                               {'coordinates': [0.5, -0.5, -0.5],
+                                'zone': 'p4'},
+                               {'coordinates': [0.5, 0.5, 0.5],
+                                'zone': 'p5'},
+                               {'coordinates': [-0.5, 0.5, 0.5],
+                                'zone': 'p6'},
+                               {'coordinates': [-0.5, -0.5, 0.5],
+                                'zone': 'p7'},
+                               {'coordinates': [0.5, -0.5, 0.5],
+                                'zone': 'p8'}],
+                       curves=[{'zone': 'x1'}, {'zone': 'x2'},
+                               {'zone': 'x3'}, {'zone': 'x4'},
+                               {'zone': 'y1'}, {'zone': 'y2'},
+                               {'zone': 'y3'}, {'zone': 'y4'},
+                               {'zone': 'z1'}, {'zone': 'z2'},
+                               {'zone': 'z3'}, {'zone': 'z4'}],
+                       zone_all=[['v4'], ['nx', 'x', 'ny', 'y', 'nz', 'z']],
+                       parent=b0
+                       )
+            b0.add_child(b4, [[0, 1, 0]])
+            b5 = Block(factory=factory,
+                       points=[{'coordinates': [0.5, 0.5, -0.5],
+                                'zone': 'p1'},
+                               # {'coordinates': [-0.5, 0.5, -0.5],
+                               #  'zone': 'p2'},
+                               [-0.5, 0.5, -0.5, 'p2'],
+                               [-0.5, -0.5, -0.5],
+                               {'coordinates': [0.5, -0.5, -0.5],
+                                'zone': 'p4'},
+                               {'coordinates': [0.5, 0.5, 0.5],
+                                'zone': 'p5'},
+                               {'coordinates': [-0.5, 0.5, 0.5],
+                                'zone': 'p6'},
+                               {'coordinates': [-0.5, -0.5, 0.5],
+                                'zone': 'p7'},
+                               {'coordinates': [0.5, -0.5, 0.5],
+                                'zone': 'p8'}],
+                       zone_all=[['v5'],
+                                 ['nx', 'x', 'ny', 'y', 'nz', 'z'],
+                                 ['x1', 'x2', 'x3', 'x4',
+                                  'y1', 'y2', 'y3', 'y4',
+                                  'z1', 'z2', 'z3', 'z4']],
+                       parent=b0
+                       )
+            b0.add_child(b5, [[0, -1, 0]])
+            b6 = Block(factory=factory,
+                       points=[[0.5, 0.5, -0.5],
+                               [-0.5, 0.5, -0.5],
+                               [-0.5, -0.5, -0.5],
+                               [0.5, -0.5, -0.5],
+                               [0.5, 0.5, 0.5],
+                               [-0.5, 0.5, 0.5],
+                               [-0.5, -0.5, 0.5],
+                               [0.5, -0.5, 0.5]],
+                       zone_all=[['v6'],
+                                 ['nx', 'x', 'ny', 'y', 'nz', 'z'],
+                                 ['x1', 'x2', 'x3', 'x4',
+                                  'y1', 'y2', 'y3', 'y4',
+                                  'z1', 'z2', 'z3', 'z4'],
+                                 ['p1', 'p2', 'p3', 'p4',
+                                  'p5', 'p6', 'p7', 'p8']],
+                       parent=b0
+                       )
+            b0.add_child(b6, [[0, 0, 1]])
+            b7 = Block(factory=factory,
+                       points=[{'coordinates': [0.5, 0.5, -0.5],
+                                'zone': 'p1'},
+                               # {'coordinates': [-0.5, 0.5, -0.5],
+                               #  'zone': 'p2'},
+                               [-0.5, 0.5, -0.5, 'p2'],
+                               [-0.5, -0.5, -0.5],
+                               {'coordinates': [0.5, -0.5, -0.5],
+                                'zone': 'p4'},
+                               {'coordinates': [0.5, 0.5, 0.5],
+                                'zone': 'p5'},
+                               {'coordinates': [-0.5, 0.5, 0.5],
+                                'zone': 'p6'},
+                               {'coordinates': [-0.5, -0.5, 0.5],
+                                'zone': 'p7'},
+                               {'coordinates': [0.5, -0.5, 0.5],
+                                'zone': 'p8'}],
+                       curves=[{'zone': 'x1'}, {'zone': 'x2'},
+                               {'zone': 'x3'}, {'zone': 'x4'},
+                               {'zone': 'y1'}, {'zone': 'y2'},
+                               {'zone': 'y3'}, {'zone': 'y4'},
+                               {'zone': 'z1'}, {'zone': 'z2'},
+                               {'zone': 'z3'}, {'zone': 'z4'}],
+                       surfaces=[{'zone': 'nx'}, {'zone': 'x'}, {'zone': 'ny'},
+                                 {'zone': 'y'}, {'zone': 'nz'}, {'zone': 'z'}],
+                       zone_all=[['v7']],
+                       parent=b0
+                       )
+            b0.add_child(b7, [[0, 0, -1]])
             t0 = time.perf_counter()
-            b1.transform()
+            b0.transform()
             logging.info(f'transform: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
-            b1.register()
+            b0.register()
             logging.info(f'register: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             if factory == 'geo':
@@ -1266,22 +1427,21 @@ class TestBlock(unittest.TestCase):
             logging.info(f'synchronize: {time.perf_counter() - t0}')
             if factory == 'occ':
                 t0 = time.perf_counter()
-                b1.quadrate()
+                b0.quadrate()
                 logging.info(f'quadrate: {time.perf_counter() - t0}')
                 t0 = time.perf_counter()
-                b1.structure()
+                b0.structure()
                 logging.info(f'structure: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
-            blocks = [x for x in b1]
-            print(blocks)
-            br = BlockRule()
-            # br = BlockSimple()
-            for b in blocks:
-                zm = br(b)
-                print(zm)
-        #     for zone, tags in zone2tag.items():
-        #         tag = gmsh.model.addPhysicalGroup(dim, tags)
-        #         gmsh.model.setPhysicalName(dim, tag, zone)
+            z2tg = BlockSimple()(b0)
+            for zone, tags in z2tg.items():
+                dims, tags = [x[0] for x in tags], [x[1] for x in tags]
+                if len(set(dims)) == 1:
+                    dim = dims[0]
+                else:
+                    raise ValueError(tags)
+                tag = gmsh.model.addPhysicalGroup(dim, tags)
+                gmsh.model.setPhysicalName(dim, tag, zone)
             logging.info(f'zones: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             if kws['output_format'] != 'geo_unrolled':
