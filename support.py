@@ -78,6 +78,58 @@ class DataTree:
         self.vs_ss_dt = vs_ss_dt
         self.vs_ss_cs_dt = vs_ss_cs_dt
         self.vs_ss_cs_ps_dt = vs_ss_cs_ps_dt
+        self.b_sls, self.b_s2sl, self.i_sls, self.i_s2sl = self.evaluate_global_surfaces_loops(vs_ss_dt, vs_ss_cs_dt)
+
+    @staticmethod
+    def evaluate_boundary_surfaces(vs_ss_dt):
+        b_ss = set()  # Boundary surfaces
+        for ss_dt in vs_ss_dt:
+            for s_dt in ss_dt:
+                if s_dt in b_ss:
+                    b_ss.remove(s_dt)
+                else:
+                    b_ss.add(s_dt)
+        return b_ss
+
+    @staticmethod
+    def evaluate_global_surfaces_loops(vs_ss_dt, vs_ss_cs_dt):
+        b_ss = DataTree.evaluate_boundary_surfaces(vs_ss_dt)
+        b_sls, i_sls = [], []
+        b_s2sl, i_s2sl = {}, {}
+        ss_dt = set(flatten(vs_ss_dt))
+        while len(ss_dt) > 0:
+            sl, sl_cs, b = [], set(), True  # Surface loop, Curves of surface loop
+            new_s = True
+            while new_s:
+                new_s = False
+                for v_i, ss_cs_dt in enumerate(vs_ss_cs_dt):
+                    for s_i, cs_dt in enumerate(ss_cs_dt):  # For each remaining surface
+                        s_dt = vs_ss_dt[v_i][s_i]
+                        if s_dt not in ss_dt:
+                            continue
+                        if len(sl) == 0:
+                            b = s_dt in b_ss
+                        else:
+                            if (s_dt in b_ss) != b:
+                                continue
+                        for c_dt in cs_dt:  # For each curve of the surface
+                            c_t = abs(c_dt[1])  # Curve tag
+                            if len(sl_cs) == 0 or c_t in sl_cs:
+                                new_s = True
+                                # Add all curves of the surface
+                                sl_cs.update(abs(x[1]) for x in ss_cs_dt[s_i])
+                                ss_dt.remove(s_dt)  # Remove surface from iteration
+                                sl.append(s_dt[1])  # Add surface to loop
+                                if b:
+                                    b_s2sl[s_dt[1]] = len(b_sls)
+                                else:
+                                    i_s2sl[s_dt[1]] = len(i_sls)
+                                break
+            if b:
+                b_sls.append(sl)
+            else:
+                i_sls.append(sl)
+        return b_sls, b_s2sl, i_sls, i_s2sl
 
 
 def get_volume_points_edges_data(volume):

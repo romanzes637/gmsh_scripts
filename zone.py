@@ -50,7 +50,8 @@ class BlockSimple(Rule):
 
 
 class BlockDirection(Rule):
-    def __init__(self, zones=None, zones_directions=None):
+    def __init__(self, zones=None, zones_directions=None, dims=(0, 1, 2, 3),
+                 make_interface=False):
         super().__init__()
         self.zones = ['NX', 'X', 'NY', 'Y', 'NZ', 'Z'] if zones is None else zones
         if zones_directions is None:
@@ -59,83 +60,92 @@ class BlockDirection(Rule):
                                      [[0, 0, -1]], [[0, 0, 1]]]
         else:
             self.zones_directions = zones_directions
+        self.dims = dims   # 0 - points, 1 - curves, 2 - surfaces, 3 - volumes
+        self.make_interface = make_interface
 
     def __call__(self, block):
         dt2zs = []  # tag to zone maps for each volume
-        for b in block:
-            vs_zs = [x.zone for x in b.volumes if x.tag is not None]
-            vs_dt = [(3, x.tag) for x in b.volumes if x.tag is not None]
-            tree = DataTree(vs_dt)
+        vs = list(flatten([x.volumes for x in block]))
+        vs_dt = [(3, x.tag) for x in vs if x.tag is not None]
+        vs_zs = [x.zone for x in vs if x.tag is not None]
+        tree = DataTree(vs_dt)
+        for i, (sls, s2sl) in enumerate([(tree.b_sls, tree.b_s2sl),
+                                         (tree.i_sls, tree.i_s2sl)]):
+            print(i)
+            print(sls)
+            print(s2sl)
+            sl_ps = {}  # Points of surfaces loops
+            for v_i, v_dt in enumerate(tree.vs_dt):
+                for s_i, s_dt in enumerate(tree.vs_ss_dt[v_i]):
+                    if not s_dt[1] in s2sl:
+                        continue
+                    ps_dt = set(flatten(tree.vs_ss_cs_ps_dt[v_i][s_i]))
+                    sl_i = s2sl[s_dt[1]]
+                    sl_ps.setdefault(sl_i, set()).update(ps_dt)
+            sls_cs2ws = []
+            for sl_i, sl in enumerate(sls):
+                sl_ps_cs = np.array([tree.ps_dt_to_cs[x] for x in sl_ps[sl_i]])
+                sl_c = np.mean(sl_ps_cs, axis=0)  # Centroid of the surface loop
+                sl_cs2ws = Direction(zones=self.zones,
+                                     zones_directions=self.zones_directions,
+                                     origin=sl_c)
+                sls_cs2ws.append(sl_cs2ws)
             for v_i, v_dt in enumerate(tree.vs_dt):
                 dt2z = {}
                 # Volume zone
+                v_t = v_dt[1]
                 v_z = vs_zs[v_i]
                 dt2z[v_dt] = v_z
-                # Volume points
-                # Points dim-tags
-                v_ps_dt = list(set(flatten(tree.vs_ss_cs_ps_dt[v_i])))
-                # Points coordinates
-                v_ps_cs = np.array([tree.ps_dt_to_cs[x] for x in v_ps_dt])
-                print(v_ps_cs)
-                v_c = np.mean(v_ps_cs, axis=0)  # Centroid of the volume
-                print(v_c, v_z)
-                # Coordinates weights by direction
-                cs2ws = Direction(zones=self.zones,
-                                  zones_directions=self.zones_directions,
-                                  origin=v_c)
-                p_ws = cs2ws(v_ps_cs)  # Points zones weights
-                p_ws_max = np.amax(p_ws, axis=0)
-                p_ws_max_is = np.argwhere(np.isclose(p_ws, p_ws_max))
-                p2z = {}
-                for z_i, p_i in p_ws_max_is:
-                    p2z.setdefault(p_i, []).append(z_i)
-                for p_i, z_is in p2z.items():
-                    p_z = '_'.join([cs2ws.zones[x] for x in z_is])
-                    p_dt = v_ps_dt[p_i]
-                    dt2z[p_dt] = p_z
-                print('Surfaces')
-                print(tree.vs_ss_dt[v_i])
                 for s_i, s_dt in enumerate(tree.vs_ss_dt[v_i]):
-                    cs2ws = Direction(zones=self.zones,
-                                      zones_directions=self.zones_directions,
-                                      origin=v_c)
+                    if not s_dt[1] in s2sl:
+                        continue
+                    sl_i = s2sl[s_dt[1]]
+                    sl_cs2ws = sls_cs2ws[sl_i]
+                    # Surface dim-tag
+                    s_dt = tree.vs_ss_dt[v_i][s_i]
                     # Points dim-tags
-                    s_ps_dt = set(flatten(tree.vs_ss_cs_ps_dt[v_i][s_i]))
+                    s_ps_dt = list(set(flatten(tree.vs_ss_cs_ps_dt[v_i][s_i])))
                     # Points coordinates
                     s_ps_cs = np.array([tree.ps_dt_to_cs[x] for x in s_ps_dt])
-                    s_ws = cs2ws(s_ps_cs)
+                    s_ws = sl_cs2ws(s_ps_cs)
                     s_ws_sum = np.sum(s_ws, axis=1)
                     s_ws_max = np.amax(s_ws_sum)
                     s_ws_max_is = np.argwhere(np.isclose(s_ws_sum, s_ws_max))
-                    print(s_ws_max_is)
-                    s_z = '_'.join([cs2ws.zones[x[0]] for x in s_ws_max_is])
+                    s_z = '-'.join([sl_cs2ws.zones[x[0]] for x in s_ws_max_is])
+                    s_z = f'{v_z}-{v_t}_{s_z}-{sl_i}-{i}'
+                    print(s_z)
                     dt2z[s_dt] = s_z
+                    # Points
+                    p_ws_max = np.amax(s_ws, axis=0)
+                    p_ws_max_is = np.argwhere(np.isclose(s_ws, p_ws_max))
+                    p2zs = {}
+                    for z_i, p_i in p_ws_max_is:
+                        p2zs.setdefault(p_i, []).append(z_i)
+                    for p_i, zs_i in p2zs.items():
+                        p_dt = s_ps_dt[p_i]
+                        p_z = '-'.join([sl_cs2ws.zones[x] for x in zs_i])
+                        p_z = f'{v_z}-{v_t}_{p_z}-{sl_i}-{i}'
+                        dt2z[p_dt] = p_z
                     # Curves
                     for c_i, c_dt in enumerate(tree.vs_ss_cs_dt[v_i][s_i]):
-                        # print(c_dt)
                         c_ps_dt = set(flatten(tree.vs_ss_cs_ps_dt[v_i][s_i][c_i]))
-                        # print(c_ps_dt)
                         c_ps_cs = np.array([tree.ps_dt_to_cs[x] for x in c_ps_dt])
-                        # print(c_ps_cs)
-                        cs2ws = Direction(zones=self.zones,
-                                          zones_directions=self.zones_directions,
-                                          origin=c_ps_cs[0])
+                        c_cs2ws = Direction(zones=self.zones,
+                                            zones_directions=self.zones_directions,
+                                            origin=c_ps_cs[0])
                         c_ps_cs = [c_ps_cs[1]]
-                        # print(c_ps_cs)
-                        c_ws = cs2ws(c_ps_cs)
-                        # print(c_ws)
+                        c_ws = c_cs2ws(c_ps_cs)
                         c_ws = np.abs(c_ws)
                         c_ws_sum = np.sum(c_ws, axis=1)
                         c_ws_max = np.amax(c_ws_sum)
-                        # print(c_ws_max)
                         c_ws_max_is = np.argwhere(np.isclose(c_ws, c_ws_max))
-                        # print(c_ws_max_is)
-                        c_z = '_'.join([cs2ws.zones[x[0]] for x in c_ws_max_is])
+                        c_z = '-'.join([c_cs2ws.zones[x[0]] for x in c_ws_max_is])
+                        c_z = f'{v_z}-{v_t}_{c_z}-{sl_i}-{i}'
                         dt2z[(c_dt[0], abs(c_dt[1]))] = c_z
                 dt2zs.append(dt2z)
         z2dt = {}  # zone to dim-tags map
         print(dt2zs)
-        for dim in range(4):  # 0 - points, 1 - curves, 2 - surfaces, 3 - volumes
+        for dim in self.dims:
             es_dt = gmsh.model.getEntities(dim)
             for dt in es_dt:
                 zs = []  # zones
@@ -143,8 +153,11 @@ class BlockDirection(Rule):
                     if dt in dt2z:
                         zs.append(dt2z[dt])
                 if dim == 2:
-                    if len(zs) == 1:  # Boundary entities only
+                    if len(zs) == 1:  # Boundary
                         z2dt.setdefault(zs[0], []).append(dt)
+                    elif len(zs) > 0 and self.make_interface:  # Interface
+                        z = f'INT__{"--".join(zs)}'
+                        z2dt.setdefault(z, []).append(dt)
                 elif len(zs) > 0:
                     z2dt.setdefault(zs[0], []).append(dt)
         print(z2dt)
@@ -212,7 +225,7 @@ class Direction(CoordinatesToWeights):
         self.normalize_points = normalize_points
 
     def __call__(self, ps_cs):
-        ps_cs -= self.origin
+        ps_cs = ps_cs - self.origin
         if self.normalize_points:
             ps_cs = [x / np.linalg.norm(x) for x in ps_cs]
         weights = [np.mean(np.dot(ps_cs, x.T), axis=1)

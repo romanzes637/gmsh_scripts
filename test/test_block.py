@@ -1030,8 +1030,7 @@ class TestBlock(unittest.TestCase):
     def test_boolean(self):
         kwargs = {
             'factory': ['occ'],
-            'boolean_type': ['with_bboxes',
-                             'without_bboxes'],
+            'boolean_type': ['without_bboxes', 'with_bboxes',],
             # 'factory': ['geo'],
             'register_tag': [True, False],
             # 'register_tag': [True, False],
@@ -1039,7 +1038,7 @@ class TestBlock(unittest.TestCase):
             # 'transfinite_curve_mesh_type': ['Progression', 'Bump', 'Beta'],
             # 'transfinite_curve_coef': [0.75, 1.0, 1.5],
             'output_format': [
-                'geo_unrolled',
+                # 'geo_unrolled',
                 'msh2',
                 # 'vtk', 'stl',
                 # 'brep', 'step'
@@ -1070,7 +1069,7 @@ class TestBlock(unittest.TestCase):
                                [-0.5, -0.5, 0.5],
                                [0.5, -0.5, 0.5]],
                        boolean_level=1,
-                       volumes=[{'zone': 'a'}]
+                       volumes=[{'zone': 'A'}]
                        )
             b2 = Block(factory=factory,
                        points=[[0.5, 0.5, -0.5],
@@ -1085,7 +1084,7 @@ class TestBlock(unittest.TestCase):
                        transforms=['block_to_cartesian'],
                        parent=b1,
                        boolean_level=0,
-                       volumes=[{'zone': 'ba'}]
+                       volumes=[{'zone': 'BA'}]
                        )
             b1.add_child(b2)
             b3 = Block(factory=factory,
@@ -1101,7 +1100,7 @@ class TestBlock(unittest.TestCase):
                        transforms=['block_to_cartesian'],
                        parent=b2,
                        boolean_level=2,
-                       volumes=[{'zone': 'cb'}]
+                       volumes=[{'zone': 'CB'}]
                        )
             b2.add_child(b3)
             b4 = Block(factory=factory,
@@ -1118,7 +1117,7 @@ class TestBlock(unittest.TestCase):
                        parent=b2,
                        boolean_level=2,
                        do_unregister=True,
-                       volumes=[{'zone': 'ca'}]
+                       volumes=[{'zone': 'CA'}]
                        )
             b2.add_child(b4)
             b5 = Block(factory=factory,
@@ -1135,9 +1134,40 @@ class TestBlock(unittest.TestCase):
                        parent=b1,
                        boolean_level=2,
                        do_unregister=True,
-                       volumes=[{'zone': 'bb'}]
+                       volumes=[{'zone': 'BB'}]
                        )
             b1.add_child(b5)
+            b6 = Block(factory=factory,
+                       points=[[0.5, 0.5, -0.5],
+                               [-0.5, 0.5, -0.5],
+                               [-0.5, -0.5, -0.5],
+                               [0.5, -0.5, -0.5],
+                               [0.5, 0.5, 0.5],
+                               [-0.5, 0.5, 0.5],
+                               [-0.5, -0.5, 0.5],
+                               [0.5, -0.5, 0.5]],
+                       boolean_level=1,
+                       parent=b1,
+                       volumes=[{'zone': 'A'}]
+                       )
+            b1.add_child(b6, transforms=[[1, 0, 0]])
+            b7 = Block(factory=factory,
+                       points=[[0.5, 0.5, -0.5],
+                               [-1.1, 0.5, -0.5],
+                               [-1.1, -0.5, -0.5],
+                               [0.5, -0.5, -0.5],
+                               [0.5, 0.5, 0.5],
+                               [-0.5, 0.5, 0.5],
+                               [-0.5, -0.5, 0.5],
+                               [0.5, -0.5, 0.5],
+                               'block'],
+                       transforms=['blo2car'],
+                       boolean_level=6,
+                       parent=b6,
+                       do_unregister=True,
+                       volumes=[{'zone': 'D'}]
+                       )
+            b6.add_child(b7)
             t0 = time.perf_counter()
             b1.transform()
             logging.info(f'transform: {time.perf_counter() - t0}')
@@ -1176,7 +1206,7 @@ class TestBlock(unittest.TestCase):
                          label_type='volume_zone', group_type='volume_zone')
             logging.info(f'tree: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
-            BlockDirection()(b1)
+            BlockDirection(dims=(2, 3))(b1)
             logging.info(f'zones: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             if kws['output_format'] != 'geo_unrolled':
