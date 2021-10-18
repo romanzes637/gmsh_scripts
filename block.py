@@ -100,6 +100,7 @@ class Block:
                  points=None, curves=None, surfaces=None, volumes=None,
                  do_register=True, use_register_tag=False, do_unregister=False,
                  do_register_children=True, do_unregister_children=True,
+                 do_unregister_boolean=False, do_unregister_boolean_children=True,
                  transforms=None,
                  quadrate_all=None, structure_all=None, zone_all=None,
                  parent=None, children=None, children_transforms=None,
@@ -114,10 +115,12 @@ class Block:
         self.do_unregister = do_unregister
         self.do_register_children = do_register_children
         self.do_unregister_children = do_unregister_children
+        self.do_unregister_boolean = do_unregister_boolean
+        self.do_unregister_boolean_children = do_unregister_boolean_children
         self.transforms = self.parse_transforms(transforms, parent)
         self.quadrate_all = quadrate_all
         self.structure_all = self.parse_structure_all(structure_all)
-        self.zone_all = self.parse_zone_all(zone_all)
+        self.parse_zone_all(zone_all)
         self.parent = parent
         self.children = [] if children is None else children
         if children_transforms is None:
@@ -517,27 +520,35 @@ class Block:
         self.volumes[0] = register_volume(self.factory, v, self.register_tag)
         self.is_registered = True
 
-    def unregister(self, zone_filters=('-',)):
+    def unregister(self, zone_separator='-'):
         # Children
         if self.do_unregister_children:
             for i, c in enumerate(self.children):
-                c.unregister(zone_filters)
+                c.unregister()
         # Self
         if not self.do_unregister:
             return
-        if self.is_registered:
-            for i, v in enumerate(self.volumes):
-                check = True
-                if v.zone is not None:
-                    for f in zone_filters:
-                        if f in v.zone:
-                            check = False
-                            break
-                if check:
-                    self.volumes[i] = unregister_volume(self.factory, v,
-                                                        self.register_tag)
-        else:
-            raise ValueError('Block is not registered')
+        if not self.is_registered:
+            return
+        for i, v in enumerate(self.volumes):
+            if zone_separator not in v.zone:
+                self.volumes[i] = unregister_volume(self.factory, v,
+                                                    self.register_tag)
+
+    def unregister_boolean(self, zone_separator='-'):
+        # Children
+        if self.do_unregister_boolean_children:
+            for i, c in enumerate(self.children):
+                c.unregister_boolean()
+        # Self
+        if not self.do_unregister_boolean:
+            return
+        if self.boolean_level is None:
+            return
+        for i, v in enumerate(self.volumes):
+            if zone_separator in v.zone:
+                self.volumes[i] = unregister_volume(self.factory, v,
+                                                    self.register_tag)
 
     def quadrate_surfaces(self):
         # Check all
@@ -652,12 +663,23 @@ class Block:
                   group_type='file_name', title_type='file_name',
                   bgcolor='black', font_color='white'):
         def get_value(b, t):
-            if t == 'file_name':
+            if t == 'block':
+                v = f'type: {type(b).__name__} <br> '
+                v += f'id: {id(b)} <br> '
+                v += f'parent_id: {id(b.parent) if b.parent is not None else None} <br> '
+                zs = ", ".join({x.zone for x in b.volumes if x.zone is not None and x.tag is not None})
+                v += f'volume zones: {zs} <br> '
+                v += ' <br> '.join(f'{x}: {b.__getattribute__(x)}' for x in (
+                    'file_name', 'factory', 'boolean_level', 'register_tag',
+                    'do_register', 'do_register_children', 'do_unregister',
+                    'do_unregister_boolean', 'do_unregister_boolean_children',
+                    'is_registered', 'is_quadrated', 'is_structured'))
+            elif t == 'file_name':
                 v = b.file_name
+            elif t == 'boolean_level':
+                v = str(b.boolean_level)
             elif t == 'volume_zone':
-                v = '_'.join((x.zone for x in b.volumes if x.zone is not None))
-                if len(v) == 0:
-                    v = None
+                v = ", ".join({x.zone for x in b.volumes if x.zone is not None and x.tag is not None})
             elif t == 'id':
                 v = id(b)
             elif t == 'type':

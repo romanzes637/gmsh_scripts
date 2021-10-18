@@ -1100,6 +1100,7 @@ class TestBlock(unittest.TestCase):
                        transforms=['block_to_cartesian'],
                        parent=b2,
                        boolean_level=2,
+                       do_unregister=True,
                        volumes=[{'zone': 'CB'}]
                        )
             b2.add_child(b3)
@@ -1148,7 +1149,7 @@ class TestBlock(unittest.TestCase):
                                [0.5, -0.5, 0.5]],
                        boolean_level=1,
                        parent=b1,
-                       volumes=[{'zone': 'A'}]
+                       volumes=[{'zone': 'E'}]
                        )
             b1.add_child(b6, transforms=[[1, 0, 0]])
             b7 = Block(factory=factory,
@@ -1185,6 +1186,7 @@ class TestBlock(unittest.TestCase):
                 logging.info(f'boolean: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             b1.unregister()
+            b1.unregister_boolean()
             logging.info(f'unregister: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             if factory == 'geo':
@@ -1202,11 +1204,13 @@ class TestBlock(unittest.TestCase):
                 b1.structure()
                 logging.info(f'structure: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
-            b1.plot_tree(file_name=model_name,
-                         label_type='volume_zone', group_type='volume_zone')
+            b1.plot_tree(file_name=model_name, title_type='block',
+                         label_type='boolean_level', group_type='volume_zone')
             logging.info(f'tree: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
-            BlockDirection(dims=(2, 3))(b1)
+            BlockDirection(dims=(0, 1, 2, 3), make_interface=True,
+                           add_volume_tag=True, add_volume_zone=True,
+                           add_surface_loop_tag=True, add_in_out_boundary=False)(b1)
             logging.info(f'zones: {time.perf_counter() - t0}')
             t0 = time.perf_counter()
             if kws['output_format'] != 'geo_unrolled':

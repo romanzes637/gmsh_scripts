@@ -1,4 +1,118 @@
-import time
+"""Boolean operations on blocks
+
+There are 3 entities after boolean operation on blocks B0 and B1:
+1. Residual part of B0
+2. Residual part of B1
+3. Intersection of B0 and B1
+
+After boolean intersection (3) could be moved to B0 (1) or B1 (2) or their union B0-B1 (1-2) or be removed (4 options).
+
+Each residual could be removed (2 options).
+
+There are 2*2*4 = 16 combinations of options that are represented in the table.
+
+Table. Options and corresponding actions
+
++----+---------+-------------------+---------+---------------------------------------------------+
+| n  | Block 0 | Block 0 & Block 1 | Block 1 |                      Actions                      |
++====+=========+===================+=========+===================================================+
+|    |         |                   |         |                                                   |
+|    |         |                   |         |                                                   |
+| 1  |         |                   |         | B0.do_unregister         B1.do_unregister         |
+|    |         |                   |         |                                                   |
+|    |         |                   |         | B0.do_unregister_boolean B1.do_unregister_boolean |
++----+---------+-------------------+---------+---------------------------------------------------+
+|    |         |                   |         |                                                   |
+|    |         |                   |         |                                                   |
+| 2  |   B0    |                   |         |                          B1.do_unregister         |
+|    |         |                   |         |                                                   |
+|    |         |                   |         | B0.do_unregister_boolean B1.do_unregister_boolean |
++----+---------+-------------------+---------+---------------------------------------------------+
+|    |         |                   |         |                                                   |
+|    |         |                   |         |                                                   |
+| 3  |         |                   |    B1   | B0.do_unregister                                  |
+|    |         |                   |         |                                                   |
+|    |         |                   |         | B0.do_unregister_boolean B1.do_unregister_boolean |
++----+---------+-------------------+---------+---------------------------------------------------+
+|    |         |                   |         |                                                   |
+|    |         |                   |         |                                                   |
+| 4  |   B0    |                   |   B1    |                                                   |
+|    |         |                   |         |                                                   |
+|    |         |                   |         | B0.do_unregister_boolean B1.do_unregister_boolean |
++----+---------+-------------------+---------+---------------------------------------------------+
+|    |         |                   |         | B0.boolean_level   ==    B1.boolean_level         |
+|    |         |                   |         |                                                   |
+| 5  |         |       B0-B1       |         | B0.do_unregister         B1.do_unregister         |
+|    |         |                   |         |                                                   |
+|    |         |                   |         |                                                   |
++----+---------+-------------------+---------+---------------------------------------------------+
+|    |         |                   |         | B0.boolean_level    >    B1.boolean_level         |
+|    |         |                   |         |                                                   |
+| 6  |         |        B0         |         | B0.do_unregister         B1.do_unregister         |
+|    |         |                   |         |                                                   |
+|    |         |                   |         |                                                   |
++----+---------+-------------------+---------+---------------------------------------------------+
+|    |         |                   |         | B0.boolean_level    <    B1.boolean_level         |
+|    |         |                   |         |                                                   |
+| 7  |         |        B1         |         | B0.do_unregister         B1.do_unregister         |
+|    |         |                   |         |                                                   |
+|    |         |                   |         |                                                   |
++----+---------+-------------------+---------+---------------------------------------------------+
+|    |         |                   |         | B0.boolean_level   ==    B1.boolean_level         |
+|    |         |                   |         |                                                   |
+| 8  |   B0    |       B0-B1       |         |                          B1.do_unregister         |
+|    |         |                   |         |                                                   |
+|    |         |                   |         |                                                   |
++----+---------+-------------------+---------+---------------------------------------------------+
+|    |         |                   |         | B0.boolean_level   >     B1.boolean_level         |
+|    |         |                   |         |                                                   |
+| 9  |   B0    |        B0         |         |                          B1.do_unregister         |
+|    |         |                   |         |                                                   |
+|    |         |                   |         |                                                   |
++----+---------+-------------------+---------+---------------------------------------------------+
+|    |         |                   |         | B0.boolean_level   <     B1.boolean_level         |
+|    |         |                   |         |                                                   |
+| 10 |   B0    |        B1         |         |                          B1.do_unregister         |
+|    |         |                   |         |                                                   |
+|    |         |                   |         |                                                   |
++----+---------+-------------------+---------+---------------------------------------------------+
+|    |         |                   |         | B0.boolean_level   ==    B1.boolean_level         |
+|    |         |                   |         |                                                   |
+| 11 |         |       B0-B1       |   B1    | B0.do_unregister                                  |
+|    |         |                   |         |                                                   |
+|    |         |                   |         |                                                   |
++----+---------+-------------------+---------+---------------------------------------------------+
+|    |         |                   |         | B0.boolean_level   >     B1.boolean_level         |
+|    |         |                   |         |                                                   |
+| 12 |         |        B0         |   B1    | B0.do_unregister                                  |
+|    |         |                   |         |                                                   |
+|    |         |                   |         |                                                   |
++----+---------+-------------------+---------+---------------------------------------------------+
+|    |         |                   |         | B0.boolean_level   <     B1.boolean_level         |
+|    |         |                   |         |                                                   |
+| 13 |         |        B1         |   B1    | B0.do_unregister                                  |
+|    |         |                   |         |                                                   |
+|    |         |                   |         |                                                   |
++----+---------+-------------------+---------+---------------------------------------------------+
+|    |         |                   |         | B0.boolean_level   ==    B1.boolean_level         |
+|    |         |                   |         |                                                   |
+| 14 |   B0    |       B0-B1       |   B1    |                                                   |
+|    |         |                   |         |                                                   |
+|    |         |                   |         |                                                   |
++----+---------+-------------------+---------+---------------------------------------------------+
+|    |         |                   |         | B0.boolean_level    >    B1.boolean_level         |
+|    |         |                   |         |                                                   |
+| 15 |   B0    |        B0         |   B1    |                                                   |
+|    |         |                   |         |                                                   |
+|    |         |                   |         |                                                   |
++----+---------+-------------------+---------+---------------------------------------------------+
+|    |         |                   |         | B0.boolean_level    <    B1.boolean_level         |
+|    |         |                   |         |                                                   |
+| 16 |   B0    |        B1         |   B1    |                                                   |
+|    |         |                   |         |                                                   |
+|    |         |                   |         |                                                   |
++----+---------+-------------------+---------+---------------------------------------------------+
+"""
 import itertools
 import logging
 
@@ -62,7 +176,7 @@ def block_by_block(b0, b1, zone_separator='-'):
         obj, tool = b1, b0
     elif b0.boolean_level < b1.boolean_level:
         obj, tool = b0, b1
-    else:  # equal
+    else:  # equal (random choice)
         obj, tool = b1, b0
     # Old volumes
     obj_vs = [(3, x.tag) for x in obj.volumes]  # dim, tag
@@ -95,22 +209,15 @@ def block_by_block(b0, b1, zone_separator='-'):
         for new_v in vs:
             new_tag = new_v[1]
             old_ids = new_to_old[new_tag]
-            if len(old_ids) == 1:
+            # Add shared volume only if boolean levels are equal
+            if len(old_ids) == 1 or b0.boolean_level == b1.boolean_level:
+                new_zone = zone_separator.join(sorted({zs[x] for x in old_ids}))
                 v = Volume(tag=new_tag,
-                           zone=v.zone,
+                           zone=new_zone,
                            name=v.name,
                            structure=v.structure,
                            quadrate=v.quadrate)
                 new_volumes.append(v)
-            elif b0.boolean_level == b1.boolean_level:
-                new_zs = {zs[x] for x in old_ids}
-                if None not in new_zs:
-                    v = Volume(tag=new_tag,
-                               zone=zone_separator.join(sorted(new_zs)),
-                               name=v.name,
-                               structure=v.structure,
-                               quadrate=v.quadrate)
-                    new_volumes.append(v)
     obj.volumes = new_volumes
     # Update tool volumes
     new_volumes = []

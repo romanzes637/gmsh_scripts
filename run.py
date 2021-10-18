@@ -19,7 +19,7 @@ from support import boundary_surfaces_to_six_side_groups, \
     auto_boundary_points_sizes_min_edge_in_surface, \
     set_points_sizes, get_interior_surfaces
 from boolean import boolean, boolean_with_bounding_boxes
-from zone import BlockSimple
+from zone import BlockSimple, BlockDirection
 
 
 block_factory = {
@@ -203,10 +203,6 @@ if __name__ == '__main__':
                              top_block_path=top_block_path,
                              factory=factory)
     top_block = blocks[0]
-    t0 = time.perf_counter()
-    top_block.plot_tree(file_name=model_name, label_type='volume_zone',
-                        group_type='file_name', title_type='type')
-    logging.info(f'Tree: {time.perf_counter() - t0:.3f}s')
     logging.info(f'Initialize: {time.perf_counter() - t0:.3f}s')
     t0 = time.perf_counter()
     top_block.transform()
@@ -214,6 +210,10 @@ if __name__ == '__main__':
     t0 = time.perf_counter()
     top_block.register()
     logging.info(f'Register: {time.perf_counter() - t0:.3f}s')
+    t0 = time.perf_counter()
+    top_block.plot_tree(file_name=model_name, label_type='volume_zone',
+                        group_type='file_name', title_type='block')
+    logging.info(f'Tree: {time.perf_counter() - t0:.3f}s')
     if factory == 'geo':
         t0 = time.perf_counter()
         top_block.quadrate()
@@ -235,6 +235,11 @@ if __name__ == '__main__':
             gmsh.model.occ.removeAllDuplicates()
             logging.info(f'Boolean: {time.perf_counter() - t0:.3f}s')
     t0 = time.perf_counter()
+    top_block.unregister()
+    if args['boolean'] is not None:
+        top_block.unregister_boolean()
+    logging.info(f'unregister: {time.perf_counter() - t0}')
+    t0 = time.perf_counter()
     if factory == 'geo':
         gmsh.model.geo.synchronize()
     elif factory == 'occ':
@@ -254,7 +259,13 @@ if __name__ == '__main__':
         t0 = time.perf_counter()
         BlockSimple()(top_block)
     else:
-        pass
+        BlockDirection()(top_block)
+    if args['boolean'] is not None:
+        t0 = time.perf_counter()
+        top_block.plot_tree(file_name=model_name + '_boolean',
+                            label_type='volume_zone', group_type='file_name',
+                            title_type='block')
+        logging.info(f'Tree: {time.perf_counter() - t0:.3f}s')
     logging.info(f'zones: {time.perf_counter() - t0}')
     t0 = time.perf_counter()
     gmsh.model.mesh.generate(3)

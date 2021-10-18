@@ -51,7 +51,8 @@ class BlockSimple(Rule):
 
 class BlockDirection(Rule):
     def __init__(self, zones=None, zones_directions=None, dims=(0, 1, 2, 3),
-                 make_interface=False):
+                 make_interface=False, add_volume_tag=False, add_volume_zone=True,
+                 add_surface_loop_tag=False, add_in_out_boundary=False):
         super().__init__()
         self.zones = ['NX', 'X', 'NY', 'Y', 'NZ', 'Z'] if zones is None else zones
         if zones_directions is None:
@@ -62,6 +63,40 @@ class BlockDirection(Rule):
             self.zones_directions = zones_directions
         self.dims = dims   # 0 - points, 1 - curves, 2 - surfaces, 3 - volumes
         self.make_interface = make_interface
+        self.add_volume_tag = add_volume_tag
+        self.add_volume_zone = add_volume_zone
+        self.add_surface_loop_tag = add_surface_loop_tag
+        self.add_in_out_boundary = add_in_out_boundary
+
+    def make_zone_name(self, name, surface_loop_type, surface_loop_tag,
+                       volume_tag, volume_zone):
+        new_name = ''
+        # Surface loop
+        if surface_loop_type == 'boundary':
+            if self.add_in_out_boundary:
+                if surface_loop_tag == 0:  # External boundary
+                    new_name += 'BE'
+                else:  # Internal boundary
+                    new_name += 'BI'
+            else:  # Boundary
+                new_name += 'B'
+        else:  # Interface
+            new_name = 'I'
+        if self.add_surface_loop_tag:
+            new_name += f'-{surface_loop_tag}'
+        new_name += '__'
+        # Volume
+        if self.add_volume_zone and self.add_volume_tag:
+            new_name += f'{volume_zone}-{volume_tag}_'
+        elif self.add_volume_zone:
+            new_name += f'{volume_zone}_'
+        elif self.add_volume_tag:
+            new_name += f'{volume_tag}_'
+        else:
+            pass
+        # Name
+        new_name += name
+        return new_name
 
     def __call__(self, block):
         dt2zs = []  # tag to zone maps for each volume
@@ -69,11 +104,8 @@ class BlockDirection(Rule):
         vs_dt = [(3, x.tag) for x in vs if x.tag is not None]
         vs_zs = [x.zone for x in vs if x.tag is not None]
         tree = DataTree(vs_dt)
-        for i, (sls, s2sl) in enumerate([(tree.b_sls, tree.b_s2sl),
-                                         (tree.i_sls, tree.i_s2sl)]):
-            print(i)
-            print(sls)
-            print(s2sl)
+        for i, (sl_t, sls, s2sl) in enumerate([('boundary', tree.b_sls, tree.b_s2sl),
+                                               ('interface', tree.i_sls, tree.i_s2sl)]):
             sl_ps = {}  # Points of surfaces loops
             for v_i, v_dt in enumerate(tree.vs_dt):
                 for s_i, s_dt in enumerate(tree.vs_ss_dt[v_i]):
@@ -112,8 +144,9 @@ class BlockDirection(Rule):
                     s_ws_max = np.amax(s_ws_sum)
                     s_ws_max_is = np.argwhere(np.isclose(s_ws_sum, s_ws_max))
                     s_z = '-'.join([sl_cs2ws.zones[x[0]] for x in s_ws_max_is])
-                    s_z = f'{v_z}-{v_t}_{s_z}-{sl_i}-{i}'
-                    print(s_z)
+                    s_z = self.make_zone_name(name=s_z, surface_loop_tag=sl_i,
+                                              surface_loop_type=sl_t,
+                                              volume_tag=v_t, volume_zone=v_z)
                     dt2z[s_dt] = s_z
                     # Points
                     p_ws_max = np.amax(s_ws, axis=0)
@@ -124,7 +157,9 @@ class BlockDirection(Rule):
                     for p_i, zs_i in p2zs.items():
                         p_dt = s_ps_dt[p_i]
                         p_z = '-'.join([sl_cs2ws.zones[x] for x in zs_i])
-                        p_z = f'{v_z}-{v_t}_{p_z}-{sl_i}-{i}'
+                        p_z = self.make_zone_name(name=p_z, surface_loop_tag=sl_i,
+                                                  surface_loop_type=sl_t,
+                                                  volume_tag=v_t, volume_zone=v_z)
                         dt2z[p_dt] = p_z
                     # Curves
                     for c_i, c_dt in enumerate(tree.vs_ss_cs_dt[v_i][s_i]):
@@ -140,11 +175,12 @@ class BlockDirection(Rule):
                         c_ws_max = np.amax(c_ws_sum)
                         c_ws_max_is = np.argwhere(np.isclose(c_ws, c_ws_max))
                         c_z = '-'.join([c_cs2ws.zones[x[0]] for x in c_ws_max_is])
-                        c_z = f'{v_z}-{v_t}_{c_z}-{sl_i}-{i}'
+                        c_z = self.make_zone_name(name=c_z, surface_loop_tag=sl_i,
+                                                  surface_loop_type=sl_t,
+                                                  volume_tag=v_t, volume_zone=v_z)
                         dt2z[(c_dt[0], abs(c_dt[1]))] = c_z
                 dt2zs.append(dt2z)
         z2dt = {}  # zone to dim-tags map
-        print(dt2zs)
         for dim in self.dims:
             es_dt = gmsh.model.getEntities(dim)
             for dt in es_dt:
@@ -156,11 +192,10 @@ class BlockDirection(Rule):
                     if len(zs) == 1:  # Boundary
                         z2dt.setdefault(zs[0], []).append(dt)
                     elif len(zs) > 0 and self.make_interface:  # Interface
-                        z = f'INT__{"--".join(zs)}'
+                        z = f'{"--".join(zs)}'
                         z2dt.setdefault(z, []).append(dt)
                 elif len(zs) > 0:
                     z2dt.setdefault(zs[0], []).append(dt)
-        print(z2dt)
         # Add zones
         for z, dts in z2dt.items():
             unique_dims = {x[0] for x in dts}

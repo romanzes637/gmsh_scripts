@@ -492,7 +492,6 @@ def register_structure_volume(volume, factory):
 # TODO remove from registry
 def unregister_volume(factory, volume, register_tag):
     tag = volume.tag
-    dim_tag = [3, tag]
-    gmsh.model.removeEntities([dim_tag], recursive=True)
+    gmsh.model.removeEntities([(3, tag)], recursive=True)
     volume.tag = None
     return volume
