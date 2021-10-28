@@ -1,4 +1,7 @@
 import numpy as np
+import gmsh
+
+from registry import register_point, register_curve
 
 
 class CoordinateSystem:
@@ -46,7 +49,7 @@ class Tokamak(CoordinateSystem):
 
 
 class Block(CoordinateSystem):
-    def __init__(self, ps=None, origin=np.zeros(3), order=None, **kwargs):
+    def __init__(self, origin=np.zeros(3), ps=None, order=None, **kwargs):
         """Local Block Coordinate System
 
         xi [-1, 1]
@@ -72,61 +75,127 @@ class Block(CoordinateSystem):
 
 
 class Path(CoordinateSystem):
-    def __init__(self, ps=None, vs=None, ds=None, ns=None, t='polyline',
-                 local_cs=None,
-                 origin=np.zeros(3), **kwargs):
+    def __init__(self, origin=np.zeros(3), curves=None, orientations=None,
+                 transforms=None, weights=None, factory='geo',
+                 use_register_tag=False, **kwargs):
         """Path coordinate system
 
+        # pitch, yaw, roll
         xi [-inf, inf]  # Transverse (Right) axis, pitch rotation
         eta [-inf, inf]  # Vertical (Down) axis, yaw rotation
         zeta [0, 1]  # Longitudinal (Front) axis, roll rotation
 
         Args:
-            ps (np.ndarray or list of list): Coordinates of points of the path
-            vs (np.ndarray or list of list of list): Basis vectors of local coordinate system at points
-            ds (np.ndarray or list of list): Directions of basis vectors of local coordinate system at points
-            ns (np.ndarray or list of list): Norms of basis vectors of local coordinate system at points
-            t (str): Type of curve interpolation: polyline, polynomial, spline, ...
             origin (np.ndarray or list): Origin of the coordinate system
+            curves (list of dict, list of list, list, list of Curve): Curves
+            use_register_tag (bool): use tag from registry instead tag from gmsh
+            factory (str): gmsh factory (geo or occ)
         """
         super().__init__(dim=3, origin=origin, **kwargs)
-        if ps is None:
-            ps = []
-        ps = ps if isinstance(ps, np.ndarray) else np.array(ps)
-        if vs is None:
-            if ds is not None and ns is not None:
-                ds = ds
-                ns = ns
-                vs = np.multiply(ds, ns)
-            elif ds is not None:
-                ds = ds
-                # self.ds = ds
-                # self.ns =
-            else:
-                vs = [[[1, 0, 0], [0, -1, 0], [0, 0, -1]]]  # long, pitch, yaw
-        else:
-            vs = vs
-            ns = np.linalg.norm(vs, axis=2)
-            ds = vs / ns
+        curves = [] if curves is None else curves
+        transforms = [[] for _ in curves] if transforms is None else transforms
+        weights = [1. for _ in curves] if weights is None else weights
+        from block import Block as BlockObject
+        self.curves = BlockObject.parse_curves(curves)
+        self.factory = factory
+        self.use_register_tag = use_register_tag
+        self.transforms = [BlockObject.parse_transforms(x, None) for x in transforms]
+        self.orientations = [np.eye(3, 3) for _ in curves] if orientations is None else orientations
+        self.weights = weights
 
-        vs = vs if isinstance(vs, np.ndarray) else np.array(vs)
-        self.ps = ps
-        self.vs = vs
-        if t == 'polyline':
-            lines = ps[1:] - ps[:-1]
-            print(lines)
-            lengths = np.linalg.norm(lines, axis=1)
-            print(lengths)
+    def register(self):
+        for c in self.curves:
+            for p in c.points:
+                register_point(factory=self.factory, point=p,
+                               register_tag=self.use_register_tag)
+            register_curve(factory=self.factory, curve=c,
+                           register_tag=self.use_register_tag)
 
-        def get_global_p(self, lp):
-            return lp
+    def transform(self):
+        for i, c in enumerate(self.curves):
+            for p in c.points:
+                cs = p.coordinate_system
+                if not isinstance(cs, Cartesian):
+                    from transform import factory as tr_factory, reduce_transforms
 
-        def get_local_v(self, long):
-            v = 42
-            return v
+                    any2car = tr_factory[type(cs)]()
+                    ts = [any2car] + self.transforms[i]
+                    reduce_transforms(ts, p)
+
+    def evaluate_bounds(self):
+        self.curves_bounds = []
+        for c in self.curves:
+            bs = gmsh.model.getParametrizationBounds(1, c.tag)
+            self.curves_bounds.append([bs[0][0], bs[1][0]])
+        cnt = 0
+        self.global_curves_bounds = []
+        for i, bs in enumerate(self.curves_bounds):
+            w = self.weights[i]
+            du = w*(bs[1] - bs[0])
+            bs_g = [cnt, cnt + du]
+            cnt = bs_g[1]
+            self.global_curves_bounds.append(bs_g)
+        self.global_normalized_curves_bounds = np.divide(
+            self.global_curves_bounds, np.max(self.global_curves_bounds))
+
+    def get_derivative(self, u):
+        dv = None
+        for i, c in enumerate(self.curves):
+            bs_gn = self.global_normalized_curves_bounds[i]
+            if bs_gn[0] <= u <= bs_gn[1]:
+                k = (u - bs_gn[0]) / (bs_gn[1] - bs_gn[0])
+                bs = self.curves_bounds[i]
+                lu = bs[0] + k*(bs[1] - bs[0])
+                dv = gmsh.model.getDerivative(1, c.tag, (lu,))
+                break
+        return dv
+
+    def get_value(self, u):
+        v = None
+        for i, c in enumerate(self.curves):
+            bs_gn = self.global_normalized_curves_bounds[i]
+            if bs_gn[0] <= u <= bs_gn[1]:
+                k = (u - bs_gn[0]) / (bs_gn[1] - bs_gn[0])
+                bs = self.curves_bounds[i]
+                lu = bs[0] + k*(bs[1] - bs[0])
+                v = gmsh.model.getValue(1, c.tag, (lu,))
+                break
+        return v
+
+    def get_value_derivative_orientation(self, u):
+        v, dv, ori = None, None, None
+        for i, c in enumerate(self.curves):
+            bs_gn = self.global_normalized_curves_bounds[i]
+            if bs_gn[0] <= u <= bs_gn[1]:
+                k = (u - bs_gn[0]) / (bs_gn[1] - bs_gn[0])
+                bs = self.curves_bounds[i]
+                lu = bs[0] + k*(bs[1] - bs[0])
+                v = gmsh.model.getValue(1, c.tag, (lu,))
+                dv = gmsh.model.getDerivative(1, c.tag, (lu,))
+                ori = self.orientations[i]  # TODO orientation for each point
+                break
+        return v, dv, ori
+
+    def get_local_coordinate_system(self, u):
+        v, dv, ori = self.get_value_derivative_orientation(u)
+        z = ori[2]
+        a = np.arccos(np.dot(dv, z) / (np.linalg.norm(dv) * np.linalg.norm(z)))
+        d = np.cross(z/np.linalg.norm(z), dv/np.linalg.norm(dv))
+        d = d / np.linalg.norm(d)
+        from transform import Rotate, reduce_transforms
+        from point import Point
+
+        rot = Rotate(origin=[0, 0, 0], direction=d, angle=a)
+        ps = [Point(coordinates=x) for x in ori]
+        for p in ps:
+            reduce_transforms([rot], p)
+        cs = Affine(origin=v, vs=[x.coordinates/np.linalg.norm(x.coordinates) for x in ps])
+        return cs
 
 
 factory = {
+    CoordinateSystem.__name__: CoordinateSystem,
+    'coo': CoordinateSystem,
     Affine.__name__: Affine,
     Affine.__name__.lower(): Affine,
     'aff': Affine,

@@ -52,11 +52,12 @@ class Point:
     @staticmethod
     def parse_coordinates(coordinates, coordinate_system):
         if coordinates is None:
-            coordinates = np.zeros(coordinate_system.dim)
+            coordinates = np.zeros(coordinate_system.dim, dtype=np.float)
         elif isinstance(coordinates, np.ndarray):
-            pass
+            if coordinates.dtype != np.float:
+                coordinates = coordinates.astype(np.float)
         elif isinstance(coordinates, list):
-            coordinates = np.array(coordinates)
+            coordinates = np.array(coordinates, dtype=np.float)
         else:
             raise ValueError(coordinates)
         return coordinates
@@ -199,6 +200,12 @@ class Point:
                     if ms is not None:
                         p.setdefault('meshSize', ms)
                 elif isinstance(p, list):
+                    if ms is not None:
+                        p += [ms]
+                    if cs is not None:
+                        p += [cs]
+                    if z is not None:
+                        p += [z]
                     tag, zone, coordinate_system, coordinates, kwargs = Point.parse_args([p])
                     p = {'tag': tag, 'coordinates': coordinates}
                     p['coordinate_system'] = coordinate_system if coordinate_system is not None else cs

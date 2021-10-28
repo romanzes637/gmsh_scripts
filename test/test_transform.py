@@ -1,9 +1,13 @@
 import unittest
 from functools import reduce
-import numpy as np
 import logging
 
+import gmsh
+import numpy as np
+
+from registry import register_point, register_curve
 from point import Point
+from curve import Curve
 from coordinate_system import Block, Cartesian, Cylindrical, Spherical, \
     Toroidal, Tokamak, Path, Affine
 from transform import Translate, Rotate, CylindricalToCartesian, \
@@ -45,14 +49,84 @@ class TestTransform(unittest.TestCase):
         p = reduce(lambda x, y: y(x), [blo2car, t1, r1, t1], p_blo)
 
     def test_path(self):
-        ps = [[0, 0, 1], [0, 1, 1], [1, 2, 1]]
-        vs = [[[1, 0, 0], [0, 0, -1], [0, 1, 0]]]  # right, down, front
-        cs = Path(ps=ps, vs=vs)
-        p = Point([0.25, 0.25, 0.25])  # right, down, front
-        pth2car = PathToCartesian(cs_from=cs)
-        print(p.coordinates)
-        p = pth2car(p)
-        print(p.coordinates)
+        gmsh.initialize()
+        model_name = 'test_path2'
+        factory = 'occ'
+        gmsh.model.add(model_name)
+        curves = [
+            ['polyline', [[0, 0, 0], [1, 1, 1], [2, 2, 2]]],
+            ['spline', [[2, 2, 2], [2, 3, 2], [2, 3, 3]]],
+            ['circle_arc', [[2, 3, 3], [2, 2, 3], [3, 2, 3]]],
+            ['bspline', [[3, 2, 3], [3, 3, 2], [2, 0, 0]]],
+            ['spline', [[2, 0., 0], [2, -10, 0.5], [2, -30, 1.],
+                        [2, -60, 1.5], [2, -80, 2.0], [2, -110, 2.5],
+                        [2, -130, 3.0], [2, -150, 3.5], [2, -180, 4],
+                        'cyl']],
+            ['bezier', [[2, 180, 90], [2, 135, 45], [2, 90, 0],
+                        'sph']],
+            ['spline', [
+                [1, 0, 180, 3], [1, 45, 190, 3], [1, 90, 200, 3],
+                [1, 135, 210, 3], [1, 180, 220, 3], [1, 225, 230, 3],
+                [1, 270, 240, 3], [1, 315, 250, 3], [1, 360, 260, 3],
+                [1, 0, 270, 3], [1, 45, 280, 3], [1, 90, 290, 3],
+                [1, 135, 300, 3], [1, 180, 310, 3], [1, 225, 320, 3],
+                [1, 270, 330, 3], [1, 315, 340, 3], [1, 360, 350, 3],
+                [1, 0, 360, 3], [1, 45, 10, 3], [1, 90, 20, 3],
+                [1, 135, 30, 3], [1, 180, 40, 3], [1, 225, 50, 3],
+                'tor']]
+
+        ]
+        transforms = [
+            [], [], [], [], [], [[0, 0, 4]], [[4, 0, 6]]
+        ]
+        orientations = [[[1, -1, 0], [0, 0, -1], [1, 1, 0]],
+                        [[1, 0, 0], [0, 0, -1], [0, 1, 0]],
+                        [[0, -1, 0], [0, 0, -1], [1, 0, 0]],
+                        [[-1, 0, 0], [0, 0, -1], [0, -1, 0]],
+                        [[-1, 0, 0], [0, 0, -1], [0, -1, 0]],
+                        [[0, -1, 0], [0, 0, -1], [1, 0, 0]],
+                        [[0, -1, 0], [0, 0, -1], [1, 0, 0]],
+                        ]
+        weights = [1, 1, 1, 3, 0.5, 1, 1]
+        cs = Path(curves=curves, orientations=orientations,
+                  transforms=transforms, weights=weights,
+                  factory=factory)
+        cs.transform()
+        cs.register()
+        if factory == 'geo':
+            gmsh.model.geo.synchronize()
+        elif factory == 'occ':
+            gmsh.model.occ.synchronize()
+        else:
+            raise ValueError(factory)
+        cs.evaluate_bounds()
+        for u in np.linspace(0., 1., 41):
+            print(u)
+            v = cs.get_value(u)
+            p0 = Point(coordinates=v)
+            register_point(factory=factory, point=p0, register_tag=False)
+            dv = cs.get_derivative(u)
+            p1 = Point(coordinates=np.add(v, dv))
+            register_point(factory=factory, point=p1, register_tag=False)
+            c = Curve(points=[p0, p1], name='line')
+            register_curve(factory=factory, curve=c, register_tag=False)
+            lcs = cs.get_local_coordinate_system(u)
+            for j, v in enumerate(lcs.vs):
+                v *= 0.1 * (j + 1)
+                p3 = Point(coordinates=lcs.origin)
+                register_point(factory=factory, point=p3, register_tag=False)
+                p4 = Point(coordinates=np.add(lcs.origin, v))
+                register_point(factory=factory, point=p4, register_tag=False)
+                c2 = Curve(points=[p3, p4], name='line')
+                register_curve(factory=factory, curve=c2, register_tag=False)
+        if factory == 'geo':
+            gmsh.model.geo.synchronize()
+        elif factory == 'occ':
+            gmsh.model.occ.synchronize()
+        else:
+            raise ValueError(factory)
+        gmsh.write(f'{model_name}.geo_unrolled')
+        gmsh.finalize()
 
     def test_affine(self):
         a0 = Affine(vs=[[0.5, 0.5, 0], [-0.5, 0.5, 0], [0, 0.2, 1]], origin=[-1, 0, 0])

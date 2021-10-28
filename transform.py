@@ -208,31 +208,6 @@ class BlockToCartesian(Transform):
         return p
 
 
-class PathToCartesian(Transform):
-    """
-    [xi, eta, zeta] -> [x, y, z]
-    xi, eta, zeta - local path coordinates
-    Args:
-        cs_from(Path): Path Coordinate System
-    """
-
-    def __init__(self, cs_from, **kwargs):
-        super().__init__(cs_from=cs_from, cs_to=Cartesian(), **kwargs)
-
-    def __call__(self, p):
-        p = super().__call__(p)
-        if isinstance(p.coordinate_system, Cartesian):
-            return p
-        # xi, eta, zeta = p.coordinates  # Point coordinates
-        # ps = self.cs_from.ps  # Block points coordinates
-        # order = self.cs_from.order  # Block points order
-        # n = np.array([0.125 * (1 + x * xi) * (1 + y * eta) * (1 + z * zeta)
-        #               for x, y, z in order])
-        # p.coordinates = n.dot(ps)
-        # p.coordinate_system = self.cs_to
-        return p
-
-
 class AffineToAffine(Transform):
     """
        [x0, y0, z0] -> [x1, y1, z1]
@@ -288,6 +263,29 @@ class AffineToCartesian(Transform):
         return p
 
 
+class PathToCartesian(Transform):
+    """
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__(cs_to=Cartesian(), **kwargs)
+
+    def __call__(self, p):
+        p = super().__call__(p)
+        if isinstance(p.coordinate_system, type(self.cs_to)):
+            return p
+        if not isinstance(p.coordinate_system, Path):
+            return p
+        # vs0 = p.coordinate_system.vs  # Affine basis vectors
+        # o0 = p.coordinate_system.origin  # Affine origin
+        # cds0 = p.coordinates  # Coordinates at Affine coordinate system
+        # cds01 = np.dot(vs0.T, cds0)  # Cartesian coordinate system
+        # cds01 += o0  # Without origin of Affine coordinate system
+        # p.coordinates = cds01
+        # p.coordinate_system = cs1
+        return p
+
+
 factory = {
     Transform.__name__: Transform,
     Translate.__name__: Translate,
@@ -297,24 +295,34 @@ factory = {
     Rotate.__name__.lower(): Rotate,
     'rot': Rotate,
     CylindricalToCartesian.__name__: CylindricalToCartesian,
+    Cylindrical: CylindricalToCartesian,
     'cylindrical_to_cartesian': CylindricalToCartesian,
     'cyl2car': CylindricalToCartesian,
     SphericalToCartesian.__name__: SphericalToCartesian,
+    Spherical: SphericalToCartesian,
     'spherical_to_cartesian': SphericalToCartesian,
     'sph2car': SphericalToCartesian,
     ToroidalToCartesian.__name__: ToroidalToCartesian,
+    Toroidal: ToroidalToCartesian,
     'toroidal_to_cartesian': ToroidalToCartesian,
     'tor2car': ToroidalToCartesian,
     TokamakToCartesian.__name__: TokamakToCartesian,
+    Tokamak: TokamakToCartesian,
     'tokamak_to_cartesian': TokamakToCartesian,
     'tok2car': TokamakToCartesian,
     BlockToCartesian.__name__: BlockToCartesian,
+    Block: BlockToCartesian,
     'block_to_cartesian': BlockToCartesian,
     'blo2car': BlockToCartesian,
     AffineToCartesian.__name__: AffineToCartesian,
+    Affine: AffineToCartesian,
     'affine_to_cartesian': AffineToCartesian,
     'aff2car': AffineToCartesian,
     AffineToAffine.__name__: AffineToAffine,
     'affine_to_affine': AffineToAffine,
-    'aff2aff': AffineToAffine
+    'aff2aff': AffineToAffine,
+    PathToCartesian.__name__: PathToCartesian,
+    Path: PathToCartesian,
+    'path_to_affine': PathToCartesian,
+    'pat2aff': PathToCartesian
 }
