@@ -5,9 +5,10 @@ import logging
 
 from point import Point
 from coordinate_system import Block, Cartesian, Cylindrical, Spherical, \
-    Toroidal, Tokamak
+    Toroidal, Tokamak, Path, Affine
 from transform import Translate, Rotate, CylindricalToCartesian, \
-    ToroidalToCartesian, TokamakToCartesian, SphericalToCartesian, BlockToCartesian
+    ToroidalToCartesian, TokamakToCartesian, SphericalToCartesian, BlockToCartesian, \
+    PathToCartesian, AffineToAffine, AffineToCartesian
 
 logging.basicConfig(level=logging.INFO)
 
@@ -42,6 +43,44 @@ class TestTransform(unittest.TestCase):
         p = reduce(lambda x, y: y(x), [tor2car, r1, t1, t2], p_tor)
         p = reduce(lambda x, y: y(x), [tok2car, r1, t1, t2], p_tok)
         p = reduce(lambda x, y: y(x), [blo2car, t1, r1, t1], p_blo)
+
+    def test_path(self):
+        ps = [[0, 0, 1], [0, 1, 1], [1, 2, 1]]
+        vs = [[[1, 0, 0], [0, 0, -1], [0, 1, 0]]]  # right, down, front
+        cs = Path(ps=ps, vs=vs)
+        p = Point([0.25, 0.25, 0.25])  # right, down, front
+        pth2car = PathToCartesian(cs_from=cs)
+        print(p.coordinates)
+        p = pth2car(p)
+        print(p.coordinates)
+
+    def test_affine(self):
+        a0 = Affine(vs=[[0.5, 0.5, 0], [-0.5, 0.5, 0], [0, 0.2, 1]], origin=[-1, 0, 0])
+        a1 = Affine(vs=[[-0.25, -0.25, 0.5], [-0.5, 0.5, 0], [0.1, 0, 1]], origin=[0, 1, 0])
+        p = Point(coordinates=[0.5, 1, 1], coordinate_system=a0)
+        print('a0')
+        print(p.coordinates)
+        to_a1 = AffineToAffine(cs_to=a1)
+        to_a0 = AffineToAffine(cs_to=a0)
+        to_c = AffineToCartesian()
+        p1 = to_a1(p)
+        print('a0 to a1')
+        print(p1.coordinates, p1.coordinate_system)
+        p0 = to_a0(p1)
+        print('a1 to a0')
+        print(p0.coordinates, p0.coordinate_system)
+        pc = to_c(p0)
+        print('a0 to c')
+        print(pc.coordinates, pc.coordinate_system)
+        pc = to_c(p1)
+        print('a1 to c')
+        print(pc.coordinates, pc.coordinate_system)
+        print('c to a0')
+        p0 = to_a0(pc)
+        print(p0.coordinates, p0.coordinate_system)
+        print('c to a1')
+        p1 = to_a1(pc)
+        print(p1.coordinates, p1.coordinate_system)
 
 
 if __name__ == '__main__':

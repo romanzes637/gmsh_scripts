@@ -2,7 +2,7 @@ import numpy as np
 from functools import reduce
 
 from coordinate_system import CoordinateSystem, Cartesian, Cylindrical, \
-    Spherical, Toroidal, Tokamak, Block
+    Spherical, Toroidal, Tokamak, Block, Path, Affine
 
 
 def reduce_transforms(transforms, point):
@@ -208,6 +208,86 @@ class BlockToCartesian(Transform):
         return p
 
 
+class PathToCartesian(Transform):
+    """
+    [xi, eta, zeta] -> [x, y, z]
+    xi, eta, zeta - local path coordinates
+    Args:
+        cs_from(Path): Path Coordinate System
+    """
+
+    def __init__(self, cs_from, **kwargs):
+        super().__init__(cs_from=cs_from, cs_to=Cartesian(), **kwargs)
+
+    def __call__(self, p):
+        p = super().__call__(p)
+        if isinstance(p.coordinate_system, Cartesian):
+            return p
+        # xi, eta, zeta = p.coordinates  # Point coordinates
+        # ps = self.cs_from.ps  # Block points coordinates
+        # order = self.cs_from.order  # Block points order
+        # n = np.array([0.125 * (1 + x * xi) * (1 + y * eta) * (1 + z * zeta)
+        #               for x, y, z in order])
+        # p.coordinates = n.dot(ps)
+        # p.coordinate_system = self.cs_to
+        return p
+
+
+class AffineToAffine(Transform):
+    """
+       [x0, y0, z0] -> [x1, y1, z1]
+
+       Args:
+           cs_to (Affine): Affine coordinate system
+       """
+
+    def __init__(self, cs_to, **kwargs):
+        super().__init__(cs_to=cs_to, **kwargs)
+
+    def __call__(self, p):
+        p = super().__call__(p)
+        cs0, cs1 = p.coordinate_system, self.cs_to  # Coordinate systems
+        if not isinstance(cs0, Affine):
+            return p
+        vs0, vs1 = p.coordinate_system.vs, self.cs_to.vs  # Basis vectors
+        o0, o1 = p.coordinate_system.origin, self.cs_to.origin  # Origins
+        cds0 = p.coordinates  # Coordinates at old coordinate system
+        cds01 = np.dot(vs0.T, cds0)  # Cartesian coordinate system
+        cds01 += o0  # Without origin of old coordinate system
+        cds01 -= o1  # With origin of new coordinate system
+        cds1 = np.linalg.solve(vs1.T, cds01)  # New coordinate system
+        p.coordinates = cds1
+        p.coordinate_system = cs1
+        return p
+
+
+class AffineToCartesian(Transform):
+    """
+       [x0, y0, z0] -> [x1, y1, z1]
+
+       Args:
+       """
+
+    def __init__(self, **kwargs):
+        super().__init__(cs_to=Cartesian(), **kwargs)
+
+    def __call__(self, p):
+        p = super().__call__(p)
+        cs0, cs1 = p.coordinate_system, self.cs_to  # Coordinate systems
+        if isinstance(cs0, type(cs1)):
+            return p
+        if not isinstance(cs0, Affine):
+            return p
+        vs0 = p.coordinate_system.vs  # Affine basis vectors
+        o0 = p.coordinate_system.origin  # Affine origin
+        cds0 = p.coordinates  # Coordinates at Affine coordinate system
+        cds01 = np.dot(vs0.T, cds0)  # Cartesian coordinate system
+        cds01 += o0  # Without origin of Affine coordinate system
+        p.coordinates = cds01
+        p.coordinate_system = cs1
+        return p
+
+
 factory = {
     Transform.__name__: Transform,
     Translate.__name__: Translate,
@@ -230,5 +310,11 @@ factory = {
     'tok2car': TokamakToCartesian,
     BlockToCartesian.__name__: BlockToCartesian,
     'block_to_cartesian': BlockToCartesian,
-    'blo2car': BlockToCartesian
+    'blo2car': BlockToCartesian,
+    AffineToCartesian.__name__: AffineToCartesian,
+    'affine_to_cartesian': AffineToCartesian,
+    'aff2car': AffineToCartesian,
+    AffineToAffine.__name__: AffineToAffine,
+    'affine_to_affine': AffineToAffine,
+    'aff2aff': AffineToAffine
 }
