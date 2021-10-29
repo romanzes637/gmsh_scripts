@@ -5,6 +5,7 @@ import time
 from pathlib import Path
 
 import numpy as np
+import gmsh
 
 from support import volumes_surfaces_to_volumes_groups_surfaces
 from transform import factory as transform_factory
@@ -78,22 +79,23 @@ class Block:
         If boolean_level is not None then no internal volumes of children.
 
     Args:
-        points(list of dict, list of list, list): 8 corner points of the block
-        curves(list of dict, list of list, list, list of Curve): 12 edge curves of the block
-        surfaces(list of dict, list of list, list, list of Surface): 6 boundary surfaces of the block
-        volumes(list of dict, list of list, list, list of Volume): volumes of the block (1 by now, TODO several volumes)
-        do_register(bool): register Block in the registry
-        use_register_tag(bool): use tag from registry instead tag from gmsh
-        do_unregister(bool): unregister Block from the registry
-        do_register_children(bool): invoke register for children
-        do_unregister_children(bool): invoke unregister for children
-        transforms(list of dict, list of list, list of Transform): points and curves points transforms (Translation, Rotation, Coordinate Change, etc)
-        quadrate_all(list of dict, bool): transform triangles to quadrangles for surfaces and tetrahedra to hexahedra for volumes
-        structure_all(list of dict, list of list, list of Transform): make structured mesh instead of unstructured by some rule
-        parent(Block): parent of the Block
-        children(list of Block): children of the Block
-        children_transforms(list of list of dict, list of list of list, list of list of Transform): transforms for children Blocks
-        boolean_level(int): Block boolean level, if the Block level > another Block level, then intersected volume joins to the Block, if levels are equal third Block is created, if None - don't do boolean
+        factory (str): gmsh factory (geo or occ)
+        points (list of dict, list of list, list): 8 corner points of the block
+        curves (list of dict, list of list, list, list of Curve): 12 edge curves of the block
+        surfaces (list of dict, list of list, list, list of Surface): 6 boundary surfaces of the block
+        volumes (list of dict, list of list, list, list of Volume): volumes of the block (1 by now, TODO several volumes)
+        do_register (bool): register Block in the registry
+        use_register_tag (bool): use tag from registry instead tag from gmsh
+        do_unregister (bool): unregister Block from the registry
+        do_register_children (bool): invoke register for children
+        do_unregister_children (bool): invoke unregister for children
+        transforms (list of dict, list of list, list of Transform): points and curves points transforms (Translation, Rotation, Coordinate Change, etc)
+        quadrate_all (list of dict, bool): transform triangles to quadrangles for surfaces and tetrahedra to hexahedra for volumes
+        structure_all (list of dict, list of list, list of Transform): make structured mesh instead of unstructured by some rule
+        parent (Block): parent of the Block
+        children (list of Block): children of the Block
+        children_transforms (list of list of dict, list of list of list, list of list of Transform): transforms for children Blocks
+        boolean_level (int): Block boolean level, if the Block level > another Block level, then intersected volume joins to the Block, if levels are equal third Block is created, if None - don't do boolean
     """
 
     def __init__(self, factory='geo',
@@ -219,7 +221,8 @@ class Block:
             raise ValueError(points)
         return Point.parse_points(points, do_deg2rad=True)
 
-    def parse_curves(self, curves):
+    @staticmethod
+    def parse_curves(curves):
         curves = [{} for _ in range(12)] if curves is None else curves
         for i, c in enumerate(curves):
             kwargs = {}
@@ -231,7 +234,7 @@ class Block:
                 if len(c) > 0:
                     if not isinstance(c[0], str):
                         kwargs['name'] = 'polyline'
-                        kwargs['points'] = self.parse_points(c)
+                        kwargs['points'] = Point.parse_points(c)
                     else:
                         if len(c) == 2:
                             kwargs['name'] = c[0]
@@ -531,9 +534,10 @@ class Block:
         if not self.is_registered:
             return
         for i, v in enumerate(self.volumes):
-            if zone_separator not in v.zone:
-                self.volumes[i] = unregister_volume(self.factory, v,
-                                                    self.register_tag)
+            if v.zone is not None:
+                if zone_separator not in v.zone:
+                    self.volumes[i] = unregister_volume(self.factory, v,
+                                                        self.register_tag)
 
     def unregister_boolean(self, zone_separator='-'):
         # Children
@@ -551,20 +555,33 @@ class Block:
                                                     self.register_tag)
 
     def quadrate_surfaces(self):
+        if self.quadrate_all is None:
+            return
         # Check all
-        if self.quadrate_all is not None:
-            if isinstance(self.quadrate_all, bool):
-                self.quadrate_all = {}
-            elif isinstance(self.quadrate_all, dict):
-                pass
-            else:
-                raise ValueError(self.quadrate_all)
-            for i, s in enumerate(self.surfaces):
-                self.surfaces[i].quadrate = Quadrate(**self.quadrate_all)
-        # Quadrate
+        if isinstance(self.quadrate_all, bool):
+            self.quadrate_all = {}
+        elif isinstance(self.quadrate_all, dict):
+            pass
+        else:
+            raise ValueError(self.quadrate_all)
         for i, s in enumerate(self.surfaces):
-            if s.quadrate is not None:
-                self.surfaces[i] = register_quadrate_surface(s, self.factory)
+            self.surfaces[i].quadrate = Quadrate(**self.quadrate_all)
+        # Quadrate
+        if self.boolean_level is not None:
+            for v in self.volumes:
+                if v.tag is None:
+                    continue
+                for s_dt in gmsh.model.getBoundary(dimTags=[(3, v.tag)],
+                                                   combined=False,
+                                                   oriented=True,
+                                                   recursive=False):
+                    s = Surface(tag=s_dt[1],
+                                quadrate=Quadrate(**self.quadrate_all))
+                    register_quadrate_surface(s, self.factory)
+        else:
+            for i, s in enumerate(self.surfaces):
+                if s.quadrate is not None:
+                    self.surfaces[i] = register_quadrate_surface(s, self.factory)
 
     def structure_curves(self):
         # Structure
@@ -597,9 +614,7 @@ class Block:
         # Children
         for i, c in enumerate(self.children):
             c.quadrate()
-        if self.boolean_level is not None:  # TODO quadrate after boolean
-            return
-        if self.is_quadrated:
+        if self.is_quadrated or self.quadrate_all is None:
             return
         self.quadrate_surfaces()
         self.is_quadrated = True

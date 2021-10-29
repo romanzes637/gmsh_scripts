@@ -5,6 +5,7 @@ import logging
 import gmsh
 import numpy as np
 
+from block import Block as BlockObject
 from registry import register_point, register_curve
 from point import Point
 from curve import Curve
@@ -13,6 +14,7 @@ from coordinate_system import Block, Cartesian, Cylindrical, Spherical, \
 from transform import Translate, Rotate, CylindricalToCartesian, \
     ToroidalToCartesian, TokamakToCartesian, SphericalToCartesian, BlockToCartesian, \
     PathToCartesian, AffineToAffine, AffineToCartesian
+from zone import BlockDirection, BlockSimple
 
 logging.basicConfig(level=logging.INFO)
 
@@ -50,7 +52,8 @@ class TestTransform(unittest.TestCase):
 
     def test_path(self):
         gmsh.initialize()
-        model_name = 'test_path2'
+        gmsh.option.setNumber("Mesh.SubdivisionAlgorithm", 2)  # (0: none, 1: all quadrangles, 2: all hexahedra, 3: barycentric)
+        model_name = 'test_path'
         factory = 'geo'
         gmsh.model.add(model_name)
         curves = [
@@ -83,7 +86,7 @@ class TestTransform(unittest.TestCase):
         ]
         orientations = [
                         [[1, 0, 0], [0, 0, -1], [0, 1, 0]],
-                        [[1, -1, 0], [0, 0, -1], [1, 1, 0]],
+                        [[0, -1, 0], [1, 0, -1], [1, 0, 1]],
                         [[1, 0, 0], [0, 0, -1], [0, 1, 0]],
                         [[0, -1, 0], [0, 0, -1], [1, 0, 0]],
                         [[-1, 0, 0], [0, 0, -1], [0, -1, 0]],
@@ -91,7 +94,8 @@ class TestTransform(unittest.TestCase):
                         [[-1, 0, 0], [0, 0, -1], [0, -1, 0]],
                         [[0, -1, 0], [0, 0, -1], [1, 0, 0]],
                         [[0, -1, 0], [0, 0, -1], [1, 0, 0]],
-                        ]
+                        [[0, -1, -1], [-1, 0, 0], [0, 1, -1]],
+                        ]  # number of curves + 1
         weights = [5, 15, 5, 5, 5, 5, 20, 10, 30]
         local_weights = [[1, 4], [], [], [], [], [], [3, 3], [], [0.5, 0.5]]
         cs = Path(curves=curves, orientations=orientations,
@@ -126,13 +130,89 @@ class TestTransform(unittest.TestCase):
                 register_point(factory=factory, point=p4, register_tag=False)
                 c2 = Curve(points=[p3, p4], name='line')
                 register_curve(factory=factory, curve=c2, register_tag=False)
+        n = 100j
+        points4 = np.dstack([
+            np.column_stack([
+            np.ravel(x) for x in np.mgrid[0.1:0.2, 0.1:0.2, 0.7:1:n]]),
+            np.column_stack([
+            np.ravel(x) for x in np.mgrid[-0.1:0, 0.1:0.2, 0.7:1:n]]),
+            np.column_stack([
+                np.ravel(x) for x in np.mgrid[-0.1:0, -0.1:0, 0.7:1:n]]),
+            np.column_stack([
+                np.ravel(x) for x in np.mgrid[0.1:0.2, -0.1:0, 0.7:1:n]])])
+        prev_ps4 = None
+        bs = []
+        b0 = BlockObject(factory=factory,
+                         quadrate_all=True,
+                         zone_all=[['V'], ['NX', 'X', 'NY', 'Y', 'NZ', 'Z']],
+                         points=[30, 30, 30])
+        for ps4 in points4:
+            if prev_ps4 is not None:
+                points = np.vstack((prev_ps4.T, ps4.T)).tolist()
+                points = points + [cs]
+                b = BlockObject(factory=factory,
+                                structure_all=[[3, 0, 1], [3, 0, 1], [3, 0, 1]],
+                                quadrate_all=True,
+                                points=points,
+                                parent=b0,
+                                zone_all=[['T']],
+                                transforms=['pat2car'])
+                bs.append(b)
+            prev_ps4 = ps4
+        for b in bs:
+            b0.add_child(b)
+        b0.transform()
+        b0.register()
+        #     # cs2 = Path(curves=[['spline', points + [cs]]])
+        #     cs2.transform()
+        #     cs2.register()
+        #     if factory == 'geo':
+        #         gmsh.model.geo.synchronize()
+        #     elif factory == 'occ':
+        #         gmsh.model.occ.synchronize()
+        #     else:
+        #         raise ValueError(factory)
+        #     cs2.evaluate_bounds()
+        # prev_p = None
+        # for u in np.linspace(0., 1., 101):
+        #     print(u)
+        #     v, dv, ori = cs2.get_value_derivative_orientation(u)
+        #     # if np.linalg.norm(dv) != 0:
+        #     #     dv = dv / np.linalg.norm(dv)
+        #     p0 = Point(coordinates=v)
+        #     register_point(factory=factory, point=p0, register_tag=False)
+        #     if prev_p is not None:
+        #         print(prev_p.coordinates, p0.coordinates)
+        #         c2 = Curve(points=[prev_p, p0], name='line')
+        #         register_curve(factory=factory, curve=c2, register_tag=False)
+        #     prev_p = p0
+            # p1 = Point(coordinates=np.add(v, dv))
+            # register_point(factory=factory, point=p1, register_tag=False)
+            # c = Curve(points=[p0, p1], name='line')
+            # register_curve(factory=factory, curve=c, register_tag=False)
         if factory == 'geo':
             gmsh.model.geo.synchronize()
         elif factory == 'occ':
             gmsh.model.occ.synchronize()
         else:
             raise ValueError(factory)
-        gmsh.write(f'{model_name}.geo_unrolled')
+        # b0.quadrate()
+        # b0.structure()
+        # if factory == 'geo':
+        #     gmsh.model.geo.synchronize()
+        # elif factory == 'occ':
+        #     gmsh.model.occ.synchronize()
+        # else:
+        #     raise ValueError(factory)
+        for vs_dt in gmsh.model.getEntities(3):
+            for s_dt in gmsh.model.getBoundary(dimTags=[vs_dt],
+                                               combined=False,
+                                               oriented=True,
+                                               recursive=False):
+                gmsh.model.geo.mesh.setRecombine(s_dt[0], s_dt[1])
+        BlockSimple()(b0)
+        gmsh.model.mesh.generate(3)
+        gmsh.write(f'{model_name}.msh2')
         gmsh.finalize()
 
     def test_affine(self):

@@ -276,13 +276,12 @@ class PathToCartesian(Transform):
             return p
         if not isinstance(p.coordinate_system, Path):
             return p
-        # vs0 = p.coordinate_system.vs  # Affine basis vectors
-        # o0 = p.coordinate_system.origin  # Affine origin
-        # cds0 = p.coordinates  # Coordinates at Affine coordinate system
-        # cds01 = np.dot(vs0.T, cds0)  # Cartesian coordinate system
-        # cds01 += o0  # Without origin of Affine coordinate system
-        # p.coordinates = cds01
-        # p.coordinate_system = cs1
+        u = p.coordinates[2]  # Curve local coordinate
+        p.coordinates[2] = 0
+        lcs = p.coordinate_system.get_local_coordinate_system(u)
+        any2car = factory[lcs.__class__]()
+        p.coordinate_system = lcs
+        p = any2car(p)
         return p
 
 
@@ -323,6 +322,6 @@ factory = {
     'aff2aff': AffineToAffine,
     PathToCartesian.__name__: PathToCartesian,
     Path: PathToCartesian,
-    'path_to_affine': PathToCartesian,
-    'pat2aff': PathToCartesian
+    'path_to_cartesian': PathToCartesian,
+    'pat2car': PathToCartesian
 }

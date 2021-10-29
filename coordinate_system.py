@@ -103,7 +103,12 @@ class Path(CoordinateSystem):
         self.factory = factory
         self.use_register_tag = use_register_tag
         self.transforms = [BlockObject.parse_transforms(x, None) for x in transforms]
-        self.orientations = [np.eye(3, 3) for _ in curves] if orientations is None else orientations
+        if orientations is None:
+            np.array([np.eye(3, 3) for _ in range(len(curves) + 1)])
+        if not isinstance(orientations, np.ndarray):
+            self.orientations = np.array(orientations)
+        else:
+            self.orientations = orientations
 
     def register(self):
         for c in self.curves:
@@ -171,7 +176,9 @@ class Path(CoordinateSystem):
                 v = gmsh.model.getValue(1, c.tag, (lu_abs,))
                 # Derivative (Cartesian)
                 dv = gmsh.model.getDerivative(1, c.tag, (lu_abs,))
-                ori = self.orientations[i]  # TODO orientation for each point?
+                ori0 = self.orientations[i]  # TODO orientation for each point?
+                ori1 = self.orientations[i+1]
+                ori = lu_rel * ori1 + (1 - lu_rel) * ori0
                 break
         return v, dv, ori
 

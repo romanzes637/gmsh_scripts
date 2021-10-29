@@ -174,6 +174,8 @@ class Point:
                         logging.warning(f'May be a name conflict between zone and coordinate system: {o1}')
                     else:  # zone
                         z = o1
+                elif isinstance(o1, CoordinateSystem):
+                    cs = o1
                 else:
                     raise ValueError(others, o1)
             elif len(others) == 2:
