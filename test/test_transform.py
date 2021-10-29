@@ -51,13 +51,15 @@ class TestTransform(unittest.TestCase):
     def test_path(self):
         gmsh.initialize()
         model_name = 'test_path2'
-        factory = 'occ'
+        factory = 'geo'
         gmsh.model.add(model_name)
         curves = [
-            ['polyline', [[0, 0, 0], [1, 1, 1], [2, 2, 2]]],
+            ['line', [[0, 0, 0], [0, 1, 0]]],
+            ['polyline', [[0, 1, 0], [1, 1, 1], [1, 2, 1], [2, 2, 2]]],
             ['spline', [[2, 2, 2], [2, 3, 2], [2, 3, 3]]],
             ['circle_arc', [[2, 3, 3], [2, 2, 3], [3, 2, 3]]],
-            ['bspline', [[3, 2, 3], [3, 3, 2], [2, 0, 0]]],
+            ['ellipse_arc', [[3, 2, 3], [5, 2, 3], [3, 2, 3], [5, 1, 3]]],
+            ['bspline', [[5, 1, 3], [3, 3, 2], [2, 0, 0]]],
             ['spline', [[2, 0., 0], [2, -10, 0.5], [2, -30, 1.],
                         [2, -60, 1.5], [2, -80, 2.0], [2, -110, 2.5],
                         [2, -130, 3.0], [2, -150, 3.5], [2, -180, 4],
@@ -77,19 +79,24 @@ class TestTransform(unittest.TestCase):
 
         ]
         transforms = [
-            [], [], [], [], [], [[0, 0, 4]], [[4, 0, 6]]
+            [], [], [], [], [], [], [], [[0, 0, 4]], [[4, 0, 6]]
         ]
-        orientations = [[[1, -1, 0], [0, 0, -1], [1, 1, 0]],
+        orientations = [
+                        [[1, 0, 0], [0, 0, -1], [0, 1, 0]],
+                        [[1, -1, 0], [0, 0, -1], [1, 1, 0]],
                         [[1, 0, 0], [0, 0, -1], [0, 1, 0]],
                         [[0, -1, 0], [0, 0, -1], [1, 0, 0]],
+                        [[-1, 0, 0], [0, 0, -1], [0, -1, 0]],
                         [[-1, 0, 0], [0, 0, -1], [0, -1, 0]],
                         [[-1, 0, 0], [0, 0, -1], [0, -1, 0]],
                         [[0, -1, 0], [0, 0, -1], [1, 0, 0]],
                         [[0, -1, 0], [0, 0, -1], [1, 0, 0]],
                         ]
-        weights = [1, 1, 1, 3, 0.5, 1, 1]
+        weights = [5, 15, 5, 5, 5, 5, 20, 10, 30]
+        local_weights = [[1, 4], [], [], [], [], [], [3, 3], [], [0.5, 0.5]]
         cs = Path(curves=curves, orientations=orientations,
                   transforms=transforms, weights=weights,
+                  local_weights=local_weights,
                   factory=factory)
         cs.transform()
         cs.register()
@@ -100,22 +107,22 @@ class TestTransform(unittest.TestCase):
         else:
             raise ValueError(factory)
         cs.evaluate_bounds()
-        for u in np.linspace(0., 1., 41):
+        for u in np.linspace(0., 1., 101):
             print(u)
-            v = cs.get_value(u)
+            v, dv, ori = cs.get_value_derivative_orientation(u)
+            dv = dv / np.linalg.norm(dv)
             p0 = Point(coordinates=v)
             register_point(factory=factory, point=p0, register_tag=False)
-            dv = cs.get_derivative(u)
             p1 = Point(coordinates=np.add(v, dv))
             register_point(factory=factory, point=p1, register_tag=False)
             c = Curve(points=[p0, p1], name='line')
             register_curve(factory=factory, curve=c, register_tag=False)
             lcs = cs.get_local_coordinate_system(u)
-            for j, v in enumerate(lcs.vs):
-                v *= 0.1 * (j + 1)
+            for j, v2 in enumerate(lcs.vs):
+                v2 = v2 / np.linalg.norm(v2) * 0.1 * (1 + j)
                 p3 = Point(coordinates=lcs.origin)
                 register_point(factory=factory, point=p3, register_tag=False)
-                p4 = Point(coordinates=np.add(lcs.origin, v))
+                p4 = Point(coordinates=np.add(lcs.origin, v2))
                 register_point(factory=factory, point=p4, register_tag=False)
                 c2 = Curve(points=[p3, p4], name='line')
                 register_curve(factory=factory, curve=c2, register_tag=False)

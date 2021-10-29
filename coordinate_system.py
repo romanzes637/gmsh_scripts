@@ -76,14 +76,16 @@ class Block(CoordinateSystem):
 
 class Path(CoordinateSystem):
     def __init__(self, origin=np.zeros(3), curves=None, orientations=None,
-                 transforms=None, weights=None, factory='geo',
-                 use_register_tag=False, **kwargs):
+                 transforms=None, weights=None, local_weights=None,
+                 factory='geo', use_register_tag=False, **kwargs):
         """Path coordinate system
 
         # pitch, yaw, roll
         xi [-inf, inf]  # Transverse (Right) axis, pitch rotation
         eta [-inf, inf]  # Vertical (Down) axis, yaw rotation
         zeta [0, 1]  # Longitudinal (Front) axis, roll rotation
+
+`       Beta distribution calculator https://keisan.casio.com/exec/system/1180573226
 
         Args:
             origin (np.ndarray or list): Origin of the coordinate system
@@ -94,14 +96,14 @@ class Path(CoordinateSystem):
         super().__init__(dim=3, origin=origin, **kwargs)
         curves = [] if curves is None else curves
         transforms = [[] for _ in curves] if transforms is None else transforms
-        weights = [1. for _ in curves] if weights is None else weights
+        self.weights = [1 for _ in curves] if weights is None else weights
+        self.local_weights = [[] for _ in curves] if local_weights is None else local_weights
         from block import Block as BlockObject
         self.curves = BlockObject.parse_curves(curves)
         self.factory = factory
         self.use_register_tag = use_register_tag
         self.transforms = [BlockObject.parse_transforms(x, None) for x in transforms]
         self.orientations = [np.eye(3, 3) for _ in curves] if orientations is None else orientations
-        self.weights = weights
 
     def register(self):
         for c in self.curves:
@@ -131,48 +133,45 @@ class Path(CoordinateSystem):
         self.global_curves_bounds = []
         for i, bs in enumerate(self.curves_bounds):
             w = self.weights[i]
-            du = w*(bs[1] - bs[0])
+            # du = w * (bs[1] - bs[0])  # TODO Use real bounds?
+            du = w
             bs_g = [cnt, cnt + du]
             cnt = bs_g[1]
             self.global_curves_bounds.append(bs_g)
         self.global_normalized_curves_bounds = np.divide(
             self.global_curves_bounds, np.max(self.global_curves_bounds))
 
-    def get_derivative(self, u):
-        dv = None
-        for i, c in enumerate(self.curves):
-            bs_gn = self.global_normalized_curves_bounds[i]
-            if bs_gn[0] <= u <= bs_gn[1]:
-                k = (u - bs_gn[0]) / (bs_gn[1] - bs_gn[0])
-                bs = self.curves_bounds[i]
-                lu = bs[0] + k*(bs[1] - bs[0])
-                dv = gmsh.model.getDerivative(1, c.tag, (lu,))
-                break
-        return dv
-
-    def get_value(self, u):
-        v = None
-        for i, c in enumerate(self.curves):
-            bs_gn = self.global_normalized_curves_bounds[i]
-            if bs_gn[0] <= u <= bs_gn[1]:
-                k = (u - bs_gn[0]) / (bs_gn[1] - bs_gn[0])
-                bs = self.curves_bounds[i]
-                lu = bs[0] + k*(bs[1] - bs[0])
-                v = gmsh.model.getValue(1, c.tag, (lu,))
-                break
-        return v
-
     def get_value_derivative_orientation(self, u):
         v, dv, ori = None, None, None
         for i, c in enumerate(self.curves):
             bs_gn = self.global_normalized_curves_bounds[i]
             if bs_gn[0] <= u <= bs_gn[1]:
-                k = (u - bs_gn[0]) / (bs_gn[1] - bs_gn[0])
+                # Relative [0, 1] local coordinate
+                lu_rel = (u - bs_gn[0]) / (bs_gn[1] - bs_gn[0])
+                lws = self.local_weights[i]
+                if len(lws) == 2:  # Beta distribution
+                    if lu_rel == 0 or lu_rel == 1:
+                        pass
+                    else:
+                        a, b = lws
+                        n = 1000
+                        xs, dx = np.linspace(0, lu_rel, n, retstep=True)
+                        ts, dt = np.linspace(0, 1, n, retstep=True, endpoint=False)
+                        xs, ts = xs[1:], ts[1:]  # Exclude 0's
+                        t = np.sum(ts ** (a - 1) * (1 - ts) ** (b - 1) * dt)
+                        x = np.sum(xs ** (a - 1) * (1 - xs) ** (b - 1) * dx)
+                        lu_rel = x/t
+                        # print(f'beta {a}, {b}, {x}, {t}, {lu_rel}')
+                else:  # Linear
+                    pass
                 bs = self.curves_bounds[i]
-                lu = bs[0] + k*(bs[1] - bs[0])
-                v = gmsh.model.getValue(1, c.tag, (lu,))
-                dv = gmsh.model.getDerivative(1, c.tag, (lu,))
-                ori = self.orientations[i]  # TODO orientation for each point
+                # Absolute local coordinate
+                lu_abs = bs[0] + lu_rel * (bs[1] - bs[0])
+                # Value (Cartesian coordinates)
+                v = gmsh.model.getValue(1, c.tag, (lu_abs,))
+                # Derivative (Cartesian)
+                dv = gmsh.model.getDerivative(1, c.tag, (lu_abs,))
+                ori = self.orientations[i]  # TODO orientation for each point?
                 break
         return v, dv, ori
 
@@ -180,16 +179,18 @@ class Path(CoordinateSystem):
         v, dv, ori = self.get_value_derivative_orientation(u)
         z = ori[2]
         a = np.arccos(np.dot(dv, z) / (np.linalg.norm(dv) * np.linalg.norm(z)))
-        d = np.cross(z/np.linalg.norm(z), dv/np.linalg.norm(dv))
-        d = d / np.linalg.norm(d)
-        from transform import Rotate, reduce_transforms
+        d = np.cross(z / np.linalg.norm(z), dv / np.linalg.norm(dv))
         from point import Point
 
-        rot = Rotate(origin=[0, 0, 0], direction=d, angle=a)
         ps = [Point(coordinates=x) for x in ori]
-        for p in ps:
-            reduce_transforms([rot], p)
-        cs = Affine(origin=v, vs=[x.coordinates/np.linalg.norm(x.coordinates) for x in ps])
+        if np.linalg.norm(d) > 0:
+            d = d / np.linalg.norm(d)
+
+            from transform import Rotate, reduce_transforms
+            rot = Rotate(origin=[0, 0, 0], direction=d, angle=a)
+            for p in ps:
+                reduce_transforms([rot], p)
+        cs = Affine(origin=v, vs=[x.coordinates / np.linalg.norm(x.coordinates) for x in ps])
         return cs
 
 
