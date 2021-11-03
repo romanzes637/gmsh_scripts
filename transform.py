@@ -6,11 +6,22 @@ from coordinate_system import CoordinateSystem, Cartesian, Cylindrical, \
 
 
 def reduce_transforms(transforms, point):
+    """Apply transformations on the point.
+
+    Args:
+        transforms (list): Transformations
+        point (Point): Point
+
+    Returns:
+        Point: Transformed point.
+
+    """
     return reduce(lambda x, y: y(x), transforms, point)
 
 
 class Transform:
-    """
+    """General transformation of Point coordinates.
+
     Args:
         cs_from (CoordinateSystem): CoordinateSystem from
         cs_to (CoordinateSystem): CoordinateSystem to
@@ -24,18 +35,19 @@ class Transform:
 
     def __call__(self, p):
         """
+
         Args:
-            p (Point): point to transform
+            p (Point): Point to transform
 
         Returns:
-            Point: transformed point
+            Point: Transformed point
         """
         return p
 
 
-# Translation, Rotation, Dilation, Reflection
 class Translate(Transform):
-    """
+    """Translate coordinates of the Point by the displacement
+
     Args:
         delta (list or np.ndarray): displacement
     """
@@ -82,8 +94,28 @@ class Rotate(Transform):
         return p
 
 
-class CylindricalToCartesian(Transform):
+# TODO Dilate, Reflect
+
+
+class CartesianToCartesian(Transform):
+    """Convert coordinates of the Point from Cartesian to Cartesian system.
+
+    For compatibility.
     """
+
+    def __init__(self, **kwargs):
+        super().__init__(cs_from=Cartesian(), cs_to=Cartesian(), **kwargs)
+
+    def __call__(self, p):
+        p = super().__call__(p)
+        if not isinstance(p.coordinate_system, type(self.cs_from)):
+            raise ValueError(p, self)
+        return p
+
+
+class CylindricalToCartesian(Transform):
+    """Convert coordinates of the Point from Cylindrical to Cartesian system.
+
     [r, phi, z] -> [x, y, z]
     r - radius [0, inf),
     phi - azimuthal angle [0, 2*pi) (counterclockwise from X to Y),
@@ -104,11 +136,13 @@ class CylindricalToCartesian(Transform):
 
 
 class SphericalToCartesian(Transform):
-    """
+    """Convert coordinates of the Point from Spherical to Cartesian system.
+
     [r, phi, theta] -> [x, y, z]
-    r - radius [0, inf),
-    phi - azimuthal angle [0, 2*pi) (counterclockwise from X to Y),
-    theta - polar angle [0, pi] [from top to bottom, i.e XY-plane is pi/2]
+
+    * r - radius [0, inf)
+    * phi - azimuthal angle [0, 2*pi) (counterclockwise from X to Y)
+    * theta - polar angle [0, pi] [from top to bottom, i.e XY-plane is pi/2]
     """
 
     def __init__(self, **kwargs):
@@ -127,11 +161,16 @@ class SphericalToCartesian(Transform):
 
 
 class ToroidalToCartesian(Transform):
-    """
+    """Convert coordinates of the Point from Toroidal to Cartesian system.
+
     [r, phi, theta, r2] -> [x, y, z]
+
     r - inner radius (r < r2)
+
     phi - inner angle [0, 2*pi)
+
     theta - outer angle [0, 2*pi)
+
     r2 - outer radius
     """
 
@@ -151,13 +190,20 @@ class ToroidalToCartesian(Transform):
 
 
 class TokamakToCartesian(Transform):
-    """
+    """Convert coordinates of the Point from Tokamak to Cartesian system.
+
     [r, phi, theta, r2, kxy, kz] -> [x, y, z]
+
     r - inner radius (r < r2)
+
     phi - inner angle [0, 2*pi)
+
     theta - outer angle [0, 2*pi)
+
     r2 - outer radius
+
     kxy - inner radius XY scale coefficient in positive outer radius direction
+
     kz - inner radius Z scale coefficient
     """
 
@@ -184,9 +230,12 @@ class TokamakToCartesian(Transform):
 
 
 class BlockToCartesian(Transform):
-    """
+    """Convert coordinates of the Point from Block to Cartesian system.
+
     [xi, eta, zeta] -> [x, y, z]
+
     xi, eta, zeta - local block coordinates
+
     Args:
         cs_from(Block): Block Coordinate System
     """
@@ -209,12 +258,13 @@ class BlockToCartesian(Transform):
 
 
 class AffineToAffine(Transform):
-    """
-       [x0, y0, z0] -> [x1, y1, z1]
+    """Convert coordinates of the Point from Affine to Affine system.
 
-       Args:
-           cs_to (Affine): Affine coordinate system
-       """
+   [x0, y0, z0] -> [x1, y1, z1]
+
+   Args:
+       cs_to (Affine): Affine coordinate system
+   """
 
     def __init__(self, cs_to, **kwargs):
         super().__init__(cs_to=cs_to, **kwargs)
@@ -237,11 +287,10 @@ class AffineToAffine(Transform):
 
 
 class AffineToCartesian(Transform):
-    """
-       [x0, y0, z0] -> [x1, y1, z1]
+    """Convert coordinates of the Point from Affine to Cartesian system.
 
-       Args:
-       """
+   [x0, y0, z0] -> [x, y, z]
+   """
 
     def __init__(self, **kwargs):
         super().__init__(cs_to=Cartesian(), **kwargs)
@@ -264,7 +313,14 @@ class AffineToCartesian(Transform):
 
 
 class PathToCartesian(Transform):
-    """
+    """Convert coordinates of the Point from Path to Cartesian system.
+
+    [x, y, u] -> [x, y, z]
+
+    u - relative path coordinate [0, 1], where 0 - start of the path, 1 - end.
+
+    x, y - Cartesian coordinates [-inf, inf] on the normal plane to direction
+    of the path derivative at the point with relative path coordinate u.
     """
 
     def __init__(self, **kwargs):
@@ -293,6 +349,10 @@ factory = {
     Rotate.__name__: Rotate,
     Rotate.__name__.lower(): Rotate,
     'rot': Rotate,
+    CartesianToCartesian.__name__: CartesianToCartesian,
+    Cartesian: CartesianToCartesian,
+    'cartesian_to_cartesian': CartesianToCartesian,
+    'car2car': CartesianToCartesian,
     CylindricalToCartesian.__name__: CylindricalToCartesian,
     Cylindrical: CylindricalToCartesian,
     'cylindrical_to_cartesian': CylindricalToCartesian,

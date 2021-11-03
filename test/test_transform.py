@@ -52,7 +52,8 @@ class TestTransform(unittest.TestCase):
 
     def test_path(self):
         gmsh.initialize()
-        gmsh.option.setNumber("Mesh.SubdivisionAlgorithm", 2)  # (0: none, 1: all quadrangles, 2: all hexahedra, 3: barycentric)
+        gmsh.option.setNumber("Mesh.SubdivisionAlgorithm",
+                              2)  # (0: none, 1: all quadrangles, 2: all hexahedra, 3: barycentric)
         model_name = 'test_path'
         factory = 'geo'
         gmsh.model.add(model_name)
@@ -85,17 +86,17 @@ class TestTransform(unittest.TestCase):
             [], [], [], [], [], [], [], [[0, 0, 4]], [[4, 0, 6]]
         ]
         orientations = [
-                        [[1, 0, 0], [0, 0, -1], [0, 1, 0]],
-                        [[0, -1, 0], [1, 0, -1], [1, 0, 1]],
-                        [[1, 0, 0], [0, 0, -1], [0, 1, 0]],
-                        [[0, -1, 0], [0, 0, -1], [1, 0, 0]],
-                        [[-1, 0, 0], [0, 0, -1], [0, -1, 0]],
-                        [[-1, 0, 0], [0, 0, -1], [0, -1, 0]],
-                        [[-1, 0, 0], [0, 0, -1], [0, -1, 0]],
-                        [[0, -1, 0], [0, 0, -1], [1, 0, 0]],
-                        [[0, -1, 0], [0, 0, -1], [1, 0, 0]],
-                        [[0, -1, -1], [-1, 0, 0], [0, 1, -1]],
-                        ]  # number of curves + 1
+            [[1, 0, 0], [0, 0, -1], [0, 1, 0]],
+            [[0, -1, 0], [1, 0, -1], [1, 0, 1]],
+            [[1, 0, 0], [0, 0, -1], [0, 1, 0]],
+            [[0, -1, 0], [0, 0, -1], [1, 0, 0]],
+            [[-1, 0, 0], [0, 0, -1], [0, -1, 0]],
+            [[-1, 0, 0], [0, 0, -1], [0, -1, 0]],
+            [[-1, 0, 0], [0, 0, -1], [0, -1, 0]],
+            [[0, -1, 0], [0, 0, -1], [1, 0, 0]],
+            [[0, -1, 0], [0, 0, -1], [1, 0, 0]],
+            [[0, -1, -1], [-1, 0, 0], [0, 1, -1]],
+        ]  # number of curves + 1
         weights = [5, 15, 5, 5, 5, 5, 20, 10, 30]
         local_weights = [[1, 4], [], [], [], [], [], [3, 3], [], [0.5, 0.5]]
         cs = Path(curves=curves, orientations=orientations,
@@ -133,9 +134,9 @@ class TestTransform(unittest.TestCase):
         n = 100j
         points4 = np.dstack([
             np.column_stack([
-            np.ravel(x) for x in np.mgrid[0.1:0.2, 0.1:0.2, 0.7:1:n]]),
+                np.ravel(x) for x in np.mgrid[0.1:0.2, 0.1:0.2, 0.7:1:n]]),
             np.column_stack([
-            np.ravel(x) for x in np.mgrid[-0.1:0, 0.1:0.2, 0.7:1:n]]),
+                np.ravel(x) for x in np.mgrid[-0.1:0, 0.1:0.2, 0.7:1:n]]),
             np.column_stack([
                 np.ravel(x) for x in np.mgrid[-0.1:0, -0.1:0, 0.7:1:n]]),
             np.column_stack([
@@ -186,10 +187,10 @@ class TestTransform(unittest.TestCase):
         #         c2 = Curve(points=[prev_p, p0], name='line')
         #         register_curve(factory=factory, curve=c2, register_tag=False)
         #     prev_p = p0
-            # p1 = Point(coordinates=np.add(v, dv))
-            # register_point(factory=factory, point=p1, register_tag=False)
-            # c = Curve(points=[p0, p1], name='line')
-            # register_curve(factory=factory, curve=c, register_tag=False)
+        # p1 = Point(coordinates=np.add(v, dv))
+        # register_point(factory=factory, point=p1, register_tag=False)
+        # c = Curve(points=[p0, p1], name='line')
+        # register_curve(factory=factory, curve=c, register_tag=False)
         if factory == 'geo':
             gmsh.model.geo.synchronize()
         elif factory == 'occ':
@@ -212,7 +213,82 @@ class TestTransform(unittest.TestCase):
                 gmsh.model.geo.mesh.setRecombine(s_dt[0], s_dt[1])
         BlockSimple()(b0)
         gmsh.model.mesh.generate(3)
-        gmsh.write(f'{model_name}.msh2')
+        # gmsh.write(f'{model_name}.msh2')
+        gmsh.write(f'{model_name}.geo_unrolled')
+        gmsh.finalize()
+
+    def test_path_spherical(self):
+        gmsh.initialize()
+        model_name = 'test_path_spherical'
+        factory = 'geo'
+        gmsh.model.add(model_name)
+        curves = [
+            ['line', [[0, 0, 0], [1, 0, 1]]],
+            ['line', [[1, 0, 1], [2, 0, 1]]],
+            ['line', [[2, 0, 1], [3, 0, 0]]],
+            ['line', [[3, 0, 0], [4, 1, 1]]],
+            ['line', [[4, 1, 1], [5, 1, 1]]],
+            ['line', [[5, 1, 1], [6, 1, 1]]],
+        ]
+        transforms = None
+        orientations = [
+            [[1, 270, 90], [1, 0, 90], [1, 0, 0], 'spherical'],
+            [[1, 270, 90], [1, 0, 135], [1, 0, 45], 'spherical'],
+            [[1, 0, 180], [1, 0, 135], 'spherical'],
+            [[1, 0, 135], 'spherical'],
+            [[1, 45, np.rad2deg(np.arccos(3 ** -0.5))], 'spherical'],
+            [[0, -1, 0], [0, 0, -1], [1, 0, 0]],
+            [[0, 0, -1], [1, 0, 0]],
+        ]  # number of curves + 1
+        weights = None
+        local_weights = None
+        cs = Path(curves=curves, orientations=orientations,
+                  transforms=transforms, weights=weights,
+                  local_weights=local_weights,
+                  factory=factory)
+        cs.transform()
+        cs.register()
+        if factory == 'geo':
+            gmsh.model.geo.synchronize()
+        elif factory == 'occ':
+            gmsh.model.occ.synchronize()
+        else:
+            raise ValueError(factory)
+        cs.evaluate_bounds()
+        for u in np.linspace(0., 1., 21):
+            print(u)
+            v, dv, ori = cs.get_value_derivative_orientation(u)
+            dv = dv / np.linalg.norm(dv)
+            p0 = Point(coordinates=v)
+            register_point(factory=factory, point=p0, register_tag=False)
+            p1 = Point(coordinates=np.add(v, dv))
+            register_point(factory=factory, point=p1, register_tag=False)
+            c = Curve(points=[p0, p1], name='line')
+            register_curve(factory=factory, curve=c, register_tag=False)
+            lcs = cs.get_local_coordinate_system(u)
+            for j, v2 in enumerate(lcs.vs):
+                v2 = v2 / np.linalg.norm(v2) * 0.1 * (1 + j)
+                p3 = Point(coordinates=lcs.origin)
+                register_point(factory=factory, point=p3, register_tag=False)
+                p4 = Point(coordinates=np.add(lcs.origin, v2))
+                register_point(factory=factory, point=p4, register_tag=False)
+                c2 = Curve(points=[p3, p4], name='line')
+                register_curve(factory=factory, curve=c2, register_tag=False)
+            for j, v2 in enumerate(ori):
+                v2 = v2 / np.linalg.norm(v2) * 0.05
+                p3 = Point(coordinates=v)
+                register_point(factory=factory, point=p3, register_tag=False)
+                p4 = Point(coordinates=np.add(v, v2))
+                register_point(factory=factory, point=p4, register_tag=False)
+                c2 = Curve(points=[p3, p4], name='line')
+                register_curve(factory=factory, curve=c2, register_tag=False)
+        if factory == 'geo':
+            gmsh.model.geo.synchronize()
+        elif factory == 'occ':
+            gmsh.model.occ.synchronize()
+        else:
+            raise ValueError(factory)
+        gmsh.write(f'{model_name}.geo_unrolled')
         gmsh.finalize()
 
     def test_affine(self):

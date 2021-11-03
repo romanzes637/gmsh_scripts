@@ -29,11 +29,25 @@ class Cartesian(Affine):
 
 
 class Cylindrical(CoordinateSystem):
+    """Cylindrical coordinate system
+
+    r - radius [0, inf),
+    phi - azimuthal angle [0, 2*pi) (counterclockwise from X to Y),
+    z - height
+    """
+
     def __init__(self, origin=np.zeros(3), **kwargs):
         super().__init__(dim=3, origin=origin, **kwargs)
 
 
 class Spherical(CoordinateSystem):
+    """Spherical coordinate system
+
+    r - radius [0, inf),
+    phi - azimuthal angle [0, 2*pi) (counterclockwise from X to Y),
+    theta - polar angle [0, pi] (from top to bottom, i.e XY-plane is pi/2)
+    """
+
     def __init__(self, origin=np.zeros(3), **kwargs):
         super().__init__(dim=3, origin=origin, **kwargs)
 
@@ -103,12 +117,47 @@ class Path(CoordinateSystem):
         self.factory = factory
         self.use_register_tag = use_register_tag
         self.transforms = [BlockObject.parse_transforms(x, None) for x in transforms]
+        self.orientations = self.parse_orientations(
+            orientations=orientations, do_deg2rad=True)
+
+    def parse_orientations(self, orientations, do_deg2rad):
         if orientations is None:
-            np.array([np.eye(3, 3) for _ in range(len(curves) + 1)])
-        if not isinstance(orientations, np.ndarray):
-            self.orientations = np.array(orientations)
-        else:
-            self.orientations = orientations
+            n_curves = len(self.curves)
+            orientations = [np.eye(3, 3).tolist() for _ in range(n_curves + 1)]  # X - Pitch, Y - Yaw, Z - Roll
+        from point import Point
+        orientations = [Point.parse_points(x, do_deg2rad=do_deg2rad)
+                        for x in orientations]
+        for i, o in enumerate(orientations):
+            # tangential (roll) - add binormal (bitangent, pitch)
+            if len(o) == 1 and isinstance(o[0].coordinate_system, Spherical):
+                t = o[0].coordinates
+                n = [t[0], t[1], t[2] + 0.5 * np.pi]
+                print(n)
+                orientations[i] = [Point(
+                    coordinates=n, coordinate_system=Spherical()), o[0]]
+            elif len(o) == 3 or len(o) == 2:
+                pass
+            else:
+                raise ValueError(o)
+        from transform import factory as transform_factory
+        orientations = [[transform_factory[type(y.coordinate_system)]()(y)
+                         for y in x] for x in orientations]
+        for i, o in enumerate(orientations):
+            # normal (yaw) and tangential (roll) directions - add binormal (bitangent, pitch)
+            if len(o) == 2:
+                n, t = o[0].coordinates, o[1].coordinates
+                b = np.cross(n / np.linalg.norm(n), t / np.linalg.norm(t))
+                b = b / np.linalg.norm(b)
+                orientations[i] = [Point(coordinates=b), o[0], o[1]]
+            elif len(o) == 3:
+                pass
+            else:
+                raise ValueError(o)
+        # TODO Do normalization?
+        for i, o in enumerate(orientations):
+            for j, v in enumerate(o):
+                v.coordinates = v.coordinates / np.linalg.norm(v.coordinates)
+        return orientations
 
     def register(self):
         for c in self.curves:
@@ -124,7 +173,6 @@ class Path(CoordinateSystem):
                 cs = p.coordinate_system
                 if not isinstance(cs, Cartesian):
                     from transform import factory as tr_factory, reduce_transforms
-
                     any2car = tr_factory[type(cs)]()
                     ts = [any2car] + self.transforms[i]
                     reduce_transforms(ts, p)
@@ -165,7 +213,7 @@ class Path(CoordinateSystem):
                         xs, ts = xs[1:], ts[1:]  # Exclude 0's
                         t = np.sum(ts ** (a - 1) * (1 - ts) ** (b - 1) * dt)
                         x = np.sum(xs ** (a - 1) * (1 - xs) ** (b - 1) * dx)
-                        lu_rel = x/t
+                        lu_rel = x / t
                         # print(f'beta {a}, {b}, {x}, {t}, {lu_rel}')
                 else:  # Linear
                     pass
@@ -176,8 +224,8 @@ class Path(CoordinateSystem):
                 v = gmsh.model.getValue(1, c.tag, (lu_abs,))
                 # Derivative (Cartesian)
                 dv = gmsh.model.getDerivative(1, c.tag, (lu_abs,))
-                ori0 = self.orientations[i]  # TODO orientation for each point?
-                ori1 = self.orientations[i+1]
+                ori0 = np.array([x.coordinates for x in self.orientations[i]])
+                ori1 = np.array([x.coordinates for x in self.orientations[i + 1]])
                 ori = lu_rel * ori1 + (1 - lu_rel) * ori0
                 break
         return v, dv, ori
@@ -188,15 +236,12 @@ class Path(CoordinateSystem):
         a = np.arccos(np.dot(dv, z) / (np.linalg.norm(dv) * np.linalg.norm(z)))
         d = np.cross(z / np.linalg.norm(z), dv / np.linalg.norm(dv))
         from point import Point
-
         ps = [Point(coordinates=x) for x in ori]
         if np.linalg.norm(d) > 0:
             d = d / np.linalg.norm(d)
-
-            from transform import Rotate, reduce_transforms
+            from transform import Rotate
             rot = Rotate(origin=[0, 0, 0], direction=d, angle=a)
-            for p in ps:
-                reduce_transforms([rot], p)
+            ps = [rot(x) for x in ps]
         cs = Affine(origin=v, vs=[x.coordinates / np.linalg.norm(x.coordinates) for x in ps])
         return cs
 
