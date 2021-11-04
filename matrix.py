@@ -6,72 +6,15 @@ from block import Block
 
 
 class Matrix(Block):
-    """
-
-        Primitives, Complexes and Complex descendants
-        as items of 3D matrix structure
-        Items data structure (1D array):
-        [Z0_Y0_X0, Z0_Y0_X1, ..., Z0_Y0_XN,
-         Z0_Y1_X0, Z0_Y1_X1, ..., Z0_Y1_XN,
-         ...
-         Z0_YM_X0, Z0_YM_X1, ..., Z0_YM_XN,
-         Z1_Y0_X0, Z1_Y0_X1, ..., Z1_Y0_XN,
-         Z1_Y1_X0, Z1_Y1_X1, ..., Z1_Y1_XN,
-         ...
-         Z1_YM_X0, Z1_YM_X1, ..., Z1_YM_XN,
-         ...
-         ...
-         ZP_YM_X0, Z0_YM_X1, ..., ZP_YM_XN]
-        X0, X1, ..., XN - X layers, where N - number of X layers
-        Y0, Y1, ..., YM - Y layers, where M - number of Y layers
-        Z0, Z1, ..., ZP - Z layers, where P - number of Z layers
+    """Matrix
 
     Args:
-        :param str factory: see Primitive
-        :param list of float xs: X axis coordinates
-        :param list of float ys: Y axis coordinates
-        :param list of float zs: Z axis coordinates
-        :param str coordinates_type: 'direct' - exact coordinates or
-            'delta' - coordinates differences
-        :param list of float lcs: see Primitive
-        :param list of int type_map: matrix items lcs
-        :param list of float transform_data: see Primitive
-        :param list of list of float ts: transfinite_data (see Primitive)
-        :param list of int txs: X axis transfinite_data map
-        :param list of int tys: Y axis transfinite_data map
-        :param list of int tzs: Z axis transfinite_data map
-        :param list of str types: matrix items types (See functions below)
-        :param list of int type_map: matrix items types map
-        :param list of str volumes_names: names for items volumes
-        :param list of int volumes_map: item - volume name map
-        :param list of list of str surfaces_names: names for items surfaces
-        :param list of int surfaces_map: item - surface names map
-        :param list of list of list of float transforms: transforms for matrix items
-        :param list of int transforms_map: item - input file map
-        :param list of str inputs: input files
-        :param list of int inputs_map: item - input file map
-        :param list of dict kws: keyword arguments for matrix items
-        :param list of int kws_map: matrix item keyword arguments map
-        :param list of int recs_map: see Primitive
-        :param list of int trans_map: see Primitive
-        :param list of list of int curve_types: see Primitive
-        :param list of int curve_types_map: item - curve types map
-        :param list of list of list of list of float curve_data : see Primitive
-        :param list of int curve_data_map: item - curve data map
-        :param list of str curve_data_coord_sys: "local" [0-1] or "global"
-        :param list of int curve_data_coord_sys_map:
-        :param list of list of float inputs_transforms:
-            inputs transform in local coordinate system of the cell
-        :param list of int inputs_transforms_map:
-        :param list of str inputs_transforms_coord_sys: "local" [0-1] or "global"
-        :param list of int curve_data_coord_sys_map:
-        :param list of int boolean_level_map : See Primitive
-        TODO wrong lcs from Cylinder by layers
-        TODO remove axisymmetric types (kws to curve_types_map)
-        TODO optmize direct/delta
     """
 
-    def __init__(self, factory, points, transforms=None,
+    def __init__(self, factory, points, transforms=None, use_register_tag=False,
+                 do_register_map=None,
+                 structure_all_map=None,
+                 quadrate_all_map=None,
                  # ts=None, txs=None, tys=None, tzs=None,
                  # lcs=None, lcs_map=None,
                  # types=None, type_map=None,
@@ -92,41 +35,64 @@ class Matrix(Block):
                  # boolean_level_map=None,
                  # exists_map=None
                  ):
-        blocks_points = Matrix.parse_matrix_points(points)
         transforms = [] if transforms is None else transforms
-        children = [Block(points=x, parent=self) for x in blocks_points]
+        blocks_points, new2old = Matrix.parse_matrix_points(points)
+        do_register_map = Matrix.parse_map(do_register_map, True, new2old)
+        structure_all_map = Matrix.parse_map(structure_all_map, None, new2old)
+        quadrate_all_map = Matrix.parse_map(quadrate_all_map, None, new2old)
+        children = [Block(factory=factory,
+                          points=x,
+                          use_register_tag=use_register_tag,
+                          do_register=do_register_map[i],
+                          structure_all=structure_all_map[i],
+                          quadrate_all=quadrate_all_map[i],
+                          parent=self) for i, x in enumerate(blocks_points)]
         super().__init__(factory=factory, do_register=False,
-                         children=children, transforms=transforms)
+                         children=children, transforms=transforms,
+                         use_register_tag=use_register_tag)
 
     @staticmethod
     def parse_matrix_points(points):
+        # Correct points
+        for row_i, row in enumerate(points):
+            if isinstance(row, list):
+                if not isinstance(row[0], str):
+                    row = ['value'] + row
+                elif row[0] not in ['value', 'increment']:
+                    row = ['value'] + row
+                if not isinstance(row[1], (float, int)):
+                    row = [row[0], 0] + row[1:]
+                points[row_i] = row
         # Split rows into list and other
         list_rows = [x for x in points if isinstance(x, list)]
         other_rows = [x for x in points if not isinstance(x, list)]
-        # Parse list rows
-        new_points = []
-        for row in list_rows:
-            if not isinstance(row[0], str):
-                row = ['value'] + row
-            elif row[0] not in ['value', 'increment']:
-                row = ['value'] + row
-            if not isinstance(row[1], (float, int)):
-                row = [row[0], 0] + row[1:]
+        # Parse list rows and evaluate new to old maps for each row
+        rows_coords = []
+        rows_new2old, rows_old2new = [], []
+        for row_i, row in enumerate(list_rows):
+            new2old, old2new = {}, {}
             row_type, cur_c, cs = row[0], float(row[1]), row[2:]
             if row_type not in ['value', 'increment']:
                 raise ValueError(row_type)
             new_cs = [cur_c]
-            for c in cs:
+            for col_i, c in enumerate(cs):
                 if isinstance(c, (float, int)):
                     dc = c - cur_c if row_type == 'value' else c
                     cur_c += dc
                     new_cs.append(cur_c)
+                    new_i, old_i = len(new_cs) - 2, col_i
+                    old2new.setdefault(old_i, []).append(new_i)
+                    new2old[new_i] = old_i
                 elif isinstance(c, str):
                     vs = c.split(':')
                     if len(vs) == 2:
                         c, n = float(vs[0]), int(vs[1])
                         new_c = c if row_type == 'value' else cur_c + c
-                        new_cs.extend(np.linspace(cur_c, new_c, n)[1:])
+                        for x in np.linspace(cur_c, new_c, n)[1:]:
+                            new_cs.append(x)
+                            new_i, old_i = len(new_cs) - 2, col_i
+                            old2new.setdefault(old_i, []).append(new_i)
+                            new2old[new_i] = old_i
                         cur_c = new_c
                     elif len(vs) == 4:
                         c, n, = float(vs[0]), int(vs[1])
@@ -152,9 +118,14 @@ class Matrix(Block):
                         for dc in dcs:
                             cur_c += dc
                             new_cs.append(cur_c)
+                            new_i, old_i = len(new_cs) - 2, col_i
+                            old2new.setdefault(old_i, []).append(new_i)
+                            new2old[new_i] = old_i
                     else:
                         raise ValueError(c, vs, points)
-            new_points.append(new_cs)
+            rows_coords.append(new_cs)
+            rows_new2old.append(new2old)
+            rows_old2new.append(old2new)
         # Parse other rows
         if len(other_rows) == 0:
             coordinate_system = 'cartesian'
@@ -166,7 +137,7 @@ class Matrix(Block):
             coordinate_system = other_rows[0]
             params_expand_type = other_rows[1]
         # Split points into coordinates and parameters
-        coords, params = new_points[:3], new_points[3:]
+        coords, params = rows_coords[:3], rows_coords[3:]
         if len(params) > 0:
             if params_expand_type == 'trace':
                 min_len = min(len(x) for x in params)
@@ -177,10 +148,24 @@ class Matrix(Block):
                 raise ValueError(params_expand_type)
         else:
             params = [[]]
-        # Evaluate blocks points
-        blocks_points = []
+        # Old global to old local
+        old_g2l, old_l2g = {}, {}
         for pi, p in enumerate(params):
-            xs, ys, zs = coords
+            xs, ys, zs = points[0][2:], points[1][2:], points[2][2:]
+            nx, ny, nz = len(xs), len(ys), len(zs)
+            for zi in range(nz):
+                for yi in range(ny):
+                    for xi in range(nx):
+                        gi = pi * nx * ny * nz + zi * ny * nx + yi * nx + xi
+                        li = (pi, zi, yi, xi)
+                        old_g2l[gi] = li
+                        old_l2g[li] = gi
+        # Evaluate blocks points and new global to new local
+        blocks_points = []
+        new_g2l, new_l2g = {}, {}
+        for pi, p in enumerate(params):
+            xs, ys, zs = coords  # with start coordinate
+            nx, ny, nz = len(xs) - 1, len(ys) - 1, len(zs) - 1
             for zi, z in enumerate(zs[1:], start=1):
                 prev_z = zs[zi - 1]
                 for yi, y in enumerate(ys[1:], start=1):
@@ -198,52 +183,33 @@ class Matrix(Block):
                             [x, prev_y, z] + p,
                             coordinate_system]
                         blocks_points.append(block_points)
-        return blocks_points
+                        gi = pi * nx * ny * nz + (zi - 1) * ny * nx + (yi - 1) * nx + (xi - 1)
+                        li = (pi, zi - 1, yi - 1, xi - 1)
+                        new_g2l[gi] = li
+                        new_l2g[li] = gi
+        # New global to old global
+        new2old_g2g, old2new_g2g = {}, {}
+        for new_gi, new_li in new_g2l.items():
+            pi, zi, yi, xi = new_li
+            new2old_z, new2old_y, new2old_x = rows_new2old[2], rows_new2old[1], rows_new2old[0],
+            old_zi, old_yi, old_xi = new2old_z[zi], new2old_y[yi], new2old_x[xi]
+            old_li = (pi, old_zi, old_yi, old_xi)
+            old_gi = old_l2g[old_li]
+            new2old_g2g[new_gi] = old_gi
+            old2new_g2g.setdefault(old_gi, []).append(new_gi)
+        return blocks_points, new2old_g2g
 
-#         # Factory
-#         if factory == 'occ':
-#             factory_object = gmsh.model.occ
-#         else:
-#             factory_object = gmsh.model.geo
-#         # Check indexing
-#         nxs, n2o_xs = Matrix.parse_indexing(xs, coordinates_type)
-#         nys, n2o_ys = Matrix.parse_indexing(ys, coordinates_type)
-#         nzs, n2o_zs = Matrix.parse_indexing(zs, coordinates_type)
-#         if any((len(nxs) != len(xs), len(nys) != len(ys), len(nzs) != len(zs))):
-#             # Old
-#             if coordinates_type == 'delta':
-#                 nx, ny, nz = len(xs), len(ys), len(zs)
-#             elif coordinates_type == 'direct':
-#                 nx, ny, nz = len(xs) - 1, len(ys) - 1, len(zs) - 1
-#             else:
-#                 raise ValueError(f'coordinates_type: {coordinates_type}')
-#             l2g = {}  # local index (xi, yj, zk) -> global index (gi) map
-#             g2l = {}  # global index (gi) map -> local index (xi, yj, zk)
-#             for zi in range(nz):
-#                 for yi in range(ny):
-#                     for xi in range(nx):
-#                         gi = xi + nx * yi + ny * nx * zi
-#                         l2g[(xi, yi, zi)] = gi
-#                         g2l[gi] = (xi, yi, zi)
-#             # New
-#             xs, ys, zs = nxs, nys, nzs
-#             if coordinates_type == 'delta':
-#                 x0, y0, z0 = 0, 0, 0
-#             elif coordinates_type == 'direct':  # convert to delta
-#                 x0, y0, z0 = xs[0], ys[0], zs[0]
-#                 xs = [xs[i] - xs[i - 1] for i in range(1, len(xs))]
-#                 ys = [ys[i] - ys[i - 1] for i in range(1, len(ys))]
-#                 zs = [zs[i] - zs[i - 1] for i in range(1, len(zs))]
-#             else:
-#                 raise ValueError(f'coordinates_type: {coordinates_type}')
-#             nx, ny, nz = len(xs), len(ys), len(zs)
-#             ni = nx * ny * nz  # number of matrix items
-#             n2o_gs = {}  # new global index (gi) to old global index (gi)
-#             for zi in range(len(zs)):
-#                 for yi in range(len(ys)):
-#                     for xi in range(len(xs)):
-#                         gi = xi + nx * yi + ny * nx * zi
-#                         n2o_gs[gi] = l2g[(n2o_xs[xi], n2o_ys[yi], n2o_zs[zi])]
+    @staticmethod
+    def parse_map(m, default, new2old):
+        if m is None:
+            m = [default for _ in new2old]
+        elif not isinstance(m, list):
+            m = [m for _ in new2old]
+        else:
+            m = [m[old_i] for old_i in new2old.values()]
+        return m
+
+
 #             # Update maps
 #             if isinstance(txs, list):
 #                 txs = [txs[n2o_xs[xi]] for xi in range(nx)]

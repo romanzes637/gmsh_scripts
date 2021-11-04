@@ -396,7 +396,9 @@ def register_surface(factory, surface, use_register_tag):
         if use_register_tag:
             global SURFACE_TAG
             surface_kwargs['kwargs']['tag'] = SURFACE_TAG
+            # t0 = time.perf_counter()  # FIXME Too long in occ factory!
             tag = add_surface[(factory, name)](surface_kwargs)
+            # print(time.perf_counter() - t0)
             SURFACE_TAG += 1
             # FIXME Workaround occ auto increment curve loop and surface tags
             if factory == 'occ':
@@ -404,7 +406,9 @@ def register_surface(factory, surface, use_register_tag):
                 CURVE_LOOP_TAG += 1
         else:
             surface_kwargs['kwargs']['tag'] = -1
+            # t0 = time.perf_counter()  # FIXME Too long in occ factory!
             tag = add_surface[(factory, name)](surface_kwargs)
+            # print(time.perf_counter() - t0)
         SURFACES[key] = tag
     surface.tag = tag
     return surface

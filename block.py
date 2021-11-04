@@ -359,6 +359,9 @@ class Block:
                     self.surfaces[i].structure = Structure(name='surface')
                 # Volume
                 self.volumes[0].structure = Structure(name='volume')
+        elif isinstance(structure_all, bool):
+            structure_all = [[2, 0, 1], [2, 0, 1], [2, 0, 1]]
+            return self.parse_structure_all(structure_all)
         elif structure_all is None:
             pass
         else:
@@ -421,11 +424,11 @@ class Block:
         self.register_curves_loops()
         # print(f'register_curves_loops: {time.perf_counter() - t0}s')
         # Surfaces
-        # t0 = time.perf_counter()
+        # t0 = time.perf_counter()  # FIXME Too long in occ factory!
         self.register_surfaces()
         # print(f'register_surfaces: {time.perf_counter() - t0}s')
         # Surfaces Loops
-        # t0 = time.perf_counter()
+        t0 = time.perf_counter()
         self.register_surfaces_loops()
         # print(f'register_surfaces_loops: {time.perf_counter() - t0}s')
         # Volume
@@ -583,6 +586,7 @@ class Block:
         else:
             for i, s in enumerate(self.surfaces):
                 if s.quadrate is not None:
+                    print(s.tag)
                     self.surfaces[i] = register_quadrate_surface(s, self.factory)
 
     def structure_curves(self):
