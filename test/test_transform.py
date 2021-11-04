@@ -103,15 +103,15 @@ class TestTransform(unittest.TestCase):
                   transforms=transforms, weights=weights,
                   local_weights=local_weights,
                   factory=factory)
-        cs.transform()
-        cs.register()
-        if factory == 'geo':
-            gmsh.model.geo.synchronize()
-        elif factory == 'occ':
-            gmsh.model.occ.synchronize()
-        else:
-            raise ValueError(factory)
-        cs.evaluate_bounds()
+        # cs.transform()
+        # cs.register()
+        # if factory == 'geo':
+        #     gmsh.model.geo.synchronize()
+        # elif factory == 'occ':
+        #     gmsh.model.occ.synchronize()
+        # else:
+        #     raise ValueError(factory)
+        # cs.evaluate_bounds()
         for u in np.linspace(0., 1., 101):
             print(u)
             v, dv, ori = cs.get_value_derivative_orientation(u)
@@ -246,15 +246,15 @@ class TestTransform(unittest.TestCase):
                   transforms=transforms, weights=weights,
                   local_weights=local_weights,
                   factory=factory)
-        cs.transform()
-        cs.register()
-        if factory == 'geo':
-            gmsh.model.geo.synchronize()
-        elif factory == 'occ':
-            gmsh.model.occ.synchronize()
-        else:
-            raise ValueError(factory)
-        cs.evaluate_bounds()
+        # cs.transform()
+        # cs.register()
+        # if factory == 'geo':
+        #     gmsh.model.geo.synchronize()
+        # elif factory == 'occ':
+        #     gmsh.model.occ.synchronize()
+        # else:
+        #     raise ValueError(factory)
+        # cs.evaluate_bounds()
         for u in np.linspace(0., 1., 21):
             print(u)
             v, dv, ori = cs.get_value_derivative_orientation(u)

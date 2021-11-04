@@ -119,6 +119,15 @@ class Path(CoordinateSystem):
         self.transforms = [BlockObject.parse_transforms(x, None) for x in transforms]
         self.orientations = self.parse_orientations(
             orientations=orientations, do_deg2rad=True)
+        self.transform()
+        self.register()
+        if factory == 'geo':
+            gmsh.model.geo.synchronize()
+        elif factory == 'occ':
+            gmsh.model.occ.synchronize()
+        else:
+            raise ValueError(factory)
+        self.evaluate_bounds()
 
     def parse_orientations(self, orientations, do_deg2rad):
         if orientations is None:
@@ -132,7 +141,6 @@ class Path(CoordinateSystem):
             if len(o) == 1 and isinstance(o[0].coordinate_system, Spherical):
                 t = o[0].coordinates
                 n = [t[0], t[1], t[2] + 0.5 * np.pi]
-                print(n)
                 orientations[i] = [Point(
                     coordinates=n, coordinate_system=Spherical()), o[0]]
             elif len(o) == 3 or len(o) == 2:
@@ -153,7 +161,7 @@ class Path(CoordinateSystem):
                 pass
             else:
                 raise ValueError(o)
-        # TODO Do normalization?
+        # TODO Do normalization? Do +1 0
         for i, o in enumerate(orientations):
             for j, v in enumerate(o):
                 v.coordinates = v.coordinates / np.linalg.norm(v.coordinates)
@@ -195,7 +203,7 @@ class Path(CoordinateSystem):
             self.global_curves_bounds, np.max(self.global_curves_bounds))
 
     def get_value_derivative_orientation(self, u):
-        v, dv, ori = None, None, None
+        v, dv, ori, lu_rel = None, None, None, None
         for i, c in enumerate(self.curves):
             bs_gn = self.global_normalized_curves_bounds[i]
             if bs_gn[0] <= u <= bs_gn[1]:
@@ -207,7 +215,7 @@ class Path(CoordinateSystem):
                         pass
                     else:
                         a, b = lws
-                        n = 1000
+                        n = 10000
                         xs, dx = np.linspace(0, lu_rel, n, retstep=True)
                         ts, dt = np.linspace(0, 1, n, retstep=True, endpoint=False)
                         xs, ts = xs[1:], ts[1:]  # Exclude 0's
@@ -228,21 +236,27 @@ class Path(CoordinateSystem):
                 ori1 = np.array([x.coordinates for x in self.orientations[i + 1]])
                 ori = lu_rel * ori1 + (1 - lu_rel) * ori0
                 break
-        return v, dv, ori
+        return v, dv, ori, lu_rel
 
     def get_local_coordinate_system(self, u):
-        v, dv, ori = self.get_value_derivative_orientation(u)
+        v, dv, ori, lu_rel = self.get_value_derivative_orientation(u)
         z = ori[2]
         a = np.arccos(np.dot(dv, z) / (np.linalg.norm(dv) * np.linalg.norm(z)))
         d = np.cross(z / np.linalg.norm(z), dv / np.linalg.norm(dv))
+        # d = np.cross(z, dv)
         from point import Point
         ps = [Point(coordinates=x) for x in ori]
-        if np.linalg.norm(d) > 0:
+        if np.linalg.norm(d) > 0 and not np.isnan(a):
             d = d / np.linalg.norm(d)
             from transform import Rotate
+            # ori_part = 2*abs(lu_rel - 0.5)
+            # der_part = 1 - ori_part
+            der_part = 0
+            a = a * der_part
             rot = Rotate(origin=[0, 0, 0], direction=d, angle=a)
             ps = [rot(x) for x in ps]
         cs = Affine(origin=v, vs=[x.coordinates / np.linalg.norm(x.coordinates) for x in ps])
+        # cs = Affine(origin=v, vs=[x.coordinates for x in ps])
         return cs
 
 
@@ -265,6 +279,7 @@ factory = {
     Toroidal.__name__.lower(): Toroidal,
     'tor': Toroidal,
     Tokamak.__name__: Tokamak,
+    Tokamak.__name__.lower(): Tokamak,
     'tok': Tokamak,
     Block.__name__: Block,
     Block.__name__.lower(): Block,

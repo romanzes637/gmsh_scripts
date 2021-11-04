@@ -178,7 +178,9 @@ class Block:
 
     @staticmethod
     def parse_points(points):
-        points = [] if points is None else points
+        if points is None:
+            points = [[1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1],
+                      [1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1]]
         if isinstance(points, float) or isinstance(points, int):  # lx/ly/lz
             a = 0.5 * points
             points = [[a, a, -a], [-a, a, -a], [-a, -a, -a], [a, -a, -a],
