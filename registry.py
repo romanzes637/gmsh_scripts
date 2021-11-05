@@ -1,7 +1,5 @@
 from collections import deque
 import copy
-from pprint import pprint
-import time
 
 import gmsh
 
@@ -314,7 +312,9 @@ add_structure_volume = {
 
 
 def register_point(factory, point, register_tag):
-    key = tuple(round(x, POINT_TOL) for x in point.coordinates)
+    for i, c in enumerate(point.coordinates):
+        point.coordinates[i] = round(c, POINT_TOL)
+    key = tuple(point.coordinates)
     tag = POINTS.get(key, None)
     if tag is None:
         point_kwargs = correct_kwargs(point, factory, 'point')
@@ -420,7 +420,7 @@ def register_surface_loop(factory, surface_loop, register_tag):
     if tag is None:
         surface_loop_kwargs = correct_kwargs(surface_loop, factory, 'surface_loop')
         surface_loop_kwargs['surfaces_tags'] = key
-        # FIXME Workaround occ return only -1 tag
+        # FIXME Workaround of occ returns only -1 tag
         if register_tag or factory == 'occ':
             global SURFACE_LOOP_TAG
             surface_loop_kwargs['kwargs']['tag'] = SURFACE_LOOP_TAG

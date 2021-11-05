@@ -16,22 +16,26 @@ class Rule:
 
 
 class BlockSimple(Rule):
-    def __init__(self):
+    """Name from zone field of entity
+
+    """
+
+    def __init__(self, dims=(0, 1, 2, 3)):
         super().__init__()
+        self.dims = dims
 
     def __call__(self, block):
-        dt2zs = []  # tag to zone maps
+        dt2zs = []  # dim-tag to zone maps
         for b in block:
-            dt2z = {}  # tag to zone map
-            for i, entities in enumerate([b.points, b.curves,
-                                          b.surfaces, b.volumes]):
-                for e in entities:
+            dt2z = {}  # dim-tag to zone map
+            for i, es in enumerate([b.points, b.curves, b.surfaces, b.volumes]):
+                for e in es:
                     dt, z = (i, e.tag), e.zone
                     if dt is not None and e.zone is not None:
                         dt2z[dt] = z
             dt2zs.append(dt2z)
         z2dt = {}  # zone to dim-tags map
-        for dim in range(4):  # 0 - points, 1 - curves, 2 - surfaces, 3 - volumes
+        for dim in self.dims:
             es_dt = gmsh.model.getEntities(dim)
             for dt in es_dt:
                 zs = []  # zones
@@ -118,6 +122,7 @@ class BlockDirection(Rule):
             for sl_i, sl in enumerate(sls):
                 sl_ps_cs = np.array([tree.ps_dt_to_cs[x] for x in sl_ps[sl_i]])
                 sl_c = np.mean(sl_ps_cs, axis=0)  # Centroid of the surface loop
+                # Coordinates to weights map of surface loop
                 sl_cs2ws = Direction(zones=self.zones,
                                      zones_directions=self.zones_directions,
                                      origin=sl_c)
@@ -135,10 +140,11 @@ class BlockDirection(Rule):
                     sl_cs2ws = sls_cs2ws[sl_i]
                     # Surface dim-tag
                     s_dt = tree.vs_ss_dt[v_i][s_i]
-                    # Points dim-tags
+                    # Points of surface dim-tags
                     s_ps_dt = list(set(flatten(tree.vs_ss_cs_ps_dt[v_i][s_i])))
-                    # Points coordinates
+                    # Points of surface coordinates
                     s_ps_cs = np.array([tree.ps_dt_to_cs[x] for x in s_ps_dt])
+                    # Weights by directions
                     s_ws = sl_cs2ws(s_ps_cs)
                     s_ws_sum = np.sum(s_ws, axis=1)
                     s_ws_max = np.amax(s_ws_sum)

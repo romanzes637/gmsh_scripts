@@ -100,7 +100,7 @@ class Point:
                 if isinstance(o1, str):
                     if o1 in cs_factory:  # coordinate system
                         coordinate_system = Point.parse_coordinate_system(o1)
-                        logging.warning(f'May be a name conflict between zone and coordinate system: {o1}')
+                        # logging.warning(f'May be a name conflict between zone and coordinate system: {o1}')
                     else:  # zone
                         zone = o1
                 else:  # coordinate system
@@ -171,7 +171,7 @@ class Point:
                 elif isinstance(o1, str):
                     if o1 in cs_factory:  # coordinate system
                         cs = o1
-                        logging.warning(f'May be a name conflict between zone and coordinate system: {o1}')
+                        # logging.warning(f'May be a name conflict between zone and coordinate system: {o1}')
                     else:  # zone
                         z = o1
                 elif isinstance(o1, CoordinateSystem):
@@ -186,7 +186,7 @@ class Point:
                     ms = o1
                     if o2 in cs_factory:  # coordinate system
                         cs = o2
-                        logging.warning(f'May be a name conflict between zone and coordinate system: {o2}')
+                        # logging.warning(f'May be a name conflict between zone and coordinate system: {o2}')
                     else:  # zone
                         z = o2
                 else:

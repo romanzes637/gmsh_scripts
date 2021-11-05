@@ -181,7 +181,7 @@ class Block:
         if points is None:
             points = [[1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1],
                       [1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1]]
-        if isinstance(points, float) or isinstance(points, int):  # lx/ly/lz
+        if isinstance(points, (float, int)):  # lx/ly/lz
             a = 0.5 * points
             points = [[a, a, -a], [-a, a, -a], [-a, -a, -a], [a, -a, -a],
                       [a, a, a], [-a, a, a], [-a, -a, a], [a, -a, a]]
@@ -369,6 +369,8 @@ class Block:
         return structure_all
 
     def parse_zone_all(self, zone_all):
+        if zone_all is None:
+            zone_all = self.__class__.__name__
         if isinstance(zone_all, str):  # Volumes zone
             for v in self.volumes:
                 v.zone = zone_all
@@ -560,8 +562,6 @@ class Block:
                                                     self.register_tag)
 
     def quadrate_surfaces(self):
-        if self.quadrate_all is None:
-            return
         # Check all
         if isinstance(self.quadrate_all, bool):
             self.quadrate_all = {}
@@ -572,7 +572,7 @@ class Block:
         for i, s in enumerate(self.surfaces):
             self.surfaces[i].quadrate = Quadrate(**self.quadrate_all)
         # Quadrate
-        if self.boolean_level is not None:
+        if self.boolean_level is not None:  # Quadrate all surfaces
             for v in self.volumes:
                 if v.tag is None:
                     continue
@@ -586,7 +586,6 @@ class Block:
         else:
             for i, s in enumerate(self.surfaces):
                 if s.quadrate is not None:
-                    print(s.tag)
                     self.surfaces[i] = register_quadrate_surface(s, self.factory)
 
     def structure_curves(self):

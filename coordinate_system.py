@@ -188,7 +188,7 @@ class Path(CoordinateSystem):
     def evaluate_bounds(self):
         self.curves_bounds = []
         for c in self.curves:
-            bs = gmsh.model.getParametrizationBounds(1, c.tag)
+            bs = gmsh.model.get_parametrization_bounds(1, c.tag)
             self.curves_bounds.append([bs[0][0], bs[1][0]])
         cnt = 0
         self.global_curves_bounds = []

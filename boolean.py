@@ -137,9 +137,23 @@ def boolean(block):
 
 
 def boolean_with_bounding_boxes(block):
+    """Do boolean if there is bounding boxes intersection
+
+    Bounding box [min_x, min_y, min_z, max_x, max_y, max_z]
+
+    Args:
+        block:
+
+    Returns:
+        None
+    """
     def get_bb(b):
-        bbs = np.array([gmsh.model.getBoundingBox(3, x.tag) for x in b.volumes])
-        bb = np.concatenate([bbs[:, :3].min(axis=0), bbs[:, 3:].max(axis=0)])
+        try:
+            bbs = np.array([gmsh.model.getBoundingBox(3, x.tag) for x in b.volumes])
+            bb = np.concatenate([bbs[:, :3].min(axis=0), bbs[:, 3:].max(axis=0)])
+        except Exception as e:  # Raised error if Block is not registered
+            logging.warning(e)
+            bb = np.array([-np.inf, -np.inf, -np.inf, np.inf, np.inf, np.inf])
         return bb
 
     b2bb = {}

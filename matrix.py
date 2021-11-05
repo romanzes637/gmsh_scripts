@@ -11,10 +11,14 @@ class Matrix(Block):
     Args:
     """
 
-    def __init__(self, factory, points, transforms=None, use_register_tag=False,
+    def __init__(self, factory, points,
+                 parent=None,
+                 transforms=None, use_register_tag=False,
                  do_register_map=None,
                  structure_all_map=None,
                  quadrate_all_map=None,
+                 boolean_level_map=None,
+                 zone_all_map=None,
                  # ts=None, txs=None, tys=None, tzs=None,
                  # lcs=None, lcs_map=None,
                  # types=None, type_map=None,
@@ -40,14 +44,19 @@ class Matrix(Block):
         do_register_map = Matrix.parse_map(do_register_map, True, new2old)
         structure_all_map = Matrix.parse_map(structure_all_map, None, new2old)
         quadrate_all_map = Matrix.parse_map(quadrate_all_map, None, new2old)
+        boolean_level_map = Matrix.parse_map(boolean_level_map, None, new2old)
+        zone_all_map = Matrix.parse_map(zone_all_map, None, new2old)
         children = [Block(factory=factory,
                           points=x,
                           use_register_tag=use_register_tag,
                           do_register=do_register_map[i],
                           structure_all=structure_all_map[i],
                           quadrate_all=quadrate_all_map[i],
+                          boolean_level=boolean_level_map[i],
+                          zone_all=zone_all_map[i],
                           parent=self) for i, x in enumerate(blocks_points)]
-        super().__init__(factory=factory, do_register=False,
+        super().__init__(factory=factory, parent=parent,
+                         do_register=False,
                          children=children, transforms=transforms,
                          use_register_tag=use_register_tag)
 
