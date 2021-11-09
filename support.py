@@ -1,6 +1,8 @@
 import os
 import math
 from pprint import pprint
+import logging
+import time
 
 import numpy as np
 import gmsh
@@ -130,6 +132,108 @@ class DataTree:
             else:
                 i_sls.append(sl)
         return b_sls, b_s2sl, i_sls, i_s2sl
+
+
+def plot_statistics():
+    message = 'statistics - '
+    types_names = ["points", "lines", "triangles", "quadrangles",
+                   "tetrahedra", "hexaheda", "prisms", "pyramids", "trihedra"]
+    element_types, element_tags, node_tags = gmsh.model.mesh.get_elements(3)
+    n_elements, nodes = 0, set()
+    for i, et in enumerate(element_types):
+        name, ets, nts = types_names[et], element_tags[i], node_tags[i]
+        message += f'{len(ets)} {name}, '
+        n_elements += len(ets)
+        nodes.update(nts)
+    message += f'total {n_elements} elements and {len(nodes)} nodes'
+    logging.info(message)
+
+
+def timeit(f):
+    def wrapper(*args, **kwargs):
+        t = time.perf_counter()
+        out = f(*args, **kwargs)
+        try:
+            name = f.__name__
+        except Exception:
+            name = f.__class__.__name__
+        logging.info(f'{name} - {time.perf_counter() - t:.3f}s')
+        return out
+
+    return wrapper
+
+
+def beta_function(xs, a, b, n=10000):
+    """Beta function
+
+    https://en.wikipedia.org/wiki/Beta_function#Incomplete_beta_function
+
+    Args:
+        xs (float, np.ndarray): argument(s)
+        a (float): alpha
+        b (float): beta
+        n (int): number of integration steps
+
+    Returns:
+        float, np.ndarray: value
+    """
+    ts, dt = np.linspace(0, xs, n, retstep=True)
+    ts = np.ma.masked_values(ts, 0)  # leads to inf
+    ts = np.ma.masked_values(ts, 1)  # leads to inf
+    vs = ts ** (a - 1) * (1 - ts) ** (b - 1) * dt
+    vs = vs.filled(0)
+    return np.sum(vs, axis=0)
+
+
+def beta_pdf(xs, a, b, n=10000):
+    """Beta probability density function
+
+    https://en.wikipedia.org/wiki/Beta_distribution#Probability_density_function
+
+    Args:
+        xs (float, np.ndarray): argument(s)
+        a (float): alpha
+        b (float): beta
+        n (int): number of integration steps
+
+    Returns:
+        float, np.ndarray: value
+    """
+    t = beta_function(1, a, b, n)
+    if a < 1 or b < 1:  # Correct 0 and 1
+        _, dt = np.linspace(0, 1, n, retstep=True)
+        if isinstance(xs, np.ndarray):
+            xs[np.isclose(xs, 0)] = dt
+            xs[np.isclose(xs, 1)] = 1 - dt
+        else:
+            xs = dt if np.isclose(xs, 0) else xs
+            xs = 1 - dt if np.isclose(xs, 1) else xs
+    return xs ** (a - 1) * (1 - xs) ** (b - 1) / t
+
+
+def beta_cdf(xs, a, b, n=10000):
+    """Beta cumulative distribution function
+
+    https://en.wikipedia.org/wiki/Beta_distribution#Cumulative_distribution_function
+    https://en.wikipedia.org/wiki/Beta_function#Incomplete_beta_function
+
+    Args:
+        xs (float, np.ndarray): argument(s)
+        a (float): alpha
+        b (float): beta
+        n (int): number of integration steps
+
+    Returns:
+        float, np.ndarray: value
+    """
+    t = beta_function(1, a, b, n)
+    # Different integrations steps by x value
+    if isinstance(xs, np.ndarray):
+        tx = np.array([beta_function(x, a, b, int(np.ceil(n * x))) for x in xs])
+    else:
+        nx = int(np.ceil(n * xs))
+        tx = beta_function(xs, a, b, nx)  # Incomplete beta function
+    return tx / t
 
 
 def get_volume_points_edges_data(volume):

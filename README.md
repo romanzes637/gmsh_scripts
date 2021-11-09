@@ -52,6 +52,8 @@ Section `"arguments"` contains input data for Complex "Cylinder":
 * `"transfinite_h_data"` - data for structured mesh by height layers. Size rate is from bottom to top
 * `"transfinite_phi_data"` - data for circumferential structured mesh
 
+
+
 ### Unstructured tetrahedral mesh
 ```shell
 python complex_factory -i input/test_cylinder_simple.json

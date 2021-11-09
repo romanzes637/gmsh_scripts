@@ -3,6 +3,7 @@ from itertools import product
 import numpy as np
 
 from block import Block
+from support import beta_pdf, beta_cdf
 
 
 class Matrix(Block):
@@ -65,88 +66,127 @@ class Matrix(Block):
         # Correct points
         for row_i, row in enumerate(points):
             if isinstance(row, list):
-                if not isinstance(row[0], str):
+                if row[0] not in ['value', 'increment']:  # 'value' by default
                     row = ['value'] + row
-                elif row[0] not in ['value', 'increment']:
-                    row = ['value'] + row
-                if not isinstance(row[1], (float, int)):
-                    row = [row[0], 0] + row[1:]
                 points[row_i] = row
-        # Split rows into list and other
+        # Split rows by type
         list_rows = [x for x in points if isinstance(x, list)]
-        other_rows = [x for x in points if not isinstance(x, list)]
+        num_rows = [x for x in points if isinstance(x, (int, float))]
+        str_rows = [x for x in points if isinstance(x, str)]
+        other_rows = [x for x in points
+                      if not isinstance(x, (list, int, str, float))]
         # Parse list rows and evaluate new to old maps for each row
-        rows_coords = []
+        rows_coords, rows_mesh_sizes = [], []
         rows_new2old, rows_old2new = [], []
         for row_i, row in enumerate(list_rows):
             new2old, old2new = {}, {}
-            row_type, cur_c, cs = row[0], float(row[1]), row[2:]
-            if row_type not in ['value', 'increment']:
-                raise ValueError(row_type)
-            new_cs = [cur_c]
+            row_type, cs = row[0], row[1:]
+            new_cs, new_mss = [], []
+            cur_c, cur_ms = 0, None  # 0, None by default
             for col_i, c in enumerate(cs):
                 if isinstance(c, (float, int)):
                     dc = c - cur_c if row_type == 'value' else c
                     cur_c += dc
+                    new_i, old_i = len(new_cs), col_i
                     new_cs.append(cur_c)
-                    new_i, old_i = len(new_cs) - 2, col_i
+                    new_mss.append(cur_ms)
                     old2new.setdefault(old_i, []).append(new_i)
                     new2old[new_i] = old_i
                 elif isinstance(c, str):
-                    vs = c.split(':')
-                    if len(vs) == 2:
+                    vs_ms = c.split(';')  # values and mesh size
+                    vs = vs_ms[0].split(':')
+                    ms = vs_ms[1].split(':') if len(vs_ms) > 1 else [None]
+                    new_ms = float(ms[0]) if ms[0] is not None else None
+                    prev_ms = float(cur_ms) if cur_ms is not None else None
+                    if len(ms) == 1:  # linear
+                        if prev_ms is None and new_ms is not None:
+                            prev_ms = new_ms
+                            if len(new_mss) > 0:
+                                new_mss[-1] = prev_ms
+                        elif prev_ms is not None and new_ms is None:
+                            new_ms = prev_ms
+
+                        def get_ms(rel_x):
+                            if prev_ms is not None and new_ms is not None:
+                                return rel_x * (new_ms - prev_ms) + prev_ms
+                            else:
+                                return None
+                    elif len(ms) == 4:  # Beta with weight
+                        w_ms = float(ms[1])
+                        a_ms, b_ms = float(ms[2]), float(ms[3])
+                        if prev_ms is None and new_ms is not None:
+                            k = beta_pdf(0, a_ms, b_ms)
+                            k *= w_ms  # Weight
+                            k = k + 1 if k >= 0 else 1 / -k
+                            prev_ms = new_ms
+                            if len(new_mss) > 0:
+                                new_mss[-1] = prev_ms * k
+                        elif prev_ms is not None and new_ms is None:
+                            new_ms = prev_ms
+
+                        def get_ms(rel_x):
+                            kx = beta_pdf(rel_x, a_ms, b_ms)
+                            kx *= w_ms  # Weight
+                            kx = kx + 1 if kx >= 0 else 1 / -kx
+                            if prev_ms is not None and new_ms is not None:
+                                return kx * (rel_x * (new_ms - prev_ms) + prev_ms)
+                            else:
+                                return None
+                    else:
+                        raise ValueError(ms)
+                    if len(vs) == 1:  # One step
+                        c = float(vs[0])
+                        dc = c - cur_c if row_type == 'value' else c
+                        cur_c += dc
+                        cur_ms = get_ms(1)
+                        new_i, old_i = len(new_cs), col_i
+                        new_cs.append(cur_c)
+                        new_mss.append(cur_ms)
+                        old2new.setdefault(old_i, []).append(new_i)
+                        new2old[new_i] = old_i
+                    elif len(vs) == 2:  # Uniform step
                         c, n = float(vs[0]), int(vs[1])
-                        new_c = c if row_type == 'value' else cur_c + c
-                        for x in np.linspace(cur_c, new_c, n)[1:]:
+                        dc = c - cur_c if row_type == 'value' else c
+                        prev_c = cur_c
+                        for x in np.linspace(cur_c, cur_c + dc, n)[1:]:
+                            cur_c = x
+                            rel_c = (cur_c - prev_c) / dc
+                            cur_ms = get_ms(rel_c)
+                            new_i, old_i = len(new_cs), col_i
                             new_cs.append(x)
-                            new_i, old_i = len(new_cs) - 2, col_i
+                            new_mss.append(cur_ms)
                             old2new.setdefault(old_i, []).append(new_i)
                             new2old[new_i] = old_i
-                        cur_c = new_c
-                    elif len(vs) == 4:
+                    elif len(vs) == 4:  # Beta distribution step
                         c, n, = float(vs[0]), int(vs[1])
                         a, b = float(vs[2]), float(vs[3])
                         dc = c - cur_c if row_type == 'value' else c
-                        nt = 10000
-                        ts, dt = np.linspace(0, 1, nt, retstep=True)
-                        ts = ts[1:-1]  # Exclude start and end step
-                        t = np.sum(ts ** (a - 1) * (1 - ts) ** (b - 1) * dt)
-                        prev_x, dcs = 0, []
-                        for i in range(n):
-                            u = (i + 1) / n
-                            nu = int(np.ceil(u * nt))
-                            us, du = np.linspace(0, u, nu, retstep=True)
-                            us = us[1:] if u != 1 else us[1:-1]
-                            u = np.sum(us ** (a - 1) * (1 - us) ** (b - 1) * du)
-                            x = u / t
-                            dx = x - prev_x
-                            dci = dx * dc
-                            prev_x = x
-                            dcs.append(dci)
-                        assert (np.isclose(dc, sum(dcs)))
-                        for dc in dcs:
-                            cur_c += dc
+                        xs = beta_cdf(np.linspace(0, 1, n), a, b)
+                        for i, x in enumerate(xs[1:], start=1):
+                            dx = xs[i] - xs[i - 1]
+                            cur_c += dc * dx
+                            cur_ms = get_ms(x)
+                            new_i, old_i = len(new_cs), col_i
                             new_cs.append(cur_c)
-                            new_i, old_i = len(new_cs) - 2, col_i
+                            new_mss.append(cur_ms)
                             old2new.setdefault(old_i, []).append(new_i)
                             new2old[new_i] = old_i
                     else:
-                        raise ValueError(c, vs, points)
+                        raise ValueError(c, vs_ms, points)
             rows_coords.append(new_cs)
+            rows_mesh_sizes.append(new_mss)
             rows_new2old.append(new2old)
             rows_old2new.append(old2new)
+        # Parse str rows
+        coordinate_system = str_rows[0] if len(str_rows) > 0 else 'cartesian'
+        params_expand_type = str_rows[1] if len(str_rows) > 1 else 'trace'
+        # Parse num rows
+        global_mesh_size = num_rows[0] if len(num_rows) > 0 else None
         # Parse other rows
-        if len(other_rows) == 0:
-            coordinate_system = 'cartesian'
-            params_expand_type = 'trace'
-        elif len(other_rows) == 1:
-            coordinate_system = other_rows[0]
-            params_expand_type = 'trace'
-        else:
-            coordinate_system = other_rows[0]
-            params_expand_type = other_rows[1]
+        coordinate_system = other_rows[0] if len(other_rows) > 0 else 'cartesian'
         # Split points into coordinates and parameters
         coords, params = rows_coords[:3], rows_coords[3:]
+        mesh_sizes, params_mesh_sizes = rows_mesh_sizes[:3], rows_mesh_sizes[3:]
         if len(params) > 0:
             if params_expand_type == 'trace':
                 min_len = min(len(x) for x in params)
@@ -160,7 +200,7 @@ class Matrix(Block):
         # Old global to old local
         old_g2l, old_l2g = {}, {}
         for pi, p in enumerate(params):
-            xs, ys, zs = points[0][2:], points[1][2:], points[2][2:]
+            xs, ys, zs = points[0][1:], points[1][1:], points[2][1:]
             nx, ny, nz = len(xs), len(ys), len(zs)
             for zi in range(nz):
                 for yi in range(ny):
@@ -174,22 +214,45 @@ class Matrix(Block):
         new_g2l, new_l2g = {}, {}
         for pi, p in enumerate(params):
             xs, ys, zs = coords  # with start coordinate
+            xs_ms, ys_ms, zs_ms = mesh_sizes
             nx, ny, nz = len(xs) - 1, len(ys) - 1, len(zs) - 1
-            for zi, z in enumerate(zs[1:], start=1):
+            for zi, cur_z in enumerate(zs[1:], start=1):
                 prev_z = zs[zi - 1]
-                for yi, y in enumerate(ys[1:], start=1):
+                cur_z_ms, prev_z_ms = zs_ms[zi], zs_ms[zi - 1]
+                for yi, cur_y in enumerate(ys[1:], start=1):
                     prev_y = ys[yi - 1]
-                    for xi, x in enumerate(xs[1:], start=1):
+                    cur_y_ms, prev_y_ms = ys_ms[yi], ys_ms[yi - 1]
+                    for xi, cur_x in enumerate(xs[1:], start=1):
                         prev_x = xs[xi - 1]
+                        cur_x_ms, prev_x_ms = xs_ms[xi], xs_ms[xi - 1]
+                        # Mesh sizes
+                        block_mesh_sizes = [
+                            [cur_x_ms, cur_y_ms, prev_z_ms],
+                            [prev_x_ms, cur_y_ms, prev_z_ms],
+                            [prev_x_ms, prev_y_ms, prev_z_ms],
+                            [cur_x_ms, prev_y_ms, prev_z_ms],
+                            [cur_x_ms, cur_y_ms, cur_z_ms],
+                            [prev_x_ms, cur_y_ms, cur_z_ms],
+                            [prev_x_ms, prev_y_ms, cur_z_ms],
+                            [cur_x_ms, prev_y_ms, cur_z_ms]]
+                        # Mean if mesh size != 0
+                        ms = [np.mean([y for y in x if y != 0])
+                              for x in block_mesh_sizes]
+                        # Replace np.nan with global_mesh_size
+                        ms = [x if not np.isnan(x) else global_mesh_size
+                              for x in ms]
+                        # Convert to lists (empty list if ms == 0)
+                        ms = [[x] if x is not None else [] for x in ms]
+                        # Points
                         block_points = [
-                            [x, y, prev_z] + p,
-                            [prev_x, y, prev_z] + p,
-                            [prev_x, prev_y, prev_z] + p,
-                            [x, prev_y, prev_z] + p,
-                            [x, y, z] + p,
-                            [prev_x, y, z] + p,
-                            [prev_x, prev_y, z] + p,
-                            [x, prev_y, z] + p,
+                            [cur_x, cur_y, prev_z] + p + ms[0],
+                            [prev_x, cur_y, prev_z] + p + ms[1],
+                            [prev_x, prev_y, prev_z] + p + ms[2],
+                            [cur_x, prev_y, prev_z] + p + ms[3],
+                            [cur_x, cur_y, cur_z] + p + ms[4],
+                            [prev_x, cur_y, cur_z] + p + ms[5],
+                            [prev_x, prev_y, cur_z] + p + ms[6],
+                            [cur_x, prev_y, cur_z] + p + ms[7],
                             coordinate_system]
                         blocks_points.append(block_points)
                         gi = pi * nx * ny * nz + (zi - 1) * ny * nx + (yi - 1) * nx + (xi - 1)
@@ -217,7 +280,6 @@ class Matrix(Block):
         else:
             m = [m[old_i] for old_i in new2old.values()]
         return m
-
 
 #             # Update maps
 #             if isinstance(txs, list):

@@ -120,6 +120,7 @@ import gmsh
 import numpy as np
 
 from volume import Volume
+from support import timeit
 
 
 def boolean(block):
@@ -133,7 +134,7 @@ def boolean(block):
     for b0, b1 in itertools.combinations(block, 2):
         cnt += 1
         logging.info(f'{cnt}/{n_combinations}')
-        block_by_block(b0, b1)
+        timeit(block_by_block)(b0, b1)
 
 
 def boolean_with_bounding_boxes(block):
@@ -148,11 +149,10 @@ def boolean_with_bounding_boxes(block):
         None
     """
     def get_bb(b):
-        try:
+        if b.is_registered:
             bbs = np.array([gmsh.model.getBoundingBox(3, x.tag) for x in b.volumes])
             bb = np.concatenate([bbs[:, :3].min(axis=0), bbs[:, 3:].max(axis=0)])
-        except Exception as e:  # Raised error if Block is not registered
-            logging.warning(e)
+        else:
             bb = np.array([-np.inf, -np.inf, -np.inf, np.inf, np.inf, np.inf])
         return bb
 
@@ -179,7 +179,7 @@ def boolean_with_bounding_boxes(block):
         logging.info(f'bbox intersection: {do_boolean}')
         # Do boolean operation
         if do_boolean:
-            block_by_block(b0, b1)
+            timeit(block_by_block)(b0, b1)
 
 
 def block_by_block(b0, b1, zone_separator='-'):
@@ -200,6 +200,7 @@ def block_by_block(b0, b1, zone_separator='-'):
     # Old zones
     obj_zs = [x.zone for x in obj.volumes]  # zones
     tool_zs = [x.zone for x in tool.volumes]  # zones
+    logging.info(f'{" and ".join(set(obj_zs))} by {" and ".join(set(tool_zs))}')
     zs = obj_zs + tool_zs  # all zones
     # Boolean operation
     new_vs, old_to_new = gmsh.model.occ.fragment(
@@ -210,6 +211,17 @@ def block_by_block(b0, b1, zone_separator='-'):
     # New volumes
     new_obj_vs = old_to_new[:len(obj_vs)]  # dim, tag
     new_tool_vs = old_to_new[len(obj_vs):]  # dim, tag
+    # Set is_booleaned flag
+    if not obj.is_booleaned:
+        if len(new_obj_vs[0]) != len(obj_vs):
+            obj.is_booleaned = True
+        elif len(obj_vs) == 1 and obj_vs[0][1] != new_obj_vs[0][0][1]:
+            obj.is_booleaned = True
+    if not tool.is_booleaned:
+        if len(new_tool_vs[0]) != len(tool_vs):
+            tool.is_booleaned = True
+        elif len(tool_vs) == 1 and tool_vs[0][1] != new_tool_vs[0][0][1]:
+            tool.is_booleaned = True
     # New tag to old index
     new_to_old = {}
     for i, vs in enumerate(old_to_new):

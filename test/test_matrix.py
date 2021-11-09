@@ -7,21 +7,83 @@ import numpy as np
 import gmsh
 
 from block import Block
-from boolean import boolean, boolean_with_bounding_boxes
 from matrix import Matrix
 from coordinate_system import Path
 from registry import reset as reset_registry
-from zone import BlockDirection, BlockSimple
+from support import timeit
+from strategy import boolean as boolean_strategy
+from size import BooleanPoint, BooleanEdge, Bagging
 
 logging.basicConfig(level=logging.INFO)
 
 
+def gmsh_decorator(f):
+    def wrapper(*args, **kwargs):
+        gmsh.initialize()
+        gmsh.option.setNumber("General.Terminal", 0)
+
+        # Abort on error? (0: no,  1: abort meshing,
+        # 2: throw an exception unless in interactive mode,
+        # 3: throw an exception always, 4: exit)
+        # Default value: 0
+        gmsh.option.setNumber("General.AbortOnError", 0)
+
+        # Should all duplicate entities be automatically
+        # removed with the built-in geometry kernel?
+        # If Geometry.AutoCoherence = 2, also remove degenerate entities.
+        # The option has no effect with the OpenCASCADE kernel
+        # Default value: 1
+        # gmsh.option.setNumber('Geometry.AutoCoherence', 0)
+
+        # Automatically fix orientation of wires, faces,
+        # shells and volumes when creating new entities
+        # with the OpenCASCADE kernel
+        # Default value: 1
+        # gmsh.option.setNumber('Geometry.OCCAutoFix', 0)
+
+        # Disable STL creation in OpenCASCADE kernel
+        # Default value: 0
+        # gmsh.option.setNumber('Geometry.OCCDisableStl', 1)
+
+        # Use STL mesh for computing bounds of OpenCASCADE shapes (more accurate, but slower)
+        # Default value: 0
+        gmsh.option.setNumber('Geometry.OCCBoundsUseStl', 1)
+
+        out = f(*args, **kwargs)
+        gmsh.finalize()
+        return out
+
+    return wrapper
+
+
 class TestMatrix(unittest.TestCase):
 
+    @gmsh_decorator
+    def test_init_3x3(self):
+        for factory in ['geo']:
+            reset_registry()
+            model_name = f'test_matrix_init_3x3_{factory}'
+            logging.info(model_name)
+            gmsh.model.add(model_name)
+            m = Matrix(factory=factory, points=[
+                ['-1', '1:4;.2:-3:0.5:0.5'],
+                ['-1', '1:4;.2:-3:0.5:0.5'],
+                ['-1;0.5', '1:4:2:2;2']])
+            timeit(m.transform)()
+            timeit(m.register)()
+            if factory == 'geo':
+                timeit(gmsh.model.geo.synchronize)()
+            elif factory == 'occ':
+                timeit(gmsh.model.occ.synchronize)()
+            else:
+                raise ValueError(factory)
+            timeit(gmsh.write)(f'{model_name}.geo_unrolled')
+            gmsh.model.remove()
+
+    @gmsh_decorator
     def test_init(self):
         for factory in ['geo', 'occ']:
             reset_registry()
-            gmsh.initialize()
             model_name = f'test_matrix_init_{factory}'
             logging.info(model_name)
             gmsh.model.add(model_name)
@@ -104,12 +166,11 @@ class TestMatrix(unittest.TestCase):
             else:
                 raise ValueError(factory)
             gmsh.write(f'{model_name}.geo_unrolled')
-            gmsh.finalize()
 
+    @gmsh_decorator
     def test_map(self):
         for factory in ['geo', 'occ']:
             reset_registry()
-            gmsh.initialize()
             use_register_tag = False
             model_name = f'test_matrix_map_{factory}'
             logging.info(model_name)
@@ -222,168 +283,412 @@ class TestMatrix(unittest.TestCase):
             gmsh.write(f'{model_name}.geo_unrolled')
             # gmsh.model.mesh.generate(3)
             # gmsh.write(f'{model_name}.msh2')
-            gmsh.finalize()
 
+    @gmsh_decorator
     def test_boolean(self):
-        # default 0
-        # sds = {0: 'none', 1: 'all quadrangles', 2: 'all hexahedra', 3: 'barycentric'}
-        sds = {2: 'all hexahedra'}
-        # default 6
-        # m2ds = {1: 'MeshAdapt', 2: 'Automatic', 3: 'Initial mesh only',
-        #         5: 'Delaunay', 6: 'Frontal-Delaunay', 7: 'BAMG',
-        #         8: 'Frontal-Delaunay for Quads', 9: 'Packing of Parallelograms'}
-        m2ds = {5: 'Delaunay', 6: 'Frontal-Delaunay', 8: 'Frontal-Delaunay for Quads'}
-        # m2ds = {6: 'Frontal-Delaunay', 8: 'Frontal-Delaunay for Quads'}
-        # default 1
-        # m3ds = {1: 'Delaunay', 3: 'Initial mesh only', 4: 'Frontal', 7: 'MMG3D',
-        #         9: 'R-tree', 10: 'HXT'}
-        m3ds = {1: 'Delaunay', 4: 'Frontal'}
-        params = list(product(sds.items(), m2ds.items(), m3ds.items()))
+        # https://gmsh.info/doc/texinfo/gmsh.html#Choosing-the-right-unstructured-algorithm
+        # Gmsh provides a choice between several 2D and 3D unstructured algorithms.
+        # Each algorithm has its own advantages and disadvantages.
+        #
+        # For all 2D unstructured algorithms a Delaunay mesh that contains
+        # all the points of the 1D mesh is initially constructed using
+        # a divide-and-conquer algorithm5. Missing edges are recovered using
+        # edge swaps6. After this initial step several algorithms can be applied
+        # to generate the final mesh:
+        #
+        # The “MeshAdapt” algorithm7 is based on local mesh modifications.
+        # This technique makes use of edge swaps, splits, and collapses:
+        # long edges are split, short edges are collapsed, and edges are swapped
+        # if a better geometrical configuration is obtained.
+        # The “Delaunay” algorithm is inspired by the work of the GAMMA team at
+        # INRIA8. New points are inserted sequentially at the circumcenter of
+        # the element that has the largest adimensional circumradius.
+        # The mesh is then reconnected using an anisotropic Delaunay criterion.
+        # The “Frontal-Delaunay” algorithm is inspired by the work of S. Rebay9.
+        # Other experimental algorithms with specific features are also available.
+        # In particular, “Frontal-Delaunay for Quads”10 is a variant of
+        # the “Frontal-Delaunay” algorithm aiming at generating right-angle triangles
+        # suitable for recombination; and “BAMG”11 allows to generate anisotropic triangulations.
+        # For very complex curved surfaces the “MeshAdapt” algorithm is the most robust.
+        # When high element quality is important, the “Frontal-Delaunay” algorithm
+        # should be tried. For very large meshes of plane surfaces the “Delaunay”
+        # algorithm is the fastest; it usually also handles complex mesh size fields
+        # better than the “Frontal-Delaunay”. When the “Delaunay” or “Frontal-Delaunay”
+        # algorithms fail, “MeshAdapt” is automatically triggered.
+        # The “Automatic” algorithm uses “Delaunay” for plane surfaces
+        # and “MeshAdapt” for all other surfaces.
+        #
+        # Several 3D unstructured algorithms are also available:
+        #
+        # The “Delaunay” algorithm is split into three separate steps.
+        # First, an initial mesh of the union of all the volumes in the model
+        # is performed, without inserting points in the volume.
+        # The surface mesh is then recovered using H. Si’s boundary recovery
+        # algorithm Tetgen/BR. Then a three-dimensional version of the
+        # 2D Delaunay algorithm described above is applied to insert points in
+        # the volume to respect the mesh size constraints.
+        # The “Frontal” algorithm uses J. Schoeberl’s Netgen algorithm 12.
+        # The “HXT” algorithm13 is a new efficient and parallel reimplementaton
+        # of the Delaunay algorithm.
+        # Other experimental algorithms with specific features are also available.
+        # In particular, “MMG3D”14 allows to generate anisotropic tetrahedralizations.
+        # The “Delaunay” algorithm is currently the most robust and is the only
+        # one that supports the automatic generation of hybrid meshes with pyramids.
+        # Embedded model entities and the Field mechanism to specify element sizes
+        # (see Specifying mesh element sizes) are currently only supported by the
+        # “Delaunay” and “HXT” algorithms.
+        #
+        # If your version of Gmsh is compiled with OpenMP support
+        # (see Compiling the source code), most of the meshing steps can be performed in parallel:
+        #
+        # 1D and 2D meshing is parallelized using a coarse-grained approach,
+        # i.e. curves (resp. surfaces) are each meshed sequentially, but several
+        # curves (resp. surfaces) can be meshed at the same time.
+        # 3D meshing using HXT is parallelized using a fine-grained approach,
+        # i.e. the actual meshing procedure for a single volume is done is parallel.
+        # The number of threads can be controlled with the -nt flag on the command line
+        # (see Command-line options), or with the
+        # General.NumThreads, Mesh.MaxNumThreads1D, Mesh.MaxNumThreads2D and Mesh.MaxNumThreads3D
+        # options (see General options list and Mesh options list).
+
+        # 2D mesh algorithm (1: MeshAdapt, 2: Automatic, 3: Initial mesh only,
+        # 5: Delaunay, 6: Frontal-Delaunay, 7: BAMG,
+        # 8: Frontal-Delaunay for Quads, 9: Packing of Parallelograms)
+        # Default value: 6
+        # m2d = {1: 'MeshAdapt', 2: 'Automatic', 3: 'Initial_mesh_only',
+        #         5: 'Delaunay', 6: 'Frontal_Delaunay', 7: 'BAMG',
+        #         8: 'Frontal_Delaunay_for_Quads', 9: 'Packing_of_Parallelograms'}
+        # m2d = {5: 'Delaunay', 6: 'Frontal-Delaunay', 8: 'Frontal-Delaunay for Quads'}
+        # m2d = {5: 'Frontal_Delaunay'}
+        m2d = {6: 'Frontal_Delaunay', 8: 'Frontal_Delaunay_for_Quads'}
+        # m2d = {8: 'Frontal_Delaunay_for_Quads'}
+
+        # 3D mesh algorithm (1: Delaunay, 3: Initial mesh only,
+        # 4: Frontal, 7: MMG3D, 9: R_tree, 10: HXT)
+        # Default value: 1
+        # m3d = {1: 'Delaunay', 3: 'Initial mesh only', 4: 'Frontal', 7: 'MMG3D',
+        #         9: 'R_tree', 10: 'HXT'}
+        # m3d = {1: 'Delaunay', 4: 'Frontal'}
+        m3d = {1: 'Delaunay'}
+
+        # To determine the size of mesh elements, Gmsh locally computes the minimum of
+        #
+        # 1) the size of the model bounding box;
+        # 2) if `Mesh.MeshSizeFromPoints' is set, the mesh size specified at
+        #    geometrical points;
+        # 3) if `Mesh.MeshSizeFromCurvature' is positive, the mesh size based on
+        #    curvature (the value specifying the number of elements per 2 * pi rad);
+        # 4) the background mesh size field;
+        # 5) any per-entity mesh size constraint.
+        #
+        # This value is then constrained in the interval [`Mesh.MeshSizeMin',
+        # `Mesh.MeshSizeMax'] and multiplied by `Mesh.MeshSizeFactor'.  In addition,
+        # boundary mesh sizes (on curves or surfaces) are interpolated inside the
+        # enclosed entity (surface or volume, respectively) if the option
+        # `Mesh.MeshSizeExtendFromBoundary' is set (which is the case by default).
+        #
+        # When the element size is fully specified by a background mesh size field (as
+        # it is in this example), it is thus often desirable to set
+        #
+        # Mesh.MeshSizeExtendFromBoundary = 0;
+        # Mesh.MeshSizeFromPoints = 0;
+        # Mesh.MeshSizeFromCurvature = 0;
+        #
+        # This will prevent over-refinement due to small mesh sizes on the boundary.
+
+        # Compute mesh element sizes from values given at geometry points
+        # Default value: 1
+        # msp = {0: 'no_points', 1: "points"}
+        msp = {1: "points", 0: 'no_points'}
+        # msp = {0: 'no_points'}
+        # msp = {1: 'points'}
+
+        # Extend computation of mesh element sizes from the boundaries
+        # into the interior (for 3D Delaunay, use 1: longest or
+        # 2: shortest surface edge length)
+        # Default value: 1
+        # msb = {1: "longest_edge", 0: 'no_edge', 2: 'shortest_edge'}
+        msb = {2: 'shortest_edge'}
+
+        # To generate quadrangles instead of triangles, we can simply add
+        # gmsh.model.mesh.setRecombine(2, pl)
+        # If we'd had several surfaces, we could have used the global option
+        # "Mesh.RecombineAll":
+        #
+        # gmsh.option.setNumber("Mesh.RecombineAll", 1)
+        #
+        # The default recombination algorithm is called "Blossom": it uses a minimum
+        # cost perfect matching algorithm to generate fully quadrilateral meshes from
+        # triangulations. More details about the algorithm can be found in the
+        # following paper: J.-F. Remacle, J. Lambrechts, B. Seny, E. Marchandise,
+        # A. Johnen and C. Geuzaine, "Blossom-Quad: a non-uniform quadrilateral mesh
+        # generator using a minimum cost perfect matching algorithm", International
+        # Journal for Numerical Methods in Engineering 89, pp. 1102-1119, 2012.
+        #
+        # For even better 2D (planar) quadrilateral meshes, you can try the
+        # experimental "Frontal-Delaunay for quads" meshing algorithm, which is a
+        # triangulation algorithm that enables to create right triangles almost
+        # everywhere: J.-F. Remacle, F. Henrotte, T. Carrier-Baudouin, E. Bechet,
+        # E. Marchandise, C. Geuzaine and T. Mouton. A frontal Delaunay quad mesh
+        # generator using the L^inf norm. International Journal for Numerical Methods
+        # in Engineering, 94, pp. 494-512, 2013. Uncomment the following line to try
+        # the Frontal-Delaunay algorithms for quads:
+        #
+        # gmsh.option.setNumber("Mesh.Algorithm", 8)
+        #
+        # The default recombination algorithm might leave some triangles in the mesh, if
+        # recombining all the triangles leads to badly shaped quads. In such cases, to
+        # generate full-quad meshes, you can either subdivide the resulting hybrid mesh
+        # (with `Mesh.SubdivisionAlgorithm' set to 1), or use the full-quad
+        # recombination algorithm, which will automatically perform a coarser mesh
+        # followed by recombination, smoothing and subdivision. Uncomment the following
+        # line to try the full-quad algorithm:
+        #
+        # gmsh.option.setNumber("Mesh.RecombinationAlgorithm", 2) # or 3
+        #
+        # You can also set the subdivision step alone, with
+        #
+        # gmsh.option.setNumber("Mesh.SubdivisionAlgorithm", 1)
+        #
+        # gmsh.model.mesh.generate(2)
+        #
+        # Note that you could also apply the recombination algorithm and/or the
+        # subdivision step explicitly after meshing, as follows:
+        #
+        # gmsh.model.mesh.generate(2)
+        # gmsh.model.mesh.recombine()
+        # gmsh.option.setNumber("Mesh.SubdivisionAlgorithm", 1)
+        # gmsh.model.mesh.refine()
+
+        # Mesh.RecombinationAlgorithm
+        # Mesh recombination algorithm (0: simple, 1: blossom, 2: simple full-quad, 3: blossom full-quad)
+        # Default value: 1
+        # Saved in: General.OptionsFileName
+        # mrb = {0: 'simple', 1: 'blossom', 2: 'simple_full_quad', 3: 'blossom_full_quad'}
+        mrb = {3: 'blossom_full_quad'}
+
+        # Mesh subdivision algorithm (0: none, 1: all quadrangles, 2: all hexahedra, 3: barycentric)
+        # Default value: 0
+        # sd = {0: 'no_subdivision', 1: 'all_quadrangles', 2: 'all_hexahedra', 3: 'barycentric'}
+        sd = {0: 'no_subdivision', 2: 'all_hexahedra'}
+        # sd = {2: 'all_hexahedra'}
+        # sd = {3: 'barycentric'}
+
+        # Mesh.RecombineAll
+        # Apply recombination algorithm to all surfaces, ignoring per-surface spec
+        # Default value: 0
+        # Saved in: General.OptionsFileName
+
+        # Mesh.RecombineOptimizeTopology
+        # Number of topological optimization passes (removal of diamonds, ...) of recombined surface meshes
+        # Default value: 5
+        # Saved in: General.OptionsFileName
+
+        # Mesh.Recombine3DAll
+        # Apply recombination3D algorithm to all volumes, ignoring per-volume spec (experimental)
+        # Default value: 0
+        # Saved in: General.OptionsFileName
+
+        # Mesh.Recombine3DLevel
+        # 3d recombination level (0: hex, 1: hex+prisms, 2: hex+prism+pyramids) (experimental)
+        # Default value: 0
+        # Saved in: General.OptionsFileName
+
+        # Mesh.Recombine3DConformity
+        # 3d recombination conformity type (0: nonconforming, 1: trihedra, 2: pyramids+trihedra, 3:pyramids+hexSplit+trihedra, 4:hexSplit+trihedra)(experimental)
+        # Default value: 0
+        # Saved in: General.OptionsFileName
+
+        # Mesh.Smoothing
+        # Number of smoothing steps applied to the final mesh
+        # Default value: 1
+        # Saved in: General.OptionsFileName
+
+        qd = {0: 'no_quadrate', 1: 'quadrate_in', 2: 'quadrate_out', 3: 'quadrate_in_out'}
+        # qd = {1: 'quadrate_in'}
+        # st = {0: 'no_structure', 1: 'structure_in', 2: 'structure_out', 3: 'structure_in_out'}
+        st = {0: 'no_structure', 1: 'structure_in'}
+        # st = {1: 'structure_in'}
+        params = list(product(sd.items(), m2d.items(), m3d.items(),
+                              msb.items(), msp.items(), mrb.items(),
+                              qd.items(), st.items()))
         for i, p in enumerate(params):
+            factory = 'occ'
+            model_name = f'test_matrix_boolean-{i + 1}_{len(params)}-{factory}-{"-".join([x[1] for x in p])}'
+            logging.info(model_name)
+            sd, m2d, m3d, msb, msp, mrb, qd, st = p
+            reset_registry()
+            gmsh.model.add(model_name)
+            gmsh.option.setNumber('Geometry.OCCParallel', 1)
+            gmsh.option.setNumber("Mesh.SubdivisionAlgorithm", sd[0])
+            gmsh.option.setNumber("Mesh.RecombinationAlgorithm", mrb[0])
+            gmsh.option.setNumber("Mesh.Algorithm", m2d[0])
+            gmsh.option.setNumber("Mesh.Algorithm3D", m3d[0])
+            gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", msb[0])
+            # Factor applied to all mesh element sizes
+            # Default value: 1
+            gmsh.option.setNumber("Mesh.MeshSizeFactor", 1)
+            # Mesh.MeshSizeMin
+            # Default value: 0
+            gmsh.option.setNumber("Mesh.MeshSizeMin", 0)
+            # Maximum mesh element size
+            # Default value: 1e+22
+            gmsh.option.setNumber("Mesh.MeshSizeMax", 1e+22)
+            # Automatically compute mesh element sizes from curvature,
+            # using the value as the target number of elements per 2 * Pi radians
+            # Default value: 0
+            gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
+            # Force isotropic curvature estimation when the mesh size
+            # is computed from curvature
+            # Default value: 0
+            gmsh.option.setNumber("Mesh.MeshSizeFromCurvatureIsotropic", 0)
+            gmsh.option.setNumber("Mesh.MeshSizeFromPoints", msp[0])
+            # Compute mesh element sizes from values given at geometry
+            # points defining parametric curves
+            gmsh.option.setNumber("Mesh.MeshSizeFromParametricPoints", 0)
+            boolean_with_bboxes = True
+            if qd[0] == 0:
+                quadrate_in, quadrate_out = None, None
+            elif qd[0] == 1:
+                quadrate_in, quadrate_out = True, None
+            elif qd[0] == 2:
+                quadrate_in, quadrate_out = None, True
+            elif qd[0] == 3:
+                quadrate_in, quadrate_out = True, True
+            else:
+                raise ValueError(qd)
+            if st[0] == 0:
+                structure_in, structure_out = None, None
+            elif st[0] == 1:
+                structure_in = [[3, 0, 1], [4, 0, 1], [5, 0, 1]]
+                structure_out = None
+            elif st[0] == 2:
+                structure_in = None
+                structure_out = [[3, 0, 1], [4, 0, 1], [5, 0, 1]]
+            elif st[0] == 3:
+                structure_in = [[3, 0, 1], [4, 0, 1], [5, 0, 1]]
+                structure_out = [[3, 0, 1], [4, 0, 1], [5, 0, 1]]
+            else:
+                raise ValueError(st)
             try:
-                sd, m2d, m3d = p
-                reset_registry()
-                gmsh.initialize()
-                gmsh.option.setNumber("General.Terminal", 0)
-                gmsh.option.setNumber("Mesh.SubdivisionAlgorithm", sd[0])
-                gmsh.option.setNumber("Mesh.Algorithm", m2d[0])
-                gmsh.option.setNumber("Mesh.Algorithm3D", m3d[0])
-                # default 1 1: longest or 2: shortest surface edge length
-                gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 2)
-                # default 1
-                gmsh.option.setNumber("Mesh.MeshSizeFactor", 1)
-                # default 0
-                gmsh.option.setNumber("Mesh.MeshSizeMin", 0)
-                # default 1e+22
-                gmsh.option.setNumber("Mesh.MeshSizeMax", 1e+0)
-                # target number of elements per 2 * Pi radians, default 0
-                gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
-                # default 0
-                gmsh.option.setNumber("Mesh.MeshSizeFromCurvatureIsotropic", 0)
-                # default 1
-                gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 1)
-                # default 0
-                gmsh.option.setNumber("Mesh.MeshSizeFromParametricPoints", 0)
-                #
-                factory = 'occ'
-                model_name = f'test_matrix_boolean_{i+1}_{factory}_{sd[1]}_{m2d[1]}_{m3d[1]}'
-                boolean_with_bboxes = True
-                structure_all = None
-                quadrate_all = None
-                logging.info(model_name)
-                gmsh.model.add(model_name)
-                b = Block(factory=factory, points=[
-                    [10, 5, 0], [0, 5, 0], [0, -5, 0], [10, -5, 0],
-                    [10, 5, 10], [0, 5, 10], [0, -5, 10], [10, -5, 10]],
+                b = Block(factory=factory, points=[10, 20, 30, 5.0],
                           boolean_level=0,
-                          structure_all=structure_all,
-                          quadrate_all=quadrate_all,
+                          structure_all=structure_out,
+                          quadrate_all=quadrate_out,
                           zone_all='Block1')
-                # b2 = Block(factory=factory, parent=b, points=[
-                #     [5, 1, 5], [4, 1, 5], [4, -1, 5], [5, -1, 5],
-                #     [5, 1, 6], [4, 1, 6], [4, -1, 6], [5, -1, 6], 0.5],
-                #            boolean_level=1,
-                #            quadrate_all=quadrate_all,
-                #            zone_all='Block2')
-                # b.add_child(b2)
-                curves = [['line', [[10, 0, x], [10, 0, x + 10], 'sph']]
-                          for x in np.linspace(0, 80, 9)]
-                orientations = [[[1, 180, x], 'sph'] for x in np.linspace(90, 0, 10)]
-                points = [
-                    ['1:3'],
-                    ['1:3'],
-                    ['1:3'],
-                    Path(factory=factory, curves=curves, orientations=orientations)
-                    # 'trace' by default
-                ]
-                m = Matrix(factory=factory, points=points,
-                           parent=b,
-                           transforms=['pat2car'],
-                           structure_all_map=structure_all,
-                           quadrate_all_map=quadrate_all,
-                           boolean_level_map=1,
-                           zone_all_map='Tunnel1')
-                b.add_child(m)
-                m = Matrix(factory=factory, points=points,
-                           parent=b,
-                           transforms=['pat2car', [5, 0, 0, 0, 0, 1, 45]],
-                           structure_all_map=None,
-                           quadrate_all_map=None,
-                           boolean_level_map=1,
-                           zone_all_map='Tunnel2')
-                b.add_child(m)
-                t0 = time.perf_counter()
-                b.transform()
-                logging.info(f'transform {time.perf_counter() - t0}')
-                t0 = time.perf_counter()
-                b.register()
-                logging.info(f'register {time.perf_counter() - t0}')
-                if factory == 'geo':
-                    gmsh.model.geo.synchronize()
-                    t0 = time.perf_counter()
-                    b.quadrate()
-                    logging.info(f'quadrate: {time.perf_counter() - t0}')
-                    t0 = time.perf_counter()
-                    b.structure()
-                    logging.info(f'structure: {time.perf_counter() - t0}')
-                elif factory == 'occ':
-                    if boolean_with_bboxes:
-                        t0 = time.perf_counter()
-                        gmsh.model.occ.synchronize()  # for evaluation of bboxes
-                        logging.info(f'synchronize: {time.perf_counter() - t0}')
-                        t0 = time.perf_counter()
-                        boolean_with_bounding_boxes(b)
-                        logging.info(f'boolean_with_bounding_boxes: {time.perf_counter() - t0}')
-                        # INFO:root:synchronize: 0.03
-                        # INFO: root:boolean_with_bounding_boxes: 2121
-                        # INFO:root:remove_all_duplicates: 409
-                    else:
-                        t0 = time.perf_counter()
-                        boolean(b)
-                        logging.info(f'boolean: {time.perf_counter() - t0}')
-                        # INFO:root:boolean: 2394
-                        # INFO:root:remove_all_duplicates: 409
-                    try:
-                        t0 = time.perf_counter()
-                        gmsh.model.occ.remove_all_duplicates()
-                        logging.info(f'remove_all_duplicates: {time.perf_counter() - t0}')
-                    except Exception as e:
-                        logging.warning(e)
-                    t0 = time.perf_counter()
-                    b.unregister()
-                    logging.info(f'unregister: {time.perf_counter() - t0}')
-                    t0 = time.perf_counter()
-                    b.unregister_boolean()
-                    logging.info(f'unregister_boolean: {time.perf_counter() - t0}')
-                    t0 = time.perf_counter()
-                    gmsh.model.occ.synchronize()
-                    logging.info(f'synchronize: {time.perf_counter() - t0}')
-                    t0 = time.perf_counter()
-                    b.quadrate()
-                    logging.info(f'quadrate: {time.perf_counter() - t0}')
-                    t0 = time.perf_counter()
-                    b.structure()
-                    logging.info(f'structure: {time.perf_counter() - t0}')
-                else:
-                    raise ValueError(factory)
-                t0 = time.perf_counter()
-                # BlockSimple()(b)
-                BlockDirection(dims=(2, 3), make_interface=False,
-                               add_volume_tag=True, add_volume_zone=True,
-                               add_surface_loop_tag=True,
-                               add_in_out_boundary=False)(b)
-                logging.info(f'zones: {time.perf_counter() - t0}')
-                t0 = time.perf_counter()
-                gmsh.model.mesh.generate(3)
-                logging.info(f'mesh: {time.perf_counter() - t0}')
-                t0 = time.perf_counter()
-                gmsh.write(f'{model_name}.msh2')
-                # gmsh.write(f'{model_name}.geo_unrolled')
-                logging.info(f'write: {time.perf_counter() - t0}')
+                b2 = Block(factory=factory, parent=b, points=[1, 2, 3, 0.5],
+                           boolean_level=1,
+                           structure_all=structure_in,
+                           quadrate_all=quadrate_in,
+                           zone_all='Block2')
+                b.add_child(b2)
+                boolean_strategy(factory, model_name, b)
             except Exception as e:
                 logging.warning(e)
+                with open(f'{model_name}.txt', 'a') as f:
+                    f.write(f'{e}')
             finally:
-                gmsh.finalize()
+                try:
+                    gmsh.model.remove()
+                except Exception as e:
+                    logging.warning(e)
+                    with open(f'{model_name}.txt', 'a') as f:
+                        f.write(f'{e}')
+
+    @gmsh_decorator
+    def test_boolean_tunnels(self):
+        m2d = {'Frontal_Delaunay': 6}
+        m3d = {'Delaunay': 1}
+        sd = {'all_hexahedra': 2, 'no_subdivision': 0}
+        st = {'structure_quadrate': 2, 'no_structure': 0, 'structure': 1}
+        msb = {'longest_edge': 1, 'no_edge': 0, 'shortest_edge': 2}
+        msp = {'points': 1, 'points.5x': 1, 'no_points': 0, 'points2x': 1}
+        para = {'parallel': 2, 'no_parallel': 0}
+        strategy = {'boolean_point_edge_mean': 2, 'boolean_edge_max': 0,
+                    'boolean_point_min': 1}
+        factory = 'occ'
+        params = list(product(m2d.items(), m3d.items(),  sd.items(), st.items(),
+                              msb.items(), msp.items(),
+                              para.items(), strategy.items()))
+        for i, p in enumerate(params):
+            m2d, m3d, sd, st, msb, msp, para, strategy = p
+            model_name = f'test_boolean_tunnels-{i + 1}_{len(params)}-{"-".join(x[0] for x in p)}'
+            logging.info(model_name)
+            gmsh.option.setNumber('Geometry.OCCParallel', para[1])
+            # General.NumThreads, Mesh.MaxNumThreads1D, Mesh.MaxNumThreads2D and Mesh.MaxNumThreads3D
+            gmsh.option.setNumber("Mesh.Algorithm", m2d[1])
+            gmsh.option.setNumber("Mesh.Algorithm3D", m3d[1])
+            gmsh.option.setNumber("Mesh.SubdivisionAlgorithm", sd[1])
+            gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", msb[1])
+            gmsh.option.setNumber("Mesh.MeshSizeFromPoints", msp[1])
+            # gmsh.option.setNumber("Mesh.MeshSizeFactor", 1)
+            # gmsh.option.setNumber("Mesh.MeshSizeMin", 0)
+            # gmsh.option.setNumber("Mesh.MeshSizeMax", 1e+22)
+            # gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
+            # gmsh.option.setNumber("Mesh.MeshSizeFromCurvatureIsotropic", 0)
+            # gmsh.option.setNumber("Mesh.MeshSizeFromParametricPoints", 0)
+            if msp[0] in ['points', 'no_points']:
+                mesh_size = 1
+            elif msp[0] == 'points2x':
+                mesh_size = 2
+            elif msp[0] == 'points.5x':
+                mesh_size = 0.5
+            else:
+                raise ValueError(msp)
+            b = Block(factory=factory, points=[10, 20, 30, mesh_size],
+                      boolean_level=0,
+                      structure_all=None,
+                      quadrate_all=None,
+                      zone_all='Block')
+            curves = [['line', [[10, 0, x], [10, 0, x + 10], 'sph']]
+                      for x in np.linspace(0, 80, 9)]
+            orientations = [[[1, 180, x], 'sph'] for x in np.linspace(90, 0, 10)]
+            points = [
+                [0, f'1:3;{.5*mesh_size}'],
+                [0, f'1:3;{.5*mesh_size}'],
+                [0, f'1:3;{.5*mesh_size}'],
+                Path(factory=factory, curves=curves, orientations=orientations)
+                # 'trace' by default
+            ]
+            if st[0] == 'no_structure':
+                structure_all, quadrate_all = None, None
+            elif st[0] == 'structure':
+                structure_all, quadrate_all = True, None
+            elif st[0] == 'structure_quadrate':
+                structure_all, quadrate_all = True, True
+            else:
+                raise ValueError(st)
+            m = Matrix(factory=factory, points=points,
+                       parent=b,
+                       transforms=['pat2car', [-5, 0, -15]],
+                       structure_all_map=structure_all,
+                       quadrate_all_map=quadrate_all,
+                       boolean_level_map=1,
+                       zone_all_map='Tunnel1')
+            b.add_child(m)
+            m = Matrix(factory=factory, points=points,
+                       parent=b,
+                       transforms=['pat2car',
+                                   [5, 0, 0, 0, 0, 1, 45], [-5, 0, -15]],
+                       structure_all_map=None,
+                       quadrate_all_map=None,
+                       boolean_level_map=1,
+                       zone_all_map='Tunnel2')
+            b.add_child(m)
+            if strategy[0] == 'boolean_edge_max':
+                boolean_strategy(factory, model_name, b,
+                                 size_function=BooleanEdge(function='max'))
+            elif strategy[0] == 'boolean_point_min':
+                boolean_strategy(factory, model_name, b,
+                                 size_function=BooleanPoint(function='min'))
+            elif strategy[0] == 'boolean_point_edge_mean':
+                boolean_strategy(factory, model_name, b,
+                                 size_function=Bagging(
+                                     function='mean',
+                                     sizes=(BooleanPoint(function='min'),
+                                            BooleanEdge(function='max'))))
+            else:
+                raise ValueError(strategy)
 
 
 if __name__ == '__main__':

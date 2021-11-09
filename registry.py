@@ -148,14 +148,13 @@ def correct_kwargs(entity, factory, name):
         default_kwargs = name2kwargs[name][factory]
     if 'kwargs' not in kwargs:
         kwargs['kwargs'] = copy.deepcopy(default_kwargs)
-    else:
-        kwargs['kwargs'] = {k: v for k, v in kwargs['kwargs'].items()
-                            if k in default_kwargs}
     if name in ['structure_curve']:
         if 'nPoints' in kwargs['kwargs'] and factory == 'occ':
             kwargs['kwargs']['numNodes'] = kwargs['kwargs'].pop('nPoints')
         if isinstance(kwargs['kwargs']['meshType'], int):
             kwargs['kwargs']['meshType'] = TRANSFINITE_CURVE_TYPES[kwargs['kwargs']['meshType']]
+    kwargs['kwargs'] = {k: v for k, v in kwargs['kwargs'].items()
+                        if k in default_kwargs}
     return kwargs
 
 

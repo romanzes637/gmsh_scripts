@@ -119,15 +119,7 @@ class Path(CoordinateSystem):
         self.transforms = [BlockObject.parse_transforms(x, None) for x in transforms]
         self.orientations = self.parse_orientations(
             orientations=orientations, do_deg2rad=True)
-        self.transform()
-        self.register()
-        if factory == 'geo':
-            gmsh.model.geo.synchronize()
-        elif factory == 'occ':
-            gmsh.model.occ.synchronize()
-        else:
-            raise ValueError(factory)
-        self.evaluate_bounds()
+        self.is_registered = False
 
     def parse_orientations(self, orientations, do_deg2rad):
         if orientations is None:
@@ -203,6 +195,17 @@ class Path(CoordinateSystem):
             self.global_curves_bounds, np.max(self.global_curves_bounds))
 
     def get_value_derivative_orientation(self, u):
+        if not self.is_registered:  # lazy init
+            self.transform()
+            self.register()
+            if self.factory == 'geo':
+                gmsh.model.geo.synchronize()
+            elif self.factory == 'occ':
+                gmsh.model.occ.synchronize()
+            else:
+                raise ValueError(self.factory)
+            self.evaluate_bounds()
+            self.is_registered = True
         v, dv, ori, lu_rel = None, None, None, None
         for i, c in enumerate(self.curves):
             bs_gn = self.global_normalized_curves_bounds[i]
@@ -239,9 +242,22 @@ class Path(CoordinateSystem):
         return v, dv, ori, lu_rel
 
     def get_local_coordinate_system(self, u):
+        if not self.is_registered:  # lazy init
+            self.transform()
+            self.register()
+            if self.factory == 'geo':
+                gmsh.model.geo.synchronize()
+            elif self.factory == 'occ':
+                gmsh.model.occ.synchronize()
+            else:
+                raise ValueError(self.factory)
+            self.evaluate_bounds()
+            self.is_registered = True
         v, dv, ori, lu_rel = self.get_value_derivative_orientation(u)
         z = ori[2]
-        a = np.arccos(np.dot(dv, z) / (np.linalg.norm(dv) * np.linalg.norm(z)))
+        cos_a = np.dot(dv, z) / (np.linalg.norm(dv) * np.linalg.norm(z))
+        cos_a = np.clip(cos_a, -1, 1)  # Fix integration error
+        a = np.arccos(cos_a)
         d = np.cross(z / np.linalg.norm(z), dv / np.linalg.norm(dv))
         # d = np.cross(z, dv)
         from point import Point

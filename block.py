@@ -138,6 +138,7 @@ class Block:
         self.is_registered = False
         self.is_quadrated = False
         self.is_structured = False
+        self.is_booleaned = False
 
     curves_points = [
         [1, 0], [5, 4], [6, 7], [2, 3],
@@ -189,36 +190,36 @@ class Block:
             if len(points) == 0:
                 pass
             # lx/ly/lz, coordinate_system
-            elif len(points) == 2 and all([any([isinstance(points[0], float),
-                                                isinstance(points[0], int)]),
-                                           isinstance(points[1], str)]):
+            elif len(points) == 2 and all((isinstance(points[0], (float, int)),
+                                           isinstance(points[1], str))):
                 a, cs_name = 0.5 * points[0], points[1]
                 points = [[a, a, -a], [-a, a, -a], [-a, -a, -a], [a, -a, -a],
                           [a, a, a], [-a, a, a], [-a, -a, a], [a, -a, a],
                           cs_name]
             # lx, ly, lz
-            elif len(points) == 3 and all([any([isinstance(points[0], float),
-                                                isinstance(points[0], int)]),
-                                           any([isinstance(points[1], float),
-                                                isinstance(points[1], int)]),
-                                           any([isinstance(points[2], float),
-                                                isinstance(points[2], int)])]):
+            elif len(points) == 3 and all(isinstance(x, (float, int))
+                                          for x in points):
                 a, b, c = 0.5 * points[0], 0.5 * points[1], 0.5 * points[2]
                 points = [[a, b, -c], [-a, b, -c], [-a, -b, -c], [a, -b, -c],
                           [a, b, c], [-a, b, c], [-a, -b, c], [a, -b, c]]
             # lx, ly, lz, coordinate_system
-            elif len(points) == 4 and all([any([isinstance(points[0], float),
-                                                isinstance(points[0], int)]),
-                                           any([isinstance(points[1], float),
-                                                isinstance(points[1], int)]),
-                                           any([isinstance(points[2], float),
-                                                isinstance(points[2], int)]),
-                                           isinstance(points[3], str)]):
+            elif len(points) == 4 and all((isinstance(points[0], (float, int)),
+                                           isinstance(points[1], (float, int)),
+                                           isinstance(points[2], (float, int)),
+                                           isinstance(points[3], str))):
                 a, b, c = 0.5 * points[0], 0.5 * points[1], 0.5 * points[2]
                 cs_name = points[3]
                 points = [[a, b, -c], [-a, b, -c], [-a, -b, -c], [a, -b, -c],
                           [a, b, c], [-a, b, c], [-a, -b, c], [a, -b, c],
                           cs_name]
+            # lx, ly, lz, mesh_size
+            elif len(points) == 4 and all(isinstance(x, (float, int))
+                                          for x in points):
+                a, b, c = 0.5 * points[0], 0.5 * points[1], 0.5 * points[2]
+                mesh_size = points[3]
+                points = [[a, b, -c], [-a, b, -c], [-a, -b, -c], [a, -b, -c],
+                          [a, b, c], [-a, b, c], [-a, -b, c], [a, -b, c],
+                          mesh_size]
         else:
             raise ValueError(points)
         return Point.parse_points(points, do_deg2rad=True)
@@ -619,6 +620,8 @@ class Block:
         # Children
         for i, c in enumerate(self.children):
             c.quadrate()
+        if self.is_booleaned:
+            return
         if self.is_quadrated or self.quadrate_all is None:
             return
         self.quadrate_surfaces()
@@ -628,9 +631,11 @@ class Block:
         # Children
         for i, c in enumerate(self.children):
             c.structure()
-        if self.boolean_level is not None:  # TODO structure after boolean
+        # if self.boolean_level is not None:  # TODO structure after boolean
+        #     return
+        if self.is_booleaned:
             return
-        if self.is_structured:
+        if self.is_structured or self.structure_all is None:
             return
         # Curves
         self.structure_curves()
