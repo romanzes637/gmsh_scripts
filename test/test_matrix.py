@@ -599,11 +599,16 @@ class TestMatrix(unittest.TestCase):
     def test_boolean_tunnels(self):
         m2d = {'Frontal_Delaunay': 6}
         m3d = {'Delaunay': 1}
-        sd = {'all_hexahedra': 2, 'no_subdivision': 0}
-        st = {'structure_quadrate': 2, 'no_structure': 0, 'structure': 1}
-        msb = {'longest_edge': 1, 'no_edge': 0, 'shortest_edge': 2}
-        msp = {'points': 1, 'points.5x': 1, 'no_points': 0, 'points2x': 1}
-        para = {'parallel': 2, 'no_parallel': 0}
+        # sd = {'all_hexahedra': 2, 'no_subdivision': 0}
+        sd = {'all_hexahedra': 2}
+        # st = {'structure_quadrate': 2, 'no_structure': 0, 'structure': 1}
+        st = {'structure_quadrate': 2}
+        # msb = {'longest_edge': 1, 'no_edge': 0, 'shortest_edge': 2}
+        msb = {'longest_edge': 1, 'shortest_edge': 2}
+        # msp = {'points': 1, 'points.5x': 1, 'no_points': 0, 'points2x': 1}
+        msp = {'points': 1, 'points.5x': 1, 'points2x': 1}
+        # para = {'parallel': 1, 'no_parallel': 0}
+        para = {'parallel': 1}
         strategy = {'boolean_point_edge_mean': 2, 'boolean_edge_max': 0,
                     'boolean_point_min': 1}
         factory = 'occ'
@@ -644,9 +649,9 @@ class TestMatrix(unittest.TestCase):
                       for x in np.linspace(0, 80, 9)]
             orientations = [[[1, 180, x], 'sph'] for x in np.linspace(90, 0, 10)]
             points = [
-                [0, f'1:3;{.5*mesh_size}'],
-                [0, f'1:3;{.5*mesh_size}'],
-                [0, f'1:3;{.5*mesh_size}'],
+                [0, f'1:4;{.5*mesh_size}'],
+                [0, f'1:4;{.5*mesh_size}'],
+                [0, f'1:4;{.5*mesh_size}'],
                 Path(factory=factory, curves=curves, orientations=orientations)
                 # 'trace' by default
             ]
@@ -677,16 +682,19 @@ class TestMatrix(unittest.TestCase):
             b.add_child(m)
             if strategy[0] == 'boolean_edge_max':
                 boolean_strategy(factory, model_name, b,
-                                 size_function=BooleanEdge(function='max'))
+                                 size_function=BooleanEdge(
+                                     intra_function='max'))
             elif strategy[0] == 'boolean_point_min':
                 boolean_strategy(factory, model_name, b,
-                                 size_function=BooleanPoint(function='min'))
+                                 size_function=BooleanPoint(
+                                     intra_function='min'))
             elif strategy[0] == 'boolean_point_edge_mean':
                 boolean_strategy(factory, model_name, b,
                                  size_function=Bagging(
-                                     function='mean',
-                                     sizes=(BooleanPoint(function='min'),
-                                            BooleanEdge(function='max'))))
+                                     inter_function='mean',
+                                     sizes=(
+                                         BooleanPoint(intra_function='min'),
+                                         BooleanEdge(intra_function='max'))))
             else:
                 raise ValueError(strategy)
 

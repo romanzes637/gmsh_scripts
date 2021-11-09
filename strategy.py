@@ -4,7 +4,7 @@ from registry import reset as reset_registry
 from support import timeit, plot_statistics
 from boolean import boolean_with_bounding_boxes
 from zone import BlockDirection
-from size import BooleanEdge
+from size import BooleanPoint
 
 
 class Strategy:
@@ -16,26 +16,23 @@ class Strategy:
 
 
 def boolean(factory, model_name, block,
+            boolean_function=boolean_with_bounding_boxes,
             zone_function=BlockDirection(
                 dims=(2, 3), make_interface=False,
                 add_volume_tag=True, add_volume_zone=True,
                 add_surface_loop_tag=True, add_in_out_boundary=False),
-            size_function=BooleanEdge(function='max')):
+            size_function=BooleanPoint()):
     reset_registry()
     gmsh.model.add(model_name)
     timeit(block.transform)()
     timeit(block.register)()
     if factory == 'geo':
         timeit(gmsh.model.geo.synchronize)()
-        zone_rule = BlockDirection(dims=(2, 3), make_interface=False,
-                                   add_volume_tag=True, add_volume_zone=True,
-                                   add_surface_loop_tag=True,
-                                   add_in_out_boundary=False)
-        timeit(zone_rule)(block)
+        timeit(zone_function)(block)
         timeit(gmsh.write)(f'{model_name}.geo_unrolled')
     elif factory == 'occ':
         timeit(gmsh.model.occ.synchronize)()  # for evaluation of bboxes
-        timeit(boolean_with_bounding_boxes)(block)
+        timeit(boolean_function)(block)
         timeit(gmsh.model.occ.remove_all_duplicates)()
         timeit(block.unregister)()
         timeit(block.unregister_boolean)()
