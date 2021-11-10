@@ -211,23 +211,25 @@ def block_by_block(b0, b1, zone_separator='-'):
     # New volumes
     new_obj_vs = old_to_new[:len(obj_vs)]  # dim, tag
     new_tool_vs = old_to_new[len(obj_vs):]  # dim, tag
-    # Set is_booleaned flag
-    if not obj.is_booleaned:
-        if len(new_obj_vs[0]) != len(obj_vs):
-            obj.is_booleaned = True
-        elif len(obj_vs) == 1 and obj_vs[0][1] != new_obj_vs[0][0][1]:
-            obj.is_booleaned = True
-    if not tool.is_booleaned:
-        if len(new_tool_vs[0]) != len(tool_vs):
-            tool.is_booleaned = True
-        elif len(tool_vs) == 1 and tool_vs[0][1] != new_tool_vs[0][0][1]:
-            tool.is_booleaned = True
     # New tag to old index
     new_to_old = {}
     for i, vs in enumerate(old_to_new):
         for v in vs:
             tag = v[1]
             new_to_old.setdefault(tag, []).append(i)
+    # Set is_booleaned flag
+    if not obj.is_booleaned:
+        obj.is_booleaned = True
+        if len(obj_vs) == 1 and len(new_obj_vs[0]) == 1:
+            old_tag, new_tag = obj_vs[0][1], new_obj_vs[0][0][1]
+            if old_tag == new_tag:
+                obj.is_booleaned = False
+    if not tool.is_booleaned:
+        tool.is_booleaned = True
+        if len(tool_vs) == 1 and len(new_tool_vs[0]) == 1:
+            old_tag, new_tag = tool_vs[0][1], new_tool_vs[0][0][1]
+            if old_tag == new_tag:
+                tool.is_booleaned = False
     # Update object volumes
     new_volumes = []
     for i, v in enumerate(obj.volumes):

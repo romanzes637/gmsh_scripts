@@ -43,7 +43,8 @@ class Matrix(Block):
         transforms = [] if transforms is None else transforms
         blocks_points, new2old = Matrix.parse_matrix_points(points)
         do_register_map = Matrix.parse_map(do_register_map, True, new2old)
-        structure_all_map = Matrix.parse_map(structure_all_map, None, new2old)
+        structure_all_map = Matrix.parse_map(
+            structure_all_map, None, new2old, item_types=(bool, [list]))
         quadrate_all_map = Matrix.parse_map(quadrate_all_map, None, new2old)
         boolean_level_map = Matrix.parse_map(boolean_level_map, None, new2old)
         zone_all_map = Matrix.parse_map(zone_all_map, None, new2old)
@@ -272,14 +273,24 @@ class Matrix(Block):
         return blocks_points, new2old_g2g
 
     @staticmethod
-    def parse_map(m, default, new2old):
+    def parse_map(m, default, new2old, item_types=(bool, str, int, float)):
         if m is None:
             m = [default for _ in new2old]
-        elif not isinstance(m, list):
-            m = [m for _ in new2old]
-        else:
+            return m
+        for t in item_types:
+            if isinstance(t, list):
+                if isinstance(m, list):
+                    if all(isinstance(m2, t2) for t2 in t for m2 in m):
+                        m = [m for _ in new2old]
+                return m
+            elif isinstance(m, t):
+                m = [m for _ in new2old]
+                return m
+        if isinstance(m, list):
             m = [m[old_i] for old_i in new2old.values()]
-        return m
+            return m
+        else:
+            raise ValueError(m)
 
 #             # Update maps
 #             if isinstance(txs, list):
