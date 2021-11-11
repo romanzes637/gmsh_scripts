@@ -1,9 +1,11 @@
 from collections import deque
+from itertools import permutations
 import copy
 
 import gmsh
 
 POINT_TOL = 8
+FACTORY = 'geo'
 POINTS = {}
 CURVES = {}
 CURVES_LOOPS = {}
@@ -20,6 +22,10 @@ QUADRATED_SURFACES = set()
 STRUCTURED_CURVES = set()
 STRUCTURED_SURFACES = set()
 STRUCTURED_VOLUMES = set()
+CURVE_STRUCTURE = {}
+SURFACE_STRUCTURE = {}
+VOLUME_STRUCTURE = {}
+SURFACE_QUADRATE = {}
 
 POINT_KWARGS = {
     'geo': {'tag': -1, 'meshSize': 0.},
@@ -122,6 +128,10 @@ def reset():
     global STRUCTURED_CURVES
     global STRUCTURED_SURFACES
     global STRUCTURED_VOLUMES
+    global CURVE_STRUCTURE
+    global SURFACE_STRUCTURE
+    global SURFACE_QUADRATE
+    global VOLUME_STRUCTURE
     POINTS = {}
     CURVES = {}
     CURVES_LOOPS = {}
@@ -138,6 +148,10 @@ def reset():
     STRUCTURED_CURVES = set()
     STRUCTURED_SURFACES = set()
     STRUCTURED_VOLUMES = set()
+    CURVE_STRUCTURE = {}
+    SURFACE_STRUCTURE = {}
+    SURFACE_QUADRATE = {}
+    VOLUME_STRUCTURE = {}
 
 
 def correct_kwargs(entity, factory, name):
@@ -268,7 +282,7 @@ add_surface = {
         **surface['kwargs']
     ),
     ('occ', 'plane'): lambda surface: gmsh.model.occ.addPlaneSurface(
-        wireTags=[x.tag for x in surface['curve_loops']][0],
+        wireTags=[[x.tag for x in surface['curves_loops']][0]],
         **surface['kwargs']
     )
 }
@@ -451,7 +465,9 @@ def register_volume(factory, volume, use_register_tag):
     return volume
 
 
-def register_quadrate_surface(surface, factory):
+def register_quadrate_surface(factory, surface):
+    if surface.quadrate is None:
+        return surface
     tag = surface.tag
     if tag not in QUADRATED_SURFACES:
         rec = correct_kwargs(surface.quadrate, factory, 'quadrate')
@@ -462,7 +478,9 @@ def register_quadrate_surface(surface, factory):
     return surface
 
 
-def register_structure_curve(curve, factory):
+def register_structure_curve(factory, curve):
+    if curve.structure is None:
+        return curve
     tag = curve.tag
     if tag not in STRUCTURED_CURVES:
         tr = correct_kwargs(curve.structure, factory, 'structure_curve')
@@ -472,7 +490,9 @@ def register_structure_curve(curve, factory):
     return curve
 
 
-def register_structure_surface(surface, factory):
+def register_structure_surface(factory, surface):
+    if surface.structure is None:
+        return surface
     tag = surface.tag
     if tag not in STRUCTURED_SURFACES:
         tr = correct_kwargs(surface.structure, factory, 'structure_surface')
@@ -482,7 +502,9 @@ def register_structure_surface(surface, factory):
     return surface
 
 
-def register_structure_volume(volume, factory):
+def register_structure_volume(factory, volume):
+    if volume.structure is None:
+        return volume
     tag = volume.tag
     if tag not in STRUCTURED_VOLUMES:
         tr = correct_kwargs(volume.structure, factory, 'structure_volume')
@@ -498,3 +520,73 @@ def unregister_volume(factory, volume, register_tag):
     gmsh.model.removeEntities([(3, tag)], recursive=True)
     volume.tag = None
     return volume
+
+
+def register_curve_structure(points, structure):
+    key = tuple(y for x in points for y in x.coordinates)
+    CURVE_STRUCTURE.setdefault(key, structure)
+
+
+def register_surface_structure(points, structure):
+    if len(points) != 4:
+        return
+    key = tuple(y for x in points for y in x.coordinates)
+    SURFACE_STRUCTURE.setdefault(key, structure)
+
+
+def register_volume_structure(points, structure):
+    if len(points) != 8:
+        return
+    key = tuple(y for x in points for y in x.coordinates)
+    VOLUME_STRUCTURE.setdefault(key, structure)
+
+
+def register_surface_quadrate(points, quadrate):
+    if len(points) != 4:
+        return
+    key = tuple(y for x in points for y in x.coordinates)
+    SURFACE_QUADRATE.setdefault(key, quadrate)
+
+
+def get_curve_structure(points):
+    p = deque(points)
+    for _ in range(len(p)):
+        key = tuple(y for x in p for y in x.coordinates)
+        structure = CURVE_STRUCTURE.get(key, None)
+        if structure is not None:
+            return structure
+        p.rotate(1)
+    return None
+
+
+def get_surface_structure(points):
+    if len(points) != 4:
+        return None
+    for p in permutations(points):
+        key = tuple(y for x in p for y in x.coordinates)
+        structure = SURFACE_STRUCTURE.get(key, None)
+        if structure is not None:
+            return structure
+    return None
+
+
+def get_volume_structure(points):
+    if len(points) != 8:
+        return None
+    for p in permutations(points):
+        key = tuple(y for x in p for y in x.coordinates)
+        structure = VOLUME_STRUCTURE.get(key, None)
+        if structure is not None:
+            return structure
+    return None
+
+
+def get_surface_quadrate(points):
+    if len(points) != 4:
+        return None
+    for p in permutations(points):
+        key = tuple(y for x in p for y in x.coordinates)
+        structure = SURFACE_QUADRATE.get(key, None)
+        if structure is not None:
+            return structure
+    return None

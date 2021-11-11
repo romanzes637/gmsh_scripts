@@ -3,12 +3,12 @@ class Volume:
                  structure=None, quadrate=None, **kwargs):
         """Volume
         Args:
-            tag(int): unique id
-            name(str): type
-            zone(str): zone
+            tag (int): unique id
+            name (str): type
+            zone (str): zone
             surfaces_loops (list of SurfaceLoop): surfaces loops
-            structure(Structure): volume structure
-            quadrate(Structure): volume quadrate
+            structure (Structure): volume structure
+            quadrate (Quadrate): volume quadrate
         """
         self.tag = tag
         self.name = name

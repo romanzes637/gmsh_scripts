@@ -13,8 +13,8 @@ from transform import BlockToCartesian
 from transform import reduce_transforms
 from registry import register_point, register_curve, register_curve_loop, \
     register_surface, register_surface_loop, register_volume, \
-    register_quadrate_surface, register_structure_curve, \
-    register_structure_surface, register_structure_volume, unregister_volume
+    register_curve_structure, register_surface_structure, \
+    register_surface_quadrate, register_volume_structure, unregister_volume
 from coordinate_system import Block as BlockCS
 from point import Point
 from curve import Curve
@@ -104,7 +104,7 @@ class Block:
                  do_register_children=True, do_unregister_children=True,
                  do_unregister_boolean=False, do_unregister_boolean_children=True,
                  transforms=None,
-                 quadrate_all=None, structure_all=None, zone_all=None,
+                 quadrate=None, structure=None, zone=None,
                  parent=None, children=None, children_transforms=None,
                  boolean_level=None, file_name=None):
         self.factory = factory
@@ -120,9 +120,16 @@ class Block:
         self.do_unregister_boolean = do_unregister_boolean
         self.do_unregister_boolean_children = do_unregister_boolean_children
         self.transforms = self.parse_transforms(transforms, parent)
-        self.quadrate_all = quadrate_all
-        self.structure_all = self.parse_structure_all(structure_all)
-        self.parse_zone_all(zone_all)
+        # Structure and Quadrate
+        self.curves_structures, self.surfaces_structures, \
+        self.volumes_structures = self.parse_structure(structure)
+        self.surfaces_quadrates = self.parse_quadrate(quadrate)
+        # Zones
+        self.points_zones, self.curves_zones, self.surfaces_zones, \
+        self.volumes_zones = self.parse_zone(zone)
+        for v in self.volumes:
+            if v.zone is None:
+                v.zone = self.volumes_zones[0]
         self.parent = parent
         self.children = [] if children is None else children
         if children_transforms is None:
@@ -135,9 +142,8 @@ class Block:
         # Support
         self.curves_loops = [CurveLoop() for _ in range(6)]
         self.surfaces_loops = [SurfaceLoop()]
+        # Flags
         self.is_registered = False
-        self.is_quadrated = False
-        self.is_structured = False
         self.is_booleaned = False
 
     curves_points = [
@@ -145,10 +151,6 @@ class Block:
         [3, 0], [2, 1], [6, 5], [7, 4],
         [0, 4], [1, 5], [2, 6], [3, 7]
     ]
-
-    curves_directions = ['x', 'x', 'x', 'x',
-                         'y', 'y', 'y', 'y',
-                         'z', 'z', 'z', 'z']
 
     surfaces_points = [
         [2, 6, 5, 1],  # NX
@@ -226,59 +228,62 @@ class Block:
 
     @staticmethod
     def parse_curves(curves):
-        curves = [{} for _ in range(12)] if curves is None else curves
-        for i, c in enumerate(curves):
-            kwargs = {}
-            if isinstance(c, dict):
-                kwargs = c
-                kwargs['points'] = Point.parse_points(kwargs.get('points', []),
-                                                      do_deg2rad=True)
-            elif isinstance(c, list):
-                if len(c) > 0:
-                    if not isinstance(c[0], str):
-                        kwargs['name'] = 'polyline'
-                        kwargs['points'] = Point.parse_points(c)
-                    else:
-                        if len(c) == 2:
-                            kwargs['name'] = c[0]
-                            kwargs['points'] = Point.parse_points(
-                                c[1], do_deg2rad=True)
-                        elif len(c) == 3:
-                            kwargs['name'] = c[0]
-                            kwargs['points'] = Point.parse_points(
-                                c[1], do_deg2rad=True)
-                            kwargs['kwargs'] = c[2]
+        if curves is None:
+            return [Curve(name='line') for _ in range(12)]
+        elif isinstance(curves, list):
+            for i, c in enumerate(curves):
+                if isinstance(c, dict):
+                    kwargs = c
+                    points = kwargs.get('points', [])
+                    kwargs['points'] = Point.parse_points(
+                        points, do_deg2rad=True)
+                    curves[i] = Curve(**kwargs)
+                elif isinstance(c, list):
+                    kwargs = {}
+                    if len(c) > 0:
+                        if not isinstance(c[0], str):
+                            kwargs['name'] = 'polyline'
+                            kwargs['points'] = Point.parse_points(c)
                         else:
-                            raise ValueError(c)
+                            if len(c) == 2:
+                                kwargs['name'] = c[0]
+                                kwargs['points'] = Point.parse_points(
+                                    c[1], do_deg2rad=True)
+                            elif len(c) == 3:
+                                kwargs['name'] = c[0]
+                                kwargs['points'] = Point.parse_points(
+                                    c[1], do_deg2rad=True)
+                                kwargs['kwargs'] = c[2]
+                            else:
+                                raise ValueError(c)
+                    else:
+                        kwargs['name'] = 'line'
+                    curves[i] = Curve(**kwargs)
                 else:
-                    kwargs['name'] = 'line'
-            else:
-                raise ValueError(c)
-            curves[i] = Curve(**kwargs)
-        return curves
+                    raise ValueError(curves, c)
+            return curves
+        else:
+            raise ValueError(curves)
 
-    def parse_surfaces(self, surfaces):
-        surfaces = [{} for _ in range(6)] if surfaces is None else surfaces
-        for i, s in enumerate(surfaces):
-            kwargs = {}
-            if isinstance(s, dict):
-                kwargs = s
-            else:
-                raise ValueError(s)
-            kwargs['name'] = 'fill'  # Must be!
-            surfaces[i] = Surface(**kwargs)
-        return surfaces
+    @staticmethod
+    def parse_surfaces(surfaces):
+        if surfaces is None:
+            return [Surface(name='fill') for _ in range(6)]
+        elif isinstance(surfaces, list):  # list of dict
+            return [Surface(**x) for x in surfaces]
+        else:
+            raise ValueError(surfaces)
 
-    def parse_volumes(self, volumes):
-        volumes = [{}] if volumes is None else volumes
-        for i, v in enumerate(volumes):
-            kwargs = {}
-            if isinstance(v, dict):
-                kwargs = v
-            else:
-                raise ValueError(v)
-            volumes[i] = Volume(**kwargs)
-        return volumes
+    @staticmethod
+    def parse_volumes(volumes):
+        if volumes is None:
+            return [Volume()]
+        elif isinstance(volumes, list):  # list of dict
+            return [Volume(**x) for x in volumes]
+        elif isinstance(volumes, dict):
+            return [Volume(**volumes)]
+        else:
+            raise ValueError(volumes)
 
     @staticmethod
     def parse_transforms(transforms, parent):
@@ -314,91 +319,63 @@ class Block:
             transforms[i] = transform_factory[name](**kwargs)
         return transforms
 
-    def parse_structure_all(self, structure_all):
-        if isinstance(structure_all, dict):
-            if 'curves' in structure_all:
-                value = copy.deepcopy(structure_all['curves'])
-                for i, c in enumerate(self.curves):
-                    self.curves[i].structure = Structure(**value)
-            elif all(['curves_x' in structure_all,
-                      'curves_y' in structure_all,
-                      'curves_z' in structure_all]):
-                for i, c in enumerate(self.curves):
-                    direction = self.curves_directions[i]
-                    key = f'curves_{direction}'
-                    value = copy.deepcopy(structure_all[key])
-                    self.curves[i].structure = Structure(**value)
-            else:
-                raise ValueError(structure_all)
-            # Surfaces
-            key = 'surfaces'
-            value = copy.deepcopy(self.structure_all.get(
-                key, {'name': 'surface'}))
-            for i, s in enumerate(self.surfaces):
-                self.surfaces[i].structure = Structure(**value)
-            # Volume
-            key = 'volumes'
-            value = copy.deepcopy(self.structure_all.get(
-                key, {'name': 'volume'}))
-            self.volumes[0].structure = Structure(**value)
-        elif isinstance(structure_all, list):
-            if len(structure_all) == 3:
+    @staticmethod
+    def parse_structure(structure):
+        if structure is None or not structure:
+            return [None for _ in range(12)], [None for _ in range(6)], [None]
+        elif isinstance(structure, list):
+            cs_ss = []  # Curves
+            if len(structure) == 1:  # All directions
+                for values in structure:
+                    kwargs = {'nPoints': values[0],
+                              'meshType': values[1],
+                              'coef': values[2]}
+                    cs_ss.append(Structure(name='curve', **kwargs))
+            elif len(structure) == 3:  # X, Y and Z directions
                 # Curves
-                d2i = {'curves_x': 0, 'curves_y': 1, 'curves_z': 2}
-                for i, c in enumerate(self.curves):
-                    direction = self.curves_directions[i]
-                    key = f'curves_{direction}'
-                    index = d2i[key]
-                    values = structure_all[index]
-                    value = {'name': 'curve',
-                             'nPoints': values[0],
-                             'meshType': values[1],
-                             'coef': values[2]}
-                    self.curves[i].structure = Structure(**value)
-                # Surfaces
-                for i, s in enumerate(self.surfaces):
-                    self.surfaces[i].structure = Structure(name='surface')
-                # Volume
-                self.volumes[0].structure = Structure(name='volume')
-        elif isinstance(structure_all, bool):
-            structure_all = [[2, 0, 1], [2, 0, 1], [2, 0, 1]]
-            return self.parse_structure_all(structure_all)
-        elif structure_all is None:
-            pass
-        else:
-            raise ValueError(structure_all)
-        return structure_all
-
-    def parse_zone_all(self, zone_all):
-        if zone_all is None:
-            zone_all = self.__class__.__name__
-        if isinstance(zone_all, str):  # Volumes zone
-            for v in self.volumes:
-                v.zone = zone_all
-        elif isinstance(zone_all, list):
-            if isinstance(zone_all[0], str):
-                for i, v in enumerate(self.volumes):
-                    v.zone = zone_all[i]
+                for values in structure:
+                    for _ in range(4):
+                        kwargs = {'nPoints': values[0],
+                                  'meshType': values[1],
+                                  'coef': values[2]}
+                        cs_ss.append(Structure(name='curve', **kwargs))
             else:
-                if len(zone_all) == 1:  # Volumes zones
-                    v_zs = zone_all[0]
-                    for i, v in enumerate(self.volumes):
-                        v.zone = v_zs[i]
-                elif len(zone_all) == 2:  # Volumes ans surfaces zones
-                    v_zs, s_zs = zone_all[0], zone_all[1]
-                    self.parse_zone_all(v_zs)
-                    for i, s in enumerate(self.surfaces):
-                        s.zone = s_zs[i]
-                elif len(zone_all) == 3:  # Volumes ans surfaces zones
-                    v_s_zs, c_zs = zone_all[:2], zone_all[2]
-                    self.parse_zone_all(v_s_zs)
-                    for i, c in enumerate(self.curves):
-                        c.zone = c_zs[i]
-                elif len(zone_all) == 4:  # Volumes ans surfaces zones
-                    v_s_c_zs, p_zs = zone_all[:3], zone_all[3]
-                    self.parse_zone_all(v_s_c_zs)
-                    for i, p in enumerate(self.points):
-                        p.zone = p_zs[i]
+                raise ValueError(structure)
+            ss_ss = [Structure(name='surface') for _ in range(6)]
+            return cs_ss, ss_ss, [Structure(name='volume')]
+        else:
+            raise ValueError(structure)
+
+    @staticmethod
+    def parse_quadrate(quadrate):
+        if quadrate is None or not quadrate:
+            return [None for _ in range(6)]
+        elif quadrate:
+            return [Quadrate(name='surface') for _ in range(6)]
+        else:
+            raise ValueError(quadrate)
+
+    @staticmethod
+    def parse_zone(zone):
+        default_ps_zs = ['X_Y_NZ', 'N_XY_NZ', 'NX_NY_NZ', 'X_NY_NZ',
+                         'X_Y_Z', 'N_XY_Z', 'NX_NY_Z', 'X_NY_Z']
+        default_cs_zs = ['X1', 'X2', 'X3', 'X4',
+                         'Y1', 'Y2', 'Y3', 'Y4',
+                         'Z1', 'Z2', 'Z3', 'Z4']
+        default_ss_zs = ['NX', 'X', 'NY', 'Y', 'NZ', 'Z']
+        default_vs_zs = ['V']
+        if zone is None:
+            return default_ps_zs, default_cs_zs, default_ss_zs, default_vs_zs
+        elif isinstance(zone, str):
+            return default_ps_zs, default_cs_zs, default_ss_zs, [zone]
+        elif isinstance(zone, list):
+            vs_zs = zone[0] if len(zone) > 0 else default_vs_zs
+            ss_zs = zone[1] if len(zone) > 1 else default_ss_zs
+            cs_zs = zone[2] if len(zone) > 2 else default_cs_zs
+            ps_zs = zone[3] if len(zone) > 3 else default_ps_zs
+            return ps_zs, cs_zs, ss_zs, vs_zs
+        else:
+            raise ValueError(zone)
 
     def register(self):
         # Children
@@ -406,38 +383,17 @@ class Block:
             for i, c in enumerate(self.children):
                 c.register()
         # Self
-        if not self.do_register:
+        if not self.do_register or self.is_registered:
             return
-        if self.is_registered:
-            return
-        # Points
-        # t0 = time.perf_counter()
         self.register_points()
-        # print(f'register_points: {time.perf_counter() - t0}s')
-        # Curves Points
-        # t0 = time.perf_counter()
         self.register_curve_points()
-        # print(f'register_curve_points: {time.perf_counter() - t0}s')
-        # Curves
-        # t0 = time.perf_counter()
         self.register_curves()
-        # print(f'register_curves: {time.perf_counter() - t0}s')
-        # Curve Loops
-        # t0 = time.perf_counter()
         self.register_curves_loops()
-        # print(f'register_curves_loops: {time.perf_counter() - t0}s')
-        # Surfaces
-        # t0 = time.perf_counter()  # FIXME Too long in occ factory!
-        self.register_surfaces()
-        # print(f'register_surfaces: {time.perf_counter() - t0}s')
-        # Surfaces Loops
-        t0 = time.perf_counter()
+        self.register_surfaces()  # TODO Too long fill surface in occ factory!
         self.register_surfaces_loops()
-        # print(f'register_surfaces_loops: {time.perf_counter() - t0}s')
-        # Volume
-        # t0 = time.perf_counter()
         self.register_volumes()
-        # print(f'register_volumes: {time.perf_counter() - t0}s')
+        self.register_structure()
+        self.register_quadrate()
 
     def add_child(self, child, transforms=None):
         transforms = [] if transforms is None else transforms
@@ -531,6 +487,32 @@ class Block:
         self.volumes[0] = register_volume(self.factory, v, self.register_tag)
         self.is_registered = True
 
+    def register_structure(self):
+        for i, c in enumerate(self.curves):
+            st = self.curves_structures[i]
+            if st is not None:
+                register_curve_structure(c.points, st)
+        for i, s in enumerate(self.surfaces):
+            st = self.surfaces_structures[i]
+            if st is not None:
+                ps_ids = self.surfaces_points[i]
+                ps = [self.points[x] for x in ps_ids]
+                register_surface_structure(ps, st)
+        for i, v in enumerate(self.volumes):
+            if i < len(self.volumes_structures):
+                st = self.volumes_structures[i]
+                if st is not None:
+                    ps = self.points
+                    register_volume_structure(ps, st)
+
+    def register_quadrate(self):
+        for i, s in enumerate(self.surfaces):
+            q = self.surfaces_quadrates[i]
+            if q is not None:
+                ps_ids = self.surfaces_points[i]
+                ps = [self.points[x] for x in ps_ids]
+                register_surface_quadrate(ps, q)
+
     def unregister(self, zone_separator='-'):
         # Children
         if self.do_unregister_children:
@@ -553,7 +535,7 @@ class Block:
             for i, c in enumerate(self.children):
                 c.unregister_boolean()
         # Self
-        if not self.do_unregister_boolean:
+        if not self.is_registered or not self.do_unregister_boolean:
             return
         if self.boolean_level is None:
             return
@@ -561,89 +543,6 @@ class Block:
             if zone_separator in v.zone:
                 self.volumes[i] = unregister_volume(self.factory, v,
                                                     self.register_tag)
-
-    def quadrate_surfaces(self):
-        # Check all
-        if isinstance(self.quadrate_all, bool):
-            self.quadrate_all = {}
-        elif isinstance(self.quadrate_all, dict):
-            pass
-        else:
-            raise ValueError(self.quadrate_all)
-        for i, s in enumerate(self.surfaces):
-            self.surfaces[i].quadrate = Quadrate(**self.quadrate_all)
-        # Quadrate
-        if self.boolean_level is not None:  # Quadrate all surfaces
-            for v in self.volumes:
-                if v.tag is None:
-                    continue
-                for s_dt in gmsh.model.getBoundary(dimTags=[(3, v.tag)],
-                                                   combined=False,
-                                                   oriented=True,
-                                                   recursive=False):
-                    s = Surface(tag=s_dt[1],
-                                quadrate=Quadrate(**self.quadrate_all))
-                    register_quadrate_surface(s, self.factory)
-        else:
-            for i, s in enumerate(self.surfaces):
-                if s.quadrate is not None:
-                    self.surfaces[i] = register_quadrate_surface(s, self.factory)
-
-    def structure_curves(self):
-        # Structure
-        for i, c in enumerate(self.curves):
-            if c.structure is not None:
-                self.curves[i] = register_structure_curve(c, self.factory)
-
-    def structure_surfaces(self):
-        # Structure
-        for i, s in enumerate(self.surfaces):
-            all_tr_curves = all(self.curves[x].structure is not None for x in
-                                self.surfaces_curves[i])
-            if all_tr_curves and s.structure is not None:
-                s.structure.kwargs['cornerTags'] = [
-                    self.points[x].tag for x in self.surfaces_points[i]]
-                s.structure.kwargs['arrangement'] = 'Right'
-                self.surfaces[i] = register_structure_surface(s, self.factory)
-
-    def structure_volume(self):
-        # Structure
-        v = self.volumes[0]
-        all_tr_surfaces = all(x.quadrate is not None for x in self.surfaces)
-        same_rec_surfaces = len(
-            set(x.structure is not None for x in self.surfaces)) == 1
-        if v.structure is not None and all_tr_surfaces and same_rec_surfaces:
-            v.structure.kwargs['cornerTags'] = [x.tag for x in self.points]
-            self.volumes[0] = register_structure_volume(v, self.factory)
-
-    def quadrate(self):
-        # Children
-        for i, c in enumerate(self.children):
-            c.quadrate()
-        if self.is_booleaned:
-            return
-        if self.is_quadrated or self.quadrate_all is None:
-            return
-        self.quadrate_surfaces()
-        self.is_quadrated = True
-
-    def structure(self):
-        # Children
-        for i, c in enumerate(self.children):
-            c.structure()
-        # if self.boolean_level is not None:  # TODO structure after boolean
-        #     return
-        if self.is_booleaned:
-            return
-        if self.is_structured or self.structure_all is None:
-            return
-        # Curves
-        self.structure_curves()
-        # Surfaces
-        self.structure_surfaces()
-        # Volume
-        self.structure_volume()
-        self.is_structured = True
 
     def __iter__(self):
         """Iterate children of the block recursively

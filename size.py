@@ -30,8 +30,8 @@ class BooleanPoint(Size):
         point2size = {}
         intra_function = getattr(np, self.intra_function)
         for b in block:
-            if not b.is_booleaned:
-                continue
+            # if not b.is_booleaned:
+            #     continue
             mesh_sizes = [x.kwargs.get('meshSize', None) for x in b.points]
             mesh_sizes = [x for x in mesh_sizes if x is not None]
             size = intra_function(mesh_sizes) if len(mesh_sizes) > 0 else None
@@ -65,8 +65,8 @@ class BooleanEdge(Size):
         point2size = {}
         intra_function = getattr(np, self.intra_function)
         for b in block:
-            if not b.is_booleaned:
-                continue
+            # if not b.is_booleaned:
+            #     continue
             for v in b.volumes:
                 if v.tag is None:
                     continue

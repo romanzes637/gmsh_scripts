@@ -16,10 +16,10 @@ class Matrix(Block):
                  parent=None,
                  transforms=None, use_register_tag=False,
                  do_register_map=None,
-                 structure_all_map=None,
-                 quadrate_all_map=None,
+                 structure_map=None,
+                 quadrate_map=None,
                  boolean_level_map=None,
-                 zone_all_map=None,
+                 zone_map=None,
                  # ts=None, txs=None, tys=None, tzs=None,
                  # lcs=None, lcs_map=None,
                  # types=None, type_map=None,
@@ -43,19 +43,19 @@ class Matrix(Block):
         transforms = [] if transforms is None else transforms
         blocks_points, new2old = Matrix.parse_matrix_points(points)
         do_register_map = Matrix.parse_map(do_register_map, True, new2old)
-        structure_all_map = Matrix.parse_map(
-            structure_all_map, None, new2old, item_types=(bool, [list]))
-        quadrate_all_map = Matrix.parse_map(quadrate_all_map, None, new2old)
+        structure_map = Matrix.parse_map(
+            structure_map, None, new2old, item_types=(bool, [list]))
+        quadrate_map = Matrix.parse_map(quadrate_map, None, new2old)
         boolean_level_map = Matrix.parse_map(boolean_level_map, None, new2old)
-        zone_all_map = Matrix.parse_map(zone_all_map, None, new2old)
+        zone_map = Matrix.parse_map(zone_map, None, new2old)
         children = [Block(factory=factory,
                           points=x,
                           use_register_tag=use_register_tag,
                           do_register=do_register_map[i],
-                          structure_all=structure_all_map[i],
-                          quadrate_all=quadrate_all_map[i],
+                          structure=structure_map[i],
+                          quadrate=quadrate_map[i],
                           boolean_level=boolean_level_map[i],
-                          zone_all=zone_all_map[i],
+                          zone=zone_map[i],
                           parent=self) for i, x in enumerate(blocks_points)]
         super().__init__(factory=factory, parent=parent,
                          do_register=False,
@@ -237,7 +237,7 @@ class Matrix(Block):
                             [prev_x_ms, prev_y_ms, cur_z_ms],
                             [cur_x_ms, prev_y_ms, cur_z_ms]]
                         # Mean if mesh size != 0
-                        ms = [np.mean([y for y in x if y != 0])
+                        ms = [np.mean([y for y in x if y is not None])
                               for x in block_mesh_sizes]
                         # Replace np.nan with global_mesh_size
                         ms = [x if not np.isnan(x) else global_mesh_size
@@ -282,7 +282,7 @@ class Matrix(Block):
                 if isinstance(m, list):
                     if all(isinstance(m2, t2) for t2 in t for m2 in m):
                         m = [m for _ in new2old]
-                return m
+                        return m
             elif isinstance(m, t):
                 m = [m for _ in new2old]
                 return m
