@@ -42,7 +42,8 @@ class Matrix(Block):
                  ):
         transforms = [] if transforms is None else transforms
         blocks_points, new2old = Matrix.parse_matrix_points(points)
-        do_register_map = Matrix.parse_map(do_register_map, True, new2old)
+        do_register_map = Matrix.parse_map(do_register_map, True, new2old,
+                                           item_types=(bool, int))
         structure_map = Matrix.parse_map(
             structure_map, None, new2old, item_types=(bool, [list]))
         quadrate_map = Matrix.parse_map(quadrate_map, None, new2old)
@@ -63,36 +64,69 @@ class Matrix(Block):
                          use_register_tag=use_register_tag)
 
     @staticmethod
-    def parse_matrix_points(points):
-        # Correct points
-        for row_i, row in enumerate(points):
+    def parse_grid(grid):
+        """Parse coordinates and mesh size grid
+
+        Args:
+            grid (list of list or np.ndarray):
+                [[type1, coordinate and/or mesh size 1,
+                coordinate and/or mesh size 2, ...],
+                 [type2, coordinate and/or mesh size 1,
+                 coordinate and/or mesh size 2, ...],
+                 ...]
+                 where type (str): type of row: 'value' or 'increment',
+                 coordinate + mesh size (str or int or float):
+                 coordinate and/or mesh size values like:
+                 * 1.2 - coordinate
+                 * '1.2;3' - coordinate and mesh size
+                 * '1.2:3' - 3 coordinates from previous coordinate to 1.2
+                 with equal step
+                 * '1.2:3;3' - 3 coordinates from previous coordinate to 1.2
+                 with equal step and mesh size from previous mesh size to 3
+                 with equal step
+                 * '1.2:7:0.5:0.7' - 7 coordinates from previous coordinate
+                 to 1.2 with step by cumulative distribution function (CDF)
+                 of Beta distribution with alpha = 0.5 and beta = 0.7
+                 * '1.2:7:0.5:0.7;3:2:1.2:1.3' - 7 coordinates from previous
+                 coordinate to 1.2 with step by Cumulative Distribution Function
+                 (CDF) of Beta distribution with alpha = 0.5 and beta = 0.7
+                 and mesh size by weighted Probability Density Function (PDF)
+                 of Beta distribution with alpha = 1.2, beta = 1.3, weight = 2
+                 and mean mesh size value = 3
+
+        Returns:
+            tuple: tuple containing:
+                grid (list of list): corrected grid
+                coordinates (list of list of float): coordinates
+                mesh_sizes (list of list of float): mesh_sizes
+                new2old (list of list if int): new_id to old_id
+                old2new (list of dict): old_id to new_ids
+        """
+        # Correct grid
+        for row_i, row in enumerate(grid):
             if isinstance(row, list):
                 if row[0] not in ['value', 'increment']:  # 'value' by default
                     row = ['value'] + row
-                points[row_i] = row
-        # Split rows by type
-        list_rows = [x for x in points if isinstance(x, list)]
-        num_rows = [x for x in points if isinstance(x, (int, float))]
-        str_rows = [x for x in points if isinstance(x, str)]
-        other_rows = [x for x in points
-                      if not isinstance(x, (list, int, str, float))]
-        # Parse list rows and evaluate new to old maps for each row
-        rows_coords, rows_mesh_sizes = [], []
-        rows_new2old, rows_old2new = [], []
-        for row_i, row in enumerate(list_rows):
-            new2old, old2new = {}, {}
+                grid[row_i] = row
+            else:
+                raise ValueError(row_i, row, grid)
+        # Parse grid and evaluate new to old maps for each row
+        coordinates, mesh_sizes = [], []
+        new2old, old2new = [], []
+        for row_i, row in enumerate(grid):
+            new2old_i, old2new_i = {}, {}
             row_type, cs = row[0], row[1:]
-            new_cs, new_mss = [], []
-            cur_c, cur_ms = 0, None  # 0, None by default
-            for col_i, c in enumerate(cs):
+            cs_i, mss_i = [], []
+            cur_c, cur_ms = 0, None
+            for col_i, c in enumerate(cs):  # coordinate
                 if isinstance(c, (float, int)):
                     dc = c - cur_c if row_type == 'value' else c
                     cur_c += dc
-                    new_i, old_i = len(new_cs), col_i
-                    new_cs.append(cur_c)
-                    new_mss.append(cur_ms)
-                    old2new.setdefault(old_i, []).append(new_i)
-                    new2old[new_i] = old_i
+                    new_i, old_i = len(cs_i), col_i
+                    cs_i.append(cur_c)
+                    mss_i.append(cur_ms)
+                    old2new_i.setdefault(old_i, []).append(new_i)
+                    new2old_i[new_i] = old_i
                 elif isinstance(c, str):
                     vs_ms = c.split(';')  # values and mesh size
                     vs = vs_ms[0].split(':')
@@ -102,8 +136,8 @@ class Matrix(Block):
                     if len(ms) == 1:  # linear
                         if prev_ms is None and new_ms is not None:
                             prev_ms = new_ms
-                            if len(new_mss) > 0:
-                                new_mss[-1] = prev_ms
+                            if len(mss_i) > 0:
+                                mss_i[-1] = prev_ms
                         elif prev_ms is not None and new_ms is None:
                             new_ms = prev_ms
 
@@ -120,8 +154,8 @@ class Matrix(Block):
                             k *= w_ms  # Weight
                             k = k + 1 if k >= 0 else 1 / -k
                             prev_ms = new_ms
-                            if len(new_mss) > 0:
-                                new_mss[-1] = prev_ms * k
+                            if len(mss_i) > 0:
+                                mss_i[-1] = prev_ms * k
                         elif prev_ms is not None and new_ms is None:
                             new_ms = prev_ms
 
@@ -140,11 +174,11 @@ class Matrix(Block):
                         dc = c - cur_c if row_type == 'value' else c
                         cur_c += dc
                         cur_ms = get_ms(1)
-                        new_i, old_i = len(new_cs), col_i
-                        new_cs.append(cur_c)
-                        new_mss.append(cur_ms)
-                        old2new.setdefault(old_i, []).append(new_i)
-                        new2old[new_i] = old_i
+                        new_i, old_i = len(cs_i), col_i
+                        cs_i.append(cur_c)
+                        mss_i.append(cur_ms)
+                        old2new_i.setdefault(old_i, []).append(new_i)
+                        new2old_i[new_i] = old_i
                     elif len(vs) == 2:  # Uniform step
                         c, n = float(vs[0]), int(vs[1])
                         dc = c - cur_c if row_type == 'value' else c
@@ -153,11 +187,11 @@ class Matrix(Block):
                             cur_c = x
                             rel_c = (cur_c - prev_c) / dc
                             cur_ms = get_ms(rel_c)
-                            new_i, old_i = len(new_cs), col_i
-                            new_cs.append(x)
-                            new_mss.append(cur_ms)
-                            old2new.setdefault(old_i, []).append(new_i)
-                            new2old[new_i] = old_i
+                            new_i, old_i = len(cs_i), col_i
+                            cs_i.append(x)
+                            mss_i.append(cur_ms)
+                            old2new_i.setdefault(old_i, []).append(new_i)
+                            new2old_i[new_i] = old_i
                     elif len(vs) == 4:  # Beta distribution step
                         c, n, = float(vs[0]), int(vs[1])
                         a, b = float(vs[2]), float(vs[3])
@@ -167,24 +201,36 @@ class Matrix(Block):
                             dx = xs[i] - xs[i - 1]
                             cur_c += dc * dx
                             cur_ms = get_ms(x)
-                            new_i, old_i = len(new_cs), col_i
-                            new_cs.append(cur_c)
-                            new_mss.append(cur_ms)
-                            old2new.setdefault(old_i, []).append(new_i)
-                            new2old[new_i] = old_i
+                            new_i, old_i = len(cs_i), col_i
+                            cs_i.append(cur_c)
+                            mss_i.append(cur_ms)
+                            old2new_i.setdefault(old_i, []).append(new_i)
+                            new2old_i[new_i] = old_i
                     else:
-                        raise ValueError(c, vs_ms, points)
-            rows_coords.append(new_cs)
-            rows_mesh_sizes.append(new_mss)
-            rows_new2old.append(new2old)
-            rows_old2new.append(old2new)
+                        raise ValueError(col_i, c, grid)
+            coordinates.append(cs_i)
+            mesh_sizes.append(mss_i)
+            new2old.append(new2old_i)
+            old2new.append(old2new_i)
+        return grid, coordinates, mesh_sizes, new2old, old2new
+
+    @staticmethod
+    def parse_matrix_points(points):
+        # Split rows by type
+        list_rows = [x for x in points if isinstance(x, list)]
+        num_rows = [x for x in points if isinstance(x, (int, float))]
+        str_rows = [x for x in points if isinstance(x, str)]
+        other_rows = [x for x in points
+                      if not isinstance(x, (list, int, str, float))]
+        # Parse list rows and evaluate new to old maps for each row
+        grid, rows_coords, rows_mesh_sizes, rows_new2old, rows_old2new = Matrix.parse_grid(list_rows)
         # Parse str rows
         coordinate_system = str_rows[0] if len(str_rows) > 0 else 'cartesian'
         params_expand_type = str_rows[1] if len(str_rows) > 1 else 'trace'
         # Parse num rows
         global_mesh_size = num_rows[0] if len(num_rows) > 0 else None
         # Parse other rows
-        coordinate_system = other_rows[0] if len(other_rows) > 0 else 'cartesian'
+        coordinate_system = other_rows[0] if len(other_rows) > 0 else coordinate_system
         # Split points into coordinates and parameters
         coords, params = rows_coords[:3], rows_coords[3:]
         mesh_sizes, params_mesh_sizes = rows_mesh_sizes[:3], rows_mesh_sizes[3:]
@@ -201,8 +247,9 @@ class Matrix(Block):
         # Old global to old local
         old_g2l, old_l2g = {}, {}
         for pi, p in enumerate(params):
-            xs, ys, zs = points[0][1:], points[1][1:], points[2][1:]
-            nx, ny, nz = len(xs), len(ys), len(zs)
+            nx = len(grid[0]) - 2 if grid[0][0] == 'value' else len(grid[0]) - 1
+            ny = len(grid[1]) - 2 if grid[1][0] == 'value' else len(grid[1]) - 1
+            nz = len(grid[2]) - 2 if grid[2][0] == 'value' else len(grid[2]) - 1
             for zi in range(nz):
                 for yi in range(ny):
                     for xi in range(nx):
@@ -260,12 +307,15 @@ class Matrix(Block):
                         li = (pi, zi - 1, yi - 1, xi - 1)
                         new_g2l[gi] = li
                         new_l2g[li] = gi
+        new2old_z, new2old_y, new2old_x = rows_new2old[2], rows_new2old[1], rows_new2old[0]
         # New global to old global
         new2old_g2g, old2new_g2g = {}, {}
         for new_gi, new_li in new_g2l.items():
             pi, zi, yi, xi = new_li
-            new2old_z, new2old_y, new2old_x = rows_new2old[2], rows_new2old[1], rows_new2old[0],
-            old_zi, old_yi, old_xi = new2old_z[zi], new2old_y[yi], new2old_x[xi]
+            old_zi, old_yi, old_xi = new2old_z[zi + 1], new2old_y[yi + 1], new2old_x[xi + 1]
+            old_xi = old_xi - 1 if grid[0][0] == 'value' and old_xi != 0 else old_xi
+            old_yi = old_yi - 1 if grid[1][0] == 'value' and old_yi != 0 else old_yi
+            old_zi = old_zi - 1 if grid[2][0] == 'value' and old_zi != 0 else old_zi
             old_li = (pi, old_zi, old_yi, old_xi)
             old_gi = old_l2g[old_li]
             new2old_g2g[new_gi] = old_gi

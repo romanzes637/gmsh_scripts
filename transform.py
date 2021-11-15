@@ -1,8 +1,10 @@
-import numpy as np
 from functools import reduce
+import logging
+
+import numpy as np
 
 from coordinate_system import CoordinateSystem, Cartesian, Cylindrical, \
-    Spherical, Toroidal, Tokamak, Block, Path, Affine
+    Spherical, Toroidal, Tokamak, Block, Path, Affine, MultiLayerXY
 
 
 def reduce_transforms(transforms, point):
@@ -341,6 +343,101 @@ class PathToCartesian(Transform):
         return p
 
 
+class MultiLayerXYToCartesian(Transform):
+    def __init__(self, **kwargs):
+        super().__init__(cs_to=Cartesian(), **kwargs)
+
+    def __call__(self, p):
+        p = super().__call__(p)
+        if isinstance(p.coordinate_system, type(self.cs_to)):
+            return p
+        if not isinstance(p.coordinate_system, MultiLayerXY):
+            return p
+        cs = p.coordinate_system
+        px, py, pz = p.coordinates
+        n_layers = len(cs.layers[0])
+        lx0, ly0, lnx0, lny0 = (cs.layers[i][0] for i in range(4))
+        for j in range(n_layers):
+            lx, ly, lnx, lny = (cs.layers[i][j] for i in range(4))
+            n_x, n_y, n_nx, n_ny = (cs.curves_names[i][j] for i in range(4))
+            lt = cs.layers_types[j]
+            if py == ly0 and px == lx:  # I sector X
+                logging.info('I sector X')
+                py, px = self.update_coordinate(p0=py, pn=px,
+                                                n0=n_y, nn=n_x,
+                                                l00=ly0, l0n=ly,
+                                                ln0=lx0, lnn=lx,
+                                                lt=lt)
+                break
+            elif px == lx0 and py == ly:  # I sector Y
+                logging.info('I sector Y')
+                px, py = self.update_coordinate(p0=px, pn=py,
+                                                n0=n_x, nn=n_y,
+                                                l00=lx0, l0n=lx,
+                                                ln0=ly0, lnn=ly,
+                                                lt=lt)
+                break
+            elif px == lnx0 and py == ly:  # II sector Y
+                logging.info('II sector Y')
+                px, py = self.update_coordinate(p0=px, pn=py,
+                                                n0=n_nx, nn=n_y,
+                                                l00=lnx0, l0n=lnx,
+                                                ln0=ly0, lnn=ly,
+                                                lt=lt)
+                break
+            elif py == ly0 and px == lnx:  # II sector X
+                logging.info('II sector X')
+                py, px = self.update_coordinate(p0=py, pn=px,
+                                                n0=n_y, nn=n_nx,
+                                                l00=ly0, l0n=ly,
+                                                ln0=lnx0, lnn=lnx,
+                                                lt=lt)
+                break
+            elif py == lny0 and px == lnx:  # III sector X
+                logging.info('III sector X')
+                py, px = self.update_coordinate(p0=py, pn=px,
+                                                n0=n_ny, nn=n_nx,
+                                                l00=lny0, l0n=lny,
+                                                ln0=lnx0, lnn=lnx,
+                                                lt=lt)
+                break
+            elif px == lnx0 and py == lny:  # III sector Y
+                logging.info('III sector Y')
+                px, py = self.update_coordinate(p0=px, pn=py,
+                                                n0=n_nx, nn=n_ny,
+                                                l00=lnx0, l0n=lnx,
+                                                ln0=lny0, lnn=lny,
+                                                lt=lt)
+                break
+            elif px == lx0 and py == lny:  # IV sector Y
+                logging.info('IV sector Y')
+                px, py = self.update_coordinate(p0=px, pn=py,
+                                                n0=n_x, nn=n_ny,
+                                                l00=lx0, l0n=lx,
+                                                ln0=lny0, lnn=lny,
+                                                lt=lt)
+                break
+            elif py == lny0 and px == lx:  # IV sector X
+                logging.info('IV sector X')
+                py, px = self.update_coordinate(p0=py, pn=px,
+                                                n0=n_ny, nn=n_x,
+                                                l00=lny0, l0n=lny,
+                                                ln0=lx0, lnn=lx,
+                                                lt=lt)
+                break
+            else:
+                continue
+        p.coordinates = np.array([px, py, pz]) + cs.origin
+        p.coordinate_system = self.cs_to
+        return p
+
+    @staticmethod
+    def update_coordinate(p0, pn, n0, nn, l00, l0n, ln0, lnn, lt):
+        if n0 == 'line' and nn == 'line':
+            p0 = l0n
+        return p0, pn
+
+
 factory = {
     Transform.__name__: Transform,
     Translate.__name__: Translate,
@@ -383,5 +480,8 @@ factory = {
     PathToCartesian.__name__: PathToCartesian,
     Path: PathToCartesian,
     'path_to_cartesian': PathToCartesian,
-    'pat2car': PathToCartesian
+    'pat2car': PathToCartesian,
+    MultiLayerXYToCartesian: MultiLayerXYToCartesian,
+    'mlxy_to_cartesian': MultiLayerXYToCartesian,
+    'mlxy2car': MultiLayerXYToCartesian
 }

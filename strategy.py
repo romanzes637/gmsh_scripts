@@ -19,6 +19,17 @@ class Strategy:
         pass
 
 
+class Boolean(Strategy):
+    """
+
+    """
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, block):
+        pass
+
+
 def boolean(factory, model_name, block,
             boolean_function=boolean_with_bounding_boxes,
             zone_function=BlockDirection(
@@ -56,3 +67,4 @@ def boolean(factory, model_name, block,
     else:
         raise ValueError(factory)
     gmsh.model.remove()
+
