@@ -11,7 +11,7 @@ from matrix import Matrix
 from coordinate_system import Path
 from registry import reset as reset_registry
 from support import timeit
-from strategy import boolean as boolean_strategy
+from strategy import Boolean
 from size import BooleanPoint, BooleanEdge, Bagging
 
 logging.basicConfig(level=logging.INFO)
@@ -609,7 +609,7 @@ class TestMatrix(unittest.TestCase):
                            quadrate=quadrate_in,
                            zone='Block2')
                 b.add_child(b2)
-                boolean_strategy(factory, model_name, b)
+                Boolean()(factory, model_name, b)
             except Exception as e:
                 logging.warning(e)
                 with open(f'{model_name}.txt', 'a') as f:
@@ -723,20 +723,16 @@ class TestMatrix(unittest.TestCase):
                        zone_map='Tunnel2')
             b.add_child(m)
             if strategy[0] == 'boolean_edge_max':
-                boolean_strategy(factory, model_name, b,
-                                 size_function=BooleanEdge(
-                                     intra_function='max'))
+                Boolean(size_function=BooleanEdge(intra_function='max'))(
+                    factory, model_name, b,)
             elif strategy[0] == 'boolean_point_min':
-                boolean_strategy(factory, model_name, b,
-                                 size_function=BooleanPoint(
-                                     intra_function='min'))
+                Boolean(size_function=BooleanPoint(intra_function='min'))(
+                    factory, model_name, b,)
             elif strategy[0] == 'boolean_point_edge_mean':
-                boolean_strategy(factory, model_name, b,
-                                 size_function=Bagging(
-                                     inter_function='mean',
-                                     sizes=(
-                                         BooleanPoint(intra_function='min'),
-                                         BooleanEdge(intra_function='max'))))
+                Boolean(size_function=Bagging(inter_function='mean', sizes=(
+                        BooleanPoint(intra_function='min'),
+                        BooleanEdge(intra_function='max'))))(
+                    factory, model_name, b,)
             else:
                 raise ValueError(strategy)
 

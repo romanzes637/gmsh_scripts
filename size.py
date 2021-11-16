@@ -12,8 +12,6 @@ class Size:
 
     def __call__(self, block):
         point2size = self.evaluate_map(block)
-        from pprint import pprint
-        pprint(point2size)
         for p, s in point2size.items():
             gmsh.model.mesh.setSize([(0, p)], s)
 

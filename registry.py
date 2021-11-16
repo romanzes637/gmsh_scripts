@@ -523,7 +523,9 @@ def unregister_volume(factory, volume, register_tag):
 
 
 def register_curve_structure(points, structure):
-    key = tuple(y for x in points for y in x.coordinates)
+    # TODO Using only first and last points
+    # key = tuple(y for x in points for y in x.coordinates)
+    key = tuple(y for x in [points[0], points[-1]] for y in x.coordinates)
     CURVE_STRUCTURE.setdefault(key, structure)
 
 
@@ -549,7 +551,9 @@ def register_surface_quadrate(points, quadrate):
 
 
 def get_curve_structure(points):
-    p = deque(points)
+    # TODO Using only first and last points
+    # p = deque(points)
+    p = deque([points[0], points[1]])
     for _ in range(len(p)):
         key = tuple(y for x in p for y in x.coordinates)
         structure = CURVE_STRUCTURE.get(key, None)

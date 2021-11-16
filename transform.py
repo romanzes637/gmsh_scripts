@@ -4,7 +4,7 @@ import logging
 import numpy as np
 
 from coordinate_system import CoordinateSystem, Cartesian, Cylindrical, \
-    Spherical, Toroidal, Tokamak, Block, Path, Affine, MultiLayerXY
+    Spherical, Toroidal, Tokamak, Block, Path, Affine, LayerXY
 
 
 def reduce_transforms(transforms, point):
@@ -343,7 +343,7 @@ class PathToCartesian(Transform):
         return p
 
 
-class MultiLayerXYToCartesian(Transform):
+class LayerXYToCartesian(Transform):
     def __init__(self, **kwargs):
         super().__init__(cs_to=Cartesian(), **kwargs)
 
@@ -351,7 +351,7 @@ class MultiLayerXYToCartesian(Transform):
         p = super().__call__(p)
         if isinstance(p.coordinate_system, type(self.cs_to)):
             return p
-        if not isinstance(p.coordinate_system, MultiLayerXY):
+        if not isinstance(p.coordinate_system, LayerXY):
             return p
         cs = p.coordinate_system
         px, py, pz = p.coordinates
@@ -362,7 +362,7 @@ class MultiLayerXYToCartesian(Transform):
             n_x, n_y, n_nx, n_ny = (cs.curves_names[i][j] for i in range(4))
             lt = cs.layers_types[j]
             if py == ly0 and px == lx:  # I sector X
-                logging.info('I sector X')
+                logging.debug('I sector X')
                 py, px = self.update_coordinate(p0=py, pn=px,
                                                 n0=n_y, nn=n_x,
                                                 l00=ly0, l0n=ly,
@@ -370,7 +370,7 @@ class MultiLayerXYToCartesian(Transform):
                                                 lt=lt)
                 break
             elif px == lx0 and py == ly:  # I sector Y
-                logging.info('I sector Y')
+                logging.debug('I sector Y')
                 px, py = self.update_coordinate(p0=px, pn=py,
                                                 n0=n_x, nn=n_y,
                                                 l00=lx0, l0n=lx,
@@ -378,7 +378,7 @@ class MultiLayerXYToCartesian(Transform):
                                                 lt=lt)
                 break
             elif px == lnx0 and py == ly:  # II sector Y
-                logging.info('II sector Y')
+                logging.debug('II sector Y')
                 px, py = self.update_coordinate(p0=px, pn=py,
                                                 n0=n_nx, nn=n_y,
                                                 l00=lnx0, l0n=lnx,
@@ -386,7 +386,7 @@ class MultiLayerXYToCartesian(Transform):
                                                 lt=lt)
                 break
             elif py == ly0 and px == lnx:  # II sector X
-                logging.info('II sector X')
+                logging.debug('II sector X')
                 py, px = self.update_coordinate(p0=py, pn=px,
                                                 n0=n_y, nn=n_nx,
                                                 l00=ly0, l0n=ly,
@@ -394,7 +394,7 @@ class MultiLayerXYToCartesian(Transform):
                                                 lt=lt)
                 break
             elif py == lny0 and px == lnx:  # III sector X
-                logging.info('III sector X')
+                logging.debug('III sector X')
                 py, px = self.update_coordinate(p0=py, pn=px,
                                                 n0=n_ny, nn=n_nx,
                                                 l00=lny0, l0n=lny,
@@ -402,7 +402,7 @@ class MultiLayerXYToCartesian(Transform):
                                                 lt=lt)
                 break
             elif px == lnx0 and py == lny:  # III sector Y
-                logging.info('III sector Y')
+                logging.debug('III sector Y')
                 px, py = self.update_coordinate(p0=px, pn=py,
                                                 n0=n_nx, nn=n_ny,
                                                 l00=lnx0, l0n=lnx,
@@ -410,7 +410,7 @@ class MultiLayerXYToCartesian(Transform):
                                                 lt=lt)
                 break
             elif px == lx0 and py == lny:  # IV sector Y
-                logging.info('IV sector Y')
+                logging.debug('IV sector Y')
                 px, py = self.update_coordinate(p0=px, pn=py,
                                                 n0=n_x, nn=n_ny,
                                                 l00=lx0, l0n=lx,
@@ -418,7 +418,7 @@ class MultiLayerXYToCartesian(Transform):
                                                 lt=lt)
                 break
             elif py == lny0 and px == lx:  # IV sector X
-                logging.info('IV sector X')
+                logging.debug('IV sector X')
                 py, px = self.update_coordinate(p0=py, pn=px,
                                                 n0=n_ny, nn=n_x,
                                                 l00=lny0, l0n=lny,
@@ -435,6 +435,15 @@ class MultiLayerXYToCartesian(Transform):
     def update_coordinate(p0, pn, n0, nn, l00, l0n, ln0, lnn, lt):
         if n0 == 'line' and nn == 'line':
             p0 = l0n
+        elif n0 == 'circle_arc' and nn == 'circle_arc':
+            if lt == 'in':
+                r = abs(pn)  # radius
+                p0 = np.sign(p0) * r / 2 ** 0.5
+                pn = np.sign(pn) * r / 2 ** 0.5
+            else:
+                p0 = l0n
+        else:
+            raise NotImplementedError(n0, nn)
         return p0, pn
 
 
@@ -481,7 +490,7 @@ factory = {
     Path: PathToCartesian,
     'path_to_cartesian': PathToCartesian,
     'pat2car': PathToCartesian,
-    MultiLayerXYToCartesian: MultiLayerXYToCartesian,
-    'mlxy_to_cartesian': MultiLayerXYToCartesian,
-    'mlxy2car': MultiLayerXYToCartesian
+    LayerXYToCartesian: LayerXYToCartesian,
+    'lxy_to_cartesian': LayerXYToCartesian,
+    'lxy2car': LayerXYToCartesian
 }

@@ -26,13 +26,13 @@ class StructureBlock:
             # Collect Structure
             vs_st, vs_ss_st, vs_ss_cs_st = [], [], []
             ss_qu = []
-            for vi, ss_cs_ps_dt in enumerate(dt.vs_ss_cs_ps_dt):
+            for vi, ss_cs_ps_dt in enumerate(dt.vs_ss_cs_ps_dt):  # Volumes
                 ss_st, ss_cs_st = [], []
                 vs_ps_dt = set()
-                for si, cs_ps_dt in enumerate(ss_cs_ps_dt):
+                for si, cs_ps_dt in enumerate(ss_cs_ps_dt):  # Surfaces
                     cs_st = []
                     ss_ps_dt = set()
-                    for ci, ps_dt in enumerate(cs_ps_dt):
+                    for ci, ps_dt in enumerate(cs_ps_dt):  # Curves
                         ss_ps_dt.update(ps_dt)
                         ps_cs = [dt.ps_dt_to_cs[x] for x in ps_dt]
                         points = [Point(list(x)) for x in ps_cs]
@@ -52,7 +52,7 @@ class StructureBlock:
                 points = [Point(list(x)) for x in vs_ps_cs]
                 v_st = get_volume_structure(points)
                 vs_st.append(v_st)
-            # Do Structure
+            # Do Structure TODO Triangles orientation http://onelab.info/pipermail/gmsh/2018/012407.html
             for vi, v_st in enumerate(vs_st):
                 v_dt = dt.vs_dt[vi]
                 all_ss_st = all(x is not None for x in vs_ss_st[vi])

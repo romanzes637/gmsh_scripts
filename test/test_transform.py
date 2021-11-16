@@ -10,29 +10,34 @@ from registry import register_point, register_curve
 from point import Point
 from curve import Curve
 from coordinate_system import Block, Cartesian, Cylindrical, Spherical, \
-    Toroidal, Tokamak, Path, Affine, MultiLayerXY
+    Toroidal, Tokamak, Path, Affine, LayerXY
 from transform import Translate, Rotate, CylindricalToCartesian, \
     ToroidalToCartesian, TokamakToCartesian, SphericalToCartesian, BlockToCartesian, \
-    PathToCartesian, AffineToAffine, AffineToCartesian, MultiLayerXYToCartesian
+    PathToCartesian, AffineToAffine, AffineToCartesian, LayerXYToCartesian
 from zone import BlockDirection, BlockSimple
 from matrix import Matrix
 from registry import reset as reset_registry
 from support import timeit
-from strategy import boolean as boolean_strategy
+from strategy import Simple, Boolean
+from boolean import boolean as boolean_all
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 
 def gmsh_decorator(f):
     def wrapper(*args, **kwargs):
         gmsh.initialize()
-        gmsh.option.setNumber("General.Terminal", 1)
+        gmsh.option.setNumber("General.Terminal", 0)
 
         # Abort on error? (0: no,  1: abort meshing,
         # 2: throw an exception unless in interactive mode,
         # 3: throw an exception always, 4: exit)
         # Default value: 0
         gmsh.option.setNumber("General.AbortOnError", 0)
+
+        # Use multi-threaded OpenCASCADE boolean operators
+        # Default value: 0
+        gmsh.option.setNumber('Geometry.OCCParallel', 1)
 
         # Should all duplicate entities be automatically
         # removed with the built-in geometry kernel?
@@ -389,20 +394,18 @@ class TestTransform(unittest.TestCase):
         p1 = to_a1(pc)
         print(p1.coordinates, p1.coordinate_system)
 
-    def test_multilayer_xy(self):
-        mlxy = MultiLayerXY(layers=[
-            [1, '4:4'],
-            [1, '4:4'],
-            [1, '4:4'],
-            [1, '4:4']
-        ])
-        logging.info(mlxy.curves_names)
-        mlxy2car = MultiLayerXYToCartesian()
+    def test_layer_xy(self):
+        lxy = LayerXY(layers=[
+            [1, 2, 3, 4],
+            [1, 2, 3, 4],
+            [1, 2, 3, 4],
+            [1, 2, 3, 4]])
+        lxy2car = LayerXYToCartesian()
         css = [[2, 1, 1],  # I sector X
                [1, 2, 1],  # I sector Y
                [-1, 2, 1],  # II sector Y
                [-2, 1, 1],  # II sector X
-               [-2, -1, 1],   # III sector X
+               [-2, -1, 1],  # III sector X
                [-1, -2, 1],  # III sector Y
                [1, -2, 1],  # IV sector Y
                [2, -1, 1]]  # IV sector X
@@ -410,43 +413,291 @@ class TestTransform(unittest.TestCase):
                     [2, 2, 1],  # I sector Y
                     [-2, 2, 1],  # II sector Y
                     [-2, 2, 1],  # II sector X
-                    [-2, -2, 1],   # III sector X
+                    [-2, -2, 1],  # III sector X
                     [-2, -2, 1],  # III sector Y
                     [2, -2, 1],  # IV sector Y
                     [2, -2, 1]]
         for cs, tcs in zip(css, true_css):  # IV sector X
-            p0 = Point(coordinates=cs, coordinate_system=mlxy)
+            p0 = Point(coordinates=cs, coordinate_system=lxy)
             logging.info(f'before: {p0.coordinates}')
-            p1 = mlxy2car(p0)
+            p1 = lxy2car(p0)
             logging.info(f'after: {p1.coordinates}')
             self.assertTrue(np.array_equal(p1.coordinates, tcs))
 
     @gmsh_decorator
-    def test_multilayer_xy_matrix(self):
-        factory = 'occ'
-        model_name = f'test_multilayer_xy_matrix_{factory}'
-        logging.info(model_name)
-        mlxy = MultiLayerXY(layers=[
-            [1, '4:4'],
-            [1, '4:4'],
-            [1, '4:4'],
-            [1, '4:4']])
-        m = Matrix(factory=factory,
-                   points=[[-2, -1, 1, 2], [-2, -1, 1, 2], [0, 1, 2], mlxy],
-                   transforms=['mlxy2car'],
-                   do_register_map=[
-                       0, 1, 0,
-                       1, 1, 1,
-                       0, 1, 0,
+    def test_layer_xy_matrix(self):
+        for factory in ['geo', 'occ']:
+            model_name = f'test_layer_xy_matrix_{factory}'
+            logging.info(model_name)
+            lxy = LayerXY(
+                layers=[
+                    [1, 2, 3, 4],
+                    [1, 2, 3, 4],
+                    [1, 2, 3, 4],
+                    [1, 2, 3, 4]],
+                curves_names=[
+                    ['line', 'circle_arc', 'circle_arc', 'line'],
+                    ['line', 'circle_arc', 'circle_arc', 'line'],
+                    ['line', 'circle_arc', 'circle_arc', 'line'],
+                    ['line', 'circle_arc', 'circle_arc', 'line']],
+                layers_types=['in', 'out', 'in', 'out'])
+            b = BlockObject(factory=factory, do_register=False)
+            m = Matrix(
+                factory=factory,
+                points=[[-4, -3, -2, -1, 1, 2, 3, 4],
+                        [-4, -3, -2, -1, 1, 2, 3, 4],
+                        [0, 1, 2], lxy],
+                curves=[
+                    # 0 L1 Center
+                    [['line'], ['line'], ['line'], ['line'],
+                     ['line'], ['line'], ['line'], ['line'],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # TODO Bug surface filling of all circle_arc with GEO factory
+                    # [['circle_arc', [[0, 0, 0]]],
+                    #  ['circle_arc', [[0, 0, 1]]],
+                    #  ['circle_arc', [[0, 0, 1]]],
+                    #  ['circle_arc', [[0, 0, 0]]],
+                    #  ['circle_arc', [[0, 0, 0]]],
+                    #  ['circle_arc', [[0, 0, 0]]],
+                    #  ['circle_arc', [[0, 0, 1]]],
+                    #  ['circle_arc', [[0, 0, 1]]],
+                    #  ['line'], ['line'], ['line'], ['line']],
+                    # 1 L2 X1
+                    [['line'], ['line'], ['line'], ['line'],
+                     ['circle_arc', [[0, 0, 0]]],
+                     ['line'],
+                     ['line'],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 2 L2 X2
+                    [['line'], ['line'], ['line'], ['line'],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['line'],
+                     ['line'],
+                     ['circle_arc', [[0, 0, 2]]],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 3 L2 Y1
+                    [['circle_arc', [[0, 0, 0]]],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['line'],
+                     ['line'],
+                     ['line'], ['line'], ['line'], ['line'],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 4 L2 Y2
+                    [['circle_arc', [[0, 0, 1]]],
+                     ['circle_arc', [[0, 0, 2]]],
+                     ['line'],
+                     ['line'],
+                     ['line'], ['line'], ['line'], ['line'],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 5 L2 NX1
+                    [['line'], ['line'], ['line'], ['line'],
+                     ['line'],
+                     ['circle_arc', [[0, 0, 0]]],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['line'],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 6 L2 NX2
+                    [['line'], ['line'], ['line'], ['line'],
+                     ['line'],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['circle_arc', [[0, 0, 2]]],
+                     ['line'],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 7 L2 NY1
+                    [['line'],
+                     ['line'],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['circle_arc', [[0, 0, 0]]],
+                     ['line'], ['line'], ['line'], ['line'],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 8 L2 NY2
+                    [['line'],
+                     ['line'],
+                     ['circle_arc', [[0, 0, 2]]],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['line'], ['line'], ['line'], ['line'],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 9 L3 X1
+                    [['line'], ['line'], ['line'], ['line'],
+                     ['circle_arc', [[0, 0, 0]]],
+                     ['circle_arc', [[0, 0, 0]]],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 10 L3 X2
+                    [['line'], ['line'], ['line'], ['line'],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['circle_arc', [[0, 0, 2]]],
+                     ['circle_arc', [[0, 0, 2]]],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 11 L3 Y1
+                    [['circle_arc', [[0, 0, 0]]],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['circle_arc', [[0, 0, 0]]],
+                     ['line'], ['line'], ['line'], ['line'],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 12 L3 Y2
+                    [['circle_arc', [[0, 0, 1]]],
+                     ['circle_arc', [[0, 0, 2]]],
+                     ['circle_arc', [[0, 0, 2]]],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['line'], ['line'], ['line'], ['line'],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 13 L3 NX1
+                    [['line'], ['line'], ['line'], ['line'],
+                     ['circle_arc', [[0, 0, 0]]],
+                     ['circle_arc', [[0, 0, 0]]],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 14 L3 NX2
+                    [['line'], ['line'], ['line'], ['line'],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['circle_arc', [[0, 0, 2]]],
+                     ['circle_arc', [[0, 0, 2]]],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 15 L3 NY1
+                    [['circle_arc', [[0, 0, 0]]],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['circle_arc', [[0, 0, 0]]],
+                     ['line'], ['line'], ['line'], ['line'],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 16 L3 NY2
+                    [['circle_arc', [[0, 0, 1]]],
+                     ['circle_arc', [[0, 0, 2]]],
+                     ['circle_arc', [[0, 0, 2]]],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['line'], ['line'], ['line'], ['line'],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 17 L4 X1
+                    [['line'], ['line'], ['line'], ['line'],
+                     ['line'],
+                     ['circle_arc', [[0, 0, 0]]],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['line'],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 18 L4 X2
+                    [['line'], ['line'], ['line'], ['line'],
+                     ['line'],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['circle_arc', [[0, 0, 2]]],
+                     ['line'],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 19 L4 Y1
+                    [['line'],
+                     ['line'],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['circle_arc', [[0, 0, 0]]],
+                     ['line'], ['line'], ['line'], ['line'],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 20 L4 Y2
+                    [['line'],
+                     ['line'],
+                     ['circle_arc', [[0, 0, 2]]],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['line'], ['line'], ['line'], ['line'],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 21 L4 NX1
+                    [['line'], ['line'], ['line'], ['line'],
+                     ['circle_arc', [[0, 0, 0]]],
+                     ['line'],
+                     ['line'],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 22 L4 NX2
+                    [['line'], ['line'], ['line'], ['line'],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['line'],
+                     ['line'],
+                     ['circle_arc', [[0, 0, 2]]],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 23 L4 NY1
+                    [['circle_arc', [[0, 0, 0]]],
+                     ['circle_arc', [[0, 0, 1]]],
+                     ['line'],
+                     ['line'],
+                     ['line'], ['line'], ['line'], ['line'],
+                     ['line'], ['line'], ['line'], ['line']],
+                    # 24 L4 NY2
+                    [['circle_arc', [[0, 0, 1]]],
+                     ['circle_arc', [[0, 0, 2]]],
+                     ['line'],
+                     ['line'],
+                     ['line'], ['line'], ['line'], ['line'],
+                     ['line'], ['line'], ['line'], ['line']],
+                ],
+                curves_map=[
+                    0,  0,  0, 23, 0, 0, 0,
+                    0,  0,  0, 15, 0, 0, 0,
+                    0,  0,  0, 7,  0, 0, 0,
+                    21, 13, 5, 0,  1, 9, 17,
+                    0,  0,  0, 3,  0, 0, 0,
+                    0,  0,  0, 11, 0, 0, 0,
+                    0,  0,  0, 19, 0, 0, 0,
 
-                       0, 1, 0,
-                       1, 1, 1,
-                       0, 1, 0
-                   ],
-                   structure_map=[[3, 0, 1], [3, 0, 1], [5, 0, 1]],
-                   quadrate_map=True
-                   )
-        boolean_strategy(factory, model_name, m)
+                    0,  0,  0, 24, 0, 0,  0,
+                    0,  0,  0, 16, 0, 0,  0,
+                    0,  0,  0, 8,  0, 0,  0,
+                    22, 14, 6, 0,  2, 10, 18,
+                    0,  0,  0, 4,  0, 0,  0,
+                    0,  0,  0, 12, 0, 0,  0,
+                    0,  0,  0, 20, 0, 0,  0,
+                ],
+                transforms=['lxy2car'],
+                do_register_map=[
+                    0, 0, 0, 1, 0, 0, 0,
+                    0, 0, 0, 1, 0, 0, 0,
+                    0, 0, 0, 1, 0, 0, 0,
+                    1, 1, 1, 1, 1, 1, 1,
+                    0, 0, 0, 1, 0, 0, 0,
+                    0, 0, 0, 1, 0, 0, 0,
+                    0, 0, 0, 1, 0, 0, 0,
+
+                    0, 0, 0, 1, 0, 0, 0,
+                    0, 0, 0, 1, 0, 0, 0,
+                    0, 0, 0, 1, 0, 0, 0,
+                    1, 1, 1, 1, 1, 1, 1,
+                    0, 0, 0, 1, 0, 0, 0,
+                    0, 0, 0, 1, 0, 0, 0,
+                    0, 0, 0, 1, 0, 0, 0,
+                ],
+                structure_type=['LLL', 'LRR', 'RLR', 'RRL'],
+                structure_type_map=[
+                    0, 0, 0, 2, 0, 0, 0,
+                    0, 0, 0, 2, 0, 0, 0,
+                    0, 0, 0, 2, 0, 0, 0,
+                    1, 1, 1, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0,
+
+                    0, 0, 0, 2, 0, 0, 0,
+                    0, 0, 0, 2, 0, 0, 0,
+                    0, 0, 0, 2, 0, 0, 0,
+                    1, 1, 1, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0,
+                ],
+                structure_map=[[5, 0, 1], [5, 0, 1], [3, 0, 1]],
+                parent=b,
+                boolean_level_map=0,
+                quadrate_map=0)
+            b.add_child(m)
+            b2 = BlockObject(factory=factory, parent=b,
+                             zone='Cube',
+                             points=4,
+                             boolean_level=1,
+                             transforms=[[0, 0, 0, 1, 0, 0, 45],
+                                         [0, 0, 0, 0, 1, 0, 45]])
+            b.add_child(b2)
+            # Simple()(factory, model_name, m)
+            Boolean(boolean_function=boolean_all)(factory, model_name, b)
 
 
 if __name__ == '__main__':

@@ -90,8 +90,8 @@ class Block:
         do_register_children (bool): invoke register for children
         do_unregister_children (bool): invoke unregister for children
         transforms (list of dict, list of list, list of Transform): points and curves points transforms (Translation, Rotation, Coordinate Change, etc)
-        quadrate_all (list of dict, bool): transform triangles to quadrangles for surfaces and tetrahedra to hexahedra for volumes
-        structure_all (list of dict, list of list, list of Transform): make structured mesh instead of unstructured by some rule
+        quadrate (list of dict, bool): transform triangles to quadrangles for surfaces and tetrahedra to hexahedra for volumes
+        structure (list of dict, list of list, list of Transform): make structured mesh instead of unstructured by some rule
         parent (Block): parent of the Block
         children (list of Block): children of the Block
         children_transforms (list of list of dict, list of list of list, list of list of Transform): transforms for children Blocks
@@ -106,7 +106,7 @@ class Block:
                  transforms=None,
                  quadrate=None, structure=None, zone=None,
                  parent=None, children=None, children_transforms=None,
-                 boolean_level=None, file_name=None):
+                 boolean_level=None, file_name=None, structure_type='LLL'):
         self.factory = factory
         self.points = self.parse_points(points)
         self.curves = self.parse_curves(curves)
@@ -139,6 +139,8 @@ class Block:
         self.children_transforms = children_transforms
         self.boolean_level = boolean_level
         self.file_name = file_name
+        self.surfaces_arrangement, self.surfaces_points, self.volume_points = \
+            self.parse_structure_type(structure_type)
         # Support
         self.curves_loops = [CurveLoop() for _ in range(6)]
         self.surfaces_loops = [SurfaceLoop()]
@@ -147,36 +149,31 @@ class Block:
         self.is_booleaned = False
 
     curves_points = [
-        [1, 0], [5, 4], [6, 7], [2, 3],
-        [3, 0], [2, 1], [6, 5], [7, 4],
-        [0, 4], [1, 5], [2, 6], [3, 7]
-    ]
-
-    surfaces_points = [
-        [2, 6, 5, 1],  # NX
-        [3, 7, 4, 0],  # X
-        [2, 6, 7, 3],  # NY
-        [1, 5, 4, 0],  # Y
-        [3, 2, 1, 0],  # NZ
-        [7, 6, 5, 4],  # Z
+        [1, 0], [5, 4], [6, 7], [2, 3],  # X1, X2, X3, X4
+        [3, 0], [2, 1], [6, 5], [7, 4],  # Y1, Y2, Y3, Y4
+        [0, 4], [1, 5], [2, 6], [3, 7]   # Z1, Z2, Z3, Z4
     ]
 
     surfaces_curves = [
         [5, 9, 6, 10],  # NX
         [4, 11, 7, 8],  # X
-        [11, 2, 10, 3],  # NY
+        # [11, 2, 10, 3],  # NY
+        [10, 2, 11, 3],  # NY
         [0, 8, 1, 9],  # Y
         [0, 5, 3, 4],  # NZ
-        [1, 7, 2, 6],  # Z
+        # [1, 7, 2, 6],  # Z
+        [7, 2, 6, 1],  # Z
     ]
 
     surfaces_curves_signs = [
         [1, 1, -1, -1],  # NX
         [-1, 1, 1, -1],  # X
-        [1, -1, -1, 1],  # NY
+        # [1, -1, -1, 1],  # NY
+        [1, 1, -1, -1],  # NY
         [1, 1, -1, -1],  # Y
         [-1, -1, 1, 1],  # NZ
-        [1, -1, -1, 1],  # Z
+        # [1, -1, -1, 1],  # Z
+        [-1, -1, 1, 1],  # Z
     ]
 
     @staticmethod
@@ -229,41 +226,26 @@ class Block:
     @staticmethod
     def parse_curves(curves):
         if curves is None:
-            return [Curve(name='line') for _ in range(12)]
+            new_curves = [Curve(name='line') for _ in range(12)]
         elif isinstance(curves, list):
-            for i, c in enumerate(curves):
+            new_curves = []
+            for c in curves:
                 if isinstance(c, dict):
-                    kwargs = c
-                    points = kwargs.get('points', [])
-                    kwargs['points'] = Point.parse_points(
-                        points, do_deg2rad=True)
-                    curves[i] = Curve(**kwargs)
+                    c['points'] = Point.parse_points(
+                        points=c.get('points', None), do_deg2rad=True)
+                    new_curves.append(Curve(**c))
                 elif isinstance(c, list):
-                    kwargs = {}
-                    if len(c) > 0:
-                        if not isinstance(c[0], str):
-                            kwargs['name'] = 'polyline'
-                            kwargs['points'] = Point.parse_points(c)
-                        else:
-                            if len(c) == 2:
-                                kwargs['name'] = c[0]
-                                kwargs['points'] = Point.parse_points(
-                                    c[1], do_deg2rad=True)
-                            elif len(c) == 3:
-                                kwargs['name'] = c[0]
-                                kwargs['points'] = Point.parse_points(
-                                    c[1], do_deg2rad=True)
-                                kwargs['kwargs'] = c[2]
-                            else:
-                                raise ValueError(c)
-                    else:
-                        kwargs['name'] = 'line'
-                    curves[i] = Curve(**kwargs)
+                    ss = [x for x in c if isinstance(x, str)]  # strings
+                    ls = [x for x in c if isinstance(x, list)]  # lists
+                    new_curves.append(Curve(
+                        name=ss[0] if len(ss) > 0 else 'line',
+                        points=Point.parse_points(points=ls[0], do_deg2rad=True)
+                        if len(ls) > 0 else None))
                 else:
-                    raise ValueError(curves, c)
-            return curves
+                    raise ValueError(c)
         else:
             raise ValueError(curves)
+        return new_curves
 
     @staticmethod
     def parse_surfaces(surfaces):
@@ -376,6 +358,108 @@ class Block:
             return ps_zs, cs_zs, ss_zs, vs_zs
         else:
             raise ValueError(zone)
+
+    @staticmethod
+    def parse_structure_type(structure_type):
+        """Parse structure type
+
+        # https://gitlab.onelab.info/gmsh/gmsh/-/blob/master/Mesh/meshGRegionTransfinite.cpp
+
+        Transfinite surface meshes
+
+            s4 +-----c3-----+ s3
+               |            |
+               |            |
+              c4            c2
+               |            |
+               |            |
+            s1 +-----c1-----+ s2
+
+            f(u,v) = (1-u) c4(v) + u c2(v) + (1-v) c1(u) + v c3(u)
+            - [ (1-u)(1-v) s1 + u(1-v) s2 + uv s3 + (1-u)v s4 ]
+
+        Transfinite volume meshes
+
+                              a0   s0 s1  f0  s0 s1 s5 s4              s6
+            s7        s6      a1   s1 s2  f1  s1 s2 s6 s5              *
+              *-------*       a2   s3 s2  f2  s3 s2 s6 s7             /|\
+              |\s4    |\      a3   s0 s3  f3  s0 s3 s7 s4            / | \
+              | *-------* s5  a4   s4 s5  f4  s0 s1 s2 s3      s7/s4/  |s2\
+              | |   s2| |     a5   s5 s6  f5  s4 s5 s6 s7          *---*---* s5
+           s3 *-|-----* |     a6   s7 s6                           |  / \  |
+               \|      \|     a7   s4 s7                           | /   \ |
+                *-------*     a8   s0 s4                           |/     \|
+          v w  s0       s1    a9   s1 s5                           *-------*
+           \|                 a10  s2 s6                  v w    s3/s0     s1
+            *--u              a11  s3 s7                   \|
+                                                            *--u
+
+        TODO How to create other types? (RLL, LRL, LLR, RRR)
+            Tried to rotate
+            volume_points = [0, 1, 2, 3, 4, 5, 6, 7]  # LLL
+            volume_points = [1, 2, 3, 0, 5, 6, 7, 4]  # LRR
+            volume_points = [2, 3, 0, 1, 6, 7, 4, 5]  # RRL
+            volume_points = [3, 0, 1, 2, 7, 4, 5, 6]  # RLR
+            Tried to swap top and bottom
+            volume_points = [4, 5, 6, 7, 0, 1, 2, 3]  # RRL
+            volume_points = [5, 6, 7, 4, 1, 2, 3, 0]  # RLR
+            volume_points = [6, 7, 4, 5, 2, 3, 0, 1]  # LLL
+            volume_points = [7, 4, 5, 6, 3, 0, 1, 2]  # LRR
+            Tried to reverse
+            volume_points = [3, 2, 1, 0, 7, 6, 5, 4]  # RLR
+            volume_points = [0, 3, 2, 1, 4, 7, 6, 5]  # LLL
+            volume_points = [1, 0, 3, 2, 5, 4, 7, 6]  # LRR
+            volume_points = [2, 1, 0, 3, 6, 5, 4, 7]  # RRL
+            Tried to swap top and bottom with reverse after
+            volume_points = [7, 6, 5, 4, 3, 2, 1, 0]  # LRR
+            volume_points = [4, 7, 6, 5, 0, 3, 2, 1]  # RRL
+            volume_points = [5, 4, 7, 6, 1, 0, 3, 2]  # RLR
+            volume_points = [6, 5, 4, 7, 2, 1, 0, 3]  # LLL
+
+        Args:
+            structure_type (str): LLL, LRR, LRR or RRL, L/R - Left/Right
+                triangles arrangement of X (NX), Y (NY), Z (NZ) surfaces
+                respectively, e.g. LRR - Left arrangement for X and NX surfaces,
+                Right for Y and NY, Right for Z and NZ
+
+        Returns:
+            tuple: tuple of:
+                surfaces_arrangement (list of str): surfaces arrangement:
+                    Left or Right (AlternateLeft and AlternateRight
+                    are incompatible with structured meshes)
+                surfaces_points (list of list of int): surfaces points tags
+                    (s1, s2, s3, s4)
+                volume_points (list of int): volume points tags
+                    (s0, s1, s2, s3, s4, s5, s6, s7)
+        """
+        surfaces_points = [
+            [1, 5, 6, 2],  # NX
+            [0, 3, 7, 4],  # X
+            [3, 2, 6, 7],  # NY
+            [0, 4, 5, 1],  # Y
+            [0, 1, 2, 3],  # NZ
+            [4, 7, 6, 5]]  # Z
+        if structure_type == 'LLL':
+            surfaces_arrangement = ['Left', 'Left', 'Left',  # NX, X, NY
+                                    'Left', 'Left', 'Left']  # Y, NZ, Z
+            volume_points = [0, 1, 2, 3, 4, 5, 6, 7]
+        elif structure_type == 'RRL':
+            surfaces_arrangement = ['Right', 'Right', 'Right',  # NX, X, NY
+                                    'Right', 'Left', 'Left']  # Y, NZ, Z
+            volume_points = [2, 3, 0, 1, 6, 7, 4, 5]
+        elif structure_type == 'LRR':
+            surfaces_arrangement = ['Left', 'Left', 'Right',  # NX, X, NY
+                                    'Right', 'Right', 'Right']  # Y, NZ, Z
+            volume_points = [1, 2, 3, 0, 5, 6, 7, 4]
+        elif structure_type == 'RLR':
+            surfaces_arrangement = ['Right', 'Right', 'Left',  # NX, X, NY
+                                    'Left', 'Right', 'Right']  # Y, NZ, Z
+            volume_points = [3, 0, 1, 2, 7, 4, 5, 6]
+        elif structure_type in ['RLL', 'LRL', 'LLR' 'RRR']:
+            raise NotImplementedError(structure_type)
+        else:
+            raise ValueError(structure_type)
+        return surfaces_arrangement, surfaces_points, volume_points
 
     def register(self):
         # Children
@@ -495,6 +579,9 @@ class Block:
         for i, s in enumerate(self.surfaces):
             st = self.surfaces_structures[i]
             if st is not None:
+                st.kwargs['cornerTags'] = [
+                    self.points[x].tag for x in self.surfaces_points[i]]
+                st.kwargs['arrangement'] = self.surfaces_arrangement[i]
                 ps_ids = self.surfaces_points[i]
                 ps = [self.points[x] for x in ps_ids]
                 register_surface_structure(ps, st)
@@ -502,6 +589,8 @@ class Block:
             if i < len(self.volumes_structures):
                 st = self.volumes_structures[i]
                 if st is not None:
+                    st.kwargs['cornerTags'] = [
+                        self.points[x].tag for x in self.volume_points]
                     ps = self.points
                     register_volume_structure(ps, st)
 

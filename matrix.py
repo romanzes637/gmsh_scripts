@@ -13,6 +13,8 @@ class Matrix(Block):
     """
 
     def __init__(self, factory, points,
+                 curves=None,
+                 curves_map=None,
                  parent=None,
                  transforms=None, use_register_tag=False,
                  do_register_map=None,
@@ -20,6 +22,8 @@ class Matrix(Block):
                  quadrate_map=None,
                  boolean_level_map=None,
                  zone_map=None,
+                 structure_type=None,
+                 structure_type_map=None,
                  # ts=None, txs=None, tys=None, tzs=None,
                  # lcs=None, lcs_map=None,
                  # types=None, type_map=None,
@@ -40,8 +44,11 @@ class Matrix(Block):
                  # boolean_level_map=None,
                  # exists_map=None
                  ):
-        transforms = [] if transforms is None else transforms
         blocks_points, new2old = Matrix.parse_matrix_points(points)
+        curves_map = Matrix.parse_map(m=curves_map, default=0,
+                                      new2old=new2old, item_types=(int,))
+        transforms = [] if transforms is None else transforms
+        curves = [None] if curves is None else curves
         do_register_map = Matrix.parse_map(do_register_map, True, new2old,
                                            item_types=(bool, int))
         structure_map = Matrix.parse_map(
@@ -49,15 +56,30 @@ class Matrix(Block):
         quadrate_map = Matrix.parse_map(quadrate_map, None, new2old)
         boolean_level_map = Matrix.parse_map(boolean_level_map, None, new2old)
         zone_map = Matrix.parse_map(zone_map, None, new2old)
+        structure_type = ['LLL'] if structure_type is None else structure_type
+        structure_type_map = Matrix.parse_map(structure_type_map, 0, new2old)
+        # TODO Optimized version
         children = [Block(factory=factory,
                           points=x,
+                          curves=curves[curves_map[i]],
                           use_register_tag=use_register_tag,
                           do_register=do_register_map[i],
                           structure=structure_map[i],
                           quadrate=quadrate_map[i],
                           boolean_level=boolean_level_map[i],
                           zone=zone_map[i],
-                          parent=self) for i, x in enumerate(blocks_points)]
+                          structure_type=structure_type[structure_type_map[i]],
+                          parent=self) for i, x in enumerate(blocks_points)
+                    if do_register_map[i]]
+        # children = [Block(factory=factory,
+        #                   points=x,
+        #                   use_register_tag=use_register_tag,
+        #                   do_register=do_register_map[i],
+        #                   structure=structure_map[i],
+        #                   quadrate=quadrate_map[i],
+        #                   boolean_level=boolean_level_map[i],
+        #                   zone=zone_map[i],
+        #                   parent=self) for i, x in enumerate(blocks_points)]
         super().__init__(factory=factory, parent=parent,
                          do_register=False,
                          children=children, transforms=transforms,
@@ -324,22 +346,25 @@ class Matrix(Block):
 
     @staticmethod
     def parse_map(m, default, new2old, item_types=(bool, str, int, float)):
+        # Default value for all items if map is None
         if m is None:
             m = [default for _ in new2old]
             return m
+        # Check on single item of type in item_types
         for t in item_types:
-            if isinstance(t, list):
+            if isinstance(t, list):  # list of ...
                 if isinstance(m, list):
                     if all(isinstance(m2, t2) for t2 in t for m2 in m):
                         m = [m for _ in new2old]
                         return m
-            elif isinstance(m, t):
+            elif isinstance(m, t):  # non list types
                 m = [m for _ in new2old]
                 return m
+        # Old list to new list
         if isinstance(m, list):
             m = [m[old_i] for old_i in new2old.values()]
             return m
-        else:
+        else:  # Something wrong
             raise ValueError(m)
 
 #             # Update maps

@@ -276,7 +276,7 @@ class Path(CoordinateSystem):
         return cs
 
 
-class MultiLayerXY(CoordinateSystem):
+class LayerXY(CoordinateSystem):
     """
 
     Args:
@@ -302,33 +302,26 @@ class MultiLayerXY(CoordinateSystem):
                  layers_types=None,  **kwargs):
         super().__init__(dim=3, origin=origin, **kwargs)
         layers = [[1], [1], [1], [1]] if layers is None else layers
-        if curves_names is None:
-            curves_names = [['line' for _ in x] for x in layers]
-        if layers_types is None:
-            layers_types = ['in' for _ in layers]
         if len(layers) == 4:   # X, Y, NX, NZ
             pass
         elif len(layers) == 1:  # X = Y = NX = NY
             layers = [layers[0] for _ in range(4)]
             curves_names = [curves_names[0] for _ in range(4)]
-            layers_types = [layers_types[0] for _ in range(4)]
         elif len(layers) == 2:  # X = NX and Y = NY
             layers = layers + layers
             curves_names = curves_names + curves_names
-            layers_types = layers_types + layers_types
         else:
             raise ValueError(layers)
+        if curves_names is None:
+            curves_names = [['line' for _ in x] for x in layers]
+        if layers_types is None:
+            layers_types = ['in' for _ in layers[0]]
         from matrix import Matrix
         _, coordinates, _, new2old, _ = Matrix.parse_grid(layers)
-        print(coordinates)
-        print(new2old)
         curves_names = [[curves_names[i][new2old[i][j]] for j, y in enumerate(x)]
                         for i, x in enumerate(coordinates)]
-        print(curves_names)
-        print(layers_types)
         for i in [2, 3]:  # Negative NX, NY
             coordinates[i] = [-x for x in coordinates[i]]
-        print(coordinates)
         self.layers = coordinates
         self.curves_names = curves_names
         self.layers_types = layers_types
@@ -361,7 +354,7 @@ factory = {
     Path.__name__: Path,
     Path.__name__.lower(): Path,
     'pth': Path,
-    MultiLayerXY.__name__: MultiLayerXY,
-    MultiLayerXY.__name__.lower(): MultiLayerXY,
-    'mlxy': Path
+    LayerXY.__name__: LayerXY,
+    LayerXY.__name__.lower(): LayerXY,
+    'lxy': Path
 }
