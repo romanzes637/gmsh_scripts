@@ -305,9 +305,11 @@ class LayerXY(CoordinateSystem):
         elif len(layers) == 1:  # X = Y = NX = NY
             layers = [layers[0] for _ in range(4)]
             curves_names = [curves_names[0] for _ in range(4)]
+            layers_types = [layers_types[0] for _ in range(4)]
         elif len(layers) == 2:  # X = NX and Y = NY
             layers = layers + layers
             curves_names = curves_names + curves_names
+            layers_types = layers_types + layers_types
         else:
             raise ValueError(layers)
         if curves_names is None:

@@ -1,5 +1,5 @@
 from registry import get_curve_structure, register_structure_curve, \
-    get_surface_structure, register_structure_surface,\
+    get_surface_structure, register_structure_surface, \
     get_volume_structure, register_structure_volume, \
     get_surface_quadrate, register_quadrate_surface
 from support import DataTree
@@ -13,6 +13,14 @@ class Structure:
     def __init__(self, name=None, **kwargs):
         self.name = name
         self.kwargs = kwargs
+
+
+class NoStructure:
+    def __init__(self):
+        pass
+
+    def __call__(self):
+        pass
 
 
 class StructureBlock:
@@ -77,5 +85,7 @@ str2obj = {
     Structure.__name__: Structure,
     Structure.__name__.lower(): Structure,
     StructureBlock.__name__: StructureBlock,
-    StructureBlock.__name__.lower(): StructureBlock
+    StructureBlock.__name__.lower(): StructureBlock,
+    NoStructure.__name__.lower(): NoStructure,
+    NoStructure.__name__.lower(): NoStructure
 }

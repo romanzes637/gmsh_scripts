@@ -165,6 +165,43 @@ class Boolean(Strategy):
         gmsh.model.remove()
 
 
+class Fast(Strategy):
+    def __init__(self, factory=None, model_name=None, output_path=None,
+                 output_formats=None):
+        super().__init__(factory, model_name, output_path, output_formats)
+
+    def __call__(self, block):
+        super().__call__(block)
+        gmsh.logger.start()
+        gmsh.model.add(self.model_name)
+        timeit(block.transform)()
+        timeit(block.register)()
+        if self.factory == 'geo':
+            timeit(synchronize_registry)()
+            timeit(block.unregister)()
+            timeit(synchronize_registry)()
+        elif self.factory == 'occ':
+            timeit(synchronize_registry)()
+            timeit(block.unregister)()
+        else:
+            raise ValueError(self.factory)
+        if 'geo_unrolled' in self.output_formats:
+            path = f'{self.output_path}.geo_unrolled'
+            logging.info(f'Writing {path}')
+            timeit(gmsh.write)(path)
+        timeit(gmsh.model.mesh.generate)(3)
+        log = gmsh.logger.get()
+        for x in log:
+            logging.info(x)
+        plot_statistics()
+        for f in self.output_formats:
+            if f != 'geo_unrolled':
+                path = f'{self.output_path}.{f}'
+                logging.info(f'Writing {path}')
+                timeit(gmsh.write)(path)
+        gmsh.model.remove()
+
+
 str2obj = {
     Simple.__name__: Simple,
     Simple.__name__.lower(): Simple,

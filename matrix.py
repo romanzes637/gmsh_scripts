@@ -94,6 +94,7 @@ class Matrix(Block):
                  [type2, coordinate and/or mesh size 1,
                  coordinate and/or mesh size 2, ...],
                  ...]
+                 if type == 'increment', first coordinate is origin
                  where type (str): type of row: 'value' or 'increment',
                  coordinate + mesh size (str or int or float):
                  coordinate and/or mesh size values like:
@@ -135,9 +136,20 @@ class Matrix(Block):
         new2old, old2new = [], []
         for row_i, row in enumerate(grid):
             new2old_i, old2new_i = {}, {}
-            row_type, cs = row[0], row[1:]
+            row_type = row[0]
+            if row_type == 'value':
+                cur_c, cur_ms, cs = 0, None, row[1:]
+            elif row_type == 'increment':
+                if isinstance(row[1], str):
+                    vs_ms = row[1].split(';')  # values and mesh size
+                    v = float(vs_ms[0])
+                    ms = float(vs_ms[1]) if len(vs_ms) > 1 else None
+                else:
+                    v, ms = row[1], None
+                cur_c, cur_ms, cs = v, ms, [0] + row[2:]
+            else:
+                raise ValueError(row_type)
             cs_i, mss_i = [], []
-            cur_c, cur_ms = 0, None
             for col_i, c in enumerate(cs):  # coordinate
                 if isinstance(c, (float, int)):
                     dc = c - cur_c if row_type == 'value' else c
@@ -265,82 +277,60 @@ class Matrix(Block):
         else:
             params = [[]]
         # Old global to old local
-        old_g2l, old_l2g = {}, {}
-        for pi, p in enumerate(params):
-            nx = len(grid[0]) - 2 if grid[0][0] == 'value' else len(grid[0]) - 1
-            ny = len(grid[1]) - 2 if grid[1][0] == 'value' else len(grid[1]) - 1
-            nz = len(grid[2]) - 2 if grid[2][0] == 'value' else len(grid[2]) - 1
-            for zi in range(nz):
-                for yi in range(ny):
-                    for xi in range(nx):
-                        gi = pi * nx * ny * nz + zi * ny * nx + yi * nx + xi
-                        li = (pi, zi, yi, xi)
-                        old_g2l[gi] = li
-                        old_l2g[li] = gi
+        old_grid = [x[2:] for x in grid]  # remove type and first/start point
+        old_grid += params
+        old_l2g, old_g2l = Matrix.local_global_maps(old_grid)
         # Evaluate blocks points and new global to new local
+        new_grid = [x[1:] for x in coords]  # remove first point
+        new_grid += params
+        new_l2g, new_g2l = Matrix.local_global_maps(new_grid)
+        # New to old
+        # Move rows maps on 1 step (due to first/start point remove above)
+        rows_new2old_maps = [{k - 1: v - 1 for k, v in x.items() if v != 0}
+                             for x in rows_new2old[:3]]
+        rows_new2old_maps += [{i: i for i, _ in enumerate(params)}]
+        print(rows_new2old_maps)
+        n2o_g2g, o2n_g2g = Matrix.new_old_maps(old_grid, new_grid,
+                                               rows_new2old_maps)
+        # Block points
         blocks_points = []
-        new_g2l, new_l2g = {}, {}
-        for pi, p in enumerate(params):
-            xs, ys, zs = coords  # with start coordinate
-            xs_ms, ys_ms, zs_ms = mesh_sizes
-            nx, ny, nz = len(xs) - 1, len(ys) - 1, len(zs) - 1
-            for zi, cur_z in enumerate(zs[1:], start=1):
-                prev_z = zs[zi - 1]
-                cur_z_ms, prev_z_ms = zs_ms[zi], zs_ms[zi - 1]
-                for yi, cur_y in enumerate(ys[1:], start=1):
-                    prev_y = ys[yi - 1]
-                    cur_y_ms, prev_y_ms = ys_ms[yi], ys_ms[yi - 1]
-                    for xi, cur_x in enumerate(xs[1:], start=1):
-                        prev_x = xs[xi - 1]
-                        cur_x_ms, prev_x_ms = xs_ms[xi], xs_ms[xi - 1]
-                        # Mesh sizes
-                        block_mesh_sizes = [
-                            [cur_x_ms, cur_y_ms, prev_z_ms],
-                            [prev_x_ms, cur_y_ms, prev_z_ms],
-                            [prev_x_ms, prev_y_ms, prev_z_ms],
-                            [cur_x_ms, prev_y_ms, prev_z_ms],
-                            [cur_x_ms, cur_y_ms, cur_z_ms],
-                            [prev_x_ms, cur_y_ms, cur_z_ms],
-                            [prev_x_ms, prev_y_ms, cur_z_ms],
-                            [cur_x_ms, prev_y_ms, cur_z_ms]]
-                        # Mean if mesh size != 0
-                        ms = [np.mean([y for y in x if y is not None])
-                              for x in block_mesh_sizes]
-                        # Replace np.nan with global_mesh_size
-                        ms = [x if not np.isnan(x) else global_mesh_size
-                              for x in ms]
-                        # Convert to lists (empty list if ms == 0)
-                        ms = [[x] if x is not None else [] for x in ms]
-                        # Points
-                        block_points = [
-                            [cur_x, cur_y, prev_z] + p + ms[0],
-                            [prev_x, cur_y, prev_z] + p + ms[1],
-                            [prev_x, prev_y, prev_z] + p + ms[2],
-                            [cur_x, prev_y, prev_z] + p + ms[3],
-                            [cur_x, cur_y, cur_z] + p + ms[4],
-                            [prev_x, cur_y, cur_z] + p + ms[5],
-                            [prev_x, prev_y, cur_z] + p + ms[6],
-                            [cur_x, prev_y, cur_z] + p + ms[7],
-                            coordinate_system]
-                        blocks_points.append(block_points)
-                        gi = pi * nx * ny * nz + (zi - 1) * ny * nx + (yi - 1) * nx + (xi - 1)
-                        li = (pi, zi - 1, yi - 1, xi - 1)
-                        new_g2l[gi] = li
-                        new_l2g[li] = gi
-        new2old_z, new2old_y, new2old_x = rows_new2old[2], rows_new2old[1], rows_new2old[0]
-        # New global to old global
-        new2old_g2g, old2new_g2g = {}, {}
-        for new_gi, new_li in new_g2l.items():
-            pi, zi, yi, xi = new_li
-            old_zi, old_yi, old_xi = new2old_z[zi + 1], new2old_y[yi + 1], new2old_x[xi + 1]
-            old_xi = old_xi - 1 if grid[0][0] == 'value' and old_xi != 0 else old_xi
-            old_yi = old_yi - 1 if grid[1][0] == 'value' and old_yi != 0 else old_yi
-            old_zi = old_zi - 1 if grid[2][0] == 'value' and old_zi != 0 else old_zi
-            old_li = (pi, old_zi, old_yi, old_xi)
-            old_gi = old_l2g[old_li]
-            new2old_g2g[new_gi] = old_gi
-            old2new_g2g.setdefault(old_gi, []).append(new_gi)
-        return blocks_points, new2old_g2g
+        for gi, li in enumerate(new_g2l):
+            pi, zi, yi, xi = li
+            p = params[pi]
+            cur_z, prev_z = coords[2][zi+1], coords[2][zi]
+            cur_y, prev_y = coords[1][yi+1], coords[1][yi]
+            cur_x, prev_x = coords[0][xi+1], coords[0][xi]
+            cur_z_ms, prev_z_ms = mesh_sizes[2][zi+1], mesh_sizes[2][zi]
+            cur_y_ms, prev_y_ms = mesh_sizes[1][yi+1], mesh_sizes[1][yi]
+            cur_x_ms, prev_x_ms = mesh_sizes[0][xi+1], mesh_sizes[0][xi]
+            block_mesh_sizes = [
+                [cur_x_ms, cur_y_ms, prev_z_ms],
+                [prev_x_ms, cur_y_ms, prev_z_ms],
+                [prev_x_ms, prev_y_ms, prev_z_ms],
+                [cur_x_ms, prev_y_ms, prev_z_ms],
+                [cur_x_ms, cur_y_ms, cur_z_ms],
+                [prev_x_ms, cur_y_ms, cur_z_ms],
+                [prev_x_ms, prev_y_ms, cur_z_ms],
+                [cur_x_ms, prev_y_ms, cur_z_ms]]
+            ms = [np.mean([y for y in x if y is not None])
+                  for x in block_mesh_sizes]
+            # Replace np.nan with global_mesh_size
+            ms = [x if not np.isnan(x) else global_mesh_size for x in ms]
+            # Convert to lists (empty list if ms == 0)
+            ms = [[x] if x is not None else [] for x in ms]
+            # Points
+            block_points = [
+                [cur_x, cur_y, prev_z] + p + ms[0],
+                [prev_x, cur_y, prev_z] + p + ms[1],
+                [prev_x, prev_y, prev_z] + p + ms[2],
+                [cur_x, prev_y, prev_z] + p + ms[3],
+                [cur_x, cur_y, cur_z] + p + ms[4],
+                [prev_x, cur_y, cur_z] + p + ms[5],
+                [prev_x, prev_y, cur_z] + p + ms[6],
+                [cur_x, prev_y, cur_z] + p + ms[7],
+                coordinate_system]
+            blocks_points.append(block_points)
+        return blocks_points, n2o_g2g
 
     @staticmethod
     def parse_map(m, default, new2old, item_types=(bool, str, int, float)):
@@ -360,10 +350,74 @@ class Matrix(Block):
                 return m
         # Old list to new list
         if isinstance(m, list):
-            m = [m[old_i] for old_i in new2old.values()]
+            m = [m[old_i] for old_i in new2old]
             return m
         else:  # Something wrong
             raise ValueError(m)
+
+    @staticmethod
+    def local_global_maps(grid):
+        """Local to global and global to local maps for 2D grid
+
+        Grid
+            Local ids:
+                1, 2, 3, 4  - by 1 row
+                1, 2, 3     - by 2 row
+                1, 2        - by 3 row
+
+            Global ids:
+                1, 2, ..., 24 - global ids
+
+        Maps:
+            g  - (l3, l2, l1)
+            0  - (1,  1,  1)
+            1  - (1,  1,  2)
+            2  - (1,  1,  3)
+            3  - (1,  1,  4)
+            4  - (1,  2,  1)
+            5  - (1,  2,  2)
+            6  - (1,  2,  3)
+            7  - (1,  2,  4)
+            ...
+            16 - (2,  2,  1)
+            17 - (2,  2,  2)
+            18 - (2,  2,  3)
+            19 - (2,  2,  4)
+            20 - (2,  3,  1)
+            21 - (2,  3,  2)
+            22 - (2,  3,  3)
+            23 - (2,  3,  4)
+        """
+        l2g, g2l = {}, []
+        lens = [len(x) for x in reversed(grid)]
+        ids = [range(x) if x != 0 else [0] for x in lens]
+        for l in product(*ids):
+            g = int(np.sum([np.prod(lens[i + 1:]) * x for i, x in enumerate(l)]))
+            l2g[l] = g
+            g2l.append(l)
+        return l2g, g2l
+
+    @staticmethod
+    def new_old_maps(old_grid, new_grid, new2old_rows):
+        """New to old and old to new blocks indices map
+
+            0    1    2    - old blocks
+            | \ / \ / |
+            0  1   2  3    - old row
+            | / \ / \ |
+            0 1 2 3 4 5    - new row
+            |/|/|/|/|/
+            0 1 2 3 4      - new blocks
+        """
+        n2o_g2g, o2n_g2g = [], {}
+        o_l2g, o_g2l = Matrix.local_global_maps(old_grid)
+        n_l2g, n_g2l = Matrix.local_global_maps(new_grid)
+        for n_g, n_l in enumerate(n_g2l):
+            o_l = tuple(new2old_rows[::-1][i][x] for i, x in enumerate(n_l))
+            o_g = o_l2g[o_l]
+            n2o_g2g.append(o_g)
+            o2n_g2g.setdefault(o_g, []).append(n_g)
+        return n2o_g2g, o2n_g2g
 
 
 str2obj = {
