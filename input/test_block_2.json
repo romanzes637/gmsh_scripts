@@ -1,9 +1,6 @@
 {
-  "metadata": {
-    "class": "Block"
-  },
   "data": {
-    "factory": "geo",
+    "class": "block.Block",
     "points": 0.1,
     "children": [
       "input/test_block_4.json",
@@ -13,6 +10,6 @@
       [[0, 0, -0.015]],
       [[0, 0, 0.015]]
     ],
-    "zone_all": "B2"
+    "zone": "B2"
   }
 }

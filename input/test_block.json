@@ -1,9 +1,11 @@
 {
   "metadata": {
-    "class": "Block"
+    "run": {
+      "factory": "geo"
+    }
   },
   "data": {
-    "factory": "geo",
+    "class": "block.Block",
     "points": [2, 3, 4, "cartesian"],
     "children": [
       "input/test_block_2.json",
@@ -17,6 +19,6 @@
       [[0, 0, 0.3]],
       [[0, 0, -0.3]]
     ],
-    "zone_all": "B1"
+    "zone": "B1"
   }
 }

@@ -4,8 +4,8 @@ import copy
 
 import gmsh
 
-POINT_TOL = 8
 FACTORY = 'geo'
+POINT_TOL = 8
 POINTS = {}
 CURVES = {}
 CURVES_LOOPS = {}
@@ -111,7 +111,7 @@ name2kwargs = {
 }
 
 
-def reset():
+def reset(factory='geo', point_tol=8):
     global POINTS
     global CURVES
     global CURVES_LOOPS
@@ -132,6 +132,8 @@ def reset():
     global SURFACE_STRUCTURE
     global SURFACE_QUADRATE
     global VOLUME_STRUCTURE
+    global FACTORY
+    global POINT_TOL
     POINTS = {}
     CURVES = {}
     CURVES_LOOPS = {}
@@ -152,18 +154,20 @@ def reset():
     SURFACE_STRUCTURE = {}
     SURFACE_QUADRATE = {}
     VOLUME_STRUCTURE = {}
+    FACTORY = factory
+    POINT_TOL = point_tol
 
 
-def correct_kwargs(entity, factory, name):
+def correct_kwargs(entity, name):
     kwargs = {k: v for k, v in entity.__dict__.items() if not k.startswith('__')}
     if name in ['curve', 'surface']:
-        default_kwargs = name2kwargs[name][(factory, entity.name)]
+        default_kwargs = name2kwargs[name][(FACTORY, entity.name)]
     else:
-        default_kwargs = name2kwargs[name][factory]
+        default_kwargs = name2kwargs[name][FACTORY]
     if 'kwargs' not in kwargs:
         kwargs['kwargs'] = copy.deepcopy(default_kwargs)
     if name in ['structure_curve']:
-        if 'nPoints' in kwargs['kwargs'] and factory == 'occ':
+        if 'nPoints' in kwargs['kwargs'] and FACTORY == 'occ':
             kwargs['kwargs']['numNodes'] = kwargs['kwargs'].pop('nPoints')
         if isinstance(kwargs['kwargs']['meshType'], int):
             kwargs['kwargs']['meshType'] = TRANSFINITE_CURVE_TYPES[kwargs['kwargs']['meshType']]
@@ -324,41 +328,41 @@ add_structure_volume = {
 }
 
 
-def register_point(factory, point, register_tag):
+def register_point(point, register_tag):
     for i, c in enumerate(point.coordinates):
         point.coordinates[i] = round(c, POINT_TOL)
     key = tuple(point.coordinates)
     tag = POINTS.get(key, None)
     if tag is None:
-        point_kwargs = correct_kwargs(point, factory, 'point')
+        point_kwargs = correct_kwargs(point, 'point')
         if register_tag:
             global POINT_TAG
             point_kwargs['kwargs']['tag'] = POINT_TAG
-            tag = add_point[factory](point_kwargs)
+            tag = add_point[FACTORY](point_kwargs)
             POINT_TAG += 1
         else:
             point_kwargs['kwargs']['tag'] = -1
-            tag = add_point[factory](point_kwargs)
+            tag = add_point[FACTORY](point_kwargs)
         POINTS[key] = tag
     point.tag = tag
     return point
 
 
-def register_curve(factory, curve, register_tag):
+def register_curve(curve, register_tag):
     name = curve.name
     ps = [x.tag for x in curve.points]
     key = tuple([name] + ps)
     tag = CURVES.get(key, None)
     if tag is None:
-        curve_kwargs = correct_kwargs(curve, factory, 'curve')
+        curve_kwargs = correct_kwargs(curve, 'curve')
         if register_tag:
             global CURVE_TAG
             curve_kwargs['kwargs']['tag'] = CURVE_TAG
-            tag = add_curve[(factory, name)](curve_kwargs)
+            tag = add_curve[(FACTORY, name)](curve_kwargs)
             CURVE_TAG += 1
         else:
             curve_kwargs['kwargs']['tag'] = -1
-            tag = add_curve[(factory, name)](curve_kwargs)
+            tag = add_curve[(FACTORY, name)](curve_kwargs)
         CURVES[key] = tag
         rev_key = tuple([name] + list(reversed(ps)))
         CURVES[rev_key] = -tag
@@ -366,7 +370,7 @@ def register_curve(factory, curve, register_tag):
     return curve
 
 
-def register_curve_loop(factory, curve_loop, use_register_tag):
+def register_curve_loop(curve_loop, use_register_tag):
     curves = [x.tag * y for (x, y) in zip(curve_loop.curves,
                                           curve_loop.curves_signs)]
     deq = deque(curves)
@@ -384,138 +388,138 @@ def register_curve_loop(factory, curve_loop, use_register_tag):
         if tag is not None:
             break
     if tag is None:
-        curve_loop_kwargs = correct_kwargs(curve_loop, factory, 'curve_loop')
+        curve_loop_kwargs = correct_kwargs(curve_loop, 'curve_loop')
         curve_loop_kwargs['curves_tags'] = curves
         if use_register_tag:
             global CURVE_LOOP_TAG
             curve_loop_kwargs['kwargs']['tag'] = CURVE_LOOP_TAG
-            tag = add_curve_loop[factory](curve_loop_kwargs)
+            tag = add_curve_loop[FACTORY](curve_loop_kwargs)
             CURVE_LOOP_TAG += 1
         else:
             curve_loop_kwargs['kwargs']['tag'] = -1
-            tag = add_curve_loop[factory](curve_loop_kwargs)
+            tag = add_curve_loop[FACTORY](curve_loop_kwargs)
         for k in keys:
             CURVES_LOOPS[k] = tag
     curve_loop.tag = tag
     return curve_loop
 
 
-def register_surface(factory, surface, use_register_tag):
+def register_surface(surface, use_register_tag):
     name = surface.name
     key = tuple(x.tag for x in surface.curves_loops)
     tag = SURFACES.get(key, None)
     if tag is None:
-        surface_kwargs = correct_kwargs(surface, factory, 'surface')
+        surface_kwargs = correct_kwargs(surface, 'surface')
         if use_register_tag:
             global SURFACE_TAG
             surface_kwargs['kwargs']['tag'] = SURFACE_TAG
             # t0 = time.perf_counter()  # FIXME Too long in occ factory!
-            tag = add_surface[(factory, name)](surface_kwargs)
+            tag = add_surface[(FACTORY, name)](surface_kwargs)
             # print(time.perf_counter() - t0)
             SURFACE_TAG += 1
             # FIXME Workaround occ auto increment curve loop and surface tags
-            if factory == 'occ':
+            if FACTORY == 'occ':
                 global CURVE_LOOP_TAG
                 CURVE_LOOP_TAG += 1
         else:
             surface_kwargs['kwargs']['tag'] = -1
             # t0 = time.perf_counter()  # FIXME Too long in occ factory!
-            tag = add_surface[(factory, name)](surface_kwargs)
+            tag = add_surface[(FACTORY, name)](surface_kwargs)
             # print(time.perf_counter() - t0)
         SURFACES[key] = tag
     surface.tag = tag
     return surface
 
 
-def register_surface_loop(factory, surface_loop, register_tag):
+def register_surface_loop(surface_loop, register_tag):
     key = tuple(x.tag for x in surface_loop.surfaces)  # TODO use deque? 12x more keys
     tag = SURFACES_LOOPS.get(key, None)
     if tag is None:
-        surface_loop_kwargs = correct_kwargs(surface_loop, factory, 'surface_loop')
+        surface_loop_kwargs = correct_kwargs(surface_loop, 'surface_loop')
         surface_loop_kwargs['surfaces_tags'] = key
         # FIXME Workaround of occ returns only -1 tag
-        if register_tag or factory == 'occ':
+        if register_tag or FACTORY == 'occ':
             global SURFACE_LOOP_TAG
             surface_loop_kwargs['kwargs']['tag'] = SURFACE_LOOP_TAG
-            tag = add_surface_loop[factory](surface_loop_kwargs)
+            tag = add_surface_loop[FACTORY](surface_loop_kwargs)
             SURFACE_LOOP_TAG += 1
         else:
             surface_loop_kwargs['kwargs']['tag'] = -1
-            tag = add_surface_loop[factory](surface_loop_kwargs)
+            tag = add_surface_loop[FACTORY](surface_loop_kwargs)
         SURFACES_LOOPS[key] = tag
     surface_loop.tag = tag
     return surface_loop
 
 
-def register_volume(factory, volume, use_register_tag):
+def register_volume(volume, use_register_tag):
     key = tuple(x.tag for x in volume.surfaces_loops)
     tag = VOLUMES.get(key, None)
     if tag is None:
-        volume_kwargs = correct_kwargs(volume, factory, 'volume')
+        volume_kwargs = correct_kwargs(volume, 'volume')
         if use_register_tag:
             global VOLUME_TAG
             volume_kwargs['kwargs']['tag'] = VOLUME_TAG
-            tag = add_volume[factory](volume_kwargs)
+            tag = add_volume[FACTORY](volume_kwargs)
             VOLUME_TAG += 1
         else:
             volume_kwargs['kwargs']['tag'] = -1
-            tag = add_volume[factory](volume_kwargs)
+            tag = add_volume[FACTORY](volume_kwargs)
         VOLUMES[key] = tag
     volume.tag = tag
     return volume
 
 
-def register_quadrate_surface(factory, surface):
+def register_quadrate_surface(surface):
     if surface.quadrate is None:
         return surface
     tag = surface.tag
     if tag not in QUADRATED_SURFACES:
-        rec = correct_kwargs(surface.quadrate, factory, 'quadrate')
+        rec = correct_kwargs(surface.quadrate, 'quadrate')
         rec['kwargs']['dim'] = 2
         rec['kwargs']['tag'] = tag
-        add_quadrate[factory](rec)
+        add_quadrate[FACTORY](rec)
         QUADRATED_SURFACES.add(tag)
     return surface
 
 
-def register_structure_curve(factory, curve):
+def register_structure_curve(curve):
     if curve.structure is None:
         return curve
     tag = curve.tag
     if tag not in STRUCTURED_CURVES:
-        tr = correct_kwargs(curve.structure, factory, 'structure_curve')
+        tr = correct_kwargs(curve.structure, 'structure_curve')
         tr['kwargs']['tag'] = tag
-        add_structure_curve[factory](tr)
+        add_structure_curve[FACTORY](tr)
         STRUCTURED_CURVES.add(tag)
     return curve
 
 
-def register_structure_surface(factory, surface):
+def register_structure_surface(surface):
     if surface.structure is None:
         return surface
     tag = surface.tag
     if tag not in STRUCTURED_SURFACES:
-        tr = correct_kwargs(surface.structure, factory, 'structure_surface')
+        tr = correct_kwargs(surface.structure, 'structure_surface')
         tr['kwargs']['tag'] = tag
-        add_structure_surface[factory](tr)
+        add_structure_surface[FACTORY](tr)
         STRUCTURED_SURFACES.add(tag)
     return surface
 
 
-def register_structure_volume(factory, volume):
+def register_structure_volume(volume):
     if volume.structure is None:
         return volume
     tag = volume.tag
     if tag not in STRUCTURED_VOLUMES:
-        tr = correct_kwargs(volume.structure, factory, 'structure_volume')
+        tr = correct_kwargs(volume.structure, 'structure_volume')
         tr['kwargs']['tag'] = tag
-        add_structure_volume[factory](tr)
+        add_structure_volume[FACTORY](tr)
         STRUCTURED_VOLUMES.add(tag)
     return volume
 
 
 # TODO remove from registry
-def unregister_volume(factory, volume, register_tag):
+def unregister_volume(volume, register_tag):
     tag = volume.tag
     gmsh.model.removeEntities([(3, tag)], recursive=True)
     volume.tag = None

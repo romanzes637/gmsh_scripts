@@ -59,15 +59,15 @@ class StructureBlock:
                 all_cs_st = all(y is not None for x in vs_ss_cs_st[vi] for y in x)
                 if all_ss_st and all_cs_st:
                     v = Volume(tag=v_dt[1], structure=v_st)
-                    register_structure_volume(block.factory, v)
+                    register_structure_volume(v)
                     for si, s_st in enumerate(vs_ss_st[vi]):
                         s_dt = dt.vs_ss_dt[vi][si]
                         s = Surface(tag=s_dt[1], structure=s_st)
-                        register_structure_surface(block.factory, s)
+                        register_structure_surface(s)
                         s_qu = ss_qu[si]
                         s = Surface(tag=s_dt[1], quadrate=s_qu)
-                        register_quadrate_surface(block.factory, s)
+                        register_quadrate_surface(s)
                         for ci, c_st in enumerate(vs_ss_cs_st[vi][si]):
                             c_dt = dt.vs_ss_cs_dt[vi][si][ci]
                             c = Curve(tag=c_dt[1], structure=c_st)
-                            register_structure_curve(block.factory, c)
+                            register_structure_curve(c)

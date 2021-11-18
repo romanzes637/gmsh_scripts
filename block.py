@@ -1,11 +1,7 @@
 import logging
-from pprint import pprint
-import copy
-import time
 from pathlib import Path
 
 import numpy as np
-import gmsh
 
 from support import volumes_surfaces_to_volumes_groups_surfaces
 from transform import factory as transform_factory
@@ -79,7 +75,6 @@ class Block:
         If boolean_level is not None then no internal volumes of children.
 
     Args:
-        factory (str): gmsh factory (geo or occ)
         points (list of dict, list of list, list): 8 corner points of the block
         curves (list of dict, list of list, list, list of Curve): 12 edge curves of the block
         surfaces (list of dict, list of list, list, list of Surface): 6 boundary surfaces of the block
@@ -98,8 +93,7 @@ class Block:
         boolean_level (int): Block boolean level, if the Block level > another Block level, then intersected volume joins to the Block, if levels are equal third Block is created, if None - don't do boolean
     """
 
-    def __init__(self, factory='geo',
-                 points=None, curves=None, surfaces=None, volumes=None,
+    def __init__(self, points=None, curves=None, surfaces=None, volumes=None,
                  do_register=True, use_register_tag=False, do_unregister=False,
                  do_register_children=True, do_unregister_children=True,
                  do_unregister_boolean=False, do_unregister_boolean_children=True,
@@ -107,7 +101,6 @@ class Block:
                  quadrate=None, structure=None, zone=None,
                  parent=None, children=None, children_transforms=None,
                  boolean_level=None, file_name=None, structure_type='LLL'):
-        self.factory = factory
         self.points = self.parse_points(points)
         self.curves = self.parse_curves(curves)
         self.surfaces = self.parse_surfaces(surfaces)
@@ -512,12 +505,12 @@ class Block:
 
     def register_points(self):
         for i, p in enumerate(self.points):
-            self.points[i] = register_point(self.factory, p, self.register_tag)
+            self.points[i] = register_point(p, self.register_tag)
 
     def register_curve_points(self):
         for i, c in enumerate(self.curves):
             for j, p in enumerate(c.points):
-                c.points[j] = register_point(self.factory, p, self.register_tag)
+                c.points[j] = register_point(p, self.register_tag)
             # Add start and end points to curves
             p0 = self.points[self.curves_points[i][0]]
             p1 = self.points[self.curves_points[i][1]]
@@ -525,28 +518,27 @@ class Block:
 
     def register_curves(self):
         for i, c in enumerate(self.curves):
-            self.curves[i] = register_curve(self.factory, c, self.register_tag)
+            self.curves[i] = register_curve(c, self.register_tag)
 
     def register_curves_loops(self):
         for i, cl in enumerate(self.curves_loops):
             self.curves_loops[i].curves = [self.curves[x] for x in
                                            self.surfaces_curves[i]]
             self.curves_loops[i].curves_signs = self.surfaces_curves_signs[i]
-            self.curves_loops[i] = register_curve_loop(self.factory,
-                                                       self.curves_loops[i],
+            self.curves_loops[i] = register_curve_loop(self.curves_loops[i],
                                                        self.register_tag)
 
     def register_surfaces(self):
         for i, s in enumerate(self.surfaces):
             self.surfaces[i].curves_loops = [self.curves_loops[i]]
-            self.surfaces[i] = register_surface(self.factory, self.surfaces[i],
+            self.surfaces[i] = register_surface(self.surfaces[i],
                                                 self.register_tag)
 
     def register_surfaces_loops(self):
         # External
         self.surfaces_loops[0].surfaces = self.surfaces
-        self.surfaces_loops[0] = register_surface_loop(
-            self.factory, self.surfaces_loops[0], self.register_tag)
+        self.surfaces_loops[0] = register_surface_loop(self.surfaces_loops[0],
+                                                       self.register_tag)
         # Internal
         if self.boolean_level is None:
             internal_volumes = []
@@ -562,13 +554,13 @@ class Block:
                 volumes_surfaces)
             for g in surfaces_groups:
                 sl = SurfaceLoop(surfaces=[Surface(tag=x) for x in g])
-                sl = register_surface_loop(self.factory, sl, self.register_tag)
+                sl = register_surface_loop(sl, self.register_tag)
                 self.surfaces_loops.append(sl)
 
     def register_volumes(self):
         v = self.volumes[0]
         v.surfaces_loops = self.surfaces_loops
-        self.volumes[0] = register_volume(self.factory, v, self.register_tag)
+        self.volumes[0] = register_volume(v, self.register_tag)
         self.is_registered = True
 
     def register_structure(self):
@@ -615,8 +607,7 @@ class Block:
         for i, v in enumerate(self.volumes):
             if v.zone is not None:
                 if zone_separator not in v.zone:
-                    self.volumes[i] = unregister_volume(self.factory, v,
-                                                        self.register_tag)
+                    self.volumes[i] = unregister_volume(v, self.register_tag)
 
     def unregister_boolean(self, zone_separator='-'):
         # Children
@@ -630,8 +621,7 @@ class Block:
             return
         for i, v in enumerate(self.volumes):
             if zone_separator in v.zone:
-                self.volumes[i] = unregister_volume(self.factory, v,
-                                                    self.register_tag)
+                self.volumes[i] = unregister_volume(v, self.register_tag)
 
     def __iter__(self):
         """Iterate children of the block recursively
@@ -659,6 +649,9 @@ class Block:
         yield self
         for child in self.children:
             yield from iter(child)
+
+    def __len__(self):
+        return sum(1 for _ in self)
 
     def make_tree(self):
         """Tree of blocks
