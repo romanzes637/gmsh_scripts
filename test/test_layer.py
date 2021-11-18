@@ -1,16 +1,18 @@
 import logging
 import unittest
 
-from support import GmshDecorator, LoggingDecorator
+from support import GmshDecorator, LoggingDecorator, GmshOptionsDecorator
 from strategy import Simple
-from layer import LayerXY
+from layer import Layer
+from coordinate_system import LayerXY
 from matrix import Matrix
 
 
 class TestLayer(unittest.TestCase):
 
-    @GmshDecorator({'General.Terminal': 0})
     @LoggingDecorator(level='DEBUG')
+    @GmshDecorator()
+    @GmshOptionsDecorator()
     def test_layer(self):
         for factory in ['geo', 'occ']:
             model_name = f'test_layer-{factory}'
@@ -29,7 +31,6 @@ class TestLayer(unittest.TestCase):
                 layers_types=['in', 'out', 'in', 'out'])
             # b = BlockObject(factory=factory, do_register=False)
             m = Matrix(
-                factory=factory,
                 points=[[-4, -3, -2, -1, 1, 2, 3, 4],
                         [-4, -3, -2, -1, 1, 2, 3, 4],
                         [0, 1, 2], lxy],
@@ -273,4 +274,4 @@ class TestLayer(unittest.TestCase):
                 structure_map=[[5, 0, 1], [5, 0, 1], [3, 0, 1]],
                 boolean_level_map=0,
                 quadrate_map=0)
-            Simple()(factory, model_name, m)
+            Simple(factory, model_name)(m)

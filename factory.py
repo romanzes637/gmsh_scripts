@@ -53,25 +53,21 @@ class Factory:
         self.str2obj = str2obj
         self.obj2str = obj2str
 
-    def __call__(self, string=None, args=None, kwargs=None):
-        args = [] if args is None else args
-        kwargs = {} if kwargs is None else kwargs
-        if string is not None:
-            result, path = check_on_file(string)  # Check on path to file
-            if result is not None:  # string is a path
+    def __call__(self, obj):
+        if isinstance(obj, dict):
+            key, args, kwargs = obj.pop('class'), [], obj
+        elif isinstance(obj, list):
+            key, args, kwargs = obj[0], obj[1:], {}
+        elif isinstance(obj, str):
+            result, path = check_on_file(obj)  # Check on path to file
+            if result is None:  # obj is a key
+                key, args, kwargs = obj, [], {}
+            else:  # obj is a path
                 with open(path) as f:
                     data = json.load(f)
-                kwargs.update(data['data'])  # Update kwargs from file data
-                key = kwargs.pop('class')  # key in the kwargs
-            else:  # string is a key
-                key = string
-        else:  # string is None
-            if 'class' in kwargs:  # key in the kwargs
-                key = kwargs.pop('class')
-            elif len(args) > 0:  # key is the first item in args
-                key, args = args[0], args[1:]
-            else:  # No key!
-                raise ValueError(f'No key found in {string}, {args}, {kwargs}!')
+                key, args, kwargs = data.pop('class'), [], data
+        else:
+            raise ValueError(obj)
         return self.str2obj[key](*args, **kwargs)
 
 

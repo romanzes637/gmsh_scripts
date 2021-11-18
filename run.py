@@ -41,7 +41,7 @@ def init_block_tree(block_tree, top_block_path):
             child_kwargs = copy.deepcopy(block_tree['blocks_kwargs'][child_path])
             child_kwargs['data']['parent'] = parent
             child_kwargs['data']['path'] = child_path
-            child = FACTORY(kwargs=child_kwargs['data'])
+            child = FACTORY(child_kwargs['data'])
             parent.children[i] = child
             recurse(child, child_path, blocks)  # now child is a new parent
 
@@ -49,7 +49,7 @@ def init_block_tree(block_tree, top_block_path):
     parent_path = top_block_path
     parent_kwargs = copy.deepcopy(block_tree['blocks_kwargs'][parent_path])
     parent_kwargs['data']['path'] = parent_path
-    parent = FACTORY(kwargs=parent_kwargs['data'])
+    parent = FACTORY(parent_kwargs['data'])
     recurse(parent, parent_path, blocks)
     return blocks
 
@@ -102,6 +102,13 @@ def parse_arguments():
     args.setdefault('factory', 'geo')
     args.setdefault('strategy', 'strategy.simple')
     args.setdefault('options', {})
+    if isinstance(args['strategy'], str):
+        args['strategy'] = {
+            'class': args['strategy'],
+            'factory': args['factory'],
+            'model_name': args['model_name'],
+            'output_path': args['output_path'],
+            'output_formats': args['output_formats']}
     return args
 
 
@@ -111,11 +118,7 @@ def run(args):
     logging.info(block_tree['blocks_children'])
     blocks = timeit(init_block_tree)(block_tree, args['input_path'])
     strategy = FACTORY(args['strategy'])
-    strategy(factory=args['factory'],
-             model_name=args['model_name'],
-             output_path=args['output_path'],
-             output_formats=args['output_formats'],
-             block=blocks[0])
+    strategy(blocks[0])
 
 
 if __name__ == '__main__':
