@@ -81,8 +81,8 @@ class GmshDecorator:
         return wrapper
 
 
-class OptionsDecorator:
-    """Decorator fot gmsh options setting
+class GmshOptionsDecorator:
+    """Decorator for setting gmsh options
 
     1. Set options
     2. Call function

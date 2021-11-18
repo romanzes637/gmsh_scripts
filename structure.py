@@ -71,3 +71,11 @@ class StructureBlock:
                             c_dt = dt.vs_ss_cs_dt[vi][si][ci]
                             c = Curve(tag=c_dt[1], structure=c_st)
                             register_structure_curve(c)
+
+
+str2obj = {
+    Structure.__name__: Structure,
+    Structure.__name__.lower(): Structure,
+    StructureBlock.__name__: StructureBlock,
+    StructureBlock.__name__.lower(): StructureBlock
+}

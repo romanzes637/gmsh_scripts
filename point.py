@@ -2,7 +2,7 @@ import logging
 
 import numpy as np
 
-from coordinate_system import factory as cs_factory
+from coordinate_system import str2obj as cs_factory
 from coordinate_system import CoordinateSystem, Cartesian, Cylindrical, \
     Spherical, Toroidal, Tokamak
 
@@ -239,7 +239,7 @@ class Point:
         return points
 
 
-factory = {
+str2obj = {
     Point.__name__: Point,
     Point.__name__.lower(): Point
 }

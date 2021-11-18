@@ -17,3 +17,9 @@ class Surface:
         self.structure = structure
         self.quadrate = quadrate
         self.kwargs = kwargs
+
+
+str2obj = {
+    Surface.__name__: Surface,
+    Surface.__name__.lower(): Surface
+}

@@ -30,3 +30,11 @@ class QuadrateBlock:
         #             q = get_surface_quadrate(points)
         #             s = Surface(tag=s_dt[1], quadrate=q)
         #             register_quadrate_surface(block.factory, s)
+
+
+str2obj = {
+    Quadrate.__name__: Quadrate,
+    Quadrate.__name__.lower(): Quadrate,
+    QuadrateBlock.__name__: QuadrateBlock,
+    QuadrateBlock.__name__.lower(): QuadrateBlock
+}

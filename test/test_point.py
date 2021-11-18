@@ -5,7 +5,7 @@ import logging
 import numpy as np
 
 from point import Point
-from coordinate_system import factory as cs_factory
+from coordinate_system import str2obj as cs_factory
 
 global_rng = np.random.default_rng()
 

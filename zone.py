@@ -4,7 +4,7 @@ import gmsh
 from support import DataTree, flatten
 
 
-class Rule:
+class Zone:
     """
     """
 
@@ -15,7 +15,7 @@ class Rule:
         pass
 
 
-class BlockSimple(Rule):
+class BlockSimple(Zone):
     """Name from zone field of entity
 
     """
@@ -53,7 +53,7 @@ class BlockSimple(Rule):
             gmsh.model.setPhysicalName(dim, tag, zone)
 
 
-class BlockDirection(Rule):
+class BlockDirection(Zone):
     def __init__(self, zones=None, zones_directions=None, dims=(0, 1, 2, 3),
                  make_interface=False, add_volume_tag=False, add_volume_zone=True,
                  add_surface_loop_tag=False, add_in_out_boundary=False):
@@ -272,3 +272,13 @@ class Direction(CoordinatesToWeights):
         weights = [np.mean(np.dot(ps_cs, x.T), axis=1)
                    for x in self.zones_directions]
         return weights
+
+
+str2obj = {
+    Zone.__name__: Zone,
+    Zone.__name__.lower(): Zone,
+    BlockSimple.__name__: BlockSimple,
+    BlockSimple.__name__.lower(): BlockSimple,
+    BlockDirection.__name__: BlockDirection,
+    BlockDirection.__name__.lower(): BlockDirection
+}

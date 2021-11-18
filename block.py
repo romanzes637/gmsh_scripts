@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 
 from support import volumes_surfaces_to_volumes_groups_surfaces
-from transform import factory as transform_factory
+from transform import str2obj as transform_factory
 from transform import BlockToCartesian
 from transform import reduce_transforms
 from registry import register_point, register_curve, register_curve_loop, \
@@ -100,7 +100,7 @@ class Block:
                  transforms=None,
                  quadrate=None, structure=None, zone=None,
                  parent=None, children=None, children_transforms=None,
-                 boolean_level=None, file_name=None, structure_type='LLL'):
+                 boolean_level=None, path=None, structure_type='LLL'):
         self.points = self.parse_points(points)
         self.curves = self.parse_curves(curves)
         self.surfaces = self.parse_surfaces(surfaces)
@@ -131,7 +131,7 @@ class Block:
             children_transforms[i] = self.parse_transforms(t, parent)
         self.children_transforms = children_transforms
         self.boolean_level = boolean_level
-        self.file_name = file_name
+        self.path = path
         self.surfaces_arrangement, self.surfaces_points, self.volume_points = \
             self.parse_structure_type(structure_type)
         # Support
@@ -681,7 +681,7 @@ class Block:
                     'do_unregister_boolean', 'do_unregister_boolean_children',
                     'is_registered', 'is_quadrated', 'is_structured'))
             elif t == 'file_name':
-                v = b.file_name
+                v = b.path
             elif t == 'boolean_level':
                 v = str(b.boolean_level)
             elif t == 'volume_zone':
@@ -695,8 +695,8 @@ class Block:
             return v
 
         if file_name is None:
-            if self.file_name is not None:
-                file_name = f"{Path(self.file_name).with_suffix('').name}-tree"
+            if self.path is not None:
+                file_name = f"{self.path.with_suffix('').name}-tree"
             else:
                 file_name = f'{id(self)}-tree'
         logging.info(f'Tree of {id(self)} with label by {label_type} '
@@ -763,3 +763,9 @@ class Block:
             n.write_html(str(p))
         except Exception as e:
             logging.warning(e)
+
+
+str2obj = {
+    Block.__name__: Block,
+    Block.__name__.lower(): Block,
+}

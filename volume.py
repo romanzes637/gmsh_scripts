@@ -17,3 +17,9 @@ class Volume:
         self.structure = structure
         self.quadrate = quadrate
         self.kwargs = kwargs
+
+
+str2obj = {
+    Volume.__name__: Volume,
+    Volume.__name__.lower(): Volume
+}

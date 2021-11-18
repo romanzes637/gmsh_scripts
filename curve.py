@@ -18,3 +18,9 @@ class Curve:
         self.points = points if points is not None else []
         self.structure = structure
         self.kwargs = kwargs
+
+
+str2obj = {
+    Curve.__name__: Curve,
+    Curve.__name__.lower(): Curve
+}

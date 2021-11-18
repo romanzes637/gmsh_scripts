@@ -15,3 +15,9 @@ class CurveLoop:
         self.curves = curves
         self.curves_signs = curves_signs
         self.kwargs = kwargs
+
+
+str2obj = {
+    CurveLoop.__name__: CurveLoop,
+    CurveLoop.__name__.lower(): CurveLoop
+}

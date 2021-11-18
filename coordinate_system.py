@@ -137,7 +137,7 @@ class Path(CoordinateSystem):
                 pass
             else:
                 raise ValueError(o)
-        from transform import factory as transform_factory
+        from transform import str2obj as transform_factory
         orientations = [[transform_factory[type(y.coordinate_system)]()(y)
                          for y in x] for x in orientations]
         for i, o in enumerate(orientations):
@@ -168,7 +168,7 @@ class Path(CoordinateSystem):
             for p in c.points:
                 cs = p.coordinate_system
                 if not isinstance(cs, Cartesian):
-                    from transform import factory as tr_factory, reduce_transforms
+                    from transform import str2obj as tr_factory, reduce_transforms
                     any2car = tr_factory[type(cs)]()
                     ts = [any2car] + self.transforms[i]
                     reduce_transforms(ts, p)
@@ -325,7 +325,7 @@ class LayerXY(CoordinateSystem):
         self.layers_types = layers_types
 
 
-factory = {
+str2obj = {
     CoordinateSystem.__name__: CoordinateSystem,
     'coo': CoordinateSystem,
     Affine.__name__: Affine,

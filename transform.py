@@ -337,7 +337,7 @@ class PathToCartesian(Transform):
         u = p.coordinates[2]  # Curve local coordinate
         p.coordinates[2] = 0
         lcs = p.coordinate_system.get_local_coordinate_system(u)
-        any2car = factory[lcs.__class__]()
+        any2car = str2obj[lcs.__name__]()
         p.coordinate_system = lcs
         p = any2car(p)
         return p
@@ -447,7 +447,7 @@ class LayerXYToCartesian(Transform):
         return p0, pn
 
 
-factory = {
+str2obj = {
     Transform.__name__: Transform,
     Translate.__name__: Translate,
     Translate.__name__.lower(): Translate,
@@ -456,19 +456,19 @@ factory = {
     Rotate.__name__.lower(): Rotate,
     'rot': Rotate,
     CartesianToCartesian.__name__: CartesianToCartesian,
-    Cartesian: CartesianToCartesian,
+    Cartesian.__name__: CartesianToCartesian,
     'cartesian_to_cartesian': CartesianToCartesian,
     'car2car': CartesianToCartesian,
     CylindricalToCartesian.__name__: CylindricalToCartesian,
-    Cylindrical: CylindricalToCartesian,
+    Cylindrical.__name__: CylindricalToCartesian,
     'cylindrical_to_cartesian': CylindricalToCartesian,
     'cyl2car': CylindricalToCartesian,
     SphericalToCartesian.__name__: SphericalToCartesian,
-    Spherical: SphericalToCartesian,
+    Spherical.__name__: SphericalToCartesian,
     'spherical_to_cartesian': SphericalToCartesian,
     'sph2car': SphericalToCartesian,
     ToroidalToCartesian.__name__: ToroidalToCartesian,
-    Toroidal: ToroidalToCartesian,
+    Toroidal.__name__: ToroidalToCartesian,
     'toroidal_to_cartesian': ToroidalToCartesian,
     'tor2car': ToroidalToCartesian,
     TokamakToCartesian.__name__: TokamakToCartesian,
@@ -476,20 +476,21 @@ factory = {
     'tokamak_to_cartesian': TokamakToCartesian,
     'tok2car': TokamakToCartesian,
     BlockToCartesian.__name__: BlockToCartesian,
-    Block: BlockToCartesian,
+    Block.__name__: BlockToCartesian,
     'block_to_cartesian': BlockToCartesian,
     'blo2car': BlockToCartesian,
     AffineToCartesian.__name__: AffineToCartesian,
-    Affine: AffineToCartesian,
+    Affine.__name__: AffineToCartesian,
     'affine_to_cartesian': AffineToCartesian,
     'aff2car': AffineToCartesian,
     AffineToAffine.__name__: AffineToAffine,
     'affine_to_affine': AffineToAffine,
     'aff2aff': AffineToAffine,
     PathToCartesian.__name__: PathToCartesian,
-    Path: PathToCartesian,
+    Path.__name__: PathToCartesian,
     'path_to_cartesian': PathToCartesian,
     'pat2car': PathToCartesian,
+    LayerXY.__name__: LayerXYToCartesian,
     LayerXYToCartesian: LayerXYToCartesian,
     'lxy_to_cartesian': LayerXYToCartesian,
     'lxy2car': LayerXYToCartesian

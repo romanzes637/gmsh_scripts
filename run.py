@@ -5,7 +5,7 @@ import logging
 import copy
 
 from support import check_on_file, timeit, \
-    LoggingDecorator, GmshDecorator, OptionsDecorator
+    LoggingDecorator, GmshDecorator, GmshOptionsDecorator
 from factory import FACTORY as FACTORY
 
 
@@ -40,7 +40,7 @@ def init_block_tree(block_tree, top_block_path):
         for i, child_path in enumerate(children_paths):
             child_kwargs = copy.deepcopy(block_tree['blocks_kwargs'][child_path])
             child_kwargs['data']['parent'] = parent
-            child_kwargs['data']['file_name'] = child_path
+            child_kwargs['data']['path'] = child_path
             child = FACTORY(kwargs=child_kwargs['data'])
             parent.children[i] = child
             recurse(child, child_path, blocks)  # now child is a new parent
@@ -48,7 +48,7 @@ def init_block_tree(block_tree, top_block_path):
     blocks = []
     parent_path = top_block_path
     parent_kwargs = copy.deepcopy(block_tree['blocks_kwargs'][parent_path])
-    parent_kwargs['data']['file_name'] = parent_path
+    parent_kwargs['data']['path'] = parent_path
     parent = FACTORY(kwargs=parent_kwargs['data'])
     recurse(parent, parent_path, blocks)
     return blocks
@@ -76,7 +76,7 @@ def parse_arguments():
     parser.add_argument('-g', '--factory', help='gmsh factory',
                         default=argparse.SUPPRESS, choices=['geo', 'occ'])
     parser.add_argument('-s', '--strategy', default=argparse.SUPPRESS,
-                        choices=[x for x in FACTORY.global_factory
+                        choices=[x for x in FACTORY.str2obj
                                  if isinstance(x, str)
                                  and x.split('.')[0] == 'strategy'])
     cmd_args = vars(parser.parse_args())
@@ -123,7 +123,7 @@ if __name__ == '__main__':
 
     @LoggingDecorator(filename=args['log_path'], level=args['log_level'])
     @GmshDecorator()
-    @OptionsDecorator(options=args['options'])
+    @GmshOptionsDecorator(options=args['options'])
     def pipeline(args):
         run(args)
 

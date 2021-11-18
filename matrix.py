@@ -364,3 +364,9 @@ class Matrix(Block):
             return m
         else:  # Something wrong
             raise ValueError(m)
+
+
+str2obj = {
+    Matrix.__name__: Matrix,
+    Matrix.__name__.lower(): Matrix
+}

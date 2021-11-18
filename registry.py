@@ -598,3 +598,12 @@ def get_surface_quadrate(points):
         if structure is not None:
             return structure
     return None
+
+
+def synchronize():
+    if FACTORY == 'geo':
+        gmsh.model.geo.synchronize()
+    elif FACTORY == 'occ':
+        gmsh.model.occ.synchronize()
+    else:
+        raise ValueError(FACTORY)

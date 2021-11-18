@@ -12,3 +12,9 @@ class SurfaceLoop:
         self.zone = zone
         self.surfaces = surfaces
         self.kwargs = kwargs
+
+
+str2obj = {
+    SurfaceLoop.__name__: SurfaceLoop,
+    SurfaceLoop.__name__.lower(): SurfaceLoop
+}
