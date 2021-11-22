@@ -612,7 +612,7 @@ def beta_cdf(xs, a, b, n=10000):
         n (int): number of integration steps
 
     Returns:
-        float, np.ndarray: value
+        float, np.ndarray: value [0, 1]
     """
     t = beta_function(1, a, b, n)
     # Different integrations steps by x value

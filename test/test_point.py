@@ -4,12 +4,12 @@ import logging
 
 import numpy as np
 
-from point import Point
+from point import Point, parse_grid
+from point import parse_grid_row
 from coordinate_system import str2obj as cs_factory
+from support import LoggingDecorator, flatten
 
 global_rng = np.random.default_rng()
-
-logging.basicConfig(level=logging.INFO)
 
 
 class TestPoint(unittest.TestCase):
@@ -174,6 +174,171 @@ class TestPoint(unittest.TestCase):
         for _ in range(n_tests):
             self.test_one()
             self.test_many()
+
+    @LoggingDecorator()
+    def test_parse_grid_row(self):
+        logging.info('1')
+        row = ['v;p', -3.3, -1, 0, 1.1, 4]
+        logging.info(f'row: {row}')
+        bs = [0, 1, 2, 3]
+        new_bs_true = [0, 1, 2, 3]
+        logging.info(f'blocks: {bs}')
+        rs = parse_grid_row(row)
+        new2old_b2b = rs[-1]
+        new_bs = [bs[x] for x in new2old_b2b]
+        self.assertListEqual(new_bs_true, new_bs)
+
+        logging.info('2')
+        row = ['i;p', -3.3, -1, 0, 1.1, 4]
+        logging.info(f'row: {row}')
+        bs = [0, 1, 2, 3]
+        new_bs_true = [0, 1, 2, 3]
+        logging.info(f'blocks: {bs}')
+        rs = parse_grid_row(row)
+        new2old_b2b = rs[-1]
+        new_bs = [bs[x] for x in new2old_b2b]
+        self.assertListEqual(new_bs_true, new_bs)
+
+        logging.info('3')
+        row = ['v;s', -3.3, '-1:2', 0, 1.1, 4]
+        logging.info(f'row: {row}')
+        bs = [0, 1, 2, 3]
+        new_bs_true = [0, 1, 2, 3]
+        logging.info(f'blocks: {bs}')
+        rs = parse_grid_row(row)
+        new2old_b2b = rs[-1]
+        new_bs = [bs[x] for x in new2old_b2b]
+        self.assertListEqual(new_bs_true, new_bs)
+
+        logging.info('4')
+        row = ['v;s', -3.3, '-1:3', 0, 1.1, 4]
+        logging.info(f'row: {row}')
+        bs = [0, 1, 2, 3]
+        new_bs_true = [0, 0, 1, 2, 3]
+        cs_true = [-3.3, -2.15, -1, 0, 1.1, 4]
+        logging.info(f'blocks: {bs}')
+        rs = parse_grid_row(row)
+        new2old_b2b = rs[-1]
+        new_bs = [bs[x] for x in new2old_b2b]
+        self.assertListEqual(new_bs_true, new_bs)
+        cs = rs[1]
+        self.assertListEqual(cs_true, cs)
+
+        logging.info('5')
+        row = ['v;s', -3.3, '-1:3;3.', 0, 1.1, 4]
+        logging.info(f'row: {row}')
+        bs = [0, 1, 2, 3]
+        new_bs_true = [0, 0, 1, 2, 3]
+        ms_true = [None, 3, 3, None, None, None]
+        logging.info(f'blocks: {bs}')
+        rs = parse_grid_row(row)
+        new2old_b2b = rs[-1]
+        new_bs = [bs[x] for x in new2old_b2b]
+        self.assertListEqual(new_bs_true, new_bs)
+        ms = rs[2]
+        self.assertListEqual(ms_true, ms)
+
+        logging.info('6')
+        row = ['v;s', -3.3, '-1:3;3.;4', 0, 1.1, 4]
+        logging.info(f'row: {row}')
+        bs = [0, 1, 2, 3]
+        new_bs_true = [0, 0, 1, 2, 3]
+        ms_true = [None, 3, 3, None, None, None]
+        ss_true = [None, [4, 0, 1], [4, 0, 1], None, None, None]
+        logging.info(f'blocks: {bs}')
+        rs = parse_grid_row(row)
+        new2old_b2b = rs[-1]
+        new_bs = [bs[x] for x in new2old_b2b]
+        self.assertListEqual(new_bs_true, new_bs)
+        ms = rs[2]
+        self.assertListEqual(ms_true, ms)
+        ss = rs[3]
+        self.assertListEqual(ss_true, ss)
+
+        logging.info('7')
+        row = ['v;s', -3.3, '-1:3;3.;4', 0, '1.1:3;4.;5:1:1.2', 4]
+        logging.info(f'row: {row}')
+        bs = [0, 1, 2, 3]
+        new_bs_true = [0, 0, 1, 2, 2, 3]
+        ms_true = [None, 3., 3., None, 4., 4., None]
+        ss_true = [None, [4, 0, 1], [4, 0, 1], None, [5, 1, 1.2], [5, 1, 1.2], None]
+        logging.info(f'blocks: {bs}')
+        rs = parse_grid_row(row)
+        new2old_b2b = rs[-1]
+        new_bs = [bs[x] for x in new2old_b2b]
+        self.assertListEqual(new_bs_true, new_bs)
+        ms = rs[2]
+        self.assertListEqual(ms_true, ms)
+        ss = rs[3]
+        self.assertListEqual(ss_true, ss)
+
+        logging.info('8')
+        row = ['v;s', -3.3, '-1:4:0.5:0.5', 0, 1.1, 4]
+        logging.info(f'row: {row}')
+        bs = [0, 1, 2, 3]
+        new_bs_true = [0, 0, 0, 1, 2, 3]
+        cs_true = [-3.3, -2.4010554433227367, -1.8987877789497376,
+                   -1, 0, 1.1, 4]
+        logging.info(f'blocks: {bs}')
+        rs = parse_grid_row(row)
+        new2old_b2b = rs[-1]
+        new_bs = [bs[x] for x in new2old_b2b]
+        self.assertListEqual(new_bs_true, new_bs)
+        new_cs = rs[1]
+        self.assertListEqual(cs_true, new_cs)
+
+        logging.info('9')
+        row = ['v;s', -3.3, '-1:4:0.5:0.5;3.:1.1:1.2:1.2', 0, 1.1, 4]
+        logging.info(f'row: {row}')
+        bs = [0, 1, 2, 3]
+        new_bs_true = [0, 0, 0, 1, 2, 3]
+        cs_true = [-3.3, -2.4010554433227367, -1.8987877789497376,
+                   -1, 0, 1.1, 4]
+        ms_true = [None, 6.649247709847758, 6.649202077211734, 3.0,
+                   None, None, None]
+        logging.info(f'blocks: {bs}')
+        rs = parse_grid_row(row)
+        new2old_b2b = rs[-1]
+        new_bs = [bs[x] for x in new2old_b2b]
+        self.assertListEqual(new_bs_true, new_bs)
+        cs = rs[1]
+        self.assertListEqual(cs_true, cs)
+        ms = rs[2]
+        self.assertListEqual(ms_true, ms)
+
+    @LoggingDecorator()
+    def test_parse_grid(self):
+        old_b_nd = [[[0, 1, 2],
+                     [3, 4, 5],
+                     [6, 7, 8]],
+                    [[9, 10, 11],
+                     [12, 13, 14],
+                     [15, 16, 17]]]
+        old_b_1d = list(flatten(old_b_nd))
+        new_b_nd_true = [[[0,  1,  1,  2],
+                          [3,  4,  4,  5],
+                          [6,  7,  7,  8]],
+                         [[9,  10, 10, 11],
+                          [12, 13, 13, 14],
+                          [15, 16, 16, 17]],
+                         [[9,  10, 10, 11],
+                          [12, 13, 13, 14],
+                          [15, 16, 16, 17]]]
+        new_b_1d_true = list(flatten(new_b_nd_true))
+        grid = [[-3.3, -1, '1.1:3', 4],
+                ['i;p', -3.3, -1, 0, 4],
+                ['v;s', -3.3, '-1:3'],
+                ['i;s', -3.3, '4:3'],
+                'cartesian', 0.7]
+        new_grid, values, maps = parse_grid(grid)
+        n2o_b2b = maps[-1]
+        new_b_1d = [old_b_1d[x] for x in n2o_b2b]
+        self.assertListEqual(new_b_1d, new_b_1d_true)
+        n_b2b_g2l = maps[-2]
+        shape = np.array([list(x) for x in n_b2b_g2l]).max(axis=0)
+        shape = [x + 1 for x in shape]
+        new_b_nd = np.array(new_b_1d).reshape(shape).tolist()
+        self.assertListEqual(new_b_nd, new_b_nd_true)
 
 
 if __name__ == '__main__':
