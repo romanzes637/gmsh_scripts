@@ -8,13 +8,10 @@ import gmsh
 
 from block import Block
 from matrix import Matrix
-from coordinate_system import Path
-from registry import reset as reset_registry
-from support import timeit, GmshDecorator, GmshOptionsDecorator, LoggingDecorator
-from strategy import Boolean, Simple
+from coordinate_system import Path, Cartesian
+from support import GmshDecorator, GmshOptionsDecorator, LoggingDecorator
+from strategy import Boolean, Simple, Fast
 from size import BooleanPoint, BooleanEdge, Bagging
-
-logging.basicConfig(level=logging.INFO)
 
 
 class TestMatrix(unittest.TestCase):
@@ -25,102 +22,62 @@ class TestMatrix(unittest.TestCase):
     def test_init_3x3(self):
         for factory in ['geo']:
             model_name = f'test_matrix_init_3x3-{factory}'
-            m = Matrix(points=[['-1', '1:4;.2:-3:0.5:0.5'],
-                               ['-1', '1:4;.2:-3:0.5:0.5'],
-                               ['-1;0.5', '1:4:2:2;2']])
+            m = Matrix(points=[['-1', '1:4;.2:-3:0.5:0.5;3'],
+                               ['-1', '1:4;.2:-3:0.5:0.5;3'],
+                               ['-1;0.5', '1:4:2:2;2'],
+                               'cartesian',
+                               Cartesian()])
             Simple(factory, model_name)(m)
 
+    @LoggingDecorator()
     @GmshDecorator()
+    @GmshOptionsDecorator()
     def test_init(self):
         for factory in ['geo', 'occ']:
-            reset_registry()
             model_name = f'test_matrix_init_{factory}'
-            logging.info(model_name)
-            gmsh.model.add(model_name)
-            ms = []
-            m1 = Matrix(factory=factory, points=[
+            m0 = Block(do_register=0)
+            m1 = Matrix(points=[
                 [1, 2],
-                ['360:6'],
-                ['360:6'],
-                [10, 20, 30, 40],
-                [1.5, 1.5, 0.75, 0.75],
-                [1.5, 0.75, 1.5, 0.75],
-                'tokamak',
-                'trace'
+                [0, '360:6'],
+                [0, '360:6'],
+                ['v;s', 10, 20, 30, 40],
+                ['v;s', 1.5, 1.5, 0.75, 0.75],
+                ['v;s', 1.5, 0.75, 1.5, 0.75],
+                'tok'
             ], transforms=['tok2car', [0, 0, -50]])
-            ms.append(m1)
-            m2 = Matrix(factory=factory, points=[
+            m0.add_child(m1)
+            m2 = Matrix(points=[
                 [1, 2],
-                ['360:6'],
-                ['360:6'],
-                [10, 20, 30],
-                [0.75],
-                [1.5],
-                'tokamak',
-                'product'
-            ], transforms=['tok2car', [0, 0, 50]])
-            ms.append(m2)
-            m3 = Matrix(factory=factory, points=[
-                [1, 2],
-                ['360:6'],
+                [0, '360:6'],
                 [0, 1],
                 'cyl',
             ], transforms=['cyl2car', [-50, 0, 0]])
-            ms.append(m3)
-            m4 = Matrix(factory=factory, points=[
-                [1, 2],
-                ['360:6'],
-                ['360:6'],
-                [10],
-                'tor'
-            ], transforms=['tor2car', [0, -50, 0]])
-            ms.append(m4)
-            m5 = Matrix(factory=factory, points=[
+            m0.add_child(m2)
+            m3 = Matrix(points=[
                 [1, 2, 3],
-                ['360:6'],
-                ['increment', 10, '160:10'],
+                [0, '360:6'],
+                ['i;p', 10, '160:10'],
                 'sph'
             ], transforms=['sph2car', [50, 0, 0]])
-            ms.append(m5)
+            m0.add_child(m3)
             curves = [['line', [[10, 0, x], [10, 0, x + 10], 'sph']]
                       for x in np.linspace(0, 80, 9)]
             orientations = [[[1, 180, x], 'sph'] for x in np.linspace(90, 0, 10)]
             p = Path(factory=factory, curves=curves, orientations=orientations)
             points = [
-                ['1:3'],
-                ['1:3'],
-                # ['1:21:1.5:1.5'],
-                ['1:5'],
-                p
-                # 'trace' by default
-            ]
-            m6 = Matrix(factory=factory, points=points, transforms=['pat2car'])
-            ms.append(m6)
-            for i, m in enumerate(ms):
-                t0 = time.perf_counter()
-                m.transform()
-                logging.info(f'Transform_{i + 1} {time.perf_counter() - t0}')
-                t0 = time.perf_counter()
-                m.register()
-                logging.info(f'Register_{i + 1} {time.perf_counter() - t0}')
-            if factory == 'geo':
-                for m in ms:
-                    m.quadrate()
-                    m.structure()
-                gmsh.model.geo.synchronize()
-            elif factory == 'occ':
-                gmsh.model.occ.synchronize()
-                for m in ms:
-                    m.quadrate()
-                    m.structure()
-            else:
-                raise ValueError(factory)
-            gmsh.write(f'{model_name}.geo_unrolled')
+                [0, '1:3'],
+                [0, '1:3'],
+                [0, '1:5'],
+                p]
+            m6 = Matrix(points=points, transforms=['pat2car'])
+            m0.add_child(m6)
+            Fast(factory, model_name)(m0)
 
+    @LoggingDecorator()
     @GmshDecorator()
+    @GmshOptionsDecorator()
     def test_map(self):
         for factory in ['geo', 'occ']:
-            reset_registry()
             use_register_tag = False
             model_name = f'test_matrix_map_{factory}'
             logging.info(model_name)
@@ -234,7 +191,9 @@ class TestMatrix(unittest.TestCase):
             # gmsh.model.mesh.generate(3)
             # gmsh.write(f'{model_name}.msh2')
 
+    @LoggingDecorator()
     @GmshDecorator()
+    @GmshOptionsDecorator()
     def test_boolean(self):
         # https://gmsh.info/doc/texinfo/gmsh.html#Choosing-the-right-unstructured-algorithm
         # Gmsh provides a choice between several 2D and 3D unstructured algorithms.
@@ -467,7 +426,6 @@ class TestMatrix(unittest.TestCase):
             model_name = f'test_matrix_boolean-{i + 1}_{len(params)}-{factory}-{"-".join([x[1] for x in p])}'
             logging.info(model_name)
             sd, m2d, m3d, msb, msp, mrb, qd, st = p
-            reset_registry()
             gmsh.model.add(model_name)
             gmsh.option.setNumber('Geometry.OCCParallel', 1)
             gmsh.option.setNumber("Mesh.SubdivisionAlgorithm", sd[0])
@@ -545,7 +503,9 @@ class TestMatrix(unittest.TestCase):
                     with open(f'{model_name}.txt', 'a') as f:
                         f.write(f'{e}')
 
+    @LoggingDecorator()
     @GmshDecorator()
+    @GmshOptionsDecorator()
     def test_boolean_tunnels(self):
         m2d = {'Frontal_Delaunay': 6}
         m3d = {'Delaunay': 1}

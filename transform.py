@@ -337,7 +337,7 @@ class PathToCartesian(Transform):
         u = p.coordinates[2]  # Curve local coordinate
         p.coordinates[2] = 0
         lcs = p.coordinate_system.get_local_coordinate_system(u)
-        any2car = str2obj[lcs.__name__]()
+        any2car = str2obj[lcs.__class__.__name__]()
         p.coordinate_system = lcs
         p = any2car(p)
         return p

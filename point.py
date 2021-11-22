@@ -252,12 +252,14 @@ def parse_grid(grid, sep_i=';', sep_si=':'):
     Returns:
         tuple: grid, values, maps
     """
+    # Parse grid rows
     new_grid, grid_values, grid_maps = [], [], []
     for row in grid:
         new_row, values, maps = parse_grid_row(row, sep_i, sep_si)
         new_grid.append(new_row)
         grid_values.append(values)
         grid_maps.append(maps)
+    # Split list rows into slice and product rows
     product_list_rows, slice_list_rows = [], []
     for i, row in enumerate(new_grid):
         if isinstance(row, list):
@@ -269,69 +271,196 @@ def parse_grid(grid, sep_i=';', sep_si=':'):
                 slice_list_rows.append(i)
             else:
                 raise ValueError(row_t)
-    # Old
-    o_is2b, o_b2is = {}, []
-    lens_slice = {len(new_grid[x][1:]) for x in slice_list_rows} # Ignore type
-    if len(lens_slice) != 1:
-        raise ValueError(f'Length of slice rows should be equal: {lens_slice}')
-    len_slice = list(lens_slice)[0]
-    slice_row_cs = [[new_grid[x][1:][i] for x in slice_list_rows]
-                    for i in range(len_slice)]
-    slice_row_ids = [tuple(i for _ in slice_list_rows) for i in range(len_slice)]
-    lens_product_cs = [len(new_grid[x][1:]) for x in reversed(product_list_rows)]
-    len_slice_cs = len(slice_row_cs)
-    n_blocks = len_slice_cs * np.prod([x - 1 for x in lens_product_cs])
-    for si in slice_row_ids:
-        for pi in product(*[range(x - 1) for x in lens_product_cs]):
-            index = (si, pi, tuple(x + 1 for x in pi))
-            o_b2is.append(index)
-    o_is2b = {x: i for i, x in enumerate(o_b2is)}  # Items to block
-    # New
-    n_is2b, n_b2is = {}, []
-    lens_slice = {len(grid_values[x][0]) for x in slice_list_rows}
-    if len(lens_slice) != 1:
-        raise ValueError(f'Length of slice rows shoud be equal: {lens_slice}')
-    len_slice = list(lens_slice)[0]
-    slice_row_cs = [[grid_values[x][0][i] for x in slice_list_rows] for i in range(len_slice)]
-    slice_row_ids = [tuple(i for _ in slice_list_rows) for i in range(len_slice)]
-    lens_product_cs = [len(grid_values[x][0]) for x in product_list_rows[::-1]]
-    len_slice_cs = len(slice_row_cs)
-    new_n_blocks = len_slice_cs * np.prod([x - 1 for x in lens_product_cs])
-    n_b2b_g2l = []
-    for i, si in enumerate(slice_row_ids):
-        for pi in product(*[range(x - 1) for x in lens_product_cs]):
-            index = (si, pi, tuple(x + 1 for x in pi))
-            local_index = (i, *pi)
-            n_b2b_g2l.append(local_index)
-            n_b2is.append(index)
-    n_is2b = {x: i for i, x in enumerate(n_b2is)}  # Items to block
-    # New to old
-    n2o_b2b = []
-    for new_index in n_is2b:
-        sis, pi0s, pi1s = new_index
-        old_sis = []
-        for j, si in enumerate(sis):
-            n2o = grid_maps[slice_list_rows[j]][-2]
-            old_si = n2o[si]
-            old_sis.append(old_si)
-        old_sis = tuple(old_sis)
-        pis = [(x, y) for x, y in zip(pi0s, pi1s)]
-        old_pis = []
-        for j, pi in enumerate(pis):
-            row_j = product_list_rows[::-1][j]
-            n2o = grid_maps[row_j][-2]
-            c0, c1 = pi[0], pi[1]
-            old_pi = (n2o[c0], n2o[c1])
-            while old_pi[0] == old_pi[1]:
-                c0 -= 1
-                old_pi = (n2o[c0], old_pi[1])
-            old_pis.append(old_pi)
-        old_pi0s = tuple(x[0] for x in old_pis)
-        old_pi1s = tuple(x[1] for x in old_pis)
-        old_index = (old_sis, old_pi0s, old_pi1s)
-        old_block = o_is2b[old_index]
-        n2o_b2b.append(old_block)
-    grid_maps = [n_b2b_g2l, n2o_b2b]
+    if len(product_list_rows) != 0 and len(slice_list_rows) != 0:
+        # Old maps
+        old_b2is, old_is2b = [], {}  # Items indices to block
+        old_b2b_g2l, old_b2b_l2g = [], {}  # Block global to local index
+        slice_lens = {len(new_grid[x][1:]) for x in slice_list_rows}
+        if len(slice_lens) != 1:
+            raise ValueError(f'Length of slice rows should be equal: {slice_lens}')
+        slice_len = list(slice_lens)[0]
+        product_lens = [len(new_grid[x][1:]) for x in product_list_rows[::-1]]
+        slice_row_is = [tuple(i for _ in slice_list_rows) for i in range(slice_len)]
+        product_rows_is = list(product(*[range(x - 1) for x in product_lens]))
+        for i, si in enumerate(slice_row_is):
+            for pi in product_rows_is:
+                items_local_index = (si, pi, tuple(x + 1 for x in pi))
+                block_local_index = (i, *pi)
+                old_b2b_g2l.append(block_local_index)
+                old_b2is.append(items_local_index)
+        old_is2b = {x: i for i, x in enumerate(old_b2is)}
+        # old_b2b_l2g = {x: i for i, x in enumerate(old_b2b_g2l)}
+        # New maps
+        new_b2is, new_is2b = [], {}  # Items indices to block
+        new_b2b_g2l, new_b2b_l2g = [], {}  # Block global to local index
+        slice_lens = {len(grid_values[x][0]) for x in slice_list_rows}
+        if len(slice_lens) != 1:
+            raise ValueError(f'Length of slice rows should be equal: {slice_lens}')
+        slice_len = list(slice_lens)[0]
+        product_lens = [len(grid_values[x][0]) for x in product_list_rows[::-1]]
+        slice_row_is = [tuple(i for _ in slice_list_rows) for i in range(slice_len)]
+        product_rows_is = list(product(*[range(x - 1) for x in product_lens]))
+        for i, si in enumerate(slice_row_is):
+            for pi in product_rows_is:
+                items_local_index = (si, pi, tuple(x + 1 for x in pi))
+                block_local_index = (i, *pi)
+                new_b2b_g2l.append(block_local_index)
+                new_b2is.append(items_local_index)
+        new_is2b = {x: i for i, x in enumerate(new_b2is)}
+        # new_b2b_l2g = {x: i for i, x in enumerate(new_b2b_g2l)}
+        # New to old maps
+        new2old_b2b = []
+        for new_is in new_is2b:
+            sis, pi0s, pi1s = new_is  # slice, product first and last indices
+            old_sis = []  # old slice indices
+            for j, si in enumerate(sis):
+                n2o = grid_maps[slice_list_rows[j]][-2]
+                old_si = n2o[si]
+                old_sis.append(old_si)
+            old_sis = tuple(old_sis)
+            pis = [(x, y) for x, y in zip(pi0s, pi1s)]
+            old_pis = []
+            for j, pi in enumerate(pis):
+                row_j = product_list_rows[::-1][j]
+                n2o = grid_maps[row_j][-2]
+                i0, i1 = pi[0], pi[1]
+                old_pi = (n2o[i0], n2o[i1])
+                while old_pi[0] == old_pi[1]:
+                    i0 -= 1
+                    old_pi = (n2o[i0], old_pi[1])
+                old_pis.append(old_pi)
+            old_pi0s = tuple(x[0] for x in old_pis)
+            old_pi1s = tuple(x[1] for x in old_pis)
+            old_is = (old_sis, old_pi0s, old_pi1s)
+            old_block = old_is2b[old_is]
+            new2old_b2b.append(old_block)
+        # Values
+        # Coordinates
+        slice_cs = [[grid_values[x][0][i] for x in slice_list_rows]
+                    for i in range(slice_len)]
+        product_cs = [grid_values[x][0] for x in product_list_rows]
+        grid_cs = product_cs + [slice_cs]
+        # Mesh sizes
+        slice_ms = [[grid_values[x][1][i] for x in slice_list_rows]
+                    for i in range(slice_len)]
+        product_ms = [grid_values[x][1] for x in product_list_rows]
+        grid_ms = product_ms + [slice_ms]
+        # Structures
+        slice_ss = [[grid_values[x][2][i] for x in slice_list_rows]
+                    for i in range(slice_len)]
+        product_ss = [grid_values[x][2] for x in product_list_rows]
+        grid_ss = product_ss + [slice_ss]
+    elif len(product_list_rows) != 0 and len(slice_list_rows) == 0:
+        # Old maps
+        old_b2is, old_is2b = [], {}  # Items indices to block
+        old_b2b_g2l, old_b2b_l2g = [], {}  # Block global to local index
+        product_lens = [len(new_grid[x][1:]) for x in product_list_rows[::-1]]
+        product_rows_is = list(product(*[range(x - 1) for x in product_lens]))
+        for pi in product_rows_is:
+            items_local_index = (pi, tuple(x + 1 for x in pi))
+            block_local_index = pi
+            old_b2b_g2l.append(block_local_index)
+            old_b2is.append(items_local_index)
+        old_is2b = {x: i for i, x in enumerate(old_b2is)}
+        # old_b2b_l2g = {x: i for i, x in enumerate(old_b2b_g2l)}
+        # New maps
+        new_b2is, new_is2b = [], {}  # Items indices to block
+        new_b2b_g2l, new_b2b_l2g = [], {}  # Block global to local index
+        product_lens = [len(grid_values[x][0]) for x in product_list_rows[::-1]]
+        product_rows_is = list(product(*[range(x - 1) for x in product_lens]))
+        for pi in product_rows_is:
+            items_local_index = (pi, tuple(x + 1 for x in pi))
+            block_local_index = pi
+            new_b2b_g2l.append(block_local_index)
+            new_b2is.append(items_local_index)
+        new_is2b = {x: i for i, x in enumerate(new_b2is)}
+        # new_b2b_l2g = {x: i for i, x in enumerate(new_b2b_g2l)}
+        # New to old maps
+        new2old_b2b = []
+        for new_is in new_is2b:
+            pi0s, pi1s = new_is  # slice, product first and last indices
+            pis = [(x, y) for x, y in zip(pi0s, pi1s)]
+            old_pis = []
+            for j, pi in enumerate(pis):
+                row_j = product_list_rows[::-1][j]
+                n2o = grid_maps[row_j][-2]
+                i0, i1 = pi[0], pi[1]
+                old_pi = (n2o[i0], n2o[i1])
+                while old_pi[0] == old_pi[1]:
+                    i0 -= 1
+                    old_pi = (n2o[i0], old_pi[1])
+                old_pis.append(old_pi)
+            old_pi0s = tuple(x[0] for x in old_pis)
+            old_pi1s = tuple(x[1] for x in old_pis)
+            old_is = (old_pi0s, old_pi1s)
+            old_block = old_is2b[old_is]
+            new2old_b2b.append(old_block)
+        # Values
+        grid_cs = [grid_values[x][0] for x in product_list_rows]  # Coordinates
+        grid_ms = [grid_values[x][1] for x in product_list_rows]  # Mesh sizes
+        grid_ss = [grid_values[x][2] for x in product_list_rows]  # Structures
+    elif len(product_list_rows) == 0 and len(slice_list_rows) != 0:
+        # Old maps
+        old_b2is, old_is2b = [], {}  # Items indices to block
+        old_b2b_g2l, old_b2b_l2g = [], {}  # Block global to local index
+        slice_lens = {len(new_grid[x][1:]) for x in slice_list_rows}
+        if len(slice_lens) != 1:
+            raise ValueError(f'Length of slice rows should be equal: {slice_lens}')
+        slice_len = list(slice_lens)[0]
+        slice_row_is = [tuple(i for _ in slice_list_rows) for i in range(slice_len)]
+        for i, si in enumerate(slice_row_is):
+            items_local_index = si
+            block_local_index = i
+            old_b2b_g2l.append(block_local_index)
+            old_b2is.append(items_local_index)
+        old_is2b = {x: i for i, x in enumerate(old_b2is)}
+        # old_b2b_l2g = {x: i for i, x in enumerate(old_b2b_g2l)}
+        # New maps
+        new_b2is, new_is2b = [], {}  # Items indices to block
+        new_b2b_g2l, new_b2b_l2g = [], {}  # Block global to local index
+        slice_lens = {len(grid_values[x][0]) for x in slice_list_rows}
+        if len(slice_lens) != 1:
+            raise ValueError(f'Length of slice rows should be equal: {slice_lens}')
+        slice_len = list(slice_lens)[0]
+        slice_row_is = [tuple(i for _ in slice_list_rows) for i in range(slice_len)]
+        for i, si in enumerate(slice_row_is):
+            items_local_index = si
+            block_local_index = i
+            new_b2b_g2l.append(block_local_index)
+            new_b2is.append(items_local_index)
+        new_is2b = {x: i for i, x in enumerate(new_b2is)}
+        # new_b2b_l2g = {x: i for i, x in enumerate(new_b2b_g2l)}
+        # New to old maps
+        new2old_b2b = []
+        for new_is in new_is2b:
+            sis, pi0s, pi1s = new_is  # slice, product first and last indices
+            old_sis = []  # old slice indices
+            for j, si in enumerate(sis):
+                n2o = grid_maps[slice_list_rows[j]][-2]
+                old_si = n2o[si]
+                old_sis.append(old_si)
+            old_sis = tuple(old_sis)
+            old_is = (old_sis)
+            old_block = old_is2b[old_is]
+            new2old_b2b.append(old_block)
+        # Values
+        # Coordinates
+        grid_cs = [[grid_values[x][0][i] for x in slice_list_rows]
+                   for i in range(slice_len)]
+        # Mesh sizes
+        grid_ms = [[grid_values[x][1][i] for x in slice_list_rows]
+                   for i in range(slice_len)]
+        # Structures
+        grid_ss = [[grid_values[x][2][i] for x in slice_list_rows]
+                   for i in range(slice_len)]
+    else:
+        raise ValueError(f'No list rows in the grid! {new_grid}')
+    # Return
+    grid_values = [grid_cs, grid_ms, grid_ss]
+    # TODO Remove unnecessary maps?
+    grid_maps = [old_b2is, old_b2b_g2l,  # Old
+                 new_b2is, new_b2b_g2l,  # New
+                 new2old_b2b]  # New to old
     return new_grid, grid_values, grid_maps
 
 
@@ -435,7 +564,11 @@ def parse_grid_row_item_coordinate(c, pc, item_t, sep):
         raise ValueError(c)
     vs = c.split(sep)
     cs = []
-    if len(vs) == 2:  # uniform step
+    if len(vs) == 1:  # simple coordinate
+        c = float(vs[0])
+        dc = c - pc if item_t == 'v' else c
+        cs = [pc, pc + dc]
+    elif len(vs) == 2:  # uniform step
         c, n = float(vs[0]), int(vs[1])  # coordinate, number of steps
         dc = c - pc if item_t == 'v' else c
         for x in np.linspace(pc, pc + dc, n):

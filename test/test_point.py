@@ -329,7 +329,8 @@ class TestPoint(unittest.TestCase):
                 ['i;p', -3.3, -1, 0, 4],
                 ['v;s', -3.3, '-1:3'],
                 ['i;s', -3.3, '4:3'],
-                'cartesian', 0.7]
+                'cartesian',
+                0.7]
         new_grid, values, maps = parse_grid(grid)
         n2o_b2b = maps[-1]
         new_b_1d = [old_b_1d[x] for x in n2o_b2b]

@@ -138,7 +138,7 @@ class Path(CoordinateSystem):
             else:
                 raise ValueError(o)
         from transform import str2obj as transform_factory
-        orientations = [[transform_factory[type(y.coordinate_system)]()(y)
+        orientations = [[transform_factory[y.coordinate_system.__class__.__name__]()(y)
                          for y in x] for x in orientations]
         for i, o in enumerate(orientations):
             # normal (yaw) and tangential (roll) directions - add binormal (bitangent, pitch)
@@ -169,7 +169,7 @@ class Path(CoordinateSystem):
                 cs = p.coordinate_system
                 if not isinstance(cs, Cartesian):
                     from transform import str2obj as tr_factory, reduce_transforms
-                    any2car = tr_factory[type(cs)]()
+                    any2car = tr_factory[cs.__class__.__name__]()
                     ts = [any2car] + self.transforms[i]
                     reduce_transforms(ts, p)
 

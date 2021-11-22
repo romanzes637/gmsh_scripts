@@ -79,8 +79,8 @@ class Block:
         curves (list of dict, list of list, list, list of Curve): 12 edge curves of the block
         surfaces (list of dict, list of list, list, list of Surface): 6 boundary surfaces of the block
         volumes (list of dict, list of list, list, list of Volume): volumes of the block (1 by now, TODO several volumes)
-        do_register (bool): register Block in the registry
-        use_register_tag (bool): use tag from registry instead tag from gmsh
+        do_register (bool or int): register Block in the registry
+        use_register_tag (bool or int): use tag from registry instead tag from gmsh
         do_unregister (bool): unregister Block from the registry
         do_register_children (bool): invoke register for children
         do_unregister_children (bool): invoke unregister for children
@@ -309,11 +309,17 @@ class Block:
             elif len(structure) == 3:  # X, Y and Z directions
                 # Curves
                 for values in structure:
-                    for _ in range(4):
-                        kwargs = {'nPoints': values[0],
-                                  'meshType': values[1],
-                                  'coef': values[2]}
-                        cs_ss.append(Structure(name='curve', **kwargs))
+                    if isinstance(values, list):
+                        for _ in range(4):
+                            kwargs = {'nPoints': values[0],
+                                      'meshType': values[1],
+                                      'coef': values[2]}
+                            cs_ss.append(Structure(name='curve', **kwargs))
+                    elif values is None:
+                        for _ in range(4):
+                            cs_ss.append(None)
+                    else:
+                        raise ValueError(values)
             else:
                 raise ValueError(structure)
             ss_ss = [Structure(name='surface') for _ in range(6)]
