@@ -316,13 +316,16 @@ class LayerXY(CoordinateSystem):
             curves_names = [['line' for _ in x] for x in layers]
         if layers_types is None:
             layers_types = ['in' for _ in layers[0]]
-        from matrix import Matrix
-        _, coordinates, _, new2old, _ = Matrix.parse_grid(layers)
-        curves_names = [[curves_names[i][new2old[i][j]] for j, y in enumerate(x)]
-                        for i, x in enumerate(coordinates)]
-        for i in [2, 3]:  # Negative NX, NY
-            coordinates[i] = [-x for x in coordinates[i]]
-        self.layers = coordinates
+        from point import parse_grid_row
+        for i, layer in enumerate(layers):
+            new_row, values, maps = parse_grid_row(layer)
+            coordinates = values[0]
+            if i in [2, 3]:  # NX, NY
+                coordinates = [-x for x in coordinates]
+            layers[i] = coordinates
+            new2old_id2id = maps[-2]
+            curves_names[i] = [curves_names[i][x] for x in new2old_id2id]
+        self.layers = layers
         self.curves_names = curves_names
         self.layers_types = layers_types
 

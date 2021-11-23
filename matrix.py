@@ -78,6 +78,7 @@ class Matrix(Block):
                           quadrate=quadrate_map[i],
                           boolean_level=boolean_level_map[i],
                           zone=zone_map[i],
+                          transforms=transforms,
                           structure_type=structure_type[structure_type_map[i]],
                           parent=self) for i, x in enumerate(blocks_points)
                     if do_register_map[i]]
@@ -91,7 +92,8 @@ class Matrix(Block):
         #                   parent=self) for i, x in enumerate(blocks_points)]
         super().__init__(parent=parent,
                          do_register=False,
-                         children=children, transforms=transforms,
+                         children=children,
+                         transforms=transforms,
                          use_register_tag=use_register_tag)
 
     @staticmethod
