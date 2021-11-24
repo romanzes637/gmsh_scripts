@@ -106,7 +106,7 @@ class CartesianToCartesian(Transform):
     """
 
     def __init__(self, **kwargs):
-        super().__init__(cs_from=Cartesian(), cs_to=Cartesian(), **kwargs)
+        super().__init__(cs_from=Cartesian(), cs_to=Cartesian())
 
     def __call__(self, p):
         p = super().__call__(p)
@@ -239,7 +239,7 @@ class BlockToCartesian(Transform):
     xi, eta, zeta - local block coordinates
 
     Args:
-        cs_from(Block): Block Coordinate System
+        cs_from (Block): Block Coordinate System
     """
 
     def __init__(self, cs_from, **kwargs):
@@ -447,6 +447,22 @@ class LayerXYToCartesian(Transform):
         return p0, pn
 
 
+class AnyAsSome(Transform):
+    """Treat any coordinate system as some coordinate system without coordinates transformation
+
+    Args:
+        cs_to (CoordinateSystem): some coordinate system
+    """
+
+    def __init__(self, cs_to, **kwargs):
+        super().__init__(cs_to=cs_to, **kwargs)
+
+    def __call__(self, p):
+        p = super().__call__(p)
+        p.coordinate_system = self.cs_to
+        return p
+
+
 str2obj = {
     Transform.__name__: Transform,
     Translate.__name__: Translate,
@@ -457,41 +473,32 @@ str2obj = {
     'rot': Rotate,
     CartesianToCartesian.__name__: CartesianToCartesian,
     Cartesian.__name__: CartesianToCartesian,
-    'cartesian_to_cartesian': CartesianToCartesian,
     'car2car': CartesianToCartesian,
     CylindricalToCartesian.__name__: CylindricalToCartesian,
     Cylindrical.__name__: CylindricalToCartesian,
-    'cylindrical_to_cartesian': CylindricalToCartesian,
     'cyl2car': CylindricalToCartesian,
     SphericalToCartesian.__name__: SphericalToCartesian,
     Spherical.__name__: SphericalToCartesian,
-    'spherical_to_cartesian': SphericalToCartesian,
     'sph2car': SphericalToCartesian,
     ToroidalToCartesian.__name__: ToroidalToCartesian,
     Toroidal.__name__: ToroidalToCartesian,
-    'toroidal_to_cartesian': ToroidalToCartesian,
     'tor2car': ToroidalToCartesian,
     TokamakToCartesian.__name__: TokamakToCartesian,
     Tokamak: TokamakToCartesian,
-    'tokamak_to_cartesian': TokamakToCartesian,
     'tok2car': TokamakToCartesian,
     BlockToCartesian.__name__: BlockToCartesian,
     Block.__name__: BlockToCartesian,
-    'block_to_cartesian': BlockToCartesian,
     'blo2car': BlockToCartesian,
     AffineToCartesian.__name__: AffineToCartesian,
     Affine.__name__: AffineToCartesian,
-    'affine_to_cartesian': AffineToCartesian,
     'aff2car': AffineToCartesian,
     AffineToAffine.__name__: AffineToAffine,
-    'affine_to_affine': AffineToAffine,
     'aff2aff': AffineToAffine,
     PathToCartesian.__name__: PathToCartesian,
     Path.__name__: PathToCartesian,
-    'path_to_cartesian': PathToCartesian,
     'pat2car': PathToCartesian,
-    LayerXY.__name__: LayerXYToCartesian,
-    LayerXYToCartesian: LayerXYToCartesian,
-    'lxy_to_cartesian': LayerXYToCartesian,
-    'lxy2car': LayerXYToCartesian
+    LayerXYToCartesian.__name__: LayerXYToCartesian,
+    'lxy2car': LayerXYToCartesian,
+    AnyAsSome.__name__: AnyAsSome,
+    'any1some': AnyAsSome
 }

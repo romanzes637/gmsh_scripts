@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 
 from support import volumes_surfaces_to_volumes_groups_surfaces
-from transform import str2obj as transform_factory
+from transform import str2obj as tr_str2obj
 from transform import BlockToCartesian
 from transform import reduce_transforms
 from registry import register_point, register_curve, register_curve_loop, \
@@ -267,34 +267,39 @@ class Block:
         else:
             new_transforms = []
             for i, t in enumerate(transforms):
-                if isinstance(t, str):
-                    name, kwargs = t, {}
-                elif isinstance(t, list):
-                    if len(t) == 3:
-                        name, kwargs = 'translate', {'delta': t}
-                    elif len(t) == 4:
-                        name = 'rotate'
-                        kwargs = {'origin': [0, 0, 0],
-                                  'direction': t[:3],
-                                  'angle': t[3]}
-                    elif len(t) == 7:
-                        name = 'rotate'
-                        kwargs = {'origin': t[:3],
-                                  'direction': t[3:6],
-                                  'angle': t[6]}
+                if isinstance(t, (str, list, dict)):
+                    if isinstance(t, str):
+                        name, kwargs = t, {}
+                    elif isinstance(t, list):
+                        if len(t) == 3:
+                            name, kwargs = 'translate', {'delta': t}
+                        elif len(t) == 4:
+                            name = 'rotate'
+                            kwargs = {'origin': [0, 0, 0],
+                                      'direction': t[:3],
+                                      'angle': t[3]}
+                        elif len(t) == 7:
+                            name = 'rotate'
+                            kwargs = {'origin': t[:3],
+                                      'direction': t[3:6],
+                                      'angle': t[6]}
+                        else:
+                            raise ValueError(t)
+                    elif isinstance(t, dict):
+                        name = t.pop('name')
+                        kwargs = t
                     else:
                         raise ValueError(t)
-                elif isinstance(t, dict):
-                    name = t.pop('name')
-                    kwargs = t
+                    if 'angle' in kwargs:
+                        kwargs['angle'] = np.deg2rad(kwargs['angle'])
+                    if tr_str2obj[name] == BlockToCartesian:
+                        ps = [x.coordinates for x in parent.points]
+                        kwargs['cs_from'] = BlockCS(ps=ps)
+                    new_transforms.append(tr_str2obj[name](**kwargs))
+                elif type(t).__name__ in tr_str2obj:
+                    new_transforms.append(t)
                 else:
                     raise ValueError(t)
-                if 'angle' in kwargs:
-                    kwargs['angle'] = np.deg2rad(kwargs['angle'])
-                if transform_factory[name] == BlockToCartesian:
-                    ps = [x.coordinates for x in parent.points]
-                    kwargs['cs_from'] = BlockCS(ps=ps)
-                new_transforms.append(transform_factory[name](**kwargs))
             return new_transforms
 
     @staticmethod
@@ -493,6 +498,9 @@ class Block:
             c.transforms.extend(self.children_transforms[i])
             c.transforms.extend(self.transforms)
             c.transform()
+        # Self
+        if not self.do_register:
+            return
         for i, p in enumerate(self.points):
             if isinstance(p.coordinate_system, BlockCS):
                 if self.parent is None:

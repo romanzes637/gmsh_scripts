@@ -4,19 +4,34 @@ import numpy as np
 
 from matrix import Matrix
 from coordinate_system import LayerXY
+from coordinate_system import str2obj as cs_str2obj
+from transform import str2obj as tr_str2obj
 from support import flatten
 
 
 class Layer(Matrix):
     def __init__(self, layers=None, layers_curves_names=None, layers_types=None,
                  do_register_map=None, transforms=None, boolean_level_map=None):
+        str_layers = [x for x in layers if isinstance(x, str)]
+        other_layers = [x for x in layers if not isinstance(x, (int, float, str, list))]
+        coordinate_system = str_layers[0] if len(str_layers) > 0 else 'cartesian'
+        coordinate_system = cs_str2obj[coordinate_system]()
+        for layer in other_layers:
+            if isinstance(layer, tuple(cs_str2obj.values())):
+                coordinate_system = layer
+                break
+        layers = [x for x in layers if isinstance(x, list)]
+        if layers_types is None:
+            layers_types = [['in' for _ in x] for x in layers]
+        print(layers_types)
+        if layers_curves_names is None:
+            layers_curves_names = [['line' for y in x] for x in layers]
         layers = Layer.correct_layers(layers)
         layers_curves_names = Layer.correct_layers(layers_curves_names)
         layers_types = Layer.correct_layers(layers_types)
         lxy = LayerXY(layers=layers[:-2],
                       curves_names=layers_curves_names[:-2],
                       layers_types=layers_types[:-2])
-        transforms = [] if transforms is None else transforms
         # To matrix points
         xs = layers[0]
         ys = layers[1]
@@ -95,7 +110,7 @@ class Layer(Matrix):
         m2l_b2b_l2g = {x: i for i, x in enumerate(m2l_b2b_g2l) if x is not None}
         default_do_register_map = [0 if x is None else 1 for x in m2l_b2b_g2l]
         boolean_level_map = Layer.correct_map(boolean_level_map)
-        boolean_level_map = Layer.parse_map(boolean_level_map, -1, m2l_b2b_g2g,
+        boolean_level_map = Layer.parse_map(boolean_level_map, None, m2l_b2b_g2g,
                                             item_types=(int,))
         # print(np.array(boolean_level_map).reshape((n_blocks_z, n_blocks_y, n_blocks_x)))
         do_register_map = Layer.correct_map(do_register_map)
@@ -124,10 +139,17 @@ class Layer(Matrix):
                                                        m2l_b2b_g2l, layers)
         print(np.array(curves_map).reshape((n_blocks_z, n_blocks_y, n_blocks_x)))
         # print(curves)
+        # Transforms
+        transforms = [] if transforms is None else transforms
+        lxy2car = tr_str2obj['LayerXYToCartesian']()
+        any1some = tr_str2obj['AnyAsSome'](cs_to=coordinate_system)
+        some2car = tr_str2obj[f'{type(coordinate_system).__name__}ToCartesian'](
+            cs_from=coordinate_system)
+        matrix_transforms = [lxy2car, any1some, some2car] + transforms
         super().__init__(points=points,
                          curves=curves,
                          curves_map=curves_map,
-                         transforms=[LayerXY.__name__] + transforms,
+                         transforms=matrix_transforms,
                          do_register_map=matrix_do_register_map,
                          structure_type=structure_type,
                          structure_type_map=structure_type_map,
@@ -151,6 +173,8 @@ class Layer(Matrix):
 
     @staticmethod
     def correct_map(m):
+        if m is None:
+            return None
         # Correct layers
         if len(m) == 1:  # X -> X=X, Y=X, NX=X, NY=X
             m = [m for _ in range(4)]
