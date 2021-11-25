@@ -10,7 +10,7 @@ from support import flatten
 
 
 class Layer(Matrix):
-    def __init__(self, layers=None, layers_curves_names=None, layers_types=None,
+    def __init__(self, layers=None, layers_curves=None, layers_types=None,
                  do_register_map=None, transforms=None, boolean_level_map=None):
         str_layers = [x for x in layers if isinstance(x, str)]
         other_layers = [x for x in layers if not isinstance(x, (int, float, str, list))]
@@ -23,14 +23,13 @@ class Layer(Matrix):
         layers = [x for x in layers if isinstance(x, list)]
         if layers_types is None:
             layers_types = [['in' for _ in x] for x in layers]
-        print(layers_types)
-        if layers_curves_names is None:
-            layers_curves_names = [['line' for y in x] for x in layers]
+        if layers_curves is None:
+            layers_curves = [['line' for y in x] for x in layers]
         layers = Layer.correct_layers(layers)
-        layers_curves_names = Layer.correct_layers(layers_curves_names)
+        layers_curves = Layer.correct_layers(layers_curves)
         layers_types = Layer.correct_layers(layers_types)
         lxy = LayerXY(layers=layers[:-2],
-                      curves_names=layers_curves_names[:-2],
+                      layers_curves=layers_curves[:-2],
                       layers_types=layers_types[:-2])
         # To matrix points
         xs = layers[0]
@@ -49,20 +48,14 @@ class Layer(Matrix):
         points = [pxs, pys, pzs, lxy]
         nxs, nys, nzs = len(pxs), len(pys), len(pzs)
         n_blocks_x, n_blocks_y, n_blocks_z = nxs - 1, nys - 1, nzs - 1
-        print(points)
-        m2l_b2b_g2l, m2l_b2b_l2g = [], {}
-        m2l_b2b_g2g = []
-        print(layers)
         mlis = product(*(range(n_blocks_z), range(n_blocks_y), range(n_blocks_x)))
-        print(mean_mxi, mean_myi, mean_mzi)
         n_x, n_y, n_nx, n_ny, n_z, n_nz = ns
         n_zs = n_z + n_nz
         n_lx = n_x * n_zs
         n_ly = n_y * n_zs
         n_lnx = n_nx * n_zs
         n_lny = n_ny * n_zs
-        print(n_blocks_x, n_blocks_y, n_blocks_z)
-        print(n_x, n_y, n_nx, n_ny, n_z, n_nz)
+        m2l_b2b_g2l, m2l_b2b_g2g = [], []
         for mgi, mli in enumerate(mlis):
             mzi, myi, mxi = mli
             if mzi >= mean_mzi:  # Z
@@ -107,38 +100,23 @@ class Layer(Matrix):
                     lli, lgi = None, None
             m2l_b2b_g2l.append(lli)
             m2l_b2b_g2g.append(lgi)
-        m2l_b2b_l2g = {x: i for i, x in enumerate(m2l_b2b_g2l) if x is not None}
-        default_do_register_map = [0 if x is None else 1 for x in m2l_b2b_g2l]
+        # Boolean
         boolean_level_map = Layer.correct_map(boolean_level_map)
-        boolean_level_map = Layer.parse_map(boolean_level_map, None, m2l_b2b_g2g,
-                                            item_types=(int,))
+        boolean_level_map = Layer.parse_map(
+            boolean_level_map, None, m2l_b2b_g2g, (int,))
         # print(np.array(boolean_level_map).reshape((n_blocks_z, n_blocks_y, n_blocks_x)))
+        # Register
+        default_do_register_map = [0 if x is None else 1 for x in m2l_b2b_g2l]
         do_register_map = Layer.correct_map(do_register_map)
-        do_register_map = Layer.parse_map(do_register_map, 1, m2l_b2b_g2g,
-                                          item_types=(bool, int))
-        matrix_do_register_map = [x * y for x, y in zip(default_do_register_map,
-                                                        do_register_map)]
-        structure_type_map = []
-        structure_type = ['LLL', 'LRR', 'RLR', 'RRL']
-        for li in m2l_b2b_g2l:
-            if li is None:
-                s = None
-            elif li[0] == 0:  # X
-                s = 0
-            elif li[0] == 1:  # Y
-                s = 0
-            elif li[0] == 2:  # NX
-                s = 1
-            elif li[0] == 3:  # # NY
-                s = 2
-            else:
-                raise ValueError(li)
-            structure_type_map.append(s)
+        do_register_map = Layer.parse_map(
+            do_register_map, 1, m2l_b2b_g2g, (bool, int))
+        matrix_do_register_map = [x * y for x, y in zip(
+            default_do_register_map, do_register_map)]
+        structure_type, structure_type_map = Layer.parse_layers_structure_type(
+            m2l_b2b_g2l)
+        curves, curves_map = Layer.parse_layers_curves(
+            layers_curves, m2l_b2b_g2l, layers)
         # print(np.array(structure_type_map).reshape((n_blocks_z, n_blocks_y, n_blocks_x)))
-        curves, curves_map = Layer.parse_layers_curves(layers_curves_names,
-                                                       m2l_b2b_g2l, layers)
-        print(np.array(curves_map).reshape((n_blocks_z, n_blocks_y, n_blocks_x)))
-        # print(curves)
         # Transforms
         transforms = [] if transforms is None else transforms
         lxy2car = tr_str2obj['LayerXYToCartesian']()
@@ -184,7 +162,6 @@ class Layer(Matrix):
             pass
         else:
             raise ValueError(m)
-        print(m)
         # Correct in layers
         for i, l in enumerate(m):
             if len(l) == 1:  # Z -> Z, NZ=[[]]
@@ -193,8 +170,6 @@ class Layer(Matrix):
                 pass
             else:
                 raise ValueError(m, l)
-        print(m)
-        print(list(flatten(m)))
         return m
 
     @staticmethod
@@ -221,111 +196,100 @@ class Layer(Matrix):
             raise ValueError(m)
 
     @staticmethod
-    def parse_layers_curves(layers_curves_names, n2o_b2b_g2l, layers):
+    def parse_layers_curves(layers_curves_names, m2l_b2b_g2l, layers):
+        """Parse layers curves
+
+        Args:
+            layers_curves_names (list of list): curves of layers
+            m2l_b2b_g2l (list): global index of a block of the matrix to
+                local index of a block of the layer
+            layers (list of list): TODO coordinates of parced layers
+
+        Returns:
+            tuple: curves (list) curves map of the matrix (list)
+        """
         curves, curves_map = [], []
-        zs = [0] + layers[4]
-        curves = [
-            [['line'], ['line'], ['line'], ['line'],
-             ['line'], ['line'], ['line'], ['line'],
-             ['line'], ['line'], ['line'], ['line']]]
-        for li in n2o_b2b_g2l:
+        for li in m2l_b2b_g2l:  # local index (0-3, 0-1, zi, ci) of the layer
             if li is None:
                 s = None
-            elif li[0] == 0:  # X
-                zi, xi = li[-2] + 1, li[-1]
-                pxi = xi - 1 if xi != 0 else xi
-                pzi = zi - 1 if zi != 0 else zi
-                ct = layers_curves_names[0][xi]
-                pct = layers_curves_names[0][pxi]
-                z, pz = zs[zi], zs[pzi]
-                if isinstance(z, str):
-                    z = float(z.split(';')[0].split(':')[0])
-                if isinstance(pz, str):
-                    pz = float(pz.split(';')[0].split(':')[0])
-                if ct == 'line' and pct == 'line':
-                    s = 0
-                else:
-                    c = [['line'], ['line'], ['line'], ['line'],
-                         [ct, [[0, 0, pz]]],
-                         [pct, [[0, 0, pz]]],
-                         [pct, [[0, 0, z]]],
-                         [ct, [[0, 0, z]]],
-                         ['line'], ['line'], ['line'], ['line']]
-                    curves.append(c)
-                    s = len(curves) - 1
-            elif li[0] == 1:  # Y
-                zi, yi = li[-2] + 1, li[-1]
-                pyi = yi - 1 if yi != 0 else pyi
-                pzi = zi - 1 if zi != 0 else zi
-                ct = layers_curves_names[0][yi]
-                pct = layers_curves_names[0][pyi]
-                z, pz = zs[zi], zs[pzi]
-                if isinstance(z, str):
-                    z = float(z.split(';')[0].split(':')[0])
-                if isinstance(pz, str):
-                    pz = float(pz.split(';')[0].split(':')[0])
-                if ct == 'line' and pct == 'line':
-                    s = 0
-                else:
-                    c = [[ct, [[0, 0, pz]]],
-                         [ct, [[0, 0, z]]],
-                         [pct, [[0, 0, z]]],
-                         [pct, [[0, 0, pz]]],
-                         ['line'], ['line'], ['line'], ['line'],
-                         ['line'], ['line'], ['line'], ['line']]
-                    curves.append(c)
-                    s = len(curves) - 1
-            elif li[0] == 2:  # NX
-                zi, nxi = li[-2] + 1, li[-1]
-                pnxi = nxi - 1 if nxi != 0 else nxi
-                pzi = zi - 1 if zi != 0 else zi
-                ct = layers_curves_names[0][nxi]
-                pct = layers_curves_names[0][pnxi]
-                z, pz = zs[zi], zs[pzi]
-                if isinstance(z, str):
-                    z = float(z.split(';')[0].split(':')[0])
-                if isinstance(pz, str):
-                    pz = float(pz.split(';')[0].split(':')[0])
-                if ct == 'line' and pct == 'line':
-                    s = 0
-                else:
-                    c = [['line'], ['line'], ['line'], ['line'],
-                         [pct, [[0, 0, pz]]],
-                         [ct, [[0, 0, pz]]],
-                         [ct, [[0, 0, z]]],
-                         [pct, [[0, 0, z]]],
-                         ['line'], ['line'], ['line'], ['line']]
-                    curves.append(c)
-                    s = len(curves) - 1
-            elif li[0] == 3:  # # NY
-                zi, nyi = li[-2] + 1, li[-1]
-                pnyi = nyi - 1 if nyi != 0 else nyi
-                pzi = zi - 1 if zi != 0 else zi
-                ct = layers_curves_names[0][nyi]
-                pct = layers_curves_names[0][pnyi]
-                z, pz = zs[zi], zs[pzi]
-                if isinstance(z, str):
-                    z = float(z.split(';')[0].split(':')[0])
-                if isinstance(pz, str):
-                    pz = float(pz.split(';')[0].split(':')[0])
-                if ct == 'line' and pct == 'line':
-                    s = 0
-                else:
-                    c = [[pct, [[0, 0, pz]]],
-                         [pct, [[0, 0, z]]],
-                         [ct, [[0, 0, z]]],
-                         [ct, [[0, 0, pz]]],
-                         ['line'], ['line'], ['line'], ['line'],
-                         ['line'], ['line'], ['line'], ['line']]
-                    curves.append(c)
-                    s = len(curves) - 1
             else:
-                raise ValueError(li)
+                if li[1] == 0:  # Z
+                    zs = [0] + layers[4]
+                elif li[1] == 1:  # NZ
+                    zs = layers[5][::-1] + [0]
+                else:
+                    raise ValueError(li)
+                zi, ci = li[-2] + 1, li[-1]
+                pzi, pci = zi - 1 if zi != 0 else zi, ci - 1 if ci != 0 else ci
+                z, pz = zs[zi], zs[pzi]
+                if isinstance(z, str):
+                    z = float(z.split(';')[0].split(':')[0])
+                if isinstance(pz, str):
+                    pz = float(pz.split(';')[0].split(':')[0])
+                if li[0] == 0:  # X
+                    ct = layers_curves_names[0][ci]
+                    pct = layers_curves_names[0][pci]
+                    cs = [['line'], ['line'], ['line'], ['line'],
+                          [ct, [[0, 0, pz]]] if ct != 'line' else ['line'],
+                          [pct, [[0, 0, pz]]] if pct != 'line' else ['line'],
+                          [pct, [[0, 0, z]]] if pct != 'line' else ['line'],
+                          [ct, [[0, 0, z]]] if ct != 'line' else ['line'],
+                          ['line'], ['line'], ['line'], ['line']]
+                elif li[0] == 1:  # Y
+                    ct = layers_curves_names[1][ci]
+                    pct = layers_curves_names[1][pci]
+                    cs = [[ct, [[0, 0, pz]]] if ct != 'line' else ['line'],
+                          [ct, [[0, 0, z]]] if ct != 'line' else ['line'],
+                          [pct, [[0, 0, z]]] if pct != 'line' else ['line'],
+                          [pct, [[0, 0, pz]]] if pct != 'line' else ['line'],
+                          ['line'], ['line'], ['line'], ['line'],
+                          ['line'], ['line'], ['line'], ['line']]
+                elif li[0] == 2:  # NX
+                    ct = layers_curves_names[2][ci]
+                    pct = layers_curves_names[2][pci]
+                    cs = [['line'], ['line'], ['line'], ['line'],
+                          [pct, [[0, 0, pz]]] if pct != 'line' else ['line'],
+                          [ct, [[0, 0, pz]]] if ct != 'line' else ['line'],
+                          [ct, [[0, 0, z]]] if ct != 'line' else ['line'],
+                          [pct, [[0, 0, z]]] if pct != 'line' else ['line'],
+                          ['line'], ['line'], ['line'], ['line']]
+                elif li[0] == 3:  # NY
+                    ct = layers_curves_names[3][ci]
+                    pct = layers_curves_names[3][pci]
+                    cs = [[pct, [[0, 0, pz]]] if pct != 'line' else ['line'],
+                          [pct, [[0, 0, z]]] if pct != 'line' else ['line'],
+                          [ct, [[0, 0, z]]] if ct != 'line' else ['line'],
+                          [ct, [[0, 0, pz]]] if ct != 'line' else ['line'],
+                          ['line'], ['line'], ['line'], ['line'],
+                          ['line'], ['line'], ['line'], ['line']]
+                else:
+                    raise ValueError(li)
+                curves.append(cs)
+                s = len(curves) - 1
             curves_map.append(s)
         return curves, curves_map
 
+    @staticmethod
+    def parse_layers_structure_type(m2l_b2b_g2l):
+        structure_type_map = []
+        for li in m2l_b2b_g2l:
+            if li is None:
+                s = None
+            elif li[0] == 0:  # X
+                s = 0
+            elif li[0] == 1:  # Y
+                s = 0
+            elif li[0] == 2:  # NX
+                s = 1
+            elif li[0] == 3:  # NY
+                s = 2
+            else:
+                raise ValueError(li)
+            structure_type_map.append(s)
+        structure_type = ['LLL', 'LRR', 'RLR', 'RRL']
+        return structure_type, structure_type_map
+
 
 str2obj = {
-    Layer.__name__: Layer,
-    Layer.__name__.lower(): Layer
+    Layer.__name__: Layer
 }

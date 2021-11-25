@@ -366,7 +366,7 @@ class TestTransform(unittest.TestCase):
                     [1, 2, 3, 4],
                     [1, 2, 3, 4],
                     [1, 2, 3, 4]],
-                curves_names=[
+                layers_curves=[
                     ['line', 'circle_arc', 'circle_arc', 'line'],
                     ['line', 'circle_arc', 'circle_arc', 'line'],
                     ['line', 'circle_arc', 'circle_arc', 'line'],
