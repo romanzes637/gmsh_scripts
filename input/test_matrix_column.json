@@ -1,0 +1,26 @@
+{
+  "metadata": {
+    "type": "class_arguments",
+    "class_name": "Matrix",
+    "description": "Text Matrix indexing"
+  },
+  "arguments": {
+    "factory": "geo",
+    "types": ["primitive"],
+    "coordinates_type": "direct",
+    "volumes_names": ["Item", "Item2"],
+    "surfaces_names": [
+      ["NX", "X", "NY", "Y", "NZ", "Z"],
+      ["NX2", "X2", "NY2", "Y2", "NZ2", "Z2"]],
+    "xs": [-5, 5],
+    "ys": [-5, 5],
+    "zs": [-5, 1, 5, 10, 11],
+    "ts": [[3, 0, 1], [5, 0, 1], [7, 0, 1]],
+    "lcs_map": [0, 2, 1, 1],
+    "volumes_map": [0, 0, 0, 1],
+    "surfaces_map": [1, 0, 0, 0],
+    "txs": [0],
+    "tys": [1],
+    "tzs": [2, 0, 2, 1]
+  }
+}
