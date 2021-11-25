@@ -16,6 +16,15 @@ class Size:
             gmsh.model.mesh.setSize([(0, p)], s)
 
 
+class NoSize(Size):
+    def __init__(self):
+        super().__init__()
+        pass
+
+    def __call__(self, block):
+        pass
+
+
 class BooleanPoint(Size):
     def __init__(self, intra_function='min', inter_function='min',
                  factor=1., min_size=0., max_size=1e22):

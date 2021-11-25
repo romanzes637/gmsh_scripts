@@ -19,7 +19,7 @@ class NoStructure:
     def __init__(self):
         pass
 
-    def __call__(self):
+    def __call__(self, block):
         pass
 
 
@@ -60,7 +60,7 @@ class StructureBlock:
                 points = [Point(list(x)) for x in vs_ps_cs]
                 v_st = get_volume_structure(points)
                 vs_st.append(v_st)
-            # Do Structure TODO Triangles orientation http://onelab.info/pipermail/gmsh/2018/012407.html
+            # Do Structure
             for vi, v_st in enumerate(vs_st):
                 v_dt = dt.vs_dt[vi]
                 all_ss_st = all(x is not None for x in vs_ss_st[vi])
@@ -83,9 +83,6 @@ class StructureBlock:
 
 str2obj = {
     Structure.__name__: Structure,
-    Structure.__name__.lower(): Structure,
     StructureBlock.__name__: StructureBlock,
-    StructureBlock.__name__.lower(): StructureBlock,
-    NoStructure.__name__.lower(): NoStructure,
-    NoStructure.__name__.lower(): NoStructure
+    NoStructure.__name__: NoStructure
 }

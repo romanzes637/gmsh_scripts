@@ -11,33 +11,20 @@ class Matrix(Block):
     Args:
     """
 
-    def __init__(self,
-                 points,
-                 curves=None,
-                 curves_map=None,
-                 parent=None,
-                 transforms=None, use_register_tag=False,
+    def __init__(self, points, curves=None, curves_map=None,
+                 transforms=None,
                  do_register_map=None,
+                 do_register_children_map=None,
+                 do_unregister_map=None,
+                 do_unregister_children_map=None,
+                 do_unregister_boolean_map=None,
                  quadrate_map=None,
-                 boolean_level_map=None,
-                 zone_map=None,
                  structure_type=None,
                  structure_type_map=None,
-                 # types=None, type_map=None,
-                 # volumes_names=None, volumes_map=None,
-                 # surfaces_names=None, surfaces_map=None,
-                 # in_surfaces_names=None, in_surfaces_map=None,
-                 # in_surfaces_masks=None, in_surfaces_masks_map=None,
-                 # transforms=None, transforms_map=None,
-                 # inputs=None, inputs_map=None,
-                 # recs_map=None, trans_map=None, trans_type_map=None,
-                 # curve_types=None, curve_types_map=None,
-                 # curve_data=None, curve_data_map=None,
-                 # curve_data_coord_sys=None, curve_data_coord_sys_map=None,
-                 # inputs_transforms=None, inputs_transforms_map=None,
-                 # inputs_transforms_coord_sys=None,
-                 # inputs_transforms_coord_sys_map=None,
-                 # boolean_level_map=None,
+                 boolean_level_map=None,
+                 zones=None,
+                 zones_map=None,
+                 parent=None
                  ):
         # Parse grid
         new_grid, values, maps = parse_grid(points)
@@ -60,25 +47,44 @@ class Matrix(Block):
         # Evaluate maps
         curves_map = Matrix.parse_map(m=curves_map, default=0,
                                       new2old=new2old_b2b, item_types=(int,))
-        transforms = [] if transforms is None else transforms
         curves = [None] if curves is None else curves
-        do_register_map = Matrix.parse_map(do_register_map, True, new2old_b2b,
-                                           item_types=(bool, int))
+        # Register
+        do_register_map = Matrix.parse_map(do_register_map, 1,
+                                           new2old_b2b, (bool, int))
+        do_register_children_map = Matrix.parse_map(do_register_children_map, 1,
+                                                    new2old_b2b, (bool, int))
+        do_unregister_map = Matrix.parse_map(do_unregister_map, 0,
+                                             new2old_b2b, (bool, int))
+        do_unregister_children_map = Matrix.parse_map(
+            do_unregister_children_map, 1, new2old_b2b, (bool, int))
+        do_unregister_boolean_map = Matrix.parse_map(
+            do_unregister_boolean_map, 0, new2old_b2b, (bool, int))
+        # Transforms
+        transforms = [] if transforms is None else transforms
+        # Structure and Quadrate
         quadrate_map = Matrix.parse_map(quadrate_map, None, new2old_b2b)
-        boolean_level_map = Matrix.parse_map(boolean_level_map, None, new2old_b2b)
-        zone_map = Matrix.parse_map(zone_map, None, new2old_b2b)
         structure_type = ['LLL'] if structure_type is None else structure_type
-        structure_type_map = Matrix.parse_map(structure_type_map, 0, new2old_b2b)
+        structure_type_map = Matrix.parse_map(structure_type_map, 0, new2old_b2b,
+                                              (int,))
+        # Boolean
+        boolean_level_map = Matrix.parse_map(boolean_level_map,
+                                             None, new2old_b2b, (int,))
+        # Zones
+        zones = ['Matrix'] if zones is None else zones
+        zones_map = Matrix.parse_map(zones_map, 0, new2old_b2b, (int,))
         # TODO Optimized version
         children = [Block(points=x,
                           curves=curves[curves_map[i]],
-                          use_register_tag=use_register_tag,
                           do_register=do_register_map[i],
+                          do_register_children=do_register_children_map[i],
+                          do_unregister=do_unregister_map[i],
+                          do_unregister_children=do_unregister_children_map[i],
+                          do_unregister_boolean=do_unregister_boolean_map[i],
                           structure=blocks_structures[i],
+                          structure_type=structure_type[structure_type_map[i]],
                           quadrate=quadrate_map[i],
                           boolean_level=boolean_level_map[i],
-                          zone=zone_map[i],
-                          structure_type=structure_type[structure_type_map[i]],
+                          zone=zones[zones_map[i]],
                           parent=self) for i, x in enumerate(blocks_points)
                     if do_register_map[i]]
         # children = [Block(points=x,
@@ -90,10 +96,9 @@ class Matrix(Block):
         #                   zone=zone_map[i],
         #                   parent=self) for i, x in enumerate(blocks_points)]
         super().__init__(parent=parent,
-                         do_register=False,
+                         do_register=False,  # TODO False?
                          children=children,
-                         transforms=transforms,
-                         use_register_tag=use_register_tag)
+                         transforms=transforms)
 
     @staticmethod
     def evaluate_block_values(values, b2ids, gm=0., gs=None, gcs='cartesian'):

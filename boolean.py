@@ -121,6 +121,8 @@ import numpy as np
 
 from volume import Volume
 from support import timeit
+from registry import synchronize as synchronize_registry, \
+    register_boolean_new2olds, register_boolean_old2news
 
 
 class Boolean:
@@ -139,21 +141,25 @@ class Boolean:
             cnt += 1
             logging.info(f'{cnt}/{n_combinations}')
             timeit(self.block_by_block)(b0, b1)
+        timeit(gmsh.model.occ.remove_all_duplicates)()
 
     @staticmethod
     def block_by_block(b0, b1, zone_separator='-'):
         if not b0.is_registered or not b1.is_registered:
+            logging.debug(f'not registered: {b0.is_registered}, {b1.is_registered}')
             return
         if b0.boolean_level is None or b1.boolean_level is None:
+            logging.debug(f'no level: {b0.boolean_level}, {b1.boolean_level}')
             return
         if len(b0.volumes) == 0 or len(b1.volumes) == 0:
+            logging.debug(f'no volumes: {len(b0.volumes)}, {len(b1.volumes)}')
             return
-        logging.info(f'b0 {id(b0)} - {b0.boolean_level} level, '
-                     f'{" ".join(sorted(set([x for x in b0.volumes_zones])))} zones, '
-                     f'{len(b0.volumes)} volumes and '
-                     f'b1 {id(b1)} - {b1.boolean_level} level, '
-                     f'{" ".join(sorted(set([x for x in b1.volumes_zones])))} zones, '
-                     f'{len(b1.volumes)} volumes')
+        logging.debug(f'b0 {id(b0)} - {b0.boolean_level} level, '
+                      f'{" ".join(sorted(set([x for x in b0.volume_zone])))} zones, '
+                      f'{len(b0.volumes)} volumes and '
+                      f'b1 {id(b1)} - {b1.boolean_level} level, '
+                      f'{" ".join(sorted(set([x for x in b1.volume_zone])))} zones, '
+                      f'{len(b1.volumes)} volumes')
         # Boolean operation
         obj_dts = [(3, x.tag) for x in b0.volumes]
         tool_dts = [(3, x.tag) for x in b1.volumes]
@@ -180,13 +186,13 @@ class Boolean:
                     new_b1_volumes.append(old_v)
             else:  # Intersected volume
                 if b1.boolean_level > b0.boolean_level:  # Add volume to b1
-                    new_v = Volume(tag=new_tag, zone=b1.volumes_zones[0])  # TODO Other fields?
+                    new_v = Volume(tag=new_tag, zone=b1.volume_zone)  # TODO Other fields?
                     new_b1_volumes.append(new_v)
                 elif b0.boolean_level > b1.boolean_level:  # Add volume to b0
-                    new_v = Volume(tag=new_tag, zone=b0.volumes_zones[0])  # TODO Other fields?
+                    new_v = Volume(tag=new_tag, zone=b0.volume_zone)  # TODO Other fields?
                     new_b0_volumes.append(new_v)
                 else:  # No tool and object (TODO ADD volume to b1?)
-                    zones = set(x for x in [b0.volumes_zones[0], b1.volumes_zones[0]] if x is not None)
+                    zones = set(x for x in [b0.volume_zone, b1.volume_zone] if x is not None)
                     new_zone = zone_separator.join(sorted(zones)) if len(zones) > 0 else zones
                     new_v = Volume(tag=new_tag, zone=new_zone)  # TODO Other fields?
                     new_b1_volumes.append(new_v)
@@ -199,10 +205,12 @@ class BooleanBoundingBox(Boolean):
 
     Bounding box [min_x, min_y, min_z, max_x, max_y, max_z]
     """
+
     def __init__(self):
         super().__init__()
 
     def __call__(self, block):
+        timeit(synchronize_registry)()  # for evaluation of bboxes
         b2bb = {}
         n_blocks = 0
         for b in block:
@@ -223,10 +231,12 @@ class BooleanBoundingBox(Boolean):
             if any((bb0[0] > bb1[3], bb0[3] < bb1[0], bb0[1] > bb1[4],
                     bb0[1] > bb1[4], bb0[2] > bb1[5], bb0[2] > bb1[5])):
                 do_boolean = False
-            logging.info(f'bbox intersection: {do_boolean}')
             # Do boolean operation
             if do_boolean:
                 timeit(self.block_by_block)(b0, b1)
+            else:
+                logging.debug(f'no bbox intersection: {bb0}, {bb1}')
+        timeit(gmsh.model.occ.remove_all_duplicates)()
 
     @staticmethod
     def get_bb(block):
@@ -238,9 +248,37 @@ class BooleanBoundingBox(Boolean):
         return bb
 
 
+class BooleanAll(Boolean):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, block):
+        timeit(gmsh.model.occ.remove_all_duplicates)()
+
+
+class BooleanAllBlock(Boolean):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, block):
+        dts = [(3, b.volumes[0].tag) for b in block if b.do_register]
+        logging.info(f'n_volumes: {len(dts)}')
+        if len(dts) > 1:
+            obj_dts, tool_dts = dts[:1], dts[1:]
+            new_dts, old_id_to_new_dts = timeit(gmsh.model.occ.fragment)(
+                objectDimTags=obj_dts, toolDimTags=tool_dts)
+            new2olds, old2news = {}, {}  # New tag and old tags
+            for old_id, new_dts in enumerate(old_id_to_new_dts):
+                old_tag = dts[old_id][1]
+                for new_dt in new_dts:
+                    new_tag = new_dt[1]
+                    new2olds.setdefault(new_tag, []).append(old_tag)
+                    old2news.setdefault(old_tag, []).append(new_tag)
+            register_boolean_new2olds(m=new2olds)
+            register_boolean_old2news(m=old2news)
+
+
 str2obj = {
     Boolean.__name__: Boolean,
-    Boolean.__name__.lower(): Boolean,
     BooleanBoundingBox.__name__: BooleanBoundingBox,
-    BooleanBoundingBox.__name__.lower(): BooleanBoundingBox,
 }

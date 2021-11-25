@@ -10,6 +10,14 @@ class Quadrate:
         self.kwargs = kwargs
 
 
+class NoQuadrate:
+    def __init__(self):
+        pass
+
+    def __call__(self, block):
+        pass
+
+
 class QuadrateBlock:
     def __init__(self):
         pass
@@ -34,7 +42,6 @@ class QuadrateBlock:
 
 str2obj = {
     Quadrate.__name__: Quadrate,
-    Quadrate.__name__.lower(): Quadrate,
     QuadrateBlock.__name__: QuadrateBlock,
-    QuadrateBlock.__name__.lower(): QuadrateBlock
+    NoQuadrate.__name__: NoQuadrate
 }

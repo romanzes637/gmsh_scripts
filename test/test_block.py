@@ -347,7 +347,7 @@ class TestBlock(unittest.TestCase):
                         'transfinite': {}
                     },
                 ],
-                volumes=[
+                volume=[
                     {'transfinite': {}}
                 ]
             )
@@ -1069,7 +1069,7 @@ class TestBlock(unittest.TestCase):
                                [-0.5, -0.5, 0.5],
                                [0.5, -0.5, 0.5]],
                        boolean_level=1,
-                       volumes=[{'zone': 'A'}]
+                       volume=[{'zone': 'A'}]
                        )
             b2 = Block(factory=factory,
                        points=[[0.5, 0.5, -0.5],
@@ -1084,7 +1084,7 @@ class TestBlock(unittest.TestCase):
                        transforms=['block_to_cartesian'],
                        parent=b1,
                        boolean_level=0,
-                       volumes=[{'zone': 'BA'}]
+                       volume=[{'zone': 'BA'}]
                        )
             b1.add_child(b2)
             b3 = Block(factory=factory,
@@ -1101,7 +1101,7 @@ class TestBlock(unittest.TestCase):
                        parent=b2,
                        boolean_level=2,
                        do_unregister=True,
-                       volumes=[{'zone': 'CB'}]
+                       volume=[{'zone': 'CB'}]
                        )
             b2.add_child(b3)
             b4 = Block(factory=factory,
@@ -1118,7 +1118,7 @@ class TestBlock(unittest.TestCase):
                        parent=b2,
                        boolean_level=2,
                        do_unregister=True,
-                       volumes=[{'zone': 'CA'}]
+                       volume=[{'zone': 'CA'}]
                        )
             b2.add_child(b4)
             b5 = Block(factory=factory,
@@ -1135,7 +1135,7 @@ class TestBlock(unittest.TestCase):
                        parent=b1,
                        boolean_level=2,
                        do_unregister=True,
-                       volumes=[{'zone': 'BB'}]
+                       volume=[{'zone': 'BB'}]
                        )
             b1.add_child(b5)
             b6 = Block(factory=factory,
@@ -1149,7 +1149,7 @@ class TestBlock(unittest.TestCase):
                                [0.5, -0.5, 0.5]],
                        boolean_level=1,
                        parent=b1,
-                       volumes=[{'zone': 'E'}]
+                       volume=[{'zone': 'E'}]
                        )
             b1.add_child(b6, transforms=[[1, 0, 0]])
             b7 = Block(factory=factory,
@@ -1166,7 +1166,7 @@ class TestBlock(unittest.TestCase):
                        boolean_level=6,
                        parent=b6,
                        do_unregister=True,
-                       volumes=[{'zone': 'D'}]
+                       volume=[{'zone': 'D'}]
                        )
             b6.add_child(b7)
             t0 = time.perf_counter()
@@ -1279,7 +1279,7 @@ class TestBlock(unittest.TestCase):
                                {'zone': 'z3'}, {'zone': 'z4'}],
                        surfaces=[{'zone': 'nx'}, {'zone': 'x'}, {'zone': 'ny'},
                                  {'zone': 'y'}, {'zone': 'nz'}, {'zone': 'z'}],
-                       volumes=[{'zone': 'v'}],
+                       volume=[{'zone': 'v'}],
                        parent=b0
                        )
             b0.add_child(b1)

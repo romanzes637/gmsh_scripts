@@ -6,7 +6,7 @@ import gmsh
 from registry import reset as reset_registry
 from registry import synchronize as synchronize_registry
 from support import timeit, plot_statistics
-from boolean import BooleanBoundingBox
+from boolean import BooleanAllBlock
 from zone import BlockDirection
 from size import BooleanPoint
 from structure import StructureBlock
@@ -107,7 +107,7 @@ class Boolean(Strategy):
             model_name=None,
             output_path=None,
             output_formats=None,
-            boolean_function=BooleanBoundingBox(),
+            boolean_function=BooleanAllBlock(),
             zone_function=BlockDirection(
                 dims=(2, 3), make_interface=False,
                 add_volume_tag=True, add_volume_zone=True,
@@ -133,16 +133,18 @@ class Boolean(Strategy):
             timeit(self.zone_function)(block)
             timeit(gmsh.write)(f'{self.model_name}.geo_unrolled')
         elif self.factory == 'occ':
-            timeit(synchronize_registry)()  # for evaluation of bboxes
+            if 'geo_unrolled' in self.output_formats:
+                path = f'{self.output_path}-pre_boolean.geo_unrolled'
+                logging.info(f'Writing {path}')
+                timeit(gmsh.write)(path)
             timeit(self.boolean_function)(block)
-            timeit(gmsh.model.occ.remove_all_duplicates)()
-            timeit(block.unregister)()
-            timeit(block.unregister_boolean)()
             logging.info([len(gmsh.model.getEntities(x)) for x in range(4)])
             timeit(synchronize_registry)()
             logging.info([len(gmsh.model.getEntities(x)) for x in range(4)])
+            logging.info([len(gmsh.model.getEntities(x)) for x in range(4)])
             timeit(self.structure_function)(block)
             timeit(self.quadrate_function)(block)
+            timeit(block.unregister)()
             timeit(self.size_function)(block)
             timeit(self.zone_function)(block)
             if 'geo_unrolled' in self.output_formats:
@@ -151,15 +153,15 @@ class Boolean(Strategy):
                 timeit(gmsh.write)(path)
             timeit(gmsh.model.mesh.generate)(3)
             plot_statistics()
-            log = gmsh.logger.get()
-            for x in log:
-                logging.info(x)
-            gmsh.logger.stop()
             for f in self.output_formats:
                 if f != 'geo_unrolled':
                     path = f'{self.output_path}.{f}'
                     logging.info(f'Writing {path}')
                     timeit(gmsh.write)(path)
+            log = gmsh.logger.get()
+            for x in log:
+                logging.debug(x)
+            gmsh.logger.stop()
         else:
             raise ValueError(self.factory)
         gmsh.model.remove()

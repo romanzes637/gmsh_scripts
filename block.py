@@ -10,7 +10,8 @@ from transform import reduce_transforms
 from registry import register_point, register_curve, register_curve_loop, \
     register_surface, register_surface_loop, register_volume, \
     register_curve_structure, register_surface_structure, \
-    register_surface_quadrate, register_volume_structure, unregister_volume
+    register_surface_quadrate, register_volume_structure, unregister_volume, \
+    register_volume2block, get_boolean_old2news, get_boolean_new2olds, get_volume2block
 from coordinate_system import Block as BlockCS
 from point import Point
 from curve import Curve
@@ -78,9 +79,8 @@ class Block:
         points (list of dict, list of list, list): 8 corner points of the block
         curves (list of dict, list of list, list, list of Curve): 12 edge curves of the block
         surfaces (list of dict, list of list, list, list of Surface): 6 boundary surfaces of the block
-        volumes (list of dict, list of list, list, list of Volume): volumes of the block (1 by now, TODO several volumes)
+        volume (list of dict, list of list, list, list of Volume): volumes of the block (1 by now, TODO several volumes)
         do_register (bool or int): register Block in the registry
-        use_register_tag (bool or int): use tag from registry instead tag from gmsh
         do_unregister (bool): unregister Block from the registry
         do_register_children (bool): invoke register for children
         do_unregister_children (bool): invoke unregister for children
@@ -93,36 +93,42 @@ class Block:
         boolean_level (int): Block boolean level, if the Block level > another Block level, then intersected volume joins to the Block, if levels are equal third Block is created, if None - don't do boolean
     """
 
-    def __init__(self, points=None, curves=None, surfaces=None, volumes=None,
-                 do_register=True, use_register_tag=False, do_unregister=False,
-                 do_register_children=True, do_unregister_children=True,
-                 do_unregister_boolean=False, do_unregister_boolean_children=True,
+    def __init__(self, points=None, curves=None, surfaces=None, volume=None,
+                 do_register=True,
+                 do_register_children=True,
+                 do_unregister=False,
+                 do_unregister_children=True,
+                 do_unregister_boolean=False,
                  transforms=None,
-                 quadrate=None, structure=None, zone=None,
-                 parent=None, children=None, children_transforms=None,
-                 boolean_level=None, path=None, structure_type='LLL'):
+                 quadrate=None, structure=None, structure_type='LLL',
+                 zone=None, parent=None, children=None, children_transforms=None,
+                 boolean_level=None, path=None):
+        # Entities
         self.points = self.parse_points(points)
         self.curves = self.parse_curves(curves)
         self.surfaces = self.parse_surfaces(surfaces)
-        self.volumes = self.parse_volumes(volumes)
-        self.register_tag = use_register_tag
+        self.volumes = self.parse_volumes(volume)
+        # Support Entities
+        self.curves_loops = [CurveLoop() for _ in range(6)]
+        self.surfaces_loops = [SurfaceLoop()]
+        # Register
         self.do_register = do_register
-        self.do_unregister = do_unregister
         self.do_register_children = do_register_children
+        self.do_unregister = do_unregister
         self.do_unregister_children = do_unregister_children
         self.do_unregister_boolean = do_unregister_boolean
-        self.do_unregister_boolean_children = do_unregister_boolean_children
+        # Transforms
         self.transforms = self.parse_transforms(transforms, parent)
         # Structure and Quadrate
         self.curves_structures, self.surfaces_structures, \
         self.volumes_structures = self.parse_structure(structure)
         self.surfaces_quadrates = self.parse_quadrate(quadrate)
+        self.surfaces_arrangement, self.surfaces_points, self.volume_points = \
+            self.parse_structure_type(structure_type)
         # Zones
         self.points_zones, self.curves_zones, self.surfaces_zones, \
-        self.volumes_zones = self.parse_zone(zone)
-        for v in self.volumes:
-            if v.zone is None:
-                v.zone = self.volumes_zones[0]
+        self.volume_zone = self.parse_zone(zone)
+        # Parent/Children
         self.parent = parent
         self.children = [] if children is None else children
         if children_transforms is None:
@@ -130,16 +136,12 @@ class Block:
         for i, t in enumerate(children_transforms):
             children_transforms[i] = self.parse_transforms(t, parent)
         self.children_transforms = children_transforms
+        # Boolean level
         self.boolean_level = boolean_level
+        # Path
         self.path = path
-        self.surfaces_arrangement, self.surfaces_points, self.volume_points = \
-            self.parse_structure_type(structure_type)
-        # Support
-        self.curves_loops = [CurveLoop() for _ in range(6)]
-        self.surfaces_loops = [SurfaceLoop()]
         # Flags
         self.is_registered = False
-        self.is_booleaned = False
 
     curves_points = [
         [1, 0], [5, 4], [6, 7], [2, 3],  # X1, X2, X3, X4
@@ -352,17 +354,17 @@ class Block:
                          'Y1', 'Y2', 'Y3', 'Y4',
                          'Z1', 'Z2', 'Z3', 'Z4']
         default_ss_zs = ['NX', 'X', 'NY', 'Y', 'NZ', 'Z']
-        default_vs_zs = ['V']
+        default_v_z = 'V'
         if zone is None:
-            return default_ps_zs, default_cs_zs, default_ss_zs, default_vs_zs
+            return default_ps_zs, default_cs_zs, default_ss_zs, default_v_z
         elif isinstance(zone, str):
-            return default_ps_zs, default_cs_zs, default_ss_zs, [zone]
+            return default_ps_zs, default_cs_zs, default_ss_zs, zone
         elif isinstance(zone, list):
-            vs_zs = zone[0] if len(zone) > 0 else default_vs_zs
+            v_z = zone[0] if len(zone) > 0 else default_v_z
             ss_zs = zone[1] if len(zone) > 1 else default_ss_zs
             cs_zs = zone[2] if len(zone) > 2 else default_cs_zs
             ps_zs = zone[3] if len(zone) > 3 else default_ps_zs
-            return ps_zs, cs_zs, ss_zs, vs_zs
+            return ps_zs, cs_zs, ss_zs, v_z
         else:
             raise ValueError(zone)
 
@@ -522,12 +524,12 @@ class Block:
 
     def register_points(self):
         for i, p in enumerate(self.points):
-            self.points[i] = register_point(p, self.register_tag)
+            self.points[i] = register_point(p)
 
     def register_curve_points(self):
         for i, c in enumerate(self.curves):
             for j, p in enumerate(c.points):
-                c.points[j] = register_point(p, self.register_tag)
+                c.points[j] = register_point(p)
             # Add start and end points to curves
             p0 = self.points[self.curves_points[i][0]]
             p1 = self.points[self.curves_points[i][1]]
@@ -535,27 +537,24 @@ class Block:
 
     def register_curves(self):
         for i, c in enumerate(self.curves):
-            self.curves[i] = register_curve(c, self.register_tag)
+            self.curves[i] = register_curve(c)
 
     def register_curves_loops(self):
         for i, cl in enumerate(self.curves_loops):
             self.curves_loops[i].curves = [self.curves[x] for x in
                                            self.surfaces_curves[i]]
             self.curves_loops[i].curves_signs = self.surfaces_curves_signs[i]
-            self.curves_loops[i] = register_curve_loop(self.curves_loops[i],
-                                                       self.register_tag)
+            self.curves_loops[i] = register_curve_loop(self.curves_loops[i])
 
     def register_surfaces(self):
         for i, s in enumerate(self.surfaces):
             self.surfaces[i].curves_loops = [self.curves_loops[i]]
-            self.surfaces[i] = register_surface(self.surfaces[i],
-                                                self.register_tag)
+            self.surfaces[i] = register_surface(self.surfaces[i])
 
     def register_surfaces_loops(self):
         # External
         self.surfaces_loops[0].surfaces = self.surfaces
-        self.surfaces_loops[0] = register_surface_loop(self.surfaces_loops[0],
-                                                       self.register_tag)
+        self.surfaces_loops[0] = register_surface_loop(self.surfaces_loops[0])
         # Internal
         if self.boolean_level is None:
             internal_volumes = []
@@ -571,13 +570,14 @@ class Block:
                 volumes_surfaces)
             for g in surfaces_groups:
                 sl = SurfaceLoop(surfaces=[Surface(tag=x) for x in g])
-                sl = register_surface_loop(sl, self.register_tag)
+                sl = register_surface_loop(sl)
                 self.surfaces_loops.append(sl)
 
     def register_volumes(self):
         v = self.volumes[0]
         v.surfaces_loops = self.surfaces_loops
-        self.volumes[0] = register_volume(v, self.register_tag)
+        self.volumes[0] = register_volume(v)
+        register_volume2block(self.volumes[0].tag, self)
         self.is_registered = True
 
     def register_structure(self):
@@ -617,28 +617,28 @@ class Block:
             for i, c in enumerate(self.children):
                 c.unregister()
         # Self
-        if not self.do_unregister:
+        if not self.do_register:
             return
-        if not self.is_registered:
+        if not self.do_unregister and not self.do_unregister_boolean:
             return
-        for i, v in enumerate(self.volumes):
-            if v.zone is not None:
-                if zone_separator not in v.zone:
-                    self.volumes[i] = unregister_volume(v, self.register_tag)
-
-    def unregister_boolean(self, zone_separator='-'):
-        # Children
-        if self.do_unregister_boolean_children:
-            for i, c in enumerate(self.children):
-                c.unregister_boolean()
-        # Self
-        if not self.is_registered or not self.do_unregister_boolean:
-            return
-        if self.boolean_level is None:
-            return
-        for i, v in enumerate(self.volumes):
-            if zone_separator in v.zone:
-                self.volumes[i] = unregister_volume(v, self.register_tag)
+        old_tag = self.volumes[0].tag
+        new_tags = get_boolean_old2news()[old_tag]
+        for new_tag in new_tags:
+            all_old_tags = get_boolean_new2olds()[new_tag]
+            if len(all_old_tags) == 1:  # Owner
+                unregister_volume(Volume(tag=new_tag))
+            else:  # Shared volume
+                v2b = get_volume2block()
+                all_old_blocks = [v2b[x] for x in all_old_tags]
+                all_levels = [x.boolean_level for x in all_old_blocks]
+                max_level = max(all_levels)
+                n_max_levels = all_levels.count(max_level)
+                if n_max_levels == 1 and self.boolean_level == max_level:
+                    unregister_volume(Volume(tag=new_tag))
+                elif self.do_unregister_boolean:
+                    unregister_volume(Volume(tag=new_tag))
+                else:
+                    pass
 
     def __iter__(self):
         """Iterate children of the block recursively
@@ -693,7 +693,7 @@ class Block:
                 zs = ", ".join({x.zone for x in b.volumes if x.zone is not None and x.tag is not None})
                 v += f'volume zones: {zs} <br> '
                 v += ' <br> '.join(f'{x}: {b.__getattribute__(x)}' for x in (
-                    'file_name', 'factory', 'boolean_level', 'register_tag',
+                    'file_name', 'factory', 'boolean_level',
                     'do_register', 'do_register_children', 'do_unregister',
                     'do_unregister_boolean', 'do_unregister_boolean_children',
                     'is_registered', 'is_quadrated', 'is_structured'))

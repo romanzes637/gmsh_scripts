@@ -11,7 +11,12 @@ from support import flatten
 
 class Layer(Matrix):
     def __init__(self, layers=None, layers_curves=None, layers_types=None,
-                 do_register_map=None, transforms=None, boolean_level_map=None):
+                 do_register_map=None, do_unregister_map=None,
+                 do_unregister_children_map=None, do_unregister_boolean_map=None,
+                 quadrate_map=None,
+                 transforms=None,
+                 boolean_level_map=None,
+                 zones=None, zones_map=None, parent=None):
         str_layers = [x for x in layers if isinstance(x, str)]
         other_layers = [x for x in layers if not isinstance(x, (int, float, str, list))]
         coordinate_system = str_layers[0] if len(str_layers) > 0 else 'cartesian'
@@ -24,7 +29,7 @@ class Layer(Matrix):
         if layers_types is None:
             layers_types = [['in' for _ in x] for x in layers]
         if layers_curves is None:
-            layers_curves = [['line' for y in x] for x in layers]
+            layers_curves = [['line' for _ in x] for x in layers]
         layers = Layer.correct_layers(layers)
         layers_curves = Layer.correct_layers(layers_curves)
         layers_types = Layer.correct_layers(layers_types)
@@ -102,21 +107,38 @@ class Layer(Matrix):
             m2l_b2b_g2g.append(lgi)
         # Boolean
         boolean_level_map = Layer.correct_map(boolean_level_map)
-        boolean_level_map = Layer.parse_map(
+        boolean_level_map = Layer.parse_layer_map(
             boolean_level_map, None, m2l_b2b_g2g, (int,))
         # print(np.array(boolean_level_map).reshape((n_blocks_z, n_blocks_y, n_blocks_x)))
-        # Register
+        # Register/Unregister
         default_do_register_map = [0 if x is None else 1 for x in m2l_b2b_g2l]
         do_register_map = Layer.correct_map(do_register_map)
-        do_register_map = Layer.parse_map(
+        do_register_map = Layer.parse_layer_map(
             do_register_map, 1, m2l_b2b_g2g, (bool, int))
+        do_unregister_map = Layer.correct_map(do_unregister_map)
+        do_unregister_map = Layer.parse_layer_map(
+            do_unregister_map, 0, m2l_b2b_g2g, (bool, int))
+        do_unregister_children_map = Layer.correct_map(do_unregister_children_map)
+        do_unregister_children_map = Layer.parse_layer_map(
+            do_unregister_children_map, 0, m2l_b2b_g2g, (bool, int))
+        do_unregister_boolean_map = Layer.correct_map(do_unregister_boolean_map)
+        do_unregister_boolean_map = Layer.parse_layer_map(
+            do_unregister_boolean_map, 0, m2l_b2b_g2g, (bool, int))
         matrix_do_register_map = [x * y for x, y in zip(
             default_do_register_map, do_register_map)]
+        # Structure and Quadrate
+        quadrate_map = Layer.correct_map(quadrate_map)
+        quadrate_map = Layer.parse_layer_map(quadrate_map, 0,
+                                             m2l_b2b_g2g, (bool, int))
         structure_type, structure_type_map = Layer.parse_layers_structure_type(
             m2l_b2b_g2l)
-        curves, curves_map = Layer.parse_layers_curves(
-            layers_curves, m2l_b2b_g2l, layers)
+        curves, curves_map = Layer.parse_layers_curves(layers_curves,
+                                                       m2l_b2b_g2l, layers)
         # print(np.array(structure_type_map).reshape((n_blocks_z, n_blocks_y, n_blocks_x)))
+        # Zones
+        zones = ['Layer'] if zones is None else zones
+        zones_map = Layer.correct_map(zones_map)
+        zones_map = Layer.parse_layer_map(zones_map, 0, m2l_b2b_g2g, (int,))
         # Transforms
         transforms = [] if transforms is None else transforms
         lxy2car = tr_str2obj['LayerXYToCartesian']()
@@ -129,9 +151,16 @@ class Layer(Matrix):
                          curves_map=curves_map,
                          transforms=matrix_transforms,
                          do_register_map=matrix_do_register_map,
+                         do_unregister_map=do_unregister_map,
+                         do_unregister_children_map=do_unregister_children_map,
+                         do_unregister_boolean_map=do_unregister_boolean_map,
+                         quadrate_map=quadrate_map,
                          structure_type=structure_type,
                          structure_type_map=structure_type_map,
-                         boolean_level_map=boolean_level_map)
+                         boolean_level_map=boolean_level_map,
+                         zones=zones,
+                         zones_map=zones_map,
+                         parent=parent)
 
     @staticmethod
     def correct_layers(layers):
@@ -153,6 +182,8 @@ class Layer(Matrix):
     def correct_map(m):
         if m is None:
             return None
+        if not isinstance(m, list):
+            return m
         # Correct layers
         if len(m) == 1:  # X -> X=X, Y=X, NX=X, NY=X
             m = [m for _ in range(4)]
@@ -173,12 +204,12 @@ class Layer(Matrix):
         return m
 
     @staticmethod
-    def parse_map(m, default, new2old, item_types=()):
+    def parse_layer_map(m, default, new2old, item_types=()):
         # Default value for all items if map is None
         if m is None:
             m = [default for _ in new2old]
             return m
-        m = list(flatten(m))
+        m = list(flatten(m)) if isinstance(m, list) else m
         # Check on single item of type in item_types
         for t in item_types:
             if isinstance(t, list) and isinstance(m, list):  # list of ...

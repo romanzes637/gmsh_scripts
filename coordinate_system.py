@@ -90,8 +90,7 @@ class Block(CoordinateSystem):
 
 class Path(CoordinateSystem):
     def __init__(self, origin=np.zeros(3), curves=None, orientations=None,
-                 transforms=None, weights=None, local_weights=None,
-                 use_register_tag=False, **kwargs):
+                 transforms=None, weights=None, local_weights=None, **kwargs):
         """Path coordinate system
 
         # pitch, yaw, roll
@@ -104,7 +103,6 @@ class Path(CoordinateSystem):
         Args:
             origin (np.ndarray or list): Origin of the coordinate system
             curves (list of dict, list of list, list, list of Curve): Curves
-            use_register_tag (bool): use tag from registry instead tag from gmsh
         """
         super().__init__(dim=3, origin=origin, **kwargs)
         curves = [] if curves is None else curves
@@ -113,7 +111,6 @@ class Path(CoordinateSystem):
         self.local_weights = [[] for _ in curves] if local_weights is None else local_weights
         from block import Block as BlockObject
         self.curves = BlockObject.parse_curves(curves)
-        self.use_register_tag = use_register_tag
         self.transforms = [BlockObject.parse_transforms(x, None) for x in transforms]
         self.orientations = self.parse_orientations(
             orientations=orientations, do_deg2rad=True)
@@ -160,8 +157,8 @@ class Path(CoordinateSystem):
     def register(self):
         for c in self.curves:
             for p in c.points:
-                register_point(point=p, register_tag=self.use_register_tag)
-            register_curve(curve=c, register_tag=self.use_register_tag)
+                register_point(point=p)
+            register_curve(curve=c)
 
     def transform(self):
         for i, c in enumerate(self.curves):

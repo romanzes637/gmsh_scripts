@@ -2,17 +2,226 @@ import numpy as np
 import gmsh
 
 from support import DataTree, flatten
+from registry import get_boolean_new2olds, get_volume2block
 
 
 class Zone:
-    """
-    """
-
     def __init__(self):
         pass
 
+    def evaluate_map(self, block):
+        dimtag2zones = {}
+        return dimtag2zones
+
+    def __call__(self, block):
+        dt2zs = self.evaluate_map(block)
+        from pprint import pprint
+        pprint(dt2zs)
+        z2dts = {}
+        for dt, zs in dt2zs.items():
+            dim, tag = dt
+            if dim == 3 and len(zs) > 1:
+                raise ValueError(f'Several zones per one volume {tag}:  {zs}')
+            for z in zs:
+                z2dts.setdefault(z, [[] for _ in range(4)])
+                z2dts[z][dim].append(dt)
+        pprint(z2dts)
+        for z, dts in z2dts.items():
+            for dim in (0, 1, 2, 3):
+                tags = [x[1] for x in dts[dim]]
+                if len(tags) != 0:
+                    print(z, dim, tags)
+                    tag = gmsh.model.addPhysicalGroup(dim, tags)
+                    gmsh.model.setPhysicalName(dim, tag, z)
+
+
+class Boolean(Zone):
+    """Construct zones from boolean map and Block's zones
+
+    Args:
+        dims (tuple of int): Which dims to zones
+        dims_interfaces (tuple of int): Which dims to interfaces zones
+        join_interfaces (str): Join interfaces zones
+            'all' - join all in alphabetical order
+            'first' - get first only in alphabetical order
+            None - don't join
+        entities_separator (str):
+            separator between volume, surface, curve and point
+        join_separator (str):
+            separator used in join_interfaces
+    """
+    def __init__(self, dims=(0, 1, 2, 3), dims_interfaces=(0, 1, 2, 3),
+                 join_interfaces='all', entities_separator='_',
+                 join_separator='-'):
+        self.dims = dims
+        self.dims_interfaces = dims_interfaces
+        self.join_interfaces = join_interfaces
+        self.entities_separator = entities_separator
+        self.join_separator = join_separator
+        super().__init__()
+
+    def evaluate_map(self, block):
+        new2old = get_boolean_new2olds()
+        v2b = get_volume2block()
+        dt2zs = {}
+        vs_dt = gmsh.model.getEntities(3)
+        tree = DataTree(vs_dt)
+        for vi, ss_cs_ps_dt in enumerate(tree.vs_ss_cs_ps_dt):  # Volumes
+            if 3 in self.dims:
+                v_dt = tree.vs_dt[vi]
+                v_t = v_dt[1]
+                old_vts = new2old[v_t]
+                old_bs = [v2b[x] for x in old_vts]
+                new_zs = [b.volume_zone for b in old_bs]
+                new_ls = [b.boolean_level for b in old_bs]
+                max_l = max(new_ls)
+                new_zs = [x for i, x in enumerate(new_zs) if new_ls[i] == max_l]
+                new_zs = sorted(list(set(new_zs)))  # unique, alphabetic
+                v_z = self.entities_separator.join(new_zs)
+                dt2zs.setdefault(v_dt, []).append(v_z)
+            else:
+                v_z = 'V'
+            for si, cs_ps_dt in enumerate(ss_cs_ps_dt):  # Surfaces
+                if 2 in self.dims:
+                    s_dt = tree.vs_ss_dt[vi][si]
+                    s_z = self.entities_separator.join((v_z, str(vi), str(si)))
+                    dt2zs.setdefault(s_dt, []).append(s_z)
+                for ci, ps_dt in enumerate(cs_ps_dt):  # Curves
+                    if 1 in self.dims:
+                        c_dt = tree.vs_ss_cs_dt[vi][si][ci]
+                        c_dt = (1, abs(c_dt[1]))  # Remove orientation
+                        c_z = self.entities_separator.join(
+                            ('C',  str(vi), str(si), str(ci)))
+                        dt2zs.setdefault(c_dt, []).append(c_z)
+                    for pi, p_dt in enumerate(ps_dt):  # Points
+                        p_z = self.entities_separator.join(
+                            ('P', str(vi), str(si), str(ci), str(pi)))
+                        if 0 in self.dims:
+                            dt2zs.setdefault(p_dt, []).append(p_z)
+        # Remove interfaces unless they are not dims_interfaces
+        dt2zs = {k: v for k, v in dt2zs.items()
+                 if len(v) == 1 or k[0] in self.dims_interfaces}
+        # Join interfaces names
+        if self.join_interfaces is not None:
+            if self.join_interfaces == 'first':
+                dt2zs = {k: [sorted(list(v))[0]] for k, v in dt2zs.items()}
+            elif self.join_interfaces == 'all':
+                dt2zs = {k: [self.join_separator.join(sorted(list(v)))]
+                         for k, v in dt2zs.items()}
+            else:
+                raise ValueError(self.join_interfaces)
+        return dt2zs
+
+    def __call__(self, block):
+        super().__call__(block)
+
+
+class Mesh(Zone):
+    """Construct zones from mesh instead of Block's zones
+
+    Args:
+        dims (tuple of int): Which dims to zones
+        dims_interfaces (tuple of int): Which dims to interfaces zones
+        join_interfaces (str): Join interfaces zones
+            'all' - join all in alphabetical order
+            'first' - get first only in alphabetical order
+            None - don't join
+        entities_separator (str):
+            separator between volume, surface, curve and point
+        join_separator (str):
+            separator used in join_interfaces
+    """
+    def __init__(self, dims=(0, 1, 2, 3), dims_interfaces=(0, 1, 2, 3),
+                 join_interfaces='all', entities_separator='_',
+                 join_separator='-'):
+        self.dims = dims
+        self.dims_interfaces = dims_interfaces
+        self.join_interfaces = join_interfaces
+        self.entities_separator = entities_separator
+        self.join_separator = join_separator
+        super().__init__()
+
+    def evaluate_map(self, block):
+        dt2zs = {}
+        vs_dt = gmsh.model.getEntities(3)
+        tree = DataTree(vs_dt)
+        for vi, ss_cs_ps_dt in enumerate(tree.vs_ss_cs_ps_dt):  # Volumes
+            if 3 in self.dims:
+                v_dt = tree.vs_dt[vi]
+                v_z = self.entities_separator.join(('V', str(vi)))
+                dt2zs.setdefault(v_dt, set()).add(v_z)
+            for si, cs_ps_dt in enumerate(ss_cs_ps_dt):  # Surfaces
+                if 2 in self.dims:
+                    s_dt = tree.vs_ss_dt[vi][si]
+                    s_z = self.entities_separator.join(('S', str(vi), str(si)))
+                    dt2zs.setdefault(s_dt, set()).add(s_z)
+                for ci, ps_dt in enumerate(cs_ps_dt):  # Curves
+                    if 1 in self.dims:
+                        c_dt = tree.vs_ss_cs_dt[vi][si][ci]
+                        c_dt = (1, abs(c_dt[1]))  # Remove orientation
+                        c_z = self.entities_separator.join(
+                            ('C',  str(vi), str(si), str(ci)))
+                        dt2zs.setdefault(c_dt, set()).add(c_z)
+                    for pi, p_dt in enumerate(ps_dt):  # Points
+                        p_z = self.entities_separator.join(
+                            ('P', str(vi), str(si), str(ci), str(pi)))
+                        if 0 in self.dims:
+                            dt2zs.setdefault(p_dt, set()).add(p_z)
+        # Remove interfaces unless they are not dims_interfaces
+        dt2zs = {k: v for k, v in dt2zs.items()
+                 if len(v) == 1 or k[0] in self.dims_interfaces}
+        # Join interfaces names
+        if self.join_interfaces is not None:
+            if self.join_interfaces == 'first':
+                dt2zs = {k: [sorted(list(v))[0]] for k, v in dt2zs.items()}
+            elif self.join_interfaces == 'all':
+                dt2zs = {k: [self.join_separator.join(sorted(list(v)))]
+                         for k, v in dt2zs.items()}
+            else:
+                raise ValueError(self.join_interfaces)
+        return dt2zs
+
+    def __call__(self, block):
+        super().__call__(block)
+
+
+class NoZone(Zone):
+    """Name from zone field of entity
+
+        """
+
+    def __init__(self):
+        super().__init__()
+
     def __call__(self, block):
         pass
+
+
+class BlockVolumes(Zone):
+    """Zones from volumes of blocks
+
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def evaluate_map(self, block):
+        dt2zs = {}  # dim-tag to zone maps
+        for bi, b in enumerate(block):
+            vs = list(flatten([x.volumes for x in b]))
+            vs_dt = [(3, x.tag) for x in vs if x.tag is not None]
+            vs_zs = [x.zone for x in vs if x.tag is not None]
+            tree = DataTree(vs_dt)
+            for vi, ss_dt in enumerate(tree.vs_ss_dt):
+                v_dt = tree.vs_dt[vi]
+                v_z = vs_zs[vi]
+                dt2zs.setdefault(v_dt, set()).add(f'{v_z}-{bi}-{vi}')
+                for si, s_dt in enumerate(ss_dt):
+                    dt2zs.setdefault(s_dt, set()).add(f'{v_z}-{bi}-{vi}-{si}')
+        return dt2zs
+
+    def __call__(self, block):
+        super().__call__(block)
 
 
 class BlockSimple(Zone):
@@ -65,7 +274,7 @@ class BlockDirection(Zone):
                                      [[0, 0, -1]], [[0, 0, 1]]]
         else:
             self.zones_directions = zones_directions
-        self.dims = dims   # 0 - points, 1 - curves, 2 - surfaces, 3 - volumes
+        self.dims = dims  # 0 - points, 1 - curves, 2 - surfaces, 3 - volumes
         self.make_interface = make_interface
         self.add_volume_tag = add_volume_tag
         self.add_volume_zone = add_volume_zone
