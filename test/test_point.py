@@ -5,9 +5,10 @@ import logging
 import numpy as np
 
 from point import Point, parse_grid
-from point import parse_grid_row
+from point import parse_row
 from coordinate_system import str2obj as cs_factory
 from support import LoggingDecorator, flatten
+import point
 
 global_rng = np.random.default_rng()
 
@@ -183,7 +184,7 @@ class TestPoint(unittest.TestCase):
         bs = [0, 1, 2, 3]
         new_bs_true = [0, 1, 2, 3]
         logging.info(f'blocks: {bs}')
-        rs = parse_grid_row(row)
+        rs = parse_row(row)
         new2old_b2b = rs[-1]
         new_bs = [bs[x] for x in new2old_b2b]
         self.assertListEqual(new_bs_true, new_bs)
@@ -194,7 +195,7 @@ class TestPoint(unittest.TestCase):
         bs = [0, 1, 2, 3]
         new_bs_true = [0, 1, 2, 3]
         logging.info(f'blocks: {bs}')
-        rs = parse_grid_row(row)
+        rs = parse_row(row)
         new2old_b2b = rs[-1]
         new_bs = [bs[x] for x in new2old_b2b]
         self.assertListEqual(new_bs_true, new_bs)
@@ -205,7 +206,7 @@ class TestPoint(unittest.TestCase):
         bs = [0, 1, 2, 3]
         new_bs_true = [0, 1, 2, 3]
         logging.info(f'blocks: {bs}')
-        rs = parse_grid_row(row)
+        rs = parse_row(row)
         new2old_b2b = rs[-1]
         new_bs = [bs[x] for x in new2old_b2b]
         self.assertListEqual(new_bs_true, new_bs)
@@ -217,7 +218,7 @@ class TestPoint(unittest.TestCase):
         new_bs_true = [0, 0, 1, 2, 3]
         cs_true = [-3.3, -2.15, -1, 0, 1.1, 4]
         logging.info(f'blocks: {bs}')
-        rs = parse_grid_row(row)
+        rs = parse_row(row)
         new2old_b2b = rs[-1]
         new_bs = [bs[x] for x in new2old_b2b]
         self.assertListEqual(new_bs_true, new_bs)
@@ -231,7 +232,7 @@ class TestPoint(unittest.TestCase):
         new_bs_true = [0, 0, 1, 2, 3]
         ms_true = [None, 3, 3, None, None, None]
         logging.info(f'blocks: {bs}')
-        rs = parse_grid_row(row)
+        rs = parse_row(row)
         new2old_b2b = rs[-1]
         new_bs = [bs[x] for x in new2old_b2b]
         self.assertListEqual(new_bs_true, new_bs)
@@ -246,7 +247,7 @@ class TestPoint(unittest.TestCase):
         ms_true = [None, 3, 3, None, None, None]
         ss_true = [None, [4, 0, 1], [4, 0, 1], None, None, None]
         logging.info(f'blocks: {bs}')
-        rs = parse_grid_row(row)
+        rs = parse_row(row)
         new2old_b2b = rs[-1]
         new_bs = [bs[x] for x in new2old_b2b]
         self.assertListEqual(new_bs_true, new_bs)
@@ -263,7 +264,7 @@ class TestPoint(unittest.TestCase):
         ms_true = [None, 3., 3., None, 4., 4., None]
         ss_true = [None, [4, 0, 1], [4, 0, 1], None, [5, 1, 1.2], [5, 1, 1.2], None]
         logging.info(f'blocks: {bs}')
-        rs = parse_grid_row(row)
+        rs = parse_row(row)
         new2old_b2b = rs[-1]
         new_bs = [bs[x] for x in new2old_b2b]
         self.assertListEqual(new_bs_true, new_bs)
@@ -280,7 +281,7 @@ class TestPoint(unittest.TestCase):
         cs_true = [-3.3, -2.4010554433227367, -1.8987877789497376,
                    -1, 0, 1.1, 4]
         logging.info(f'blocks: {bs}')
-        rs = parse_grid_row(row)
+        rs = parse_row(row)
         new2old_b2b = rs[-1]
         new_bs = [bs[x] for x in new2old_b2b]
         self.assertListEqual(new_bs_true, new_bs)
@@ -297,7 +298,7 @@ class TestPoint(unittest.TestCase):
         ms_true = [None, 6.649247709847758, 6.649202077211734, 3.0,
                    None, None, None]
         logging.info(f'blocks: {bs}')
-        rs = parse_grid_row(row)
+        rs = parse_row(row)
         new2old_b2b = rs[-1]
         new_bs = [bs[x] for x in new2old_b2b]
         self.assertListEqual(new_bs_true, new_bs)
@@ -315,13 +316,13 @@ class TestPoint(unittest.TestCase):
                      [12, 13, 14],
                      [15, 16, 17]]]
         old_b_1d = list(flatten(old_b_nd))
-        new_b_nd_true = [[[0,  1,  1,  2],
-                          [3,  4,  4,  5],
-                          [6,  7,  7,  8]],
-                         [[9,  10, 10, 11],
+        new_b_nd_true = [[[0, 1, 1, 2],
+                          [3, 4, 4, 5],
+                          [6, 7, 7, 8]],
+                         [[9, 10, 10, 11],
                           [12, 13, 13, 14],
                           [15, 16, 16, 17]],
-                         [[9,  10, 10, 11],
+                         [[9, 10, 10, 11],
                           [12, 13, 13, 14],
                           [15, 16, 16, 17]]]
         new_b_1d_true = list(flatten(new_b_nd_true))
@@ -340,6 +341,122 @@ class TestPoint(unittest.TestCase):
         shape = [x + 1 for x in shape]
         new_b_nd = np.array(new_b_1d).reshape(shape).tolist()
         self.assertListEqual(new_b_nd, new_b_nd_true)
+
+    @LoggingDecorator()
+    def test_layers(self):
+        logging.info('layers_6')
+        layers_6 = [
+            [0, 1, 2, 3],  # X
+            [4, 5, 6],  # Y
+            [7, 8],  # NX
+            [9],  # NY
+            [10, 11],  # Z
+            [12, 13],  # NZ
+        ]
+        block_map = [
+            [
+                [[0, 1, 2, 3],
+                 [0, 1, 2, 3]],
+                [[0, 1, 2, 3],
+                 [0, 1, 2, 3]],
+            ],
+            [
+                [[4, 5, 6],
+                 [4, 5, 6]],
+                [[4, 5, 6],
+                 [4, 5, 6]]
+            ],
+            [
+                [[7, 8],
+                 [7, 8]],
+                [[7, 8],
+                 [7, 8]]
+            ],
+            [
+                [[9],
+                 [9]],
+                [[9],
+                 [9]]
+            ]
+        ]
+        new_block_map_true = block_map
+        new_layers, values, maps = point.parse_layers(layers_6)
+        n2o_b2b_l2l, n2o_b2b_g2g = maps[-2], maps[-1]
+        block_map_flat = list(flatten(block_map))
+        new_block_map_flat = [block_map_flat[x] for x in n2o_b2b_g2g]
+        self.assertListEqual(new_block_map_flat, list(flatten(new_block_map_true)))
+
+        logging.info('layers_2')
+        layers_2 = [
+            [0, 1, 2, 3],  # X
+            [4, 5]  # Z
+        ]
+        block_map = [
+            [0, 1, 2, 3],
+            [0, 1, 2, 3]
+        ]
+        new_block_map_true = [
+            [
+                [[0, 1, 2, 3],
+                 [0, 1, 2, 3]]
+            ],
+            [
+                [[0, 1, 2, 3],
+                 [0, 1, 2, 3]]
+            ],
+            [
+                [[0, 1, 2, 3],
+                 [0, 1, 2, 3]]
+            ],
+            [
+                [[0, 1, 2, 3],
+                 [0, 1, 2, 3]]
+            ]
+        ]
+        new_layers, values, maps = point.parse_layers(layers_2)
+        n2o_b2b_l2l, n2o_b2b_g2g = maps[-2], maps[-1]
+        block_map_flat = list(flatten(block_map))
+        new_block_map_flat = [block_map_flat[x] for x in n2o_b2b_g2g]
+        self.assertListEqual(new_block_map_flat, list(flatten(new_block_map_true)))
+        logging.info('layers_3')
+        layers_3 = [
+            [0, 1, 2, 3],  # X
+            [4, 5, 6],  # Y
+            [7, 8]  # Z
+        ]
+        block_map = [
+            [
+                [[0, 1, 2, 3],
+                 [0, 1, 2, 3]]
+            ],
+            [
+                [[4, 5, 6],
+                 [4, 5, 6]]
+            ]
+        ]
+        new_block_map_true = [
+            [
+                [0, 1, 2, 3],
+                [0, 1, 2, 3]
+            ],
+            [
+                [4, 5, 6],
+                [4, 5, 6]
+            ],
+            [
+                [0, 1, 2, 3],
+                [0, 1, 2, 3]
+            ],
+            [
+                [4, 5, 6],
+                [4, 5, 6]
+            ]
+        ]
+        new_layers, values, maps = point.parse_layers(layers_3)
+        n2o_b2b_l2l, n2o_b2b_g2g = maps[-2], maps[-1]
+        block_map_flat = list(flatten(block_map))
+        new_block_map_flat = [block_map_flat[x] for x in n2o_b2b_g2g]
+        self.assertListEqual(new_block_map_flat, list(flatten(new_block_map_true)))
 
 
 if __name__ == '__main__':

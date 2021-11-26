@@ -245,7 +245,7 @@ def parse_grid(grid, sep_i=';', sep_si=':'):
     """Parse grid
 
     Args:
-        grid (list of list): grid
+        grid (list of list): list of rows
         sep_i (str): items separator
         sep_si (str): sub-items separator
 
@@ -255,7 +255,7 @@ def parse_grid(grid, sep_i=';', sep_si=':'):
     # Parse grid rows
     new_grid, grid_values, grid_maps = [], [], []
     for row in grid:
-        new_row, values, maps = parse_grid_row(row, sep_i, sep_si)
+        new_row, values, maps = parse_row(row, sep_i, sep_si)
         new_grid.append(new_row)
         grid_values.append(values)
         grid_maps.append(maps)
@@ -464,7 +464,290 @@ def parse_grid(grid, sep_i=';', sep_si=':'):
     return new_grid, grid_values, grid_maps
 
 
-def parse_grid_row(row, sep_i=';', sep_si=':'):
+def parse_layers(layers, sep_i=';', sep_si=':'):
+    """Parse layers
+
+    From list of rows (2D ragged array 6xNI), where NI - number of items/blocks
+        by each direction (type item excluded!)
+        First item of Z/NZ rows implicitly set to 0
+        [
+            [0  1  2  3] X
+            [4  5  6]    Y
+            [7  8]       NX
+            [9]          NY
+            [10 11]      Z
+            [12 13]      NZ
+        ] layers
+
+    To layers block map (4D ragged array 4x2xNJxNI), where
+        NJ - number of items/blocks by Z/NZ respectively,
+        NI - number of items/blocks by X/Y/NX/NY respectively
+    [
+        [
+            [
+                [ 0  1  2  3] Z0
+                [ 4  5  6  7] Z1
+                 X0 X1 X2 X3
+            ] Z
+            [
+                [ 8  9 10 11] NZ0
+                [12 13 14 15] NZ1
+                 X0 X1 X2 X3
+            ] NZ
+        ] X
+        [
+            [
+                [16 17 18] Z0
+                [19 20 21] Z1
+                 Y0 Y1 Y2
+            ] Z
+            [
+                [22 23 24] NZ0
+                [25 26 27] NZ1
+                 Y0 Y1 Y2
+            ] NZ
+        ] Y
+        [
+            [
+                [ 28  29] Z0
+                [ 30  31] Z1
+                 NX0 NX1
+            ] Z
+            [
+                [ 32  33] NZ0
+                [ 34  35] NZ1
+                 NX0 NX1
+            ] - NZ
+        ] NX
+        [
+            [
+                [ 36] Z0
+                [ 37] Z1
+                 NY0
+            ] Z
+            [
+                [ 38] NZ0
+                [ 39] NZ1
+                 NY0
+            ] NZ
+        ] NY
+    ] - layers block map
+
+    To grid (3D array, 3xNI), NI - number of items by X/Y/Z respectively
+    [
+        NX + X                    - X, where NX is negated and reversed
+        NY + Y                    - Y, where NY is negated and reversed
+        NZ + [0] + Z              - Z, where NZ is negated and reversed
+    ] - grid
+
+    To block map of the grid (3D array, NZN+ZN x NYN+YN-1 x NXN+XN-1)
+    [
+        [
+            [  0    1    2  3  4] NY0/Y0
+            [  5    6    7  8  9] Y1
+            [ 10   11   12 13 14] Y2
+             NX1 NX0/X0 X1 X2 X3
+        ] NZ1
+        [
+            [ 15   16   17 18 19] NY0/Y0
+            [ 20   21   22 23 24] Y1
+            [ 25   26   27 28 29] Y2
+             NX1 NX0/X0 X1 X2 X3
+        ] NZ0
+        [
+            [ 30   31   32 33 34] NY0/Y0
+            [ 35   36   37 38 39] Y1
+            [ 40   41   42 43 44] Y2
+             NX1 NX0/X0 X1 X2 X3
+        ] Z0
+        [
+            [ 45   46   47 48 49] NY0/Y0
+            [ 50   51   52 53 54] Y1
+            [ 55   56   57 58 59] Y2
+             NX1 NX0/X0 X1 X2 X3
+        ] Z1
+    ] grid block map
+
+    Global indexes of layers block map at grid block map
+    [
+        [
+            [ 35 12/25/34/39 13 14 15] NY0/Y0
+            [ -       26      -  -  -] Y1
+            [ -       27      -  -  -] Y2
+             NX1    NX0/X0   X1 X2 X3
+        ] NZ1
+        [
+            [ 33  8/22/32/38  9 10 11] NY0/Y0
+            [ -       23      -  -  -] Y1
+            [ -       24      -  -  -] Y2
+             NX1    NX0/X0   X1 X2 X3
+        ] NZ0
+        [
+            [ 29  0/16/28/36  1  2  3] NY0/Y0
+            [ -       17      -  -  -] Y1
+            [ -       18      -  -  -] Y2
+             NX1    NX0/X0   X1 X2 X3
+        ] Z0
+        [
+            [31   4/19/30/37  5  6  7] NY0/Y0
+            [ -       20      -  -  -] Y1
+            [ -       21      -  -  -] Y2
+             NX1    NX0/X0   X1 X2 X3
+        ] Z1
+    ] block map of the grid
+
+    Args:
+        layers (list of list): list of rows
+        sep_i (str): items separator
+        sep_si (str): sub-items separator
+
+    Returns:
+        tuple: layers, values, maps
+    """
+    values = []
+    maps = []
+    # Correct
+    corrected_layers, n2o_l2l_l2l, n2o_l2l_g2g, n2o_b2b_l2l, n2o_b2b_g2g = correct_layers(layers)
+    maps.append(n2o_l2l_l2l)
+    maps.append(n2o_l2l_g2g)
+    maps.append(n2o_b2b_l2l)
+    maps.append(n2o_b2b_g2g)
+    # Parse
+    parsed_layers, parsed_values, parsed_maps = [], [], []
+    for row in corrected_layers:
+        r, vs, ms = parse_row(row, sep_i, sep_si)
+        parsed_layers.append(r)
+        parsed_values.append(vs)
+        parsed_maps.append(ms)
+    return corrected_layers, values, maps
+
+
+def correct_layers(layers):
+    """Correct layers
+
+    [
+        [0  1  2  3] X
+        [4  5  6]    Y
+        [7  8]       NX
+        [9]          NY
+        [10 11]      Z
+        [12 13]      NZ
+    ] layers
+    with variants:
+        1. X/Z (2xN)
+            [
+                [0  1  2  3] X
+                [4  5]       Z
+            ] layers
+        2. X/Y/Z (3xN)
+            [
+                [0  1  2  3] X
+                [4  5  6]    Y
+                [7  8]       Z
+            ] layers
+        3. X/Y/Z/NZ (4xN)
+            [
+                [0  1  2  3] X
+                [4  5  6]    Y
+                [7  8]       Z
+                [9 10]       NZ
+            ] layers
+        4. X/Y/NX/NY/Z (5xN)
+            [
+                [0  1  2  3] X
+                [4  5  6]    Y
+                [7  8]       NX
+                [9]          NY
+                [10 11]      Z
+            ] layers
+    Args:
+        layers (list of list): layers
+
+    Returns:
+
+    """
+    # lli = (ci, zi, ci)
+    new_layers = []
+    n2o_l2l_l2l, n2o_l2l_g2g = {}, []
+    n2o_b2b_l2l, n2o_b2b_g2g = {}, []
+    if len(layers) == 6:  # X, Y, NX, NY, Z, NZ
+        # Layer to Layer
+        new_layers = [x for x in layers]
+        for ni, layer in enumerate(new_layers):
+            for nj, item in enumerate(layer):
+                oi, oj = ni, nj
+                nl, ol = (ni, nj), (oi, oj)
+                og = sum([len(x) for x in layers[:oi]]) + oj
+                n2o_l2l_l2l[nl] = ol
+                n2o_l2l_g2g.append(og)
+        # Block to Block
+        n_bgi = 0
+        for i, layer_r in enumerate(new_layers[:4]):  # X/Y/NX/NY
+            for j, layer_h in enumerate(new_layers[4:]):  # Z/NZ
+                for zi, _ in enumerate(layer_h):  # For each Z/NZ
+                    for ci, _ in enumerate(layer_r):  # For each X/Y/NX/NY
+                        n_bli = (i, j, zi, ci)
+                        o_bli = n_bli
+                        o_bgi = n_bgi
+                        n2o_b2b_l2l[n_bli] = o_bli
+                        n2o_b2b_g2g.append(o_bgi)
+                        n_bgi += 1
+    elif len(layers) == 2:  # X -> X, Y, NX, NY; Z -> Z; NZ = []
+        # Layer to Layer
+        new_layers = [layers[0] for _ in range(4)] + [layers[1]] + []
+        for ni, layer in enumerate(new_layers):
+            for nj, item in enumerate(layer):
+                oi, oj = 0 if ni in [0, 1, 2, 3] else 1, nj
+                nl, ol = (ni, nj), (oi, oj),
+                og = sum([len(x) for x in layers[:oi]]) + oj
+                n2o_l2l_l2l[nl] = ol
+                n2o_l2l_g2g.append(og)
+        # Block to Block
+        nc = len(layers[0])
+        for i, layer_r in enumerate(new_layers[:4]):  # X/Y/NX/NY
+            for j, layer_h in enumerate(new_layers[4:]):  # Z/NZ
+                for zi, _ in enumerate(layer_h):  # For each Z/NZ
+                    for ci, _ in enumerate(layer_r):  # For each X/Y/NX/NY
+                        n_bli, o_bli = (i, j, zi, ci), (zi, ci)
+                        o_bgi = zi * nc + ci
+                        n2o_b2b_l2l[n_bli] = o_bli
+                        n2o_b2b_g2g.append(o_bgi)
+    elif len(layers) == 3:  # X -> X, NX, Y -> Y, NY; Z -> Z; NZ = []
+        # Layer to Layer
+        new_layers = layers[:2] + layers[:2] + [layers[2]] + []
+        for ni, layer in enumerate(new_layers):
+            for nj, item in enumerate(layer):
+                if ni in [0, 2]:  # X
+                    oi = 0
+                elif ni in [1, 3]:  # Y
+                    oi = 1
+                else:  # Z
+                    oi = 2
+                oj = nj
+                nl, ol = (ni, nj), (oi, oj),
+                og = sum([len(x) for x in layers[:oi]]) + oj
+                n2o_l2l_l2l[nl] = ol
+                n2o_l2l_g2g.append(og)
+        # Block to Block
+        nx, ny, nz = len(layers[0]), len(layers[1]), len(layers[2])
+        for i, layer_r in enumerate(new_layers[:4]):  # X/Y/NX/NY
+            for j, layer_h in enumerate(new_layers[4:]):  # Z/NZ
+                for zi, _ in enumerate(layer_h):  # For each Z/NZ
+                    for ci, _ in enumerate(layer_r):  # For each X/Y/NX/NY
+                        oi = 0 if i in [0, 2] else 1  # X, NX else Y, NY
+                        n_bli, o_bli = (i, j, zi, ci), (oi, zi, ci)
+                        if oi == 0:  # X, NX
+                            o_bgi = zi * nx + ci
+                        else:  # Y, NY
+                            o_bgi = nx * nz + zi * ny + ci
+                        n2o_b2b_l2l[n_bli] = o_bli
+                        n2o_b2b_g2g.append(o_bgi)
+    else:
+        raise NotImplementedError(layers)
+    return new_layers, n2o_l2l_l2l, n2o_l2l_g2g, n2o_b2b_l2l, n2o_b2b_g2g
+
+
+def parse_row(row, sep_i=';', sep_si=':'):
     """Parse a row of the grid
 
     Args:
@@ -666,5 +949,4 @@ def parse_grid_row_item_structure(s, cs, sep=':'):
 
 str2obj = {
     Point.__name__: Point,
-    Point.__name__.lower(): Point
 }

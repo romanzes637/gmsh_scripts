@@ -313,9 +313,9 @@ class LayerXY(CoordinateSystem):
             layers_curves = [['line' for _ in x] for x in layers]
         if layers_types is None:
             layers_types = ['in' for _ in layers[0]]
-        from point import parse_grid_row
+        from point import parse_row
         for i, layer in enumerate(layers):
-            new_row, values, maps = parse_grid_row(layer)
+            new_row, values, maps = parse_row(layer)
             coordinates = values[0]
             if i in [2, 3]:  # NX, NY
                 coordinates = [-x for x in coordinates]
