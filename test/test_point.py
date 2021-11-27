@@ -380,8 +380,8 @@ class TestPoint(unittest.TestCase):
             ]
         ]
         new_block_map_true = block_map
-        new_layers, values, maps = point.parse_layers(layers_6)
-        n2o_b2b_l2l, n2o_b2b_g2g = maps[-2], maps[-1]
+        new_layers, values, maps = point.parse_layers2grid(layers_6)
+        n2o_b2b_l2l, n2o_b2b_g2g = maps[2], maps[3]
         block_map_flat = list(flatten(block_map))
         new_block_map_flat = [block_map_flat[x] for x in n2o_b2b_g2g]
         self.assertListEqual(new_block_map_flat, list(flatten(new_block_map_true)))
@@ -413,8 +413,8 @@ class TestPoint(unittest.TestCase):
                  [0, 1, 2, 3]]
             ]
         ]
-        new_layers, values, maps = point.parse_layers(layers_2)
-        n2o_b2b_l2l, n2o_b2b_g2g = maps[-2], maps[-1]
+        new_layers, values, maps = point.parse_layers2grid(layers_2)
+        n2o_b2b_l2l, n2o_b2b_g2g = maps[2], maps[3]
         block_map_flat = list(flatten(block_map))
         new_block_map_flat = [block_map_flat[x] for x in n2o_b2b_g2g]
         self.assertListEqual(new_block_map_flat, list(flatten(new_block_map_true)))
@@ -452,8 +452,46 @@ class TestPoint(unittest.TestCase):
                 [4, 5, 6]
             ]
         ]
-        new_layers, values, maps = point.parse_layers(layers_3)
-        n2o_b2b_l2l, n2o_b2b_g2g = maps[-2], maps[-1]
+        new_layers, values, maps = point.parse_layers2grid(layers_3)
+        n2o_b2b_l2l, n2o_b2b_g2g = maps[2], maps[3]
+        block_map_flat = list(flatten(block_map))
+        new_block_map_flat = [block_map_flat[x] for x in n2o_b2b_g2g]
+        self.assertListEqual(new_block_map_flat, list(flatten(new_block_map_true)))
+
+        logging.info('layers_2_ext')
+        layers_2_ext = [
+            ['0;1;', '1;;100', '3:3;30;300'],  # X
+            [4, 5]  # Z
+        ]
+        block_map = [
+            [0, 1, 2],
+            [0, 1, 2]
+        ]
+        new_block_map_true = [
+            [
+                [[0, 1, 2, 2],
+                 [0, 1, 2, 2]]
+            ],
+            [
+                [[0, 1, 2, 2],
+                 [0, 1, 2, 2]]
+            ],
+            [
+                [[0, 1, 2, 2],
+                 [0, 1, 2, 2]]
+            ],
+            [
+                [[0, 1, 2, 2],
+                 [0, 1, 2, 2]]
+            ]
+        ]
+        new_layers, values, maps = point.parse_layers2grid(layers_2_ext)
+        # Corrected -> Original
+        c_n2o_b2b_l2l, c_n2o_b2b_g2g = maps[2], maps[3]
+        # Parsed -> Corrected
+        p_n2o_b2b_l2l, p_n2o_b2b_g2g = maps[6], maps[7]
+        # Parsed -> Corrected -> Original
+        n2o_b2b_g2g = [c_n2o_b2b_g2g[x] for x in p_n2o_b2b_g2g]
         block_map_flat = list(flatten(block_map))
         new_block_map_flat = [block_map_flat[x] for x in n2o_b2b_g2g]
         self.assertListEqual(new_block_map_flat, list(flatten(new_block_map_true)))
