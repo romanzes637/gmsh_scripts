@@ -1,7 +1,7 @@
 import numpy as np
 
 from block import Block
-from point import parse_grid
+from parse import parse_grid
 from coordinate_system import str2obj as cs_str2obj
 
 

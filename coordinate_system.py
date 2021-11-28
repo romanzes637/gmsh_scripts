@@ -313,7 +313,7 @@ class LayerXY(CoordinateSystem):
             layers_curves = [['line' for _ in x] for x in layers]
         if layers_types is None:
             layers_types = ['in' for _ in layers[0]]
-        from point import parse_row
+        from parse import parse_row
         for i, layer in enumerate(layers):
             new_row, values, maps = parse_row(layer)
             coordinates = values[0]
