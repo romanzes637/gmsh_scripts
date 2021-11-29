@@ -18,9 +18,9 @@ class Factory:
         from curve_loop import str2obj
         str2objs.append({f'curve_loop.{k}': v for k, v in str2obj.items()})
         from layer import str2obj
-        str2objs.append({f'layer.{k}': v for k, v in str2obj.items()})
+        str2objs.append({f'block.{k}': v for k, v in str2obj.items()})
         from matrix import str2obj
-        str2objs.append({f'matrix.{k}': v for k, v in str2obj.items()})
+        str2objs.append({f'block.{k}': v for k, v in str2obj.items()})
         from point import str2obj
         str2objs.append({f'point.{k}': v for k, v in str2obj.items()})
         from quadrate import str2obj
@@ -56,7 +56,7 @@ class Factory:
     def __call__(self, obj):
         if isinstance(obj, dict):
             key, args, kwargs = obj.pop('class'), [], obj
-        elif isinstance(obj, list):
+        elif isinstance(obj, list) and len(obj) > 1:
             key, args, kwargs = obj[0], obj[1:], {}
         elif isinstance(obj, str):
             result, path = check_on_file(obj)  # Check on path to file
@@ -68,7 +68,10 @@ class Factory:
                 key, args, kwargs = data.pop('class'), [], data
         else:
             raise ValueError(obj)
-        return self.str2obj[key](*args, **kwargs)
+        if isinstance(key, str) and key in self.str2obj:
+            return self.str2obj[key](*args, **kwargs)
+        else:
+            raise KeyError(key)
 
 
 FACTORY = Factory()

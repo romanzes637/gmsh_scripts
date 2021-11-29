@@ -156,7 +156,7 @@ class TestLayer(unittest.TestCase):
                   for x in np.linspace(0, 80, 9)]
         orientations = [[[1, 180, x], 'sph'] for x in np.linspace(90, 0, 10)]
         cs = Path(factory=factory, curves=curves, orientations=orientations)
-        b = Matrix(points=[[0, 15], [-7, 7], [0, 13]], zones=["M"],
+        b = Matrix(grid=[[0, 15], [-7, 7], [0, 13]], zones=["M"],
                    boolean_level_map=0, do_register_map=1)
         layer = Layer(
             layers=[['1;1;5', '1.5;1;5'],

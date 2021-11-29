@@ -15,10 +15,11 @@ class Layer(Matrix):
                  quadrate_map=None,
                  transforms=None,
                  boolean_level_map=None,
-                 zones=None, zones_map=None, parent=None):
+                 zones=None, zones_map=None, parent=None,
+                 path=None, children=None, children_transforms=None):
         str_layers = [x for x in layers if isinstance(x, str)]
         other_layers = [x for x in layers if not isinstance(x, (int, float, str, list))]
-        coordinate_system = str_layers[0] if len(str_layers) > 0 else 'cartesian'
+        coordinate_system = str_layers[0] if len(str_layers) > 0 else 'Cartesian'
         coordinate_system = cs_str2obj[coordinate_system]()
         for layer in other_layers:
             if isinstance(layer, tuple(cs_str2obj.values())):
@@ -78,7 +79,7 @@ class Layer(Matrix):
         some2car = tr_str2obj[f'{type(coordinate_system).__name__}ToCartesian'](
             cs_from=coordinate_system)
         matrix_transforms = [lxy2car, any1some, some2car] + transforms
-        super().__init__(points=grid,
+        super().__init__(grid=grid,
                          curves=curves,
                          curves_map=curves_map,
                          transforms=matrix_transforms,
@@ -92,6 +93,9 @@ class Layer(Matrix):
                          boolean_level_map=boolean_level_map,
                          zones=zones,
                          zones_map=zones_map,
+                         path=path,
+                         children=children,
+                         children_transforms=children_transforms,
                          parent=parent)
 
     @staticmethod

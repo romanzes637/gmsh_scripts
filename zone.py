@@ -485,9 +485,8 @@ class Direction(CoordinatesToWeights):
 
 str2obj = {
     Zone.__name__: Zone,
-    Zone.__name__.lower(): Zone,
     BlockSimple.__name__: BlockSimple,
-    BlockSimple.__name__.lower(): BlockSimple,
     BlockDirection.__name__: BlockDirection,
-    BlockDirection.__name__.lower(): BlockDirection
+    NoZone.__name__: NoZone,
+    Boolean.__name__: Boolean
 }

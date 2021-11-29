@@ -2,56 +2,59 @@ import json
 import os
 import argparse
 import logging
-import copy
 
-from support import check_on_file, timeit, \
-    LoggingDecorator, GmshDecorator, GmshOptionsDecorator
+from support import check_on_file, LoggingDecorator, GmshDecorator, GmshOptionsDecorator
 from factory import FACTORY as FACTORY
 
 
-def make_block_tree(top_block_path):
-    block_real_paths = {}
-    blocks_children = {}
-    blocks_kwargs = {}
-    blocks_paths = {top_block_path}
-    while len(blocks_paths) > 0:
-        new_blocks_paths = set()
-        for block_path in blocks_paths:
-            if block_path in block_real_paths:
+def init_walk(obj):
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if k == 'class':
                 continue
-            result, real_path = check_on_file(block_path)
-            block_real_paths[block_path] = real_path
-            with open(real_path) as f:
-                block_kwargs = json.load(f)
-            blocks_kwargs[block_path] = block_kwargs
-            children_paths = block_kwargs['data'].get('children', [])
-            blocks_children[block_path] = children_paths
-            new_blocks_paths.update(children_paths)
-        blocks_paths = new_blocks_paths
-    return {'block_real_paths': block_real_paths,
-            'blocks_children': blocks_children,
-            'blocks_kwargs': blocks_kwargs}
+            if isinstance(v, dict):
+                init_walk(v)
+            elif isinstance(v, list):
+                init_walk(v)
+            elif isinstance(v, str):
+                result, real_path = check_on_file(v)
+                if real_path is not None:
+                    with open(real_path) as f:
+                        v = json.load(f)['data']
+                    init_walk(v)
+                    v['path'] = real_path
+            try:
+                obj[k] = FACTORY(v)
+            except ValueError as e:  # Bad v
+                pass
+            except KeyError as e:  # Bad k
+                pass
+    elif isinstance(obj, list):
+        for i, x in enumerate(obj):
+            if isinstance(x, dict):
+                init_walk(x)
+            elif isinstance(x, list):
+                init_walk(x)
+            elif isinstance(x, str):
+                result, real_path = check_on_file(x)
+                if real_path is not None:
+                    with open(real_path) as f:
+                        x = json.load(f)['data']
+                    init_walk(x)
+                    x['path'] = real_path
+            try:
+                obj[i] = FACTORY(x)
+            except ValueError as e:  # Bad v
+                pass
+            except KeyError as e:  # Bad x
+                pass
 
 
-def init_block_tree(block_tree, top_block_path):
-    def recurse(parent, parent_path, blocks):
-        blocks.append(parent)
-        children_paths = block_tree['blocks_children'].get(parent_path, [])
-        for i, child_path in enumerate(children_paths):
-            child_kwargs = copy.deepcopy(block_tree['blocks_kwargs'][child_path])
-            child_kwargs['data']['parent'] = parent
-            child_kwargs['data']['path'] = child_path
-            child = FACTORY(child_kwargs['data'])
-            parent.children[i] = child
-            recurse(child, child_path, blocks)  # now child is a new parent
-
-    blocks = []
-    parent_path = top_block_path
-    parent_kwargs = copy.deepcopy(block_tree['blocks_kwargs'][parent_path])
-    parent_kwargs['data']['path'] = parent_path
-    parent = FACTORY(parent_kwargs['data'])
-    recurse(parent, parent_path, blocks)
-    return blocks
+def set_parent(parent):
+    children = parent.children
+    for child in children:
+        child.parent = parent
+        set_parent(child)  # now child is a new parent
 
 
 def parse_arguments():
@@ -88,6 +91,7 @@ def parse_arguments():
     with open(path) as f:
         data = json.load(f)
     args = data.get('metadata', {}).get('run', {})
+    args['data'] = data.get('data', {})
     args.update(cmd_args)
     # Model name
     root, extension = os.path.splitext(args['input_path'])
@@ -100,25 +104,29 @@ def parse_arguments():
     args.setdefault('log_path', None)
     args.setdefault('log_level', 'INFO')
     args.setdefault('factory', 'geo')
-    args.setdefault('strategy', 'strategy.simple')
+    args.setdefault('strategy', 'strategy.Simple')
     args.setdefault('options', {})
     if isinstance(args['strategy'], str):
-        args['strategy'] = {
-            'class': args['strategy'],
-            'factory': args['factory'],
-            'model_name': args['model_name'],
-            'output_path': args['output_path'],
-            'output_formats': args['output_formats']}
+        args['strategy'] = {'class': args['strategy']}
+    args['strategy'].setdefault("factory", args["factory"])
+    args['strategy'].setdefault("model_name", args["model_name"])
+    args['strategy'].setdefault("output_path", args["output_path"])
+    args['strategy'].setdefault("output_formats", args["output_formats"])
     return args
 
 
 def run(args):
     logging.info(f'args: {args}')
-    block_tree = timeit(make_block_tree)(args['input_path'])
-    logging.info(block_tree['blocks_children'])
-    blocks = timeit(init_block_tree)(block_tree, args['input_path'])
+    # Initialize
+    top_kwargs = args['data']
+    init_walk(top_kwargs)
+    top_kwargs['path'] = args['input_path']
+    top_block = FACTORY(top_kwargs)
+    set_parent(top_block)
+    # Strategy
+    init_walk(args['strategy'])
     strategy = FACTORY(args['strategy'])
-    strategy(blocks[0])
+    strategy(top_block)
 
 
 if __name__ == '__main__':

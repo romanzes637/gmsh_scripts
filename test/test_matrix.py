@@ -22,11 +22,11 @@ class TestMatrix(unittest.TestCase):
     def test_init_3x3(self):
         for factory in ['geo']:
             model_name = f'test_matrix_init_3x3-{factory}'
-            m = Matrix(points=[['-1', '1:4;.2:-3:0.5:0.5;3'],
-                               ['-1', '1:4;.2:-3:0.5:0.5;3'],
-                               ['-1;0.5', '1:4:2:2;2'],
+            m = Matrix(grid=[['-1', '1:4;.2:-3:0.5:0.5;3'],
+                             ['-1', '1:4;.2:-3:0.5:0.5;3'],
+                             ['-1;0.5', '1:4:2:2;2'],
                                'cartesian',
-                               Cartesian()])
+                             Cartesian()])
             Simple(factory, model_name)(m)
 
     @LoggingDecorator()
@@ -36,7 +36,7 @@ class TestMatrix(unittest.TestCase):
         for factory in ['geo', 'occ']:
             model_name = f'test_matrix_init_{factory}'
             m0 = Block(do_register=0)
-            m1 = Matrix(points=[
+            m1 = Matrix(grid=[
                 [1, 2],
                 [0, '360:6'],
                 [0, '360:6'],
@@ -46,14 +46,14 @@ class TestMatrix(unittest.TestCase):
                 'tok'
             ], transforms=['tok2car', [0, 0, -50]])
             m0.add_child(m1)
-            m2 = Matrix(points=[
+            m2 = Matrix(grid=[
                 [1, 2],
                 [0, '360:6'],
                 [0, 1],
                 'cyl',
             ], transforms=['cyl2car', [-50, 0, 0]])
             m0.add_child(m2)
-            m3 = Matrix(points=[
+            m3 = Matrix(grid=[
                 [1, 2, 3],
                 [0, '360:6'],
                 ['i;p', 10, '160:10'],
@@ -69,7 +69,7 @@ class TestMatrix(unittest.TestCase):
                 [0, '1:3'],
                 [0, '1:5'],
                 p]
-            m6 = Matrix(points=points, transforms=['pat2car'])
+            m6 = Matrix(grid=points, transforms=['pat2car'])
             m0.add_child(m6)
             Fast(factory, model_name)(m0)
 
@@ -122,7 +122,7 @@ class TestMatrix(unittest.TestCase):
                 1, 1,  # Y1, X1, X2
                 1, 1,  # Y2, X1, X2
             ]
-            m_trace = Matrix(factory=factory, points=points,
+            m_trace = Matrix(factory=factory, grid=points,
                              use_register_tag=use_register_tag,
                              transforms=['tok2car'],
                              do_register_map=do_register_map)
@@ -159,7 +159,7 @@ class TestMatrix(unittest.TestCase):
                 1, 0,  # Y1, X1, X2
                 1, 0,  # Y2, X1, X2
             ]
-            m_product = Matrix(factory=factory, points=points,
+            m_product = Matrix(factory=factory, grid=points,
                                use_register_tag=use_register_tag,
                                transforms=['tok2car'],
                                do_register_map=do_register_map)
@@ -569,7 +569,7 @@ class TestMatrix(unittest.TestCase):
             #           quadrate_all=None,
             #           zone_all='Rock')
             b = Matrix(factory=factory,
-                       points=[
+                       grid=[
                            [-5, '5:4'],
                            [-10, '10:4'],
                            [-15, '15:4'],
@@ -588,7 +588,7 @@ class TestMatrix(unittest.TestCase):
                 Path(factory=factory, curves=curves, orientations=orientations)
                 # 'trace' by default
             ]
-            m = Matrix(factory=factory, points=points,
+            m = Matrix(factory=factory, grid=points,
                        parent=b,
                        transforms=['pat2car', [-5, 0, -15]],
                        structure_map=structure_all,
@@ -596,7 +596,7 @@ class TestMatrix(unittest.TestCase):
                        boolean_level_map=1,
                        zone_map='Tunnel1')
             b.add_child(m)
-            m = Matrix(factory=factory, points=points,
+            m = Matrix(factory=factory, grid=points,
                        parent=b,
                        transforms=['pat2car',
                                    [5, 0, 0, 0, 0, 1, 45], [-5, 0, -15]],

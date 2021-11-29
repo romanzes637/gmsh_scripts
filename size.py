@@ -138,11 +138,8 @@ class Bagging(Size):
 
 str2obj = {
     Size.__name__: Size,
-    Size.__name__.lower(): Size,
     BooleanPoint.__name__: BooleanPoint,
-    BooleanPoint.__name__.lower(): BooleanPoint,
     BooleanEdge.__name__: BooleanEdge,
-    BooleanEdge.__name__.lower(): BooleanEdge,
     Bagging.__name__: Bagging,
-    Bagging.__name__.lower(): Bagging
+    NoSize.__name__: NoSize
 }

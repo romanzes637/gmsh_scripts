@@ -7,7 +7,7 @@ from registry import reset as reset_registry
 from registry import synchronize as synchronize_registry
 from support import timeit, plot_statistics
 from boolean import BooleanAllBlock
-from zone import BlockDirection
+from zone import BlockVolumes
 from size import BooleanPoint
 from structure import StructureBlock
 from quadrate import QuadrateBlock
@@ -45,10 +45,7 @@ class Simple(Strategy):
             model_name=None,
             output_path=None,
             output_formats=None,
-            zone_function=BlockDirection(
-                dims=(2, 3), make_interface=False,
-                add_volume_tag=True, add_volume_zone=True,
-                add_surface_loop_tag=True, add_in_out_boundary=False),
+            zone_function=BlockVolumes(),
             size_function=BooleanPoint(),
             structure_function=StructureBlock(),
             quadrate_function=QuadrateBlock()):
@@ -108,10 +105,7 @@ class Boolean(Strategy):
             output_path=None,
             output_formats=None,
             boolean_function=BooleanAllBlock(),
-            zone_function=BlockDirection(
-                dims=(2, 3), make_interface=False,
-                add_volume_tag=True, add_volume_zone=True,
-                add_surface_loop_tag=True, add_in_out_boundary=False),
+            zone_function=BlockVolumes(),
             size_function=BooleanPoint(),
             structure_function=StructureBlock(),
             quadrate_function=QuadrateBlock()):
@@ -152,7 +146,6 @@ class Boolean(Strategy):
                 logging.info(f'Writing {path}')
                 timeit(gmsh.write)(path)
             timeit(gmsh.model.mesh.generate)(3)
-            plot_statistics()
             for f in self.output_formats:
                 if f != 'geo_unrolled':
                     path = f'{self.output_path}.{f}'
@@ -162,6 +155,7 @@ class Boolean(Strategy):
             for x in log:
                 logging.debug(x)
             gmsh.logger.stop()
+            plot_statistics()
         else:
             raise ValueError(self.factory)
         gmsh.model.remove()
@@ -192,21 +186,21 @@ class Fast(Strategy):
             logging.info(f'Writing {path}')
             timeit(gmsh.write)(path)
         timeit(gmsh.model.mesh.generate)(3)
-        log = gmsh.logger.get()
-        for x in log:
-            logging.info(x)
-        plot_statistics()
         for f in self.output_formats:
             if f != 'geo_unrolled':
                 path = f'{self.output_path}.{f}'
                 logging.info(f'Writing {path}')
                 timeit(gmsh.write)(path)
+        log = gmsh.logger.get()
+        for x in log:
+            logging.info(x)
+        plot_statistics()
+        gmsh.logger.stop()
         gmsh.model.remove()
 
 
 str2obj = {
     Simple.__name__: Simple,
-    Simple.__name__.lower(): Simple,
     Boolean.__name__: Boolean,
-    Boolean.__name__.lower(): Boolean,
+    Fast.__name__: Fast
 }

@@ -1,0 +1,40 @@
+{
+  "metadata": {
+    "issues": ["Issue: PCL Error: A segment and a facet intersect at point. Solution: Set appropriate mesh size or use MeshSizeFromCurvature See: https://gitlab.onelab.info/gmsh/gmsh/-/issues/766"],
+    "run": {
+      "factory": "occ",
+      "strategy": {
+        "class": "strategy.Boolean",
+        "boolean_function": "boolean.BooleanAllBlock",
+        "structure_function": "structure.NoStructure",
+        "quadrate_function": "quadrate.NoQuadrate",
+        "size_function": "size.NoSize",
+        "zone_function": {
+          "class": "zone.Boolean",
+          "dims_interfaces": []
+        }
+      },
+      "options": {
+        "Mesh.Algorithm": 6,
+        "Mesh.Algorithm3D": 1,
+        "Mesh.MeshSizeFromCurvature": 10,
+        "Mesh.SubdivisionAlgorithm": 2,
+        "Mesh.RecombinationAlgorithm": 1,
+        "Mesh.RecombineAll": 0,
+        "Mesh.RecombineOptimizeTopology": 5,
+        "Mesh.Recombine3DAll": 0,
+        "Mesh.Recombine3DLevel": 0,
+        "Mesh.Recombine3DConformity": 0}
+    }
+  },
+  "data": {
+    "class": "block.Matrix",
+    "grid": [[0, 15], [-7, 7], [0, 13]],
+    "do_register_map": 1,
+    "quadrate_map": 0,
+    "boolean_level_map": 0,
+    "children": ["test/test_layer_layer.json", "test/test_layer_layer.json"],
+    "children_transforms": [[[0, 0, 0, 0, 0, 1, 80], [5, -5, 0]], []],
+    "zones": ["M"]
+  }
+}

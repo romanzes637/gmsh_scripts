@@ -281,4 +281,5 @@ class BooleanAllBlock(Boolean):
 str2obj = {
     Boolean.__name__: Boolean,
     BooleanBoundingBox.__name__: BooleanBoundingBox,
+    BooleanAllBlock.__name__: BooleanAllBlock
 }

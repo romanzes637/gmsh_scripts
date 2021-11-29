@@ -374,9 +374,9 @@ class TestTransform(unittest.TestCase):
                 layers_types=['in', 'out', 'in', 'out'])
             b = BlockObject(do_register=False)
             m = Matrix(
-                points=[[-4, -3, -2, -1, 1, 2, 3, 4],
-                        [-4, -3, -2, -1, 1, 2, 3, 4],
-                        [0, 1, 2], lxy],
+                grid=[[-4, -3, -2, -1, 1, 2, 3, 4],
+                      [-4, -3, -2, -1, 1, 2, 3, 4],
+                      [0, 1, 2], lxy],
                 curves=[
                     # 0 L1 Center
                     [['line'], ['line'], ['line'], ['line'],
