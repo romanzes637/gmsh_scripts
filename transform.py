@@ -359,7 +359,7 @@ class LayerXYToCartesian(Transform):
         lx0, ly0, lnx0, lny0 = (cs.layers[i][0] for i in range(4))
         for j in range(n_layers):
             lx, ly, lnx, lny = (cs.layers[i][j] for i in range(4))
-            n_x, n_y, n_nx, n_ny = (cs.curves_names[i][j] for i in range(4))
+            n_x, n_y, n_nx, n_ny = (cs.layers_curves[i][j][0] for i in range(4))
             lt = cs.layers_types[j]
             if py == ly0 and px == lx:  # I sector X
                 logging.debug('I sector X')
@@ -433,17 +433,12 @@ class LayerXYToCartesian(Transform):
 
     @staticmethod
     def update_coordinate(p0, pn, n0, nn, l00, l0n, ln0, lnn, lt):
-        if n0 == 'line' and nn == 'line':
-            p0 = l0n
-        elif n0 == 'circle_arc' and nn == 'circle_arc':
-            if lt == 'in':
-                r = abs(pn)  # radius
-                p0 = np.sign(p0) * r / 2 ** 0.5
-                pn = np.sign(pn) * r / 2 ** 0.5
-            else:
-                p0 = l0n
+        if n0 == 'circle_arc' and nn == 'circle_arc' and lt == 'in':
+            r = abs(pn)  # radius
+            p0 = np.sign(p0) * r / 2 ** 0.5
+            pn = np.sign(pn) * r / 2 ** 0.5
         else:
-            raise NotImplementedError(n0, nn)
+            p0 = l0n
         return p0, pn
 
 

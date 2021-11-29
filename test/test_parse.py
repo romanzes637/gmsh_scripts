@@ -336,9 +336,9 @@ class TestParser(unittest.TestCase):
         ]
         grid, values, maps = parse.parse_layers2grid(layers_2_ext)
         # Parsed -> Corrected -> Original
-        n2o_b2b_g2g = maps[11]
+        n2o_b2b_g2g = maps[13]
         # Grid -> Parsed -> Corrected -> Original
-        g2o_b2b_g2g = maps[13]
+        g2o_b2b_g2g = maps[15]
         # Check
         block_map_flat = list(flatten(block_map))
         parsed_block_map_flat = [block_map_flat[x] for x in n2o_b2b_g2g]

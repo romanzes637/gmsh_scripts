@@ -57,6 +57,26 @@ class TestLayer(unittest.TestCase):
     @LoggingDecorator(level='DEBUG')
     @GmshDecorator()
     @GmshOptionsDecorator()
+    def test_layer_one_ext(self):
+        for factory in ['geo', 'occ']:
+            model_name = f'test_layer_one_ext-{factory}'
+            layer = Layer(
+                layers=[['1;.4;3', '2:3;.3;4'],
+                        ['1;.4;3', '2:3;.3;4'],
+                        ['1;.4;3', '2:3;.3;4'],
+                        ['1;.4;3', '2:3;.3;4'],
+                        ['1:5;.3;5']],
+                layers_curves=[['circle_arc', ['spline', [[.3, .1, 0], [.7, .1, 0]]]],
+                               ['circle_arc', 'line'],
+                               ['circle_arc', ['spline', [[.3, -.1, 0], [.7, -.1, 0]]]],
+                               ['circle_arc', 'line'],
+                               ['line']]
+            )
+            Fast(factory, model_name)(layer)
+
+    @LoggingDecorator(level='DEBUG')
+    @GmshDecorator()
+    @GmshOptionsDecorator()
     def test_layer_path(self):
         for factory in ['geo', 'occ']:
             model_name = f'test_layer_path-{factory}'
@@ -66,12 +86,12 @@ class TestLayer(unittest.TestCase):
             cs = Path(factory=factory, curves=curves, orientations=orientations)
             layer = Layer(
                 layers=[['1;1', '2;1', '3;1'],
-                        ['.2;1', '.5;1', '.7;1', '1;1'],
+                        ['1:8;1'],
                         cs],
                 layers_curves=[['line', 'line', 'circle_arc'],
-                               ['line', 'line', 'line', 'line']]
+                               ['line']]
             )
-            Simple(factory, model_name)(layer)
+            Fast(factory, model_name)(layer)
 
     @LoggingDecorator(level='DEBUG')
     @GmshDecorator()
@@ -140,11 +160,10 @@ class TestLayer(unittest.TestCase):
                    boolean_level_map=0)
         layer = Layer(
             layers=[['1;1;5', '1.5;1;5'],
-                    # ['.1;1;5', '.2;1;5', '1;1;5'],
-                    ['.1;1;3', '.2;1;3', '.5;1;3', '.8;1;3', '1;1;3'],
+                    ['1:5;1;3'],
                     cs],
             layers_curves=[['line', 'circle_arc'],
-                           ['line', 'line', 'line', 'line', 'line']],
+                           ['line']],
             zones=['L1'],
             boolean_level_map=1,
             quadrate_map=0,
@@ -156,10 +175,10 @@ class TestLayer(unittest.TestCase):
         layer2 = Layer(
             layers=[['1;1;3', '1.5;1;3'],
                     # ['.1;1;3', '.8;1;3', '1;1;3'],
-                    ['.1;1;3', '.2;2;3', '.5;2;3', '.8;1;3', '1;1;3'],
+                    ['1:5;1;3'],
                     cs],
             layers_curves=[['line', 'circle_arc'],
-                           ['line', 'line', 'line',  'line', 'line']],
+                           ['line']],
             transforms=[[0, 0, 0, 0, 0, 1, 80], [5, -5, 0]],
             boolean_level_map=1,
             do_unregister_map=1,

@@ -52,6 +52,8 @@ def parse_row(row, sep_i=';', sep_si=':'):
     n_items, n_blocks = len(items), len(items) - 1
     o_b2is = [(x, x + 1) for x in range(n_blocks)]  # Old block to items
     o_is2b = {x: i for i, x in enumerate(o_b2is)}  # Old items to block
+    if len(o_is2b) == 0:  # TODO Workaround for single item
+        o_is2b = {(0, 0): 0}
     # Parse row
     cs, ms, ss = [], [], []  # coordinates, mesh sizes, structures
     pc, pm, ps = 0, None, None  # previous (default) values
@@ -74,7 +76,7 @@ def parse_row(row, sep_i=';', sep_si=':'):
     n2o_b2b = []
     for n_bi in range(n_n_blocks):
         o_cs = (n2o_i2i[n_bi], n2o_i2i[n_bi + 1])
-        while o_cs[0] == o_cs[1]:  # new items can refer to same old items
+        while o_cs[0] == o_cs[1] and n_bi >= 0:  # new items can refer to same old items
             n_bi -= 1
             o_cs = (n2o_i2i[n_bi], o_cs[1])
         old_bi = o_is2b[o_cs]
@@ -597,16 +599,19 @@ def parse_layers2grid(layers, sep_i=';', sep_si=':'):
         sep_si (str): sub-items separator
 
     Returns:
-        tuple: layers, values, maps
+        tuple: new_layers, values, maps
     """
-    maps = []
+    new_layers, values, maps = [], [], []
     # Correct
     corrected_layers, corrected_maps = correct_layers(layers)
+    new_layers.append(corrected_layers)
     maps.extend(corrected_maps)
     # Parse
     parsed_layers, parsed_values, parsed_maps = parse_layers(corrected_layers)
-    parsed_layers_cs = [x[0] for x in parsed_values]
+    new_layers.append(parsed_layers)
+    values.extend(parsed_values)
     maps.extend(parsed_maps)
+    parsed_layers_cs = [x[0] for x in parsed_values]
     parsed_mesh_sizes = [x[1] for x in parsed_values]
     parsed_structures = [x[2] for x in parsed_values]
     # Grid
@@ -634,7 +639,7 @@ def parse_layers2grid(layers, sep_i=';', sep_si=':'):
     # Grid coordinates
     c_xs_g = c_nxs + c_xs  # NX + X
     c_ys_g = c_nys + c_ys  # NY + Y
-    c_zs_g = c_nzs + [0] + c_zs  # NZ + 0 +  Z
+    c_zs_g = c_nzs + [0] + c_zs  # NZ + 0 + Z
     # Grid mesh sizes
     m_xs_g = m_nxs + m_xs  # NX + X
     m_ys_g = m_nys + m_ys  # NY + Y
@@ -680,6 +685,7 @@ def parse_layers2grid(layers, sep_i=';', sep_si=':'):
         sep_si.join(str(x) for x in s) if s is not None else ''])
         for c, m, s in zip(c_zs_g, m_zs_g, s_zs_g)]
     grid = [p_xs_g, p_ys_g, p_zs_g]
+    new_layers.append(grid)
     # Map grid block to layers block
     nbx, nby, nbz = [len(x) - 1 for x in grid]  # number of blocks
     nx, ny, nnx, nny, nz, nnz = [len(x) for x in parsed_layers_cs]  # lengths of layers
@@ -746,12 +752,18 @@ def parse_layers2grid(layers, sep_i=';', sep_si=':'):
     maps.append(g2l_b2b_g2g)
     # Combined maps
     # Corrected -> Original
+    c_n2o_l2l_l2l, c_n2o_l2l_g2g = maps[0], maps[1]
     c_n2o_b2b_l2l, c_n2o_b2b_g2g = maps[2], maps[3]
     # Parsed -> Corrected
+    p_n2o_l2l_l2l, p_n2o_l2l_g2g = maps[4], maps[5]
     p_n2o_b2b_l2l, p_n2o_b2b_g2g = maps[6], maps[7]
     # Parsed -> Corrected -> Original
+    n2o_l2l_l2l = {k: c_n2o_l2l_l2l[v] for k, v in p_n2o_l2l_l2l.items()}
+    n2o_l2l_g2g = [c_n2o_l2l_g2g[x] for x in p_n2o_l2l_g2g]
     n2o_b2b_l2l = {k: c_n2o_b2b_l2l[v] for k, v in p_n2o_b2b_l2l.items()}
     n2o_b2b_g2g = [c_n2o_b2b_g2g[x] for x in p_n2o_b2b_g2g]
+    maps.append(n2o_l2l_l2l)
+    maps.append(n2o_l2l_g2g)
     maps.append(n2o_b2b_l2l)
     maps.append(n2o_b2b_g2g)
     # Grid -> Parsed -> Corrected -> Original
@@ -761,7 +773,7 @@ def parse_layers2grid(layers, sep_i=';', sep_si=':'):
                    for x in g2l_b2b_g2g]  # Center block from X layer
     maps.append(g2o_b2b_l2l)
     maps.append(g2o_b2b_g2g)
-    return grid, parsed_values, maps
+    return new_layers, values, maps
 
 
 def correct_layers(layers):
@@ -864,6 +876,30 @@ def correct_layers(layers):
                 else:  # Z
                     oi = 2
                 oj = nj
+                nl, ol = (ni, nj), (oi, oj),
+                og = sum([len(x) for x in layers[:oi]]) + oj
+                n2o_l2l_l2l[nl] = ol
+                n2o_l2l_g2g.append(og)
+        # Block to Block
+        nx, ny, nz = len(layers[0]), len(layers[1]), len(layers[2])
+        for i, layer_r in enumerate(new_layers[:4]):  # X/Y/NX/NY
+            for j, layer_h in enumerate(new_layers[4:]):  # Z/NZ
+                for zi, _ in enumerate(layer_h):  # For each Z/NZ
+                    for ci, _ in enumerate(layer_r):  # For each X/Y/NX/NY
+                        oi = 0 if i in [0, 2] else 1  # X, NX else Y, NY
+                        n_bli, o_bli = (i, j, zi, ci), (oi, zi, ci)
+                        if oi == 0:  # X, NX
+                            o_bgi = zi * nx + ci
+                        else:  # Y, NY
+                            o_bgi = nx * nz + zi * ny + ci
+                        n2o_b2b_l2l[n_bli] = o_bli
+                        n2o_b2b_g2g.append(o_bgi)
+    elif len(layers) == 5:  # X -> X, Y -> Y, NX->NX, NY->NY, Z -> Z; NZ = []
+        # Layer to Layer
+        new_layers = layers + [[]]
+        for ni, layer in enumerate(new_layers):
+            for nj, item in enumerate(layer):
+                oi, oj = ni if ni in [0, 1, 2, 3, 4] else 4, nj
                 nl, ol = (ni, nj), (oi, oj),
                 og = sum([len(x) for x in layers[:oi]]) + oj
                 n2o_l2l_l2l[nl] = ol

@@ -3,6 +3,7 @@ import numpy as np
 from block import Block
 from parse import parse_grid
 from coordinate_system import str2obj as cs_str2obj
+from support import flatten
 
 
 class Matrix(Block):
@@ -165,6 +166,7 @@ class Matrix(Block):
         if m is None:
             m = [default for _ in new2old]
             return m
+        m = list(flatten(m)) if isinstance(m, list) else m
         # Check on single item of type in item_types
         for t in item_types:
             if isinstance(t, list):  # list of ...

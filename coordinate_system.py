@@ -275,7 +275,7 @@ class LayerXY(CoordinateSystem):
     """Different layers by X and Y axes and same by Z axis
 
     Args:
-        layers (list of list):
+        layers (list):
             [[c_x1, c_x2, ..., c_xN],
             [c_y1, c_y2, ..., c_yN],
             [c_nx1, c_nx2, ..., c_nxN],
@@ -283,47 +283,23 @@ class LayerXY(CoordinateSystem):
             where N - number of layers,
             l - coordinate of the layer by X, Y, NX, NY axis (0, inf).
             Parsed by py:method:`matrix.Matrix:parse_grid`
-        layers_curves (list of list of str):
+        layers_curves (list):
             [[name_x1, name_x2, ..., name_xN],
             [name_y1, name_y2, ..., name_yN],
             [name_nx1, name_nx2, ..., name_nxN],
             [name_ny1, name_ny2, ..., name_nyN]],
             where N - number of layers,
             name - curve name (see py:class:`curve.Curve` class)
-        layers_types (list of str): [type_x, type_y, type_nx, type_ny],
+        layers_types (list): [type_x, type_y, type_nx, type_ny],
             where type: 'in' (inscribe), 'out' (circumscribed).
     """
     def __init__(self, origin=np.zeros(3), layers=None, layers_curves=None,
                  layers_types=None, **kwargs):
         super().__init__(dim=3, origin=origin, **kwargs)
-        layers = [[1], [1], [1], [1]] if layers is None else layers
-        if len(layers) == 4:   # X, Y, NX, NZ
-            pass
-        elif len(layers) == 1:  # X = Y = NX = NY
-            layers = [layers[0] for _ in range(4)]
-            layers_curves = [layers_curves[0] for _ in range(4)]
-            layers_types = [layers_types[0] for _ in range(4)]
-        elif len(layers) == 2:  # X = NX and Y = NY
-            layers = layers + layers
-            layers_curves = layers_curves + layers_curves
-            layers_types = layers_types + layers_types
-        else:
-            raise ValueError(layers)
-        if layers_curves is None:
-            layers_curves = [['line' for _ in x] for x in layers]
-        if layers_types is None:
-            layers_types = ['in' for _ in layers[0]]
-        from parse import parse_row
-        for i, layer in enumerate(layers):
-            new_row, values, maps = parse_row(layer)
-            coordinates = values[0]
-            if i in [2, 3]:  # NX, NY
-                coordinates = [-x for x in coordinates]
-            layers[i] = coordinates
-            new2old_id2id = maps[-2]
-            layers_curves[i] = [layers_curves[i][x] for x in new2old_id2id]
+        layers[2] = [-x for x in layers[2]]  # NX
+        layers[3] = [-x for x in layers[3]]  # NY
         self.layers = layers
-        self.curves_names = layers_curves
+        self.layers_curves = layers_curves
         self.layers_types = layers_types
 
 
