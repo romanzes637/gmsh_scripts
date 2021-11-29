@@ -25,7 +25,6 @@ class Layer(Matrix):
                 coordinate_system = layer
                 break
         list_layers = [x for x in layers if isinstance(x, list)]
-        print(list_layers)
         new_layers, values, maps = parse_layers2grid(list_layers)
         parsed_layers, grid = new_layers[1], new_layers[2]
         parsed_layers_cs = [x[0] for x in values]
@@ -37,7 +36,6 @@ class Layer(Matrix):
         for i, layer in enumerate(layers_curves):
             for j, c in enumerate(layer):
                 layers_curves[i][j] = [c] if isinstance(c, str) else c
-        print(layers_curves)
         parsed_layers_curves = Layer.parse_layers_map(layers_curves, n2o_l2l_l2l,
                                                       default='line')
         lxy = LayerXY(layers=parsed_layers_cs[:-2],  # Without Z and NZ
@@ -45,8 +43,6 @@ class Layer(Matrix):
                       layers_types=parsed_layers_types[:-2])  # Without Z and NZ
         grid.append(lxy)
         # Curves
-
-        print(parsed_layers_curves)
         curves, curves_map = Layer.get_layers_curves(parsed_layers_curves,
                                                      parsed_g2l_b2b_l2l,
                                                      parsed_layers_cs)
@@ -162,14 +158,12 @@ class Layer(Matrix):
         new_shape = np.array(list(parsed_g2l_b2b_l2l)).max(axis=0) + 1
         curves_map = np.full(new_shape, None)
         curves = []
-        print(parsed_layers_curves)
         for gli, lli in parsed_g2l_b2b_l2l.items():
             if lli is None:
                 s = None
             elif len(lli) == 4:  # Center
                 for li in lli:
                     lt, zt, zi, ci = li  # layer type, Z type, Z index, coord. index
-                    print(lt)
                     if zt == 0:  # Z
                         zs = [0] + parsed_layers_coordinates[4]
                     elif zt == 1:  # NZ
@@ -352,9 +346,6 @@ class Layer(Matrix):
                     else:
                         c2_ps, c3_ps = [], []
                         for p in c_ps:
-                            print(c_ps)
-                            print(cc)
-
                             ky, dx, dz = p
                             cy = cy0 + ky * (cy1 - cy0)
                             c2_ps.append([cx + dx, cy, pz + dz])

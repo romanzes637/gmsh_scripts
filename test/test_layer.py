@@ -157,7 +157,7 @@ class TestLayer(unittest.TestCase):
         orientations = [[[1, 180, x], 'sph'] for x in np.linspace(90, 0, 10)]
         cs = Path(factory=factory, curves=curves, orientations=orientations)
         b = Matrix(points=[[0, 15], [-7, 7], [0, 13]], zones=["M"],
-                   boolean_level_map=0)
+                   boolean_level_map=0, do_register_map=1)
         layer = Layer(
             layers=[['1;1;5', '1.5;1;5'],
                     ['1:5;1;3'],
@@ -166,9 +166,9 @@ class TestLayer(unittest.TestCase):
                            ['line']],
             zones=['L1'],
             boolean_level_map=1,
-            quadrate_map=0,
-            do_unregister_map=0,
-            do_unregister_boolean_map=0,
+            quadrate_map=1,
+            do_unregister_map=1,
+            do_unregister_boolean_map=1,
             parent=b
         )
         b.add_child(layer)
@@ -181,8 +181,8 @@ class TestLayer(unittest.TestCase):
                            ['line']],
             transforms=[[0, 0, 0, 0, 0, 1, 80], [5, -5, 0]],
             boolean_level_map=1,
-            do_unregister_map=1,
-            do_unregister_boolean_map=1,
+            do_unregister_map=0,
+            do_unregister_boolean_map=0,
             quadrate_map=1,
             zones=['L2'],
             parent=b
