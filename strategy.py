@@ -87,8 +87,8 @@ class Base(Strategy):
             timeit(self.structure_function)(block)
             timeit(self.quadrate_function)(block)
             timeit(self.smooth_function)()
-            timeit(block.unregister)()
             timeit(self.size_function)(block)
+            timeit(block.unregister)()
             timeit(self.zone_function)(block)
             if 'geo_unrolled' in self.output_formats:
                 path = f'{self.output_path}-post_boolean.geo_unrolled'

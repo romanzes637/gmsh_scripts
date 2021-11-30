@@ -49,6 +49,7 @@ class Boolean(Zone):
         join_separator (str):
             separator used in join_interfaces
     """
+
     def __init__(self, dims=(0, 1, 2, 3), dims_interfaces=(0, 1, 2, 3),
                  join_interfaces='all', entities_separator='_',
                  join_separator='-'):
@@ -90,7 +91,7 @@ class Boolean(Zone):
                         c_dt = tree.vs_ss_cs_dt[vi][si][ci]
                         c_dt = (1, abs(c_dt[1]))  # Remove orientation
                         c_z = self.entities_separator.join(
-                            ('C',  str(vi), str(si), str(ci)))
+                            ('C', str(vi), str(si), str(ci)))
                         dt2zs.setdefault(c_dt, []).append(c_z)
                     for pi, p_dt in enumerate(ps_dt):  # Points
                         p_z = self.entities_separator.join(
@@ -130,15 +131,16 @@ class DirectionByInterval(Zone):
         join_separator (str):
             separator used in join_interfaces
     """
+
     def __init__(self, dims=(0, 1, 2, 3), dims_interfaces=(0, 1, 2, 3),
                  join_interfaces='all', entities_separator='_',
                  join_separator='-'):
+        super().__init__()
         self.dims = dims
         self.dims_interfaces = dims_interfaces
         self.join_interfaces = join_interfaces
         self.entities_separator = entities_separator
         self.join_separator = join_separator
-        super().__init__()
 
     def evaluate_map(self, block):
         dt2zs = {}
@@ -146,9 +148,11 @@ class DirectionByInterval(Zone):
         v2b = get_volume2block()
         vs_dt = gmsh.model.getEntities(3)
         tree = DataTree(vs_dt)
+        s2vs = {}
+        s2bb = {}
         for vi, ss_cs_ps_dt in enumerate(tree.vs_ss_cs_ps_dt):  # Volumes
+            v_dt = tree.vs_dt[vi]
             if 3 in self.dims:
-                v_dt = tree.vs_dt[vi]
                 v_t = v_dt[1]
                 old_vts = new2old[v_t]
                 old_bs = [v2b[x] for x in old_vts]
@@ -162,23 +166,83 @@ class DirectionByInterval(Zone):
             else:
                 v_z = 'V'
             for si, cs_ps_dt in enumerate(ss_cs_ps_dt):  # Surfaces
-                if 2 in self.dims:
-                    s_dt = tree.vs_ss_dt[vi][si]  # dim-tag
-                    s_z = self.entities_separator.join((v_z, str(vi), str(si)))
-                    dt2zs.setdefault(s_dt, []).append(s_z)
+                s_dt = tree.vs_ss_dt[vi][si]  # dim-tag
+                # if 2 in self.dims:
+                #     s_z = self.entities_separator.join((v_z, str(vi), str(si)))
+                #     dt2zs.setdefault(s_dt, []).append(s_z)
+                s2vs.setdefault(s_dt, []).append(v_dt)
+                s_bb = gmsh.model.getBoundingBox(*s_dt)
+                s2bb.setdefault(s_dt, []).append(s_bb)
                 for ci, ps_dt in enumerate(cs_ps_dt):  # Curves
                     if 1 in self.dims:
                         c_dt = tree.vs_ss_cs_dt[vi][si][ci]
                         c_dt = (1, abs(c_dt[1]))  # Remove orientation
                         c_z = self.entities_separator.join(
-                            ('C',  str(vi), str(si), str(ci)))
+                            ('C', str(vi), str(si), str(ci)))
                         dt2zs.setdefault(c_dt, []).append(c_z)
                     for pi, p_dt in enumerate(ps_dt):  # Points
                         p_z = self.entities_separator.join(
                             ('P', str(vi), str(si), str(ci), str(pi)))
                         if 0 in self.dims:
                             dt2zs.setdefault(p_dt, []).append(p_z)
-        # Remove interfaces unless they are not dims_interfaces
+        s2dir = {}
+        s2pos = {}
+        x_pos, y_pos, z_pos = set(), set(), set()
+        for s_dt, v_dts in s2vs.items():
+            s_bb = s2bb[s_dt][0]
+            min_x, min_y, min_z, max_x, max_y, max_z = s_bb
+            dx, dy, dz = max_x - min_x, max_y - min_y, max_z - min_z
+            if dx < dy and dx < dz:  # X
+                s2dir[s_dt] = 'X'
+                pos = min_x + 0.5 * dx
+                s2pos[s_dt] = pos
+                x_pos.add(pos)
+            elif dy < dx and dy < dz:  # Y
+                s2dir[s_dt] = 'Y'
+                pos = min_y + 0.5 * dy
+                s2pos[s_dt] = min_y + 0.5 * dy
+                y_pos.add(pos)
+            elif dz < dx and dz < dy:  # Z
+                s2dir[s_dt] = 'Z'
+                pos = min_z + 0.5 * dz
+                s2pos[s_dt] = min_z + 0.5 * dz
+                z_pos.add(pos)
+            else:
+                s2dir[s_dt] = 'S'
+                s2pos[s_dt] = None
+        x_pos2id = {x: i for i, x in enumerate(sorted(x_pos))}
+        y_pos2id = {x: i for i, x in enumerate(sorted(y_pos))}
+        z_pos2id = {x: i for i, x in enumerate(sorted(z_pos))}
+        for s_dt, v_dts in s2vs.items():
+            old_v_ts = [y for x in v_dts for y in new2old[x[1]]]
+            old_bs = [v2b[x] for x in old_v_ts]
+            new_zs = [b.volume_zone for b in old_bs]
+            new_zs = sorted(list(set(new_zs)))  # unique, alphabetic
+            direction = s2dir[s_dt]
+            pos = s2pos[s_dt]
+            if direction == 'X':
+                pos2id = x_pos2id
+            elif direction == 'Y':
+                pos2id = y_pos2id
+            elif direction == 'Z':
+                pos2id = z_pos2id
+            else:
+                pos2id = None
+            if pos2id is not None:
+                index = pos2id[pos]
+                min_index, max_index = min(pos2id.values()), max(pos2id.values())
+            else:
+                index, min_index, max_index = '', '', ''
+            if index == min_index:
+                di = f'N{direction}'
+            elif index == max_index:
+                di = f'{direction}'
+            else:
+                di = 'S'
+            s_z = self.entities_separator.join([di] + new_zs)
+            for _ in v_dts:
+                dt2zs.setdefault(s_dt, []).append(s_z)
+        # Remove interfaces unless they are not in dims_interfaces
         dt2zs = {k: v for k, v in dt2zs.items()
                  if len(v) == 1 or k[0] in self.dims_interfaces}
         # Join interfaces names
@@ -211,6 +275,7 @@ class Mesh(Zone):
         join_separator (str):
             separator used in join_interfaces
     """
+
     def __init__(self, dims=(0, 1, 2, 3), dims_interfaces=(0, 1, 2, 3),
                  join_interfaces='all', entities_separator='_',
                  join_separator='-'):
@@ -240,7 +305,7 @@ class Mesh(Zone):
                         c_dt = tree.vs_ss_cs_dt[vi][si][ci]
                         c_dt = (1, abs(c_dt[1]))  # Remove orientation
                         c_z = self.entities_separator.join(
-                            ('C',  str(vi), str(si), str(ci)))
+                            ('C', str(vi), str(si), str(ci)))
                         dt2zs.setdefault(c_dt, set()).add(c_z)
                     for pi, p_dt in enumerate(ps_dt):  # Points
                         p_z = self.entities_separator.join(

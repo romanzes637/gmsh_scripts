@@ -100,7 +100,7 @@ def parse_arguments():
     # Other
     args.setdefault('output_path', args['model_name'])
     args.setdefault('output_formats', ['geo_unrolled', 'msh2'])
-    # args.setdefault('log_path', args['model_name'] + '.log')
+    args.setdefault('log_path', args['model_name'] + '.log')
     args.setdefault('log_path', None)
     args.setdefault('log_level', 'INFO')
     args.setdefault('factory', 'geo')
