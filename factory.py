@@ -41,6 +41,12 @@ class Factory:
         str2objs.append({f'volume.{k}': v for k, v in str2obj.items()})
         from zone import str2obj
         str2objs.append({f'zone.{k}': v for k, v in str2obj.items()})
+        from optimize import str2obj
+        str2objs.append({f'optimize.{k}': v for k, v in str2obj.items()})
+        from refine import str2obj
+        str2objs.append({f'refine.{k}': v for k, v in str2obj.items()})
+        from smooth import str2obj
+        str2objs.append({f'smooth.{k}': v for k, v in str2obj.items()})
         # Make global str2obj and obj2str(s)
         str2obj, obj2str = {}, {}
         for s2o in str2objs:

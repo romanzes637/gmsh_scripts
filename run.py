@@ -104,7 +104,7 @@ def parse_arguments():
     args.setdefault('log_path', None)
     args.setdefault('log_level', 'INFO')
     args.setdefault('factory', 'geo')
-    args.setdefault('strategy', 'strategy.Simple')
+    args.setdefault('strategy', 'strategy.Base')
     args.setdefault('options', {})
     if isinstance(args['strategy'], str):
         args['strategy'] = {'class': args['strategy']}

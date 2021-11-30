@@ -626,18 +626,21 @@ class Block:
         for new_tag in new_tags:
             all_old_tags = get_boolean_new2olds()[new_tag]
             if len(all_old_tags) == 1:  # Owner
-                unregister_volume(Volume(tag=new_tag))
+                if self.do_unregister:
+                    unregister_volume(Volume(tag=new_tag))
             else:  # Shared volume
                 v2b = get_volume2block()
                 all_old_blocks = [v2b[x] for x in all_old_tags]
                 all_levels = [x.boolean_level for x in all_old_blocks]
                 max_level = max(all_levels)
                 n_max_levels = all_levels.count(max_level)
-                if n_max_levels == 1 and self.boolean_level == max_level:
-                    unregister_volume(Volume(tag=new_tag))
-                elif self.do_unregister_boolean:
-                    unregister_volume(Volume(tag=new_tag))
-                else:
+                if n_max_levels == 1 and self.boolean_level == max_level:  # Owner
+                    if self.do_unregister:
+                        unregister_volume(Volume(tag=new_tag))
+                elif self.boolean_level == max_level:  # Shared Owner
+                    if self.do_unregister_boolean:
+                        unregister_volume(Volume(tag=new_tag))
+                else:  # Shared Other Owner
                     pass
 
     def __iter__(self):

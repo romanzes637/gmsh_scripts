@@ -8,9 +8,12 @@ from registry import synchronize as synchronize_registry
 from support import timeit, plot_statistics
 from boolean import BooleanAllBlock
 from zone import BlockVolumes
-from size import BooleanPoint
-from structure import StructureBlock
-from quadrate import QuadrateBlock
+from size import BooleanPoint, NoSize
+from structure import StructureBlock, StructureAuto
+from quadrate import QuadrateBlock, NoQuadrate
+from optimize import OptimizeOne
+from smooth import NoSmooth
+from refine import NoRefine
 
 
 class Strategy:
@@ -34,66 +37,7 @@ class Strategy:
         logging.info(f'number of blocks: {len(block)}')
 
 
-class Simple(Strategy):
-    """
-
-    """
-
-    def __init__(
-            self,
-            factory=None,
-            model_name=None,
-            output_path=None,
-            output_formats=None,
-            zone_function=BlockVolumes(),
-            size_function=BooleanPoint(),
-            structure_function=StructureBlock(),
-            quadrate_function=QuadrateBlock()):
-        super().__init__(factory, model_name, output_path, output_formats)
-        self.zone_function = zone_function
-        self.size_function = size_function
-        self.structure_function = structure_function
-        self.quadrate_function = quadrate_function
-
-    def __call__(self, block):
-        super().__call__(block)
-        gmsh.logger.start()
-        gmsh.model.add(self.model_name)
-        timeit(block.transform)()
-        timeit(block.register)()
-        if self.factory == 'geo':
-            timeit(synchronize_registry)()
-            timeit(block.unregister)()
-            timeit(self.structure_function)(block)
-            timeit(self.quadrate_function)(block)
-            timeit(synchronize_registry)()
-        elif self.factory == 'occ':
-            timeit(synchronize_registry)()
-            timeit(block.unregister)()
-            timeit(self.structure_function)(block)
-            timeit(self.quadrate_function)(block)
-        else:
-            raise ValueError(self.factory)
-        timeit(self.size_function)(block)
-        timeit(self.zone_function)(block)
-        if 'geo_unrolled' in self.output_formats:
-            path = f'{self.output_path}.geo_unrolled'
-            logging.info(f'Writing {path}')
-            timeit(gmsh.write)(path)
-        timeit(gmsh.model.mesh.generate)(3)
-        log = gmsh.logger.get()
-        for x in log:
-            logging.info(x)
-        plot_statistics()
-        for f in self.output_formats:
-            if f != 'geo_unrolled':
-                path = f'{self.output_path}.{f}'
-                logging.info(f'Writing {path}')
-                timeit(gmsh.write)(path)
-        gmsh.model.remove()
-
-
-class Boolean(Strategy):
+class Base(Strategy):
     """
 
     """
@@ -106,15 +50,22 @@ class Boolean(Strategy):
             output_formats=None,
             boolean_function=BooleanAllBlock(),
             zone_function=BlockVolumes(),
-            size_function=BooleanPoint(),
+            size_function=NoSize(),
             structure_function=StructureBlock(),
-            quadrate_function=QuadrateBlock()):
+            quadrate_function=NoQuadrate(),
+            optimize_function=OptimizeOne(),
+            refine_function=NoRefine(),
+            smooth_function=NoSmooth(),
+    ):
         super().__init__(factory, model_name, output_path, output_formats)
         self.boolean_function = boolean_function
         self.zone_function = zone_function
         self.size_function = size_function
         self.structure_function = structure_function
         self.quadrate_function = quadrate_function
+        self.optimize_function = optimize_function
+        self.refine_function = refine_function
+        self.smooth_function = smooth_function
 
     def __call__(self, block):
         super().__call__(block)
@@ -132,28 +83,28 @@ class Boolean(Strategy):
                 logging.info(f'Writing {path}')
                 timeit(gmsh.write)(path)
             timeit(self.boolean_function)(block)
-            logging.info([len(gmsh.model.getEntities(x)) for x in range(4)])
             timeit(synchronize_registry)()
-            logging.info([len(gmsh.model.getEntities(x)) for x in range(4)])
-            logging.info([len(gmsh.model.getEntities(x)) for x in range(4)])
             timeit(self.structure_function)(block)
             timeit(self.quadrate_function)(block)
+            timeit(self.smooth_function)()
             timeit(block.unregister)()
             timeit(self.size_function)(block)
             timeit(self.zone_function)(block)
             if 'geo_unrolled' in self.output_formats:
-                path = f'{self.output_path}.geo_unrolled'
+                path = f'{self.output_path}-post_boolean.geo_unrolled'
                 logging.info(f'Writing {path}')
                 timeit(gmsh.write)(path)
             timeit(gmsh.model.mesh.generate)(3)
+            timeit(self.refine_function)()
+            timeit(self.optimize_function)()
             for f in self.output_formats:
                 if f != 'geo_unrolled':
                     path = f'{self.output_path}.{f}'
                     logging.info(f'Writing {path}')
                     timeit(gmsh.write)(path)
             log = gmsh.logger.get()
-            for x in log:
-                logging.debug(x)
+            for message in log:
+                logging.debug(message)
             gmsh.logger.stop()
             plot_statistics()
         else:
@@ -200,7 +151,6 @@ class Fast(Strategy):
 
 
 str2obj = {
-    Simple.__name__: Simple,
-    Boolean.__name__: Boolean,
+    Base.__name__: Base,
     Fast.__name__: Fast
 }
