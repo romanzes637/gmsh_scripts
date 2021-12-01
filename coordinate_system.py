@@ -5,19 +5,26 @@ from registry import register_point, register_curve
 
 
 class CoordinateSystem:
+    """Abstract
+
+    Args:
+        dim (int): Dimension
+        origin (np.ndarray or list): Origin
+    """
     def __init__(self, dim=None, origin=None, **kwargs):
         self.dim = dim
         self.origin = origin if isinstance(origin, np.ndarray) else np.array(origin)
 
 
 class Affine(CoordinateSystem):
-    def __init__(self, origin=np.zeros(3), vs=np.eye(3, 3), **kwargs):
-        """Affine coordinate system
+    """Affine coordinate system
 
-        Args:
-            origin (np.ndarray or list): Origin
-            vs (np.ndarray or list of list): Basis vectors
-        """
+    Args:
+        origin (np.ndarray or list): Origin
+        vs (np.ndarray or list of list): Basis vectors
+    """
+
+    def __init__(self, origin=np.zeros(3), vs=np.eye(3, 3), **kwargs):
         vs = vs if isinstance(vs, np.ndarray) else np.array(vs)
         super().__init__(dim=vs.shape[0], origin=origin, **kwargs)
         self.vs = vs
@@ -31,9 +38,9 @@ class Cartesian(Affine):
 class Cylindrical(CoordinateSystem):
     """Cylindrical coordinate system
 
-    r - radius [0, inf),
-    phi - azimuthal angle [0, 2*pi) (counterclockwise from X to Y),
-    z - height
+    * r - radius [0, inf)
+    * phi - azimuthal angle or longitude [0, 2pi) (counterclockwise from X to Y)
+    * z - height
     """
 
     def __init__(self, origin=np.zeros(3), **kwargs):
@@ -43,9 +50,10 @@ class Cylindrical(CoordinateSystem):
 class Spherical(CoordinateSystem):
     """Spherical coordinate system
 
-    r - radius [0, inf),
-    phi - azimuthal angle [0, 2*pi) (counterclockwise from X to Y),
-    theta - polar angle [0, pi] (from top to bottom, i.e XY-plane is pi/2)
+    * r - radius [0, inf)
+    * phi - azimuthal angle [0, 2pi) (counterclockwise from X to Y)
+    * theta - polar (zenith) angle or colatitude = pi/2 - latitude [0, pi]
+        (from Z to -Z, i.e XY-plane is pi/2)
     """
 
     def __init__(self, origin=np.zeros(3), **kwargs):
@@ -63,18 +71,19 @@ class Tokamak(CoordinateSystem):
 
 
 class Block(CoordinateSystem):
+    """Local Block Coordinate System
+
+    * xi [-1, 1]
+    * eta [-1, 1]
+    * zeta [-1, 1]
+
+    Args:
+        ps (np.ndarray or list of list): points coordinates of the block
+        order (np.ndarray or list of list): order of points
+        origin (np.ndarray or list): Origin
+    """
+
     def __init__(self, origin=np.zeros(3), ps=None, order=None, **kwargs):
-        """Local Block Coordinate System
-
-        xi [-1, 1]
-        eta [-1, 1]
-        zeta [-1, 1]
-
-        Args:
-            ps (np.ndarray or list of list): points coordinates of the block
-            order (np.ndarray or list of list): order of points
-            origin (np.ndarray or list): origin of coordinate system
-        """
         super().__init__(dim=3, origin=origin, **kwargs)
         if ps is None:
             ps = [[1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1],
@@ -89,21 +98,22 @@ class Block(CoordinateSystem):
 
 
 class Path(CoordinateSystem):
+    """Path coordinate system
+
+    * xi - X, transverse, right axis, axis of pitch rotation (-inf, inf)
+    * eta - Y, vertical, down axis, axis of yaw rotation (-inf, inf)
+    * zeta - Z, longitudinal, front axis, axis of roll rotation [0, 1]
+
+    Args:
+        origin (np.ndarray or list): Origin
+        curves (list of Curve or list of Curve): Curves
+        orientations (list): Orientation in curves points (number of curves + 1)
+        transforms (list of list): Curves points transforms
+        weights (list of float): Curves weights in global path coordinate system
+        local_weights (list of list): Curves weights in local curve coordinate system
+    """
     def __init__(self, origin=np.zeros(3), curves=None, orientations=None,
                  transforms=None, weights=None, local_weights=None, **kwargs):
-        """Path coordinate system
-
-        # pitch, yaw, roll
-        xi [-inf, inf]  # Transverse (Right) axis, pitch rotation
-        eta [-inf, inf]  # Vertical (Down) axis, yaw rotation
-        zeta [0, 1]  # Longitudinal (Front) axis, roll rotation
-
-`       Beta distribution calculator https://keisan.casio.com/exec/system/1180573226
-
-        Args:
-            origin (np.ndarray or list): Origin of the coordinate system
-            curves (list of dict, list of list, list, list of Curve): Curves
-        """
         super().__init__(dim=3, origin=origin, **kwargs)
         curves = [] if curves is None else curves
         transforms = [[] for _ in curves] if transforms is None else transforms
@@ -293,6 +303,7 @@ class LayerXY(CoordinateSystem):
         layers_types (list): [type_x, type_y, type_nx, type_ny],
             where type: 'in' (inscribe), 'out' (circumscribed).
     """
+
     def __init__(self, origin=np.zeros(3), layers=None, layers_curves=None,
                  layers_types=None, **kwargs):
         super().__init__(dim=3, origin=origin, **kwargs)

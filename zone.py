@@ -147,6 +147,8 @@ class DirectionByInterval(Zone):
         new2old = get_boolean_new2olds()
         v2b = get_volume2block()
         vs_dt = gmsh.model.getEntities(3)
+        if len(new2old) == 0:  # TODO boolean_new2olds generation
+            new2old = {x[1]: [x[1]] for x in vs_dt}
         tree = DataTree(vs_dt)
         s2vs = {}
         s2bb = {}

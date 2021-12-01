@@ -34,11 +34,11 @@ class Layer(Matrix):
         parsed_g2l_b2b_l2l = maps[8]
         parsed_layers_types = Layer.parse_layers_map(layers_types, n2o_l2l_l2l,
                                                      default='in')
-        for i, layer in enumerate(layers_curves):
-            for j, c in enumerate(layer):
-                layers_curves[i][j] = [c] if isinstance(c, str) else c
         parsed_layers_curves = Layer.parse_layers_map(layers_curves, n2o_l2l_l2l,
                                                       default='line')
+        for i, layer in enumerate(parsed_layers_curves):
+            for j, c in enumerate(layer):
+                parsed_layers_curves[i][j] = [c] if isinstance(c, str) else c
         lxy = LayerXY(layers=parsed_layers_cs[:-2],  # Without Z and NZ
                       layers_curves=parsed_layers_curves[:-2],  # Without Z and NZ
                       layers_types=parsed_layers_types[:-2])  # Without Z and NZ

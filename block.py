@@ -622,9 +622,13 @@ class Block:
         if not self.do_unregister and not self.do_unregister_boolean:
             return
         old_tag = self.volumes[0].tag
-        new_tags = get_boolean_old2news()[old_tag]
+        old2news, new2olds = get_boolean_old2news(), get_boolean_new2olds()
+        if len(old2news) == 0:  # TODO boolean_new2olds generation
+            old2news = {old_tag: [old_tag]}
+            new2olds = {old_tag: [old_tag]}
+        new_tags = old2news[old_tag]
         for new_tag in new_tags:
-            all_old_tags = get_boolean_new2olds()[new_tag]
+            all_old_tags = new2olds[new_tag]
             if len(all_old_tags) == 1:  # Owner
                 if self.do_unregister:
                     unregister_volume(Volume(tag=new_tag))

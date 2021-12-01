@@ -1,9 +1,0 @@
-{
-  "data": {
-    "class": "block.Block",
-    "points": 0.02,
-    "children": ["input/test_block_6.json"],
-    "children_transforms": [[[0, 0, 0.001]]],
-    "zone": "B4"
-  }
-}

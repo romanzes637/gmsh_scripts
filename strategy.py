@@ -7,7 +7,7 @@ from registry import reset as reset_registry
 from registry import synchronize as synchronize_registry
 from support import timeit, plot_statistics
 from boolean import BooleanAllBlock
-from zone import BlockVolumes
+from zone import BlockVolumes, DirectionByInterval
 from size import BooleanPoint, NoSize
 from structure import StructureBlock, StructureAuto
 from quadrate import QuadrateBlock, NoQuadrate
@@ -49,7 +49,7 @@ class Base(Strategy):
             output_path=None,
             output_formats=None,
             boolean_function=BooleanAllBlock(),
-            zone_function=BlockVolumes(),
+            zone_function=DirectionByInterval(),
             size_function=NoSize(),
             structure_function=StructureBlock(),
             quadrate_function=NoQuadrate(),
@@ -75,7 +75,11 @@ class Base(Strategy):
         timeit(block.register)()
         if self.factory == 'geo':
             timeit(synchronize_registry)()
-            timeit(self.zone_function)(block)
+            timeit(self.structure_function)(block)  # Must be after synchronize!
+            timeit(self.quadrate_function)(block)
+            timeit(synchronize_registry)()  # Must be after structure!
+            timeit(block.unregister)()  # Must be after synchronize!
+            timeit(self.zone_function)(block)  # Should be after unregister!
             timeit(gmsh.write)(f'{self.model_name}.geo_unrolled')
         elif self.factory == 'occ':
             if 'geo_unrolled' in self.output_formats:

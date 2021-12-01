@@ -1,8 +1,8 @@
 ![readme](/images/readme.png)
 
 # gmsh_scripts
-Mixed (structured/unstructured) 3D mesh generator with curved cuboid elements 
-(Primitives) based on [gmsh](https://gmsh.info/)
+3D structured/unstructured/tetrahedral/hexahedral multi-block mesh generator 
+with boolean operations based on [gmsh](https://gmsh.info/)
 
 ## Installation
 1. Download and install python https://www.python.org/downloads/
@@ -76,7 +76,7 @@ python complex_factory -i input/test_cylinder_simple.json -tr
 
 ## [User manual (In Russian)](https://docs.google.com/document/d/166MPpgo0n661rmQZg7IS_MhNxlCueseOpwgqPBXQ8hI/edit?usp=sharing)
 
-## [Screencasts (In Russian)](https://drive.google.com/drive/folders/19GORaa3Ph5f3IRG8sOTtKvHMmjgZvNHC?usp=sharing)
+## [Video tutorials (In Russian)](https://youtube.com/playlist?list=PLNPHDKBRjaZmMzjxtoZVzeWSHZB-x9ayi)
 
 ## Cite
 
@@ -93,4 +93,4 @@ https://github.com/romanzes637
 
 romanbutov637@gmail.com
 
-[Nuclear Safety Institute of the Russian Academy of Sciences (IBRAE RAN)](http://en.ibrae.ac.ru/)
+Made in IBRAE RAN ([Nuclear Safety Institute of the Russian Academy of Sciences](http://en.ibrae.ac.ru/))

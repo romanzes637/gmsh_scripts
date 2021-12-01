@@ -1,9 +1,0 @@
-{
-  "data": {
-    "class": "block.Block",
-    "points": [0.01, 0.01, 0.005, "block"],
-    "quadrate": true,
-    "structure": [[3, 0, 1], [4, 0, 1], [5, 0, 1]],
-    "zone": "B6"
-  }
-}
