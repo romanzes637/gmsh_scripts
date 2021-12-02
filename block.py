@@ -146,7 +146,7 @@ class Block:
     curves_points = [
         [1, 0], [5, 4], [6, 7], [2, 3],  # X1, X2, X3, X4
         [3, 0], [2, 1], [6, 5], [7, 4],  # Y1, Y2, Y3, Y4
-        [0, 4], [1, 5], [2, 6], [3, 7]   # Z1, Z2, Z3, Z4
+        [0, 4], [1, 5], [2, 6], [3, 7]  # Z1, Z2, Z3, Z4
     ]
 
     surfaces_curves = [
@@ -600,8 +600,10 @@ class Block:
                 if st is not None:
                     st.kwargs['cornerTags'] = [
                         self.points[x].tag for x in self.volume_points]
-                    ps = self.points
-                    register_volume_structure(ps, st)
+                    # Too long
+                    # ps = self.points
+                    # register_volume_structure(ps, st)
+                    register_volume_structure(v.tag, st)
 
     def register_quadrate(self):
         for i, s in enumerate(self.surfaces):
@@ -611,7 +613,29 @@ class Block:
                 ps = [self.points[x] for x in ps_ids]
                 register_surface_quadrate(ps, q)
 
-    def unregister(self, zone_separator='-'):
+    def unregister(self):
+        """
+
+        N - no boolean
+        B - only this block
+        O - owner, this boolean level > other boolean levels == max boolean level
+        S - shared owner, this boolean level == other boolean levels == max boolean level
+        1 - remove
+        0 - leave
+
+        +---+---------------+-----------------------+---+---+---+---+
+        | n | do_unregister | do_unregister_boolean | N | 1 | O | S |
+        +===+===============+=======================+===+===+===+===+
+        | 1 |       0       |           0           | 0 | 0 | 0 | 0 |
+        | 2 |       0       |           1           | 0 | 0 | 1 | 1 |
+        | 3 |       0       |           2           | 0 | 0 | 1 | 0 |
+        | 4 |       0       |           3           | 0 | 0 | 0 | 1 |
+        | 5 |       1       |           0           | 1 | 1 | 0 | 0 |
+        | 6 |       1       |           1           | 1 | 1 | 1 | 1 |
+        | 7 |       1       |           2           | 1 | 1 | 1 | 0 |
+        | 8 |       1       |           3           | 1 | 1 | 0 | 1 |
+        +---+---------------+-----------------------+---+---+---+---+
+        """
         # Children
         if self.do_unregister_children:
             for i, c in enumerate(self.children):
@@ -621,29 +645,33 @@ class Block:
             return
         if not self.do_unregister and not self.do_unregister_boolean:
             return
+        # Check boolean
         old_tag = self.volumes[0].tag
-        old2news, new2olds = get_boolean_old2news(), get_boolean_new2olds()
-        if len(old2news) == 0:  # TODO boolean_new2olds generation
-            old2news = {old_tag: [old_tag]}
-            new2olds = {old_tag: [old_tag]}
+        old2news = get_boolean_old2news()
+        if old_tag not in old2news:  # No boolean
+            if self.do_unregister:
+                unregister_volume(Volume(tag=old_tag))
+            return
+        # Boolean
         new_tags = old2news[old_tag]
+        new2olds = get_boolean_new2olds()
         for new_tag in new_tags:
             all_old_tags = new2olds[new_tag]
             if len(all_old_tags) == 1:  # Owner
                 if self.do_unregister:
                     unregister_volume(Volume(tag=new_tag))
-            else:  # Shared volume
+            else:  # Shared volume (boolean)
                 v2b = get_volume2block()
                 all_old_blocks = [v2b[x] for x in all_old_tags]
                 all_levels = [x.boolean_level for x in all_old_blocks]
                 max_level = max(all_levels)
                 n_max_levels = all_levels.count(max_level)
                 if n_max_levels == 1 and self.boolean_level == max_level:  # Owner
-                    if self.do_unregister:
+                    if self.do_unregister_boolean in [1, 2]:
                         unregister_volume(Volume(tag=new_tag))
                 elif self.boolean_level == max_level:  # Owners
                     owners_unregister_boolean = [
-                        x.do_unregister_boolean for x in all_old_blocks
+                        x.do_unregister_boolean in [1, 3] for x in all_old_blocks
                         if x.boolean_level == max_level]
                     if all(owners_unregister_boolean):
                         unregister_volume(Volume(tag=new_tag))

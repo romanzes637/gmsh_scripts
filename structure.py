@@ -43,12 +43,13 @@ import numpy as np
 from registry import get_curve_structure, register_structure_curve, \
     get_surface_structure, register_structure_surface, \
     get_volume_structure, register_structure_volume, \
-    get_surface_quadrate, register_quadrate_surface
+    get_surface_quadrate, register_quadrate_surface, get_boolean_new2olds
 from support import DataTree
 from point import Point
 from curve import Curve
 from surface import Surface
 from volume import Volume
+from support import timeit
 
 
 class Structure:
@@ -90,59 +91,77 @@ class StructureBlock:
         self.quadrate = quadrate
 
     def __call__(self, block):
-        for b in block:
-            vs_dt = [(3, v.tag) for v in b.volumes if v.tag is not None]
-            dt = DataTree(vs_dt=vs_dt)
-            # Collect Structure
-            vs_st, vs_ss_st, vs_ss_cs_st = [], [], []
-            ss_qu = []
-            for vi, ss_cs_ps_dt in enumerate(dt.vs_ss_cs_ps_dt):  # Volumes
-                ss_st, ss_cs_st = [], []
-                vs_ps_dt = set()
-                for si, cs_ps_dt in enumerate(ss_cs_ps_dt):  # Surfaces
-                    cs_st = []
-                    ss_ps_dt = set()
-                    for ci, ps_dt in enumerate(cs_ps_dt):  # Curves
-                        ss_ps_dt.update(ps_dt)
-                        ps_cs = [dt.ps_dt_to_cs[x] for x in ps_dt]
-                        points = [Point(list(x)) for x in ps_cs]
-                        c_st = get_curve_structure(points)
-                        cs_st.append(c_st)
-                    vs_ps_dt.update(ss_ps_dt)
-                    ss_cs_st.append(cs_st)
-                    ss_ps_cs = [dt.ps_dt_to_cs[x] for x in ss_ps_dt]
-                    points = [Point(list(x)) for x in ss_ps_cs]
-                    s_st = get_surface_structure(points)
+        v_dts = gmsh.model.getEntities(3)
+        new_olds = get_boolean_new2olds()
+        for vi, v_dt in enumerate(v_dts):  # Volumes
+            # Check
+            dt = DataTree([v_dt])
+            if len(dt.vs_ss_dt[0]) != 6:  # 6 surfaces in volume
+                continue
+            ss_st, ss_cs_st = [], []  # Surfaces, Surfaces curves structures
+            ss_qu = []  # Surfaces quadrates
+            # vs_ps_dt = set()  # Volume points dim-tags
+            do_structure = True
+            for si, cs_ps_dt in enumerate(dt.vs_ss_cs_ps_dt[0]):  # Surfaces
+                if len(dt.vs_ss_cs_dt[0][si]) != 4:  # 4 curves on surface
+                    do_structure = False
+                    break
+                cs_st = []  # Curves structures
+                ss_ps_dt = set()  # Surfaces points dim-tags
+                for ci, ps_dt in enumerate(cs_ps_dt):  # Curves
+                    ss_ps_dt.update(ps_dt)
+                    ps_cs = [dt.ps_dt_to_cs[x] for x in ps_dt]
+                    c_ps = [Point(list(x)) for x in ps_cs]  # Curves points
+                    c_st = get_curve_structure(c_ps)
+                    if c_st is None:
+                        do_structure = False
+                        break
+                    cs_st.append(c_st)
+                if not do_structure:
+                    break
+                # vs_ps_dt.update(ss_ps_dt)
+                ss_cs_st.append(cs_st)
+                ss_ps_cs = [dt.ps_dt_to_cs[x] for x in ss_ps_dt]
+                s_ps = [Point(list(x)) for x in ss_ps_cs]
+                s_st = get_surface_structure(s_ps)  # Surfaces points
+                ss_st.append(s_st)
+                if s_st is None:
+                    do_structure = False
+                    break
+                if self.quadrate:
+                    s_qu = get_surface_quadrate(s_ps)
+                    ss_qu.append(s_qu)
+            if not do_structure:
+                continue
+            # Too long
+            # if len(vs_ps_dt) != 8:  # 8 points in volume
+            #     continue
+            # vs_ps_cs = [dt.ps_dt_to_cs[x] for x in vs_ps_dt]
+            # v_ps = [Point(list(x)) for x in vs_ps_cs]  # Volume points
+            # v_st = timeit(get_volume_structure)(v_ps)  # Volume structure
+            v_t = v_dt[1]
+            old_vts = new_olds.get(v_t, None)
+            if old_vts is None:
+                old_vts = [v_t]
+            for old_vt in old_vts:
+                v_st = get_volume_structure(old_vt)  # Volume structure
+                if v_st is None:
+                    continue
+                # Do structure
+                v = Volume(tag=v_dt[1], structure=v_st)
+                register_structure_volume(v)
+                for si, s_st in enumerate(ss_st):
+                    s_dt = dt.vs_ss_dt[0][si]
+                    s = Surface(tag=s_dt[1], structure=s_st)
+                    register_structure_surface(s)
                     if self.quadrate:
-                        s_qu = get_surface_quadrate(points)
-                        ss_st.append(s_st)
-                        ss_qu.append(s_qu)
-                vs_ss_st.append(ss_st)
-                vs_ss_cs_st.append(ss_cs_st)
-                vs_ps_cs = [dt.ps_dt_to_cs[x] for x in vs_ps_dt]
-                points = [Point(list(x)) for x in vs_ps_cs]
-                v_st = get_volume_structure(points)
-                vs_st.append(v_st)
-            # Do Structure
-            for vi, v_st in enumerate(vs_st):
-                v_dt = dt.vs_dt[vi]
-                all_ss_st = all(x is not None for x in vs_ss_st[vi])
-                all_cs_st = all(y is not None for x in vs_ss_cs_st[vi] for y in x)
-                if all_ss_st and all_cs_st:
-                    v = Volume(tag=v_dt[1], structure=v_st)
-                    register_structure_volume(v)
-                    for si, s_st in enumerate(vs_ss_st[vi]):
-                        s_dt = dt.vs_ss_dt[vi][si]
-                        s = Surface(tag=s_dt[1], structure=s_st)
-                        register_structure_surface(s)
-                        if self.quadrate:
-                            s_qu = ss_qu[si]
-                            s = Surface(tag=s_dt[1], quadrate=s_qu)
-                            register_quadrate_surface(s)
-                        for ci, c_st in enumerate(vs_ss_cs_st[vi][si]):
-                            c_dt = dt.vs_ss_cs_dt[vi][si][ci]
-                            c = Curve(tag=c_dt[1], structure=c_st)
-                            register_structure_curve(c)
+                        s_qu = ss_qu[si]
+                        s = Surface(tag=s_dt[1], quadrate=s_qu)
+                        register_quadrate_surface(s)
+                    for ci, c_st in enumerate(ss_cs_st[si]):
+                        c_dt = dt.vs_ss_cs_dt[0][si][ci]
+                        c = Curve(tag=c_dt[1], structure=c_st)
+                        register_structure_curve(c)
 
 
 str2obj = {

@@ -7,21 +7,31 @@ from support import check_on_file, LoggingDecorator, GmshDecorator, GmshOptionsD
 from factory import FACTORY as FACTORY
 
 
-def init_walk(obj):
+def init_walk(obj, prev_obj=None, obj_index=None):
     if isinstance(obj, dict):
+        # Update object from previous object children fields
+        if prev_obj is not None:
+            for k, v in prev_obj.items():
+                if not k.startswith('children_') or k == 'children_transforms':
+                    continue
+                obj_k = k[9:]
+                obj_v = v[obj_index]
+                if obj_v is not None:
+                    obj[obj_k] = v[obj_index]
+        # Walk
         for k, v in obj.items():
             if k == 'class':
                 continue
             if isinstance(v, dict):
-                init_walk(v)
+                init_walk(v, obj, obj_index)
             elif isinstance(v, list):
-                init_walk(v)
+                init_walk(v, obj, obj_index)
             elif isinstance(v, str):
                 result, real_path = check_on_file(v)
                 if real_path is not None:
                     with open(real_path) as f:
                         v = json.load(f)['data']
-                    init_walk(v)
+                    init_walk(v, obj, obj_index)
                     v['path'] = real_path
             try:
                 obj[k] = FACTORY(v)
@@ -29,18 +39,27 @@ def init_walk(obj):
                 pass
             except KeyError as e:  # Bad k
                 pass
+        # Remove children fields
+        if obj is not None:
+            for k in list(obj.keys()):
+                if not k.startswith('children_'):
+                    continue
+                if k == 'children_transforms':
+                    continue
+                obj.pop(k)
     elif isinstance(obj, list):
         for i, x in enumerate(obj):
+            obj_index = i
             if isinstance(x, dict):
-                init_walk(x)
+                init_walk(x, prev_obj, obj_index)
             elif isinstance(x, list):
-                init_walk(x)
+                init_walk(x, prev_obj, obj_index)
             elif isinstance(x, str):
                 result, real_path = check_on_file(x)
                 if real_path is not None:
                     with open(real_path) as f:
                         x = json.load(f)['data']
-                    init_walk(x)
+                    init_walk(x, prev_obj, obj_index)
                     x['path'] = real_path
             try:
                 obj[i] = FACTORY(x)

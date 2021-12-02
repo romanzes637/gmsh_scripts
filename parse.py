@@ -52,8 +52,6 @@ def parse_row(row, sep_i=';', sep_si=':'):
     n_items, n_blocks = len(items), len(items) - 1
     o_b2is = [(x, x + 1) for x in range(n_blocks)]  # Old block to items
     o_is2b = {x: i for i, x in enumerate(o_b2is)}  # Old items to block
-    if len(o_is2b) == 0:  # TODO Workaround for single item
-        o_is2b = {(0, 0): 0}
     # Parse row
     cs, ms, ss = [], [], []  # coordinates, mesh sizes, structures
     pc, pm, ps = 0, None, None  # previous (default) values
@@ -76,9 +74,11 @@ def parse_row(row, sep_i=';', sep_si=':'):
     n2o_b2b = []
     for n_bi in range(n_n_blocks):
         o_cs = (n2o_i2i[n_bi], n2o_i2i[n_bi + 1])
-        while o_cs[0] == o_cs[1] and n_bi >= 0:  # new items can refer to same old items
+        while o_cs[0] == o_cs[1] and n_bi >= 0 and o_cs[0] != 0:  # new items can refer to same old items
             n_bi -= 1
             o_cs = (n2o_i2i[n_bi], o_cs[1])
+        if o_cs[0] == o_cs[1] == 0:
+            o_is2b.update({(0, 0): 0})  # TODO Workaround for layer
         old_bi = o_is2b[o_cs]
         n2o_b2b.append(old_bi)
     # Return
@@ -894,7 +894,7 @@ def correct_layers(layers):
                             o_bgi = nx * nz + zi * ny + ci
                         n2o_b2b_l2l[n_bli] = o_bli
                         n2o_b2b_g2g.append(o_bgi)
-    elif len(layers) == 5:  # X -> X, Y -> Y, NX->NX, NY->NY, Z -> Z; NZ = []
+    elif len(layers) == 5:  # X -> X, Y -> Y, NX -> NX, NY -> NY, Z -> Z; NZ = []
         # Layer to Layer
         new_layers = layers + [[]]
         for ni, layer in enumerate(new_layers):
@@ -905,17 +905,22 @@ def correct_layers(layers):
                 n2o_l2l_l2l[nl] = ol
                 n2o_l2l_g2g.append(og)
         # Block to Block
-        nx, ny, nz = len(layers[0]), len(layers[1]), len(layers[2])
+        nx, ny, nnx, nny, nz = [len(x) for x in layers]
         for i, layer_r in enumerate(new_layers[:4]):  # X/Y/NX/NY
             for j, layer_h in enumerate(new_layers[4:]):  # Z/NZ
                 for zi, _ in enumerate(layer_h):  # For each Z/NZ
                     for ci, _ in enumerate(layer_r):  # For each X/Y/NX/NY
-                        oi = 0 if i in [0, 2] else 1  # X, NX else Y, NY
+                        # oi = 0 if i in [0, 2] else 1  # X, NX else Y, NY
+                        oi = i
                         n_bli, o_bli = (i, j, zi, ci), (oi, zi, ci)
                         if oi == 0:  # X, NX
                             o_bgi = zi * nx + ci
-                        else:  # Y, NY
-                            o_bgi = nx * nz + zi * ny + ci
+                        elif oi == 1:  # Y
+                            o_bgi = nx * nz + ny * zi + ci
+                        elif oi == 2:  # NX
+                            o_bgi = (nx + ny) * nz + nnx * zi + ci
+                        else:  # NY
+                            o_bgi = (nx + ny + nnx) * nz + nny * zi + ci
                         n2o_b2b_l2l[n_bli] = o_bli
                         n2o_b2b_g2g.append(o_bgi)
     else:

@@ -360,70 +360,71 @@ class LayerXYToCartesian(Transform):
         for j in range(n_layers):
             lx, ly, lnx, lny = (cs.layers[i][j] for i in range(4))
             n_x, n_y, n_nx, n_ny = (cs.layers_curves[i][j][0] for i in range(4))
-            lt = cs.layers_types[j]
-            if py == ly0 and px == lx:  # I sector X
+            lt_x, lt_y, lt_nx, lt_ny = (cs.layers_types[i][j] for i in range(4))
+            # print(lt_x, lt_y, lt_nx, lt_ny)
+            if np.isclose(py, ly0) and np.isclose(px, lx):  # I sector X
                 logging.debug('I sector X')
                 py, px = self.update_coordinate(p0=py, pn=px,
                                                 n0=n_y, nn=n_x,
                                                 l00=ly0, l0n=ly,
                                                 ln0=lx0, lnn=lx,
-                                                lt=lt)
+                                                lt=lt_x)
                 break
-            elif px == lx0 and py == ly:  # I sector Y
+            elif np.isclose(px, lx0) and np.isclose(py, ly):  # I sector Y
                 logging.debug('I sector Y')
                 px, py = self.update_coordinate(p0=px, pn=py,
                                                 n0=n_x, nn=n_y,
                                                 l00=lx0, l0n=lx,
                                                 ln0=ly0, lnn=ly,
-                                                lt=lt)
+                                                lt=lt_y)
                 break
-            elif px == lnx0 and py == ly:  # II sector Y
+            elif np.isclose(px, lnx0) and np.isclose(py, ly):  # II sector Y
                 logging.debug('II sector Y')
                 px, py = self.update_coordinate(p0=px, pn=py,
                                                 n0=n_nx, nn=n_y,
                                                 l00=lnx0, l0n=lnx,
                                                 ln0=ly0, lnn=ly,
-                                                lt=lt)
+                                                lt=lt_y)
                 break
-            elif py == ly0 and px == lnx:  # II sector X
-                logging.debug('II sector X')
+            elif np.isclose(py, ly0) and np.isclose(px, lnx):  # II sector X
+                logging.debug('II sector NX')
                 py, px = self.update_coordinate(p0=py, pn=px,
                                                 n0=n_y, nn=n_nx,
                                                 l00=ly0, l0n=ly,
                                                 ln0=lnx0, lnn=lnx,
-                                                lt=lt)
+                                                lt=lt_nx)
                 break
-            elif py == lny0 and px == lnx:  # III sector X
-                logging.debug('III sector X')
+            elif np.isclose(py, lny0) and np.isclose(px, lnx):  # III sector X
+                logging.debug('III sector NX')
                 py, px = self.update_coordinate(p0=py, pn=px,
                                                 n0=n_ny, nn=n_nx,
                                                 l00=lny0, l0n=lny,
                                                 ln0=lnx0, lnn=lnx,
-                                                lt=lt)
+                                                lt=lt_nx)
                 break
-            elif px == lnx0 and py == lny:  # III sector Y
-                logging.debug('III sector Y')
+            elif np.isclose(px, lnx0) and np.isclose(py, lny):  # III sector Y
+                logging.debug('III sector NY')
                 px, py = self.update_coordinate(p0=px, pn=py,
                                                 n0=n_nx, nn=n_ny,
                                                 l00=lnx0, l0n=lnx,
                                                 ln0=lny0, lnn=lny,
-                                                lt=lt)
+                                                lt=lt_ny)
                 break
-            elif px == lx0 and py == lny:  # IV sector Y
-                logging.debug('IV sector Y')
+            elif np.isclose(px, lx0) and np.isclose(py, lny):  # IV sector Y
+                logging.debug('IV sector NY')
                 px, py = self.update_coordinate(p0=px, pn=py,
                                                 n0=n_x, nn=n_ny,
                                                 l00=lx0, l0n=lx,
                                                 ln0=lny0, lnn=lny,
-                                                lt=lt)
+                                                lt=lt_ny)
                 break
-            elif py == lny0 and px == lx:  # IV sector X
+            elif np.isclose(py, lny0) and np.isclose(px, lx):  # IV sector X
                 logging.debug('IV sector X')
                 py, px = self.update_coordinate(p0=py, pn=px,
                                                 n0=n_ny, nn=n_x,
                                                 l00=lny0, l0n=lny,
                                                 ln0=lx0, lnn=lx,
-                                                lt=lt)
+                                                lt=lt_x)
                 break
             else:
                 continue

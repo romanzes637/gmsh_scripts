@@ -552,11 +552,15 @@ def register_surface_structure(points, structure):
     SURFACE_STRUCTURE.setdefault(key, structure)
 
 
-def register_volume_structure(points, structure):
-    if len(points) != 8:
-        return
-    key = tuple(y for x in points for y in x.coordinates)
-    VOLUME_STRUCTURE.setdefault(key, structure)
+# def register_volume_structure(points, structure):
+#     if len(points) != 8:
+#         return
+#     key = tuple(y for x in points for y in x.coordinates)
+#     VOLUME_STRUCTURE.setdefault(key, structure)
+
+
+def register_volume_structure(tag, structure):
+    VOLUME_STRUCTURE.setdefault(tag, structure)
 
 
 def register_surface_quadrate(points, quadrate):
@@ -590,15 +594,19 @@ def get_surface_structure(points):
     return None
 
 
-def get_volume_structure(points):
-    if len(points) != 8:
-        return None
-    for p in permutations(points):
-        key = tuple(y for x in p for y in x.coordinates)
-        structure = VOLUME_STRUCTURE.get(key, None)
-        if structure is not None:
-            return structure
-    return None
+# def get_volume_structure(points):
+#     if len(points) != 8:
+#         return None
+#     for p in permutations(points):
+#         key = tuple(y for x in p for y in x.coordinates)
+#         structure = VOLUME_STRUCTURE.get(key, None)
+#         if structure is not None:
+#             return structure
+#     return None
+
+
+def get_volume_structure(tag):
+    return VOLUME_STRUCTURE.get(tag, None)
 
 
 def get_surface_quadrate(points):
