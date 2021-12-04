@@ -10,8 +10,9 @@ from transform import reduce_transforms
 from registry import register_point, register_curve, register_curve_loop, \
     register_surface, register_surface_loop, register_volume, \
     register_curve_structure, register_surface_structure, \
-    register_surface_quadrate, register_volume_structure, unregister_volume, \
-    register_volume2block, get_boolean_old2news, get_boolean_new2olds, get_volume2block
+    register_surface_quadrate, register_volume_structure, unregister_volumes, \
+    register_volume2block, get_boolean_old2news, get_boolean_new2olds, \
+    get_volume2block, pre_unregister_volume
 from coordinate_system import Block as BlockCS
 from point import Point
 from curve import Curve
@@ -613,7 +614,7 @@ class Block:
                 ps = [self.points[x] for x in ps_ids]
                 register_surface_quadrate(ps, q)
 
-    def unregister(self):
+    def pre_unregister(self):
         """
 
         N - no boolean
@@ -639,7 +640,7 @@ class Block:
         # Children
         if self.do_unregister_children:
             for i, c in enumerate(self.children):
-                c.unregister()
+                c.pre_unregister()
         # Self
         if not self.do_register:
             return
@@ -650,7 +651,7 @@ class Block:
         old2news = get_boolean_old2news()
         if old_tag not in old2news:  # No boolean
             if self.do_unregister:
-                unregister_volume(Volume(tag=old_tag))
+                pre_unregister_volume(Volume(tag=old_tag))
             return
         # Boolean
         new_tags = old2news[old_tag]
@@ -659,7 +660,7 @@ class Block:
             all_old_tags = new2olds[new_tag]
             if len(all_old_tags) == 1:  # Owner
                 if self.do_unregister:
-                    unregister_volume(Volume(tag=new_tag))
+                    pre_unregister_volume(Volume(tag=new_tag))
             else:  # Shared volume (boolean)
                 v2b = get_volume2block()
                 all_old_blocks = [v2b[x] for x in all_old_tags]
@@ -668,13 +669,16 @@ class Block:
                 n_max_levels = all_levels.count(max_level)
                 if n_max_levels == 1 and self.boolean_level == max_level:  # Owner
                     if self.do_unregister_boolean in [1, 2]:
-                        unregister_volume(Volume(tag=new_tag))
+                        pre_unregister_volume(Volume(tag=new_tag))
                 elif self.boolean_level == max_level:  # Owners
                     owners_unregister_boolean = [
                         x.do_unregister_boolean in [1, 3] for x in all_old_blocks
                         if x.boolean_level == max_level]
                     if all(owners_unregister_boolean):
-                        unregister_volume(Volume(tag=new_tag))
+                        pre_unregister_volume(Volume(tag=new_tag))
+
+    def unregister(self):
+        unregister_volumes()
 
     def __iter__(self):
         """Iterate children of the block recursively

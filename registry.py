@@ -30,6 +30,7 @@ BOOLEAN_NEW2OLDS = {}
 BOOLEAN_OLD2NEWS = {}
 VOLUME2BLOCK = {}
 USE_REGISTRY_TAG = True
+UNREGISTERED_VOLUMES = set()
 
 POINT_KWARGS = {
     'geo': {'tag': -1, 'meshSize': 0.},
@@ -142,6 +143,7 @@ def reset(factory='geo', point_tol=8):
     global BOOLEAN_OLD2NEWS
     global VOLUME2BLOCK
     global USE_REGISTRY_TAG
+    global UNREGISTERED_VOLUMES
     POINTS = {}
     CURVES = {}
     CURVES_LOOPS = {}
@@ -168,6 +170,7 @@ def reset(factory='geo', point_tol=8):
     BOOLEAN_OLD2NEWS = {}
     VOLUME2BLOCK = {}
     USE_REGISTRY_TAG = True
+    UNREGISTERED_VOLUMES = set()
 
 
 def correct_kwargs(entity, name):
@@ -530,12 +533,20 @@ def register_structure_volume(volume):
     return volume
 
 
-# TODO remove from registry
-def unregister_volume(volume):
+def pre_unregister_volume(volume):
     tag = volume.tag
-    gmsh.model.removeEntities([(3, tag)], recursive=True)
+    UNREGISTERED_VOLUMES.add(tag)
     volume.tag = None
     return volume
+
+
+def unregister_volumes():
+    gmsh.model.removeEntities([(3, x) for x in UNREGISTERED_VOLUMES],
+                              recursive=True)
+
+
+def get_unregistered_volumes():
+    return UNREGISTERED_VOLUMES
 
 
 def register_curve_structure(points, structure):

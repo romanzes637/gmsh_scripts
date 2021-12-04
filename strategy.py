@@ -7,10 +7,10 @@ from registry import reset as reset_registry
 from registry import synchronize as synchronize_registry
 from support import timeit, plot_statistics
 from boolean import BooleanAllBlock
-from zone import BlockVolumes, DirectionByInterval
-from size import BooleanPoint, NoSize
-from structure import StructureBlock, StructureAuto
-from quadrate import QuadrateBlock, NoQuadrate
+from zone import DirectionByNormal
+from size import NoSize
+from structure import StructureBlock
+from quadrate import  NoQuadrate
 from optimize import OptimizeOne
 from smooth import NoSmooth
 from refine import NoRefine
@@ -49,7 +49,7 @@ class Base(Strategy):
             output_path=None,
             output_formats=None,
             boolean_function=BooleanAllBlock(),
-            zone_function=DirectionByInterval(),
+            zone_function=DirectionByNormal(),
             size_function=NoSize(),
             structure_function=StructureBlock(),
             quadrate_function=NoQuadrate(),
@@ -78,24 +78,22 @@ class Base(Strategy):
             timeit(self.structure_function)(block)  # Must be after synchronize!
             timeit(self.quadrate_function)(block)
             timeit(synchronize_registry)()  # Must be after structure!
+            timeit(block.pre_unregister)()  # Must be after synchronize!
+            timeit(self.zone_function)(block)  # Must be after unregister!
             timeit(block.unregister)()  # Must be after synchronize!
-            timeit(self.zone_function)(block)  # Should be after unregister!
             timeit(gmsh.write)(f'{self.model_name}.geo_unrolled')
         elif self.factory == 'occ':
-            if 'geo_unrolled' in self.output_formats:
-                path = f'{self.output_path}-pre_boolean.geo_unrolled'
-                logging.info(f'Writing {path}')
-                timeit(gmsh.write)(path)
             timeit(self.boolean_function)(block)
             timeit(synchronize_registry)()
             timeit(self.structure_function)(block)
             timeit(self.quadrate_function)(block)
             timeit(self.smooth_function)()
             timeit(self.size_function)(block)
-            timeit(block.unregister)()
+            timeit(block.pre_unregister)()
             timeit(self.zone_function)(block)
+            timeit(block.unregister)()
             if 'geo_unrolled' in self.output_formats:
-                path = f'{self.output_path}-post_boolean.geo_unrolled'
+                path = f'{self.output_path}-boolean.geo_unrolled'
                 logging.info(f'Writing {path}')
                 timeit(gmsh.write)(path)
             timeit(gmsh.model.mesh.generate)(3)

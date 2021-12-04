@@ -2,7 +2,7 @@
   "metadata": {
     "issues": ["Issue: PCL Error: A segment and a facet intersect at point. Solution: Set appropriate mesh size or set MeshSizeFromCurvature = 12 See: https://gitlab.onelab.info/gmsh/gmsh/-/issues/766"],
     "run": {
-      "factory": "geo",
+      "factory": "occ",
       "log_level": "DEBUG",
       "log_path": null,
       "strategy": {
@@ -12,11 +12,22 @@
         "quadrate_function": "quadrate.NoQuadrate",
         "size_function": "size.NoSize",
         "zone_function": {
-          "class": "zone.DirectionByInterval",
-          "dims_interfaces": []},
+          "class": "zone.DirectionByNormal",
+          "join_entities": [
+            ["Rock", "Tunnel"],
+            ["Borehole1", "Rock"],
+            ["Borehole2", "Rock"],
+            ["Plug1", "Rock"],
+            ["Plug2", "Rock"],
+            ["HeaterPlug1", "Tunnel"],
+            ["HeaterPlug2", "Tunnel"],
+            ["HeaterPlug3", "Tunnel"],
+            ["HeaterPlug4", "Tunnel"]
+          ]
+        },
         "optimize_function": {
           "class": "optimize.OptimizeMany",
-          "optimizers": [],
+          "optimizers": [["", 1]],
           "force": false,
           "threshold": 0.3},
         "refine_function": {
@@ -25,7 +36,7 @@
         "smooth_function": {
           "class": "smooth.SmoothByDim",
           "dims": [0, 1, 2, 3],
-          "n_iterations": 0,
+          "n_iterations": 1,
           "smooth_normals": false,
           "smooth_cross_field": false}
       },
@@ -59,15 +70,35 @@
     "children": [
       "input/experiment_sweden_rock.json",
       "input/experiment_sweden_tunnel.json",
-      "input/experiment_sweden_borehole.json",
-      "input/experiment_sweden_borehole.json"],
+      "input/experiment_sweden_borehole_plug.json",
+      "input/experiment_sweden_borehole_plug.json",
+      "input/experiment_sweden_heater_plug.json",
+      "input/experiment_sweden_heater_plug.json",
+      "input/experiment_sweden_heater_plug.json",
+      "input/experiment_sweden_heater_plug.json"
+    ],
     "children_transforms": [
       [],
       [[0, 0, 0, 0, 1, 0, -90], [28.5, 0, 0]],
-      [[1.375, 0, -10.25]],
-      [[-1.375, 0, -10.25]]],
-    "children_zones": [["Rock"], ["Tunnel"], ["Borehole1"], ["Borehole2"]],
-    "children_boolean_level_map": [0, 2, 1, 1],
-    "children_do_unregister_boolean_map": [0, 1, 0, 0]
+      [[1.375, 0, -11]],
+      [[-1.375, 0, -11]],
+      [[0.5, 1.9, -11]],
+      [[-0.5, 1.9, -11]],
+      [[-0.5, -1.9, -11]],
+      [[0.5, -1.9, -11]]
+    ],
+    "children_zones": [
+      ["Rock"],
+      ["Tunnel"],
+      ["Borehole1", "Plug1"],
+      ["Borehole2", "Plug2"],
+      ["Heater1", "HeaterPlug1"],
+      ["Heater2", "HeaterPlug2"],
+      ["Heater3", "HeaterPlug3"],
+      ["Heater4", "HeaterPlug4"]
+    ],
+    "children_boolean_level_map": [0, 2, 1, 1, 1, 1, 1, 1],
+    "children_do_unregister_boolean_map": [0, 0, 0, 0, 0, 0, 0, 0],
+    "children_quadrate_map": [0, 0, 0, 0, 0, 0, 0, 0]
   }
 }
