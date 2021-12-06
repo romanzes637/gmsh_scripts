@@ -12,7 +12,8 @@ class Matrix(Block):
     Args:
     """
 
-    def __init__(self, grid, curves=None, curves_map=None,
+    def __init__(self, matrix,
+                 curves=None, curves_map=None,
                  transforms=None,
                  do_register_map=None,
                  do_register_children_map=None,
@@ -31,7 +32,7 @@ class Matrix(Block):
                  children_transforms=None
                  ):
         # Parse grid
-        new_grid, values, maps = parse_grid(grid)
+        new_grid, values, maps = parse_grid(matrix)
         old_b2is, old_b2b_g2l, new_b2is, new_b2b_g2l, new2old_b2b = maps
         str_rows = [x for x in new_grid if isinstance(x, str)]
         num_rows = [x for x in new_grid if isinstance(x, (int, float))]

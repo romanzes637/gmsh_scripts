@@ -8,7 +8,10 @@
       "strategy": {
         "class": "strategy.Base",
         "boolean_function": "boolean.BooleanAllBlock",
-        "structure_function": "structure.StructureBlock",
+        "structure_function": {
+          "class": "structure.StructureBlock",
+          "do_structure": true,
+          "do_quadrate": true},
         "quadrate_function": "quadrate.NoQuadrate",
         "size_function": "size.NoSize",
         "zone_function": {
@@ -19,6 +22,8 @@
             ["Borehole2", "Rock"],
             ["Plug1", "Rock"],
             ["Plug2", "Rock"],
+            ["Plug1", "Tunnel"],
+            ["Plug2", "Tunnel"],
             ["HeaterPlug1", "Tunnel"],
             ["HeaterPlug2", "Tunnel"],
             ["HeaterPlug3", "Tunnel"],
@@ -53,9 +58,9 @@
         "Mesh.Recombine3DConformity": 0,
         "Mesh.MeshSizeFactor": 1,
         "Mesh.MeshSizeMin": 0,
-        "Mesh.MeshSizeMax": 1e+22,
-        "Mesh.MeshSizeFromPoints": 0,
-        "Mesh.MeshSizeExtendFromBoundary": 0,
+        "Mesh.MeshSizeMax": 5,
+        "Mesh.MeshSizeFromPoints": 1,
+        "Mesh.MeshSizeExtendFromBoundary": 2,
         "Mesh.MeshSizeFromCurvature": 12,
         "Mesh.MeshSizeFromCurvatureIsotropic": 0,
         "Mesh.MeshSizeFromParametricPoints": 0,
@@ -98,7 +103,7 @@
       ["Heater4", "HeaterPlug4"]
     ],
     "children_boolean_level_map": [0, 2, 1, 1, 1, 1, 1, 1],
-    "children_do_unregister_boolean_map": [0, 0, 0, 0, 0, 0, 0, 0],
-    "children_quadrate_map": [0, 0, 0, 0, 0, 0, 0, 0]
+    "children_do_unregister_boolean_map": [0, 1, 1, 1, 0, 0, 0, 0],
+    "children_quadrate_map": [1, 1, 1, 1, 1, 1, 1, 1]
   }
 }

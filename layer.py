@@ -79,7 +79,7 @@ class Layer(Matrix):
         some2car = tr_str2obj[f'{type(coordinate_system).__name__}ToCartesian'](
             cs_from=coordinate_system)
         matrix_transforms = [lxy2car, any1some, some2car] + transforms
-        super().__init__(grid=grid,
+        super().__init__(matrix=grid,
                          curves=curves,
                          curves_map=curves_map,
                          transforms=matrix_transforms,

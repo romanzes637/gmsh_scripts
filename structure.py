@@ -87,10 +87,13 @@ class StructureAuto:
 
 
 class StructureBlock:
-    def __init__(self, quadrate=True):
-        self.quadrate = quadrate
+    def __init__(self, do_quadrate=True, do_structure=True):
+        self.do_quadrate = do_quadrate
+        self.do_structure = do_structure
 
     def __call__(self, block):
+        if not self.do_structure:
+            return
         v_dts = gmsh.model.getEntities(3)
         new_olds = get_boolean_new2olds()
         for vi, v_dt in enumerate(v_dts):  # Volumes
@@ -128,7 +131,7 @@ class StructureBlock:
                 if s_st is None:
                     do_structure = False
                     break
-                if self.quadrate:
+                if self.do_quadrate:
                     s_qu = get_surface_quadrate(s_ps)
                     ss_qu.append(s_qu)
             if not do_structure:
@@ -154,7 +157,7 @@ class StructureBlock:
                     s_dt = dt.vs_ss_dt[0][si]
                     s = Surface(tag=s_dt[1], structure=s_st)
                     register_structure_surface(s)
-                    if self.quadrate:
+                    if self.do_quadrate:
                         s_qu = ss_qu[si]
                         s = Surface(tag=s_dt[1], quadrate=s_qu)
                         register_quadrate_surface(s)
