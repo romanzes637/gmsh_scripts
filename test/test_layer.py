@@ -26,16 +26,16 @@ class TestLayer(unittest.TestCase):
         for factory in ['geo', 'occ']:
             model_name = f'test_layer-{factory}'
             layer = Layer(
-                layers=[['1;.4;3', '2;.3', '3;.5'],
-                        ['1;.3', '2;.3']],
-                layers_curves=[['line', 'line', 'circle_arc'],
-                               ['line', 'line']],
-                layers_types=[['in', 'in', 'in'],
-                              ['in', 'in']],
-                do_register_map=[[[1, 1, 1],
-                                  [1, 1, 1]]],
-                boolean_level_map=[[[0, 1, 2],
-                                    [3, 4, 5]]]
+                layer=[['1;.4;3', '2;.3', '3;.5'],
+                       ['1;.3', '2;.3']],
+                layer_curves=[['line', 'line', 'circle_arc'],
+                              ['line', 'line']],
+                layer_types=[['in', 'in', 'in'],
+                             ['in', 'in']],
+                items_do_register_map=[[[1, 1, 1],
+                                        [1, 1, 1]]],
+                items_boolean_level_map=[[[0, 1, 2],
+                                          [3, 4, 5]]]
                 # transforms=[[3, 0, 1]]
             )
             Fast(factory, model_name)(layer)
@@ -47,10 +47,10 @@ class TestLayer(unittest.TestCase):
         for factory in ['geo', 'occ']:
             model_name = f'test_layer_one-{factory}'
             layer = Layer(
-                layers=[['1;.4;3', '2;.3'],
-                        ['1;.3']],
-                layers_curves=[['line', 'circle_arc'],
-                               ['line']]
+                layer=[['1;.4;3', '2;.3'],
+                       ['1;.3']],
+                layer_curves=[['line', 'circle_arc'],
+                              ['line']]
             )
             Fast(factory, model_name)(layer)
 
@@ -61,16 +61,16 @@ class TestLayer(unittest.TestCase):
         for factory in ['geo', 'occ']:
             model_name = f'test_layer_one_ext-{factory}'
             layer = Layer(
-                layers=[['1;.4;3', '2:3;.3;4'],
-                        ['1;.4;3', '2:3;.3;4'],
-                        ['1;.4;3', '2:3;.3;4'],
-                        ['1;.4;3', '2:3;.3;4'],
-                        ['1:5;.3;5']],
-                layers_curves=[['circle_arc', ['spline', [[.3, .1, 0], [.7, .1, 0]]]],
-                               ['circle_arc', 'line'],
-                               ['circle_arc', ['spline', [[.3, -.1, 0], [.7, -.1, 0]]]],
-                               ['circle_arc', 'line'],
-                               ['line']]
+                layer=[['1;.4;3', '2:3;.3;4'],
+                       ['1;.4;3', '2:3;.3;4'],
+                       ['1;.4;3', '2:3;.3;4'],
+                       ['1;.4;3', '2:3;.3;4'],
+                       ['1:5;.3;5']],
+                layer_curves=[['circle_arc', ['spline', [[.3, .1, 0], [.7, .1, 0]]]],
+                              ['circle_arc', 'line'],
+                              ['circle_arc', ['spline', [[.3, -.1, 0], [.7, -.1, 0]]]],
+                              ['circle_arc', 'line'],
+                              ['line']]
             )
             Fast(factory, model_name)(layer)
 
@@ -85,11 +85,11 @@ class TestLayer(unittest.TestCase):
             orientations = [[[1, 180, x], 'sph'] for x in np.linspace(90, 0, 10)]
             cs = Path(factory=factory, curves=curves, orientations=orientations)
             layer = Layer(
-                layers=[['1;1', '2;1', '3;1'],
-                        ['1:8;1'],
-                        cs],
-                layers_curves=[['line', 'line', 'circle_arc'],
-                               ['line']]
+                layer=[['1;1', '2;1', '3;1'],
+                       ['1:8;1'],
+                       cs],
+                layer_curves=[['line', 'line', 'circle_arc'],
+                              ['line']]
             )
             Fast(factory, model_name)(layer)
 
@@ -156,35 +156,35 @@ class TestLayer(unittest.TestCase):
                   for x in np.linspace(0, 80, 9)]
         orientations = [[[1, 180, x], 'sph'] for x in np.linspace(90, 0, 10)]
         cs = Path(factory=factory, curves=curves, orientations=orientations)
-        b = Matrix(matrix=[[0, 15], [-7, 7], [0, 13]], zones=["M"],
-                   boolean_level_map=0, do_register_map=1)
+        b = Matrix(matrix=[[0, 15], [-7, 7], [0, 13]], items_zone=["M"],
+                   items_boolean_level_map=0, items_do_register_map=1)
         layer = Layer(
-            layers=[['1;1;5', '1.5;1;5'],
-                    ['1:5;1;3'],
-                    cs],
-            layers_curves=[['line', 'circle_arc'],
-                           ['line']],
-            zones=['L1'],
-            boolean_level_map=1,
-            quadrate_map=1,
-            do_unregister_map=1,
-            do_unregister_boolean_map=1,
+            layer=[['1;1;5', '1.5;1;5'],
+                   ['1:5;1;3'],
+                   cs],
+            layer_curves=[['line', 'circle_arc'],
+                          ['line']],
+            items_zone=['L1'],
+            items_boolean_level_map=1,
+            items_do_quadrate_map=1,
+            items_do_unregister_map=1,
+            items_do_unregister_boolean_map=1,
             parent=b
         )
         b.add_child(layer)
         layer2 = Layer(
-            layers=[['1;1;3', '1.5;1;3'],
-                    # ['.1;1;3', '.8;1;3', '1;1;3'],
-                    ['1:5;1;3'],
-                    cs],
-            layers_curves=[['line', 'circle_arc'],
-                           ['line']],
+            layer=[['1;1;3', '1.5;1;3'],
+                   # ['.1;1;3', '.8;1;3', '1;1;3'],
+                   ['1:5;1;3'],
+                   cs],
+            layer_curves=[['line', 'circle_arc'],
+                          ['line']],
             transforms=[[0, 0, 0, 0, 0, 1, 80], [5, -5, 0]],
-            boolean_level_map=1,
-            do_unregister_map=0,
-            do_unregister_boolean_map=0,
-            quadrate_map=1,
-            zones=['L2'],
+            items_boolean_level_map=1,
+            items_do_unregister_map=0,
+            items_do_unregister_boolean_map=0,
+            items_do_quadrate_map=1,
+            items_zone=['L2'],
             parent=b
         )
         b.add_child(layer2)

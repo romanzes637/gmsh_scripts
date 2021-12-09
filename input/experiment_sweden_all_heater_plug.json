@@ -7,13 +7,6 @@
       "log_path": null,
       "strategy": {
         "class": "strategy.Base",
-        "boolean_function": "boolean.BooleanAllBlock",
-        "structure_function": {
-          "class": "structure.StructureBlock",
-          "do_structure": true,
-          "do_quadrate": true},
-        "quadrate_function": "quadrate.NoQuadrate",
-        "size_function": "size.NoSize",
         "zone_function": {
           "class": "zone.DirectionByNormal",
           "join_entities": [
@@ -28,22 +21,7 @@
             ["HeaterPlug2", "Tunnel"],
             ["HeaterPlug3", "Tunnel"],
             ["HeaterPlug4", "Tunnel"]
-          ]
-        },
-        "optimize_function": {
-          "class": "optimize.OptimizeMany",
-          "optimizers": [["", 1]],
-          "force": false,
-          "threshold": 0.3},
-        "refine_function": {
-          "class": "refine.RefineBySplit",
-          "n_iterations": 0},
-        "smooth_function": {
-          "class": "smooth.SmoothByDim",
-          "dims": [0, 1, 2, 3],
-          "n_iterations": 1,
-          "smooth_normals": false,
-          "smooth_cross_field": false}
+          ]}
       },
       "options": {
         "Geometry.OCCParallel": 1,
@@ -90,9 +68,9 @@
       [[0.5, 1.9, -11]],
       [[-0.5, 1.9, -11]],
       [[-0.5, -1.9, -11]],
-      [[0.5, -1.9, -11]]
+      [[1.2, -1.9, -11]]
     ],
-    "children_zones": [
+    "children_items_zone": [
       ["Rock"],
       ["Tunnel"],
       ["Borehole1", "Plug1"],
@@ -102,8 +80,9 @@
       ["Heater3", "HeaterPlug3"],
       ["Heater4", "HeaterPlug4"]
     ],
-    "children_boolean_level_map": [0, 2, 1, 1, 1, 1, 1, 1],
-    "children_do_unregister_boolean_map": [0, 1, 1, 1, 0, 0, 0, 0],
-    "children_quadrate_map": [1, 1, 1, 1, 1, 1, 1, 1]
+    "children_items_boolean_level_map": [0, 2, 1, 1, 1, 1, 1, 1],
+    "children_items_do_unregister_boolean_map": [0, 1, 1, 1, 0, 0, 0, 0],
+    "children_items_do_quadrate_map": [1, 1, 1, 1, 1, 1, 1, 1],
+    "children_items_do_structure_map": [1, 1, 1, 1, 1, 1, 1, 1]
   }
 }

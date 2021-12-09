@@ -9,94 +9,143 @@ from parse import parse_layers2grid
 
 
 class Layer(Matrix):
-    def __init__(self, layers=None, layers_curves=None, layers_types=None,
-                 do_register_map=None, do_unregister_map=None,
-                 do_unregister_children_map=None, do_unregister_boolean_map=None,
-                 quadrate_map=None,
-                 transforms=None,
-                 boolean_level_map=None,
-                 zones=None, zones_map=None, parent=None,
-                 path=None, children=None, children_transforms=None):
-        str_layers = [x for x in layers if isinstance(x, str)]
-        other_layers = [x for x in layers if not isinstance(x, (int, float, str, list))]
+    def __init__(
+            # Layer
+            self, layer=None, layer_curves=None, layer_types=None,
+            items_do_register_map=None, items_do_unregister_map=None,
+            items_do_unregister_children_map=None,
+            items_do_unregister_boolean_map=None,
+            items_do_quadrate_map=None,
+            items_do_structure_map=None,
+            items_boolean_level_map=None,
+            items_zone=None, items_zone_map=None,
+            items_transforms=None, items_transforms_map=None,
+            items_children=None, items_children_map=None,
+            items_children_transforms=None,
+            items_children_transforms_map=None,
+            # Block
+            points=None, curves=None, surfaces=None, volume=None,
+            do_register=False, do_unregister=False,
+            do_register_children=True, do_unregister_children=True,
+            do_unregister_boolean=False,
+            transforms=None,
+            do_quadrate=False,
+            do_structure=True, structure=None, structure_type='LLL',
+            zone=None, parent=None, children=None, children_transforms=None,
+            boolean_level=None, path=None
+    ):
+        str_layers = [x for x in layer if isinstance(x, str)]
+        other_layers = [x for x in layer if not isinstance(x, (int, float, str, list))]
         coordinate_system = str_layers[0] if len(str_layers) > 0 else 'Cartesian'
         coordinate_system = cs_str2obj[coordinate_system]()
-        for layer in other_layers:
-            if isinstance(layer, tuple(cs_str2obj.values())):
-                coordinate_system = layer
+        for l in other_layers:
+            if isinstance(l, tuple(cs_str2obj.values())):
+                coordinate_system = l
                 break
-        list_layers = [x for x in layers if isinstance(x, list)]
+        list_layers = [x for x in layer if isinstance(x, list)]
         new_layers, values, maps = parse_layers2grid(list_layers)
         parsed_layers, grid = new_layers[1], new_layers[2]
         parsed_layers_cs = [x[0] for x in values]
         n2o_l2l_l2l, n2o_l2l_g2g = maps[10], maps[11]
         g2l_b2b_l2l, g2l_b2b_g2g = maps[14], maps[15]
         parsed_g2l_b2b_l2l = maps[8]
-        parsed_layers_types = Layer.parse_layers_map(layers_types, n2o_l2l_l2l,
+        parsed_layers_types = Layer.parse_layers_map(layer_types, n2o_l2l_l2l,
                                                      default='in')
-        parsed_layers_curves = Layer.parse_layers_map(layers_curves, n2o_l2l_l2l,
+        parsed_layers_curves = Layer.parse_layers_map(layer_curves, n2o_l2l_l2l,
                                                       default='line')
-        for i, layer in enumerate(parsed_layers_curves):
-            for j, c in enumerate(layer):
+        for i, l in enumerate(parsed_layers_curves):
+            for j, c in enumerate(l):
                 parsed_layers_curves[i][j] = [c] if isinstance(c, str) else c
         lxy = LayerXY(layers=parsed_layers_cs[:-2],  # Without Z and NZ
                       layers_curves=parsed_layers_curves[:-2],  # Without Z and NZ
                       layers_types=parsed_layers_types[:-2])  # Without Z and NZ
         grid.append(lxy)
         # Curves
-        curves, curves_map = Layer.get_layers_curves(parsed_layers_curves,
-                                                     parsed_g2l_b2b_l2l,
-                                                     parsed_layers_cs)
+        items_curves, items_curves_map = Layer.get_layers_curves(
+            parsed_layers_curves, parsed_g2l_b2b_l2l, parsed_layers_cs)
         # Boolean
-        boolean_level_map = Layer.parse_layers_block_map(
-            boolean_level_map, None, g2l_b2b_g2g, (int,))
+        items_boolean_level_map = Layer.parse_layers_block_map(
+            items_boolean_level_map, None, g2l_b2b_g2g, (int,))
         # print(np.array(boolean_level_map).reshape((n_blocks_z, n_blocks_y, n_blocks_x)))
         # Register/Unregister
-        default_do_register_map = [0 if x is None else 1 for x in g2l_b2b_g2g]
-        do_register_map = Layer.parse_layers_block_map(
-            do_register_map, 1, g2l_b2b_g2g, (bool, int))
-        do_unregister_map = Layer.parse_layers_block_map(
-            do_unregister_map, 0, g2l_b2b_g2g, (bool, int))
-        do_unregister_children_map = Layer.parse_layers_block_map(
-            do_unregister_children_map, 0, g2l_b2b_g2g, (bool, int))
-        do_unregister_boolean_map = Layer.parse_layers_block_map(
-            do_unregister_boolean_map, 0, g2l_b2b_g2g, (bool, int))
-        matrix_do_register_map = [x * y for x, y in zip(
-            default_do_register_map, do_register_map)]
+        items_default_do_register_map = [0 if x is None else 1 for x in g2l_b2b_g2g]
+        items_do_register_map = Layer.parse_layers_block_map(
+            items_do_register_map, 1, g2l_b2b_g2g, (bool, int))
+        items_do_unregister_map = Layer.parse_layers_block_map(
+            items_do_unregister_map, 0, g2l_b2b_g2g, (bool, int))
+        items_do_unregister_children_map = Layer.parse_layers_block_map(
+            items_do_unregister_children_map, 0, g2l_b2b_g2g, (bool, int))
+        items_do_unregister_boolean_map = Layer.parse_layers_block_map(
+            items_do_unregister_boolean_map, 0, g2l_b2b_g2g, (bool, int))
+        items_do_register_map = [x * y for x, y in zip(
+            items_default_do_register_map, items_do_register_map)]
         # Structure and Quadrate
-        quadrate_map = Layer.parse_layers_block_map(quadrate_map, 0,
-                                                    g2l_b2b_g2g, (bool, int))
-        structure_type, structure_type_map = Layer.get_structure_type(
+        items_do_quadrate_map = Layer.parse_layers_block_map(
+            items_do_quadrate_map, 0, g2l_b2b_g2g, (bool, int))
+        items_do_structure_map = Layer.parse_layers_block_map(
+            items_do_structure_map, 1, g2l_b2b_g2g, (bool, int))
+        items_structure_type, items_structure_type_map = Layer.get_structure_type(
             parsed_g2l_b2b_l2l)
         # print(np.array(structure_type_map).reshape((n_blocks_z, n_blocks_y, n_blocks_x)))
         # Zones
-        zones = ['Layer'] if zones is None else zones
-        zones_map = Layer.parse_layers_block_map(zones_map, 0, g2l_b2b_g2g, (int,))
+        items_zone = ['Layer'] if items_zone is None else items_zone
+        items_zone_map = Layer.parse_layers_block_map(items_zone_map, 0, g2l_b2b_g2g, (int,))
+        # Transforms Children
+        if items_transforms is None:
+            items_transforms = [None]
+        items_transforms_map = Layer.parse_layers_block_map(
+            items_transforms_map, 0, g2l_b2b_g2g, (int,))
+        # Children
+        items_children = [None] if items_children is None else items_children
+        items_children_map = Layer.parse_layers_block_map(
+            items_children_map, 0, g2l_b2b_g2g, (int,))
+        if items_children_transforms is None:
+            items_children_transforms = [None]
+        items_children_transforms_map = Layer.parse_layers_block_map(
+            items_children_transforms_map, 0, g2l_b2b_g2g, (int,))
         # Transforms
         transforms = [] if transforms is None else transforms
         lxy2car = tr_str2obj['LayerXYToCartesian']()
         any1some = tr_str2obj['AnyAsSome'](cs_to=coordinate_system)
         some2car = tr_str2obj[f'{type(coordinate_system).__name__}ToCartesian'](
             cs_from=coordinate_system)
-        matrix_transforms = [lxy2car, any1some, some2car] + transforms
-        super().__init__(matrix=grid,
-                         curves=curves,
-                         curves_map=curves_map,
-                         transforms=matrix_transforms,
-                         do_register_map=matrix_do_register_map,
-                         do_unregister_map=do_unregister_map,
-                         do_unregister_children_map=do_unregister_children_map,
-                         do_unregister_boolean_map=do_unregister_boolean_map,
-                         quadrate_map=quadrate_map,
-                         structure_type=structure_type,
-                         structure_type_map=structure_type_map,
-                         boolean_level_map=boolean_level_map,
-                         zones=zones,
-                         zones_map=zones_map,
-                         path=path,
-                         children=children,
-                         children_transforms=children_transforms,
-                         parent=parent)
+        transforms = [lxy2car, any1some, some2car] + transforms
+        super().__init__(
+            matrix=grid,
+            items_curves=items_curves,
+            items_curves_map=items_curves_map,
+            items_do_register_map=items_do_register_map,
+            items_do_unregister_map=items_do_unregister_map,
+            items_do_unregister_children_map=items_do_unregister_children_map,
+            items_do_unregister_boolean_map=items_do_unregister_boolean_map,
+            items_do_quadrate_map=items_do_quadrate_map,
+            items_do_structure_map=items_do_structure_map,
+            items_structure_type=items_structure_type,
+            items_structure_type_map=items_structure_type_map,
+            items_boolean_level_map=items_boolean_level_map,
+            items_zone=items_zone,
+            items_zone_map=items_zone_map,
+            items_transforms=items_transforms,
+            items_transforms_map=items_transforms_map,
+            items_children=items_children,
+            items_children_map=items_children_map,
+            items_children_transforms=items_children_transforms,
+            items_children_transforms_map=items_children_transforms_map,
+            # Block
+            points=points, curves=curves, surfaces=surfaces, volume=volume,
+            do_register=do_register,
+            do_register_children=do_register_children,
+            do_unregister=do_unregister,
+            do_unregister_children=do_unregister_children,
+            do_unregister_boolean=do_unregister_boolean,
+            transforms=transforms,
+            do_quadrate=do_quadrate,
+            do_structure=do_structure,
+            structure=structure,
+            structure_type=structure_type,
+            zone=zone, parent=parent, children=children, children_transforms=children_transforms,
+            boolean_level=boolean_level, path=path
+        )
 
     @staticmethod
     def parse_layers_map(old_layers, n2o_l2l_l2l, default=None):

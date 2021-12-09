@@ -70,10 +70,10 @@
       [[-1.375, 0, -10.75]],
       [[0.5, 1.9, -10.75]]
     ],
-    "children_zones": [["Rock"], ["Tunnel"], ["Borehole1"], ["Borehole2"],
+    "children_items_zone": [["Rock"], ["Tunnel"], ["Borehole1"], ["Borehole2"],
       ["Heater1"]],
-    "children_boolean_level_map": [0, 2, 1, 1, 1],
-    "children_do_unregister_boolean_map": [0, 0, 0, 0, 0],
-    "children_quadrate_map": [0, 0, 0, 0, 0]
+    "children_items_boolean_level_map": [0, 2, 1, 1, 1],
+    "children_items_do_unregister_boolean_map": [0, 0, 0, 0, 0],
+    "children_items_quadrate_map": [0, 0, 0, 0, 0]
   }
 }

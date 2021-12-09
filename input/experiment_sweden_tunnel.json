@@ -1,18 +1,18 @@
 {
   "data": {
     "class": "block.Layer",
-    "layers": [
+    "layer": [
       ["1;1;5", "2.25;1;5"],
       ["1;1;5", "2.5;1;5"],
       ["1;1;5", "2.25;1;5"],
       ["1;1;5", "2.5;1;5"],
       ["57:4:.25:.25;1;9"]],
-    "layers_curves": [
+    "layer_curves": [
       ["line", ["bspline", [[0.1, 1, 0], [0.5, 1, 0], [0.9, 1, 0]]]],
       ["line", "line"],
       ["line", ["bspline", [[0.1, -2, 0], [0.5, -2, 0], [0.9, -2, 0]]]],
       ["line", "line"],
       ["line"]],
-    "zones": ["Tunnel"]
+    "items_zone": ["Tunnel"]
   }
 }

@@ -377,7 +377,7 @@ class TestTransform(unittest.TestCase):
                 matrix=[[-4, -3, -2, -1, 1, 2, 3, 4],
                         [-4, -3, -2, -1, 1, 2, 3, 4],
                         [0, 1, 2], lxy],
-                curves=[
+                items_curves=[
                     # 0 L1 Center
                     [['line'], ['line'], ['line'], ['line'],
                      ['line'], ['line'], ['line'], ['line'],
@@ -561,7 +561,7 @@ class TestTransform(unittest.TestCase):
                      ['line'], ['line'], ['line'], ['line'],
                      ['line'], ['line'], ['line'], ['line']],
                 ],
-                curves_map=[
+                items_curves_map=[
                     0,  0,  0, 23, 0, 0, 0,
                     0,  0,  0, 15, 0, 0, 0,
                     0,  0,  0, 7,  0, 0, 0,
@@ -579,7 +579,7 @@ class TestTransform(unittest.TestCase):
                     0,  0,  0, 20, 0, 0,  0,
                 ],
                 transforms=['lxy2car'],
-                do_register_map=[
+                items_do_register_map=[
                     0, 0, 0, 1, 0, 0, 0,
                     0, 0, 0, 1, 0, 0, 0,
                     0, 0, 0, 1, 0, 0, 0,
@@ -597,7 +597,7 @@ class TestTransform(unittest.TestCase):
                     0, 0, 0, 1, 0, 0, 0,
                 ],
                 structure_type=['LLL', 'LRR', 'RLR', 'RRL'],
-                structure_type_map=[
+                items_structure_type_map=[
                     0, 0, 0, 2, 0, 0, 0,
                     0, 0, 0, 2, 0, 0, 0,
                     0, 0, 0, 2, 0, 0, 0,
@@ -616,8 +616,8 @@ class TestTransform(unittest.TestCase):
                 ],
                 structure_map=[[5, 0, 1], [5, 0, 1], [3, 0, 1]],
                 parent=b,
-                boolean_level_map=0,
-                quadrate_map=0)
+                items_boolean_level_map=0,
+                items_do_quadrate_map=0)
             b.add_child(m)
             b2 = BlockObject(parent=b,
                              zone='Cube',

@@ -97,9 +97,10 @@ class DirectionByNormal(Zone):
             old_vts = new2olds.get(v_t, [v_t])
             bs = [v2b[x] for x in old_vts]
             v_zs = [b.volume_zone for b in bs]
-            bls = [b.boolean_level for b in bs]
-            max_bls_ids = np.argwhere(bls == np.max(bls))
-            v_zs = [v_zs[x[0]] for x in max_bls_ids]
+            if len(v_zs) > 1:
+                bls = [b.boolean_level for b in bs]
+                max_bls_ids = np.argwhere(bls == np.max(bls))
+                v_zs = [v_zs[x[0]] for x in max_bls_ids]
             v_z = self.self_separator.join(sorted(set(v_zs)))
             dt2zs.setdefault(v_dt, []).append(v_z)
             if 2 in self.dims:  # Surfaces

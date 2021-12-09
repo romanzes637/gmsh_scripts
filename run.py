@@ -7,66 +7,103 @@ from support import check_on_file, LoggingDecorator, GmshDecorator, GmshOptionsD
 from factory import FACTORY as FACTORY
 
 
-def init_walk(obj, prev_obj=None, obj_index=None):
+def init_walk(obj, prev_obj=None, prev_indices=None, prev_keys=None):
+    prev_indices = [[]] if prev_indices is None else prev_indices
+    prev_keys = [] if prev_keys is None else prev_keys
     if isinstance(obj, dict):
         # Update object from previous object children fields
         if prev_obj is not None:
             for k, v in prev_obj.items():
-                if not k.startswith('children_') or k == 'children_transforms':
-                    continue
-                obj_k = k[9:]
-                obj_v = v[obj_index]
-                if obj_v is not None:
-                    obj[obj_k] = v[obj_index]
+                prev_index = prev_indices[-1]
+                if all([k.startswith('children_'),
+                        k != 'children_transforms',
+                        prev_keys[-1] == 'children']):
+                    obj_k = k[9:]
+                    obj_v = v[prev_index[0]]
+                    if obj_v is not None:
+                        obj[obj_k] = obj_v
+                elif all([k.startswith('items_children_'),
+                          k != 'items_children_map',
+                          k != 'items_children_transforms',
+                          k != 'items_children_transforms_map',
+                          prev_keys[-1] == 'items_children']):
+                    prev_index = prev_indices[-1]
+                    obj_k = k[15:]
+                    obj_v = v[prev_index[0]][prev_index[1]]
+                    if obj_v is not None:
+                        obj[obj_k] = obj_v
         # Walk
         for k, v in obj.items():
             if k == 'class':
                 continue
             if isinstance(v, dict):
-                init_walk(v, obj, obj_index)
+                prev_keys.append(k)
+                init_walk(v, obj, prev_indices, prev_keys)
+                prev_keys.append(k)
             elif isinstance(v, list):
-                init_walk(v, obj, obj_index)
+                prev_keys.append(k)
+                init_walk(v, obj, prev_indices, prev_keys)
+                prev_keys.append(k)
             elif isinstance(v, str):
                 result, real_path = check_on_file(v)
                 if real_path is not None:
                     with open(real_path) as f:
                         v = json.load(f)['data']
-                    init_walk(v, obj, obj_index)
+                    prev_keys.append(k)
+                    init_walk(v, obj, prev_indices, prev_keys)
+                    prev_keys.append(k)
                     v['path'] = real_path
             try:
                 obj[k] = FACTORY(v)
-            except ValueError as e:  # Bad v
+            except ValueError as e:  # TODO handle exception
                 pass
-            except KeyError as e:  # Bad k
+            except KeyError as e:  # TODO handle exception
                 pass
         # Remove children fields
         if obj is not None:
             for k in list(obj.keys()):
-                if not k.startswith('children_'):
-                    continue
-                if k == 'children_transforms':
-                    continue
-                obj.pop(k)
+                if k.startswith('children_') and k != 'children_transforms':
+                    obj.pop(k)
+                if all([k.startswith('items_children_'),
+                        k != 'items_children_map',
+                        k != 'items_children_transforms',
+                        k != 'items_children_transforms_map']):
+                    obj.pop(k)
     elif isinstance(obj, list):
+        prev_index = prev_indices[-1]
         for i, x in enumerate(obj):
-            obj_index = i
+            cur_index = prev_index + [i]
             if isinstance(x, dict):
-                init_walk(x, prev_obj, obj_index)
+                prev_indices.append(cur_index)
+                prev_key = None if len(prev_keys) == 0 else prev_keys[-1]
+                init_walk(x, prev_obj, prev_indices, prev_keys)
+                if prev_key is not None:
+                    prev_keys.append(prev_key)
+                prev_indices.append(cur_index)
             elif isinstance(x, list):
-                init_walk(x, prev_obj, obj_index)
+                prev_indices.append(cur_index)
+                init_walk(x, prev_obj, prev_indices, prev_keys)
+                prev_indices.append(cur_index)
             elif isinstance(x, str):
                 result, real_path = check_on_file(x)
                 if real_path is not None:
                     with open(real_path) as f:
                         x = json.load(f)['data']
-                    init_walk(x, prev_obj, obj_index)
+                    prev_indices.append(cur_index)
+                    prev_key = None if len(prev_keys) == 0 else prev_keys[-1]
+                    init_walk(x, prev_obj, prev_indices, prev_keys)
+                    if prev_key is not None:
+                        prev_keys.append(prev_key)
+                    prev_indices.append(cur_index)
                     x['path'] = real_path
             try:
                 obj[i] = FACTORY(x)
-            except ValueError as e:  # Bad v
+            except ValueError as e:  # TODO handle exception
                 pass
-            except KeyError as e:  # Bad x
+            except KeyError as e:  # TODO handle exception
                 pass
+        if len(prev_index) == 0:  # End of the list
+            prev_indices.append([])
 
 
 def set_parent(parent):
@@ -151,11 +188,12 @@ def run(args):
 if __name__ == '__main__':
     args = parse_arguments()
 
+
     @LoggingDecorator(filename=args['log_path'], level=args['log_level'])
     @GmshDecorator()
     @GmshOptionsDecorator(options=args['options'])
     def pipeline(args):
         run(args)
 
-    pipeline(args)
 
+    pipeline(args)

@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+import copy
 
 import numpy as np
 
@@ -86,7 +87,7 @@ class Block:
         do_register_children (bool): invoke register for children
         do_unregister_children (bool): invoke unregister for children
         transforms (list of dict, list of list, list of Transform): points and curves points transforms (Translation, Rotation, Coordinate Change, etc)
-        quadrate (list of dict, bool): transform triangles to quadrangles for surfaces and tetrahedra to hexahedra for volumes
+        do_quadrate (list of dict, bool): transform triangles to quadrangles for surfaces and tetrahedra to hexahedra for volumes
         structure (list of dict, list of list, list of Transform): make structured mesh instead of unstructured by some rule
         parent (Block): parent of the Block
         children (list of Block): children of the Block
@@ -95,15 +96,17 @@ class Block:
     """
 
     def __init__(self, points=None, curves=None, surfaces=None, volume=None,
-                 do_register=True,
-                 do_register_children=True,
-                 do_unregister=False,
-                 do_unregister_children=True,
+                 do_register=True, do_register_children=True,
+                 do_unregister=False, do_unregister_children=True,
                  do_unregister_boolean=False,
                  transforms=None,
-                 quadrate=None, structure=None, structure_type='LLL',
-                 zone=None, parent=None, children=None, children_transforms=None,
-                 boolean_level=None, path=None):
+                 do_quadrate=False,
+                 do_structure=True, structure=None, structure_type='LLL',
+                 zone=None,
+                 boolean_level=None,
+                 path=None,
+                 # Children
+                 parent=None, children=None, children_transforms=None):
         # Entities
         self.points = self.parse_points(points)
         self.curves = self.parse_curves(curves)
@@ -122,27 +125,29 @@ class Block:
         self.transforms = self.parse_transforms(transforms, parent)
         # Structure and Quadrate
         self.curves_structures, self.surfaces_structures, \
-        self.volumes_structures = self.parse_structure(structure)
-        self.surfaces_quadrates = self.parse_quadrate(quadrate)
+        self.volumes_structures = self.parse_structure(structure, do_structure)
+        self.surfaces_quadrates = self.parse_do_quadrate(do_quadrate)
         self.surfaces_arrangement, self.surfaces_points, self.volume_points = \
             self.parse_structure_type(structure_type)
         # Zones
         self.points_zones, self.curves_zones, self.surfaces_zones, \
         self.volume_zone = self.parse_zone(zone)
-        # Parent/Children
-        self.parent = parent
-        self.children = [] if children is None else children
-        if children_transforms is None:
-            children_transforms = [[] for _ in self.children]
-        for i, t in enumerate(children_transforms):
-            children_transforms[i] = self.parse_transforms(t, parent)
-        self.children_transforms = children_transforms
         # Boolean level
         self.boolean_level = boolean_level
         # Path
         self.path = path
         # Flags
         self.is_registered = False
+        # Parent/Children
+        self.parent = parent
+        self.children = [] if children is None else children
+        if children_transforms is None:
+            children_transforms = [[] for _ in self.children]
+        for i, t in enumerate(children_transforms):
+            children_transforms[i] = self.parse_transforms(t, self)
+        self.children_transforms = children_transforms
+        # print(self.volume_zone, self.boolean_level)
+        # print(len(self.children), [len(x.children) for x in self.children])
 
     curves_points = [
         [1, 0], [5, 4], [6, 7], [2, 3],  # X1, X2, X3, X4
@@ -265,10 +270,10 @@ class Block:
 
     @staticmethod
     def parse_transforms(transforms, parent):
+        new_transforms = []
         if transforms is None:
-            return []
+            return new_transforms
         else:
-            new_transforms = []
             for i, t in enumerate(transforms):
                 if isinstance(t, (str, list, dict)):
                     if isinstance(t, str):
@@ -300,14 +305,18 @@ class Block:
                         kwargs['cs_from'] = BlockCS(ps=ps)
                     new_transforms.append(tr_str2obj[name](**kwargs))
                 elif type(t).__name__ in tr_str2obj:
+                    name = type(t).__name__
+                    if tr_str2obj[name] == BlockToCartesian:
+                        ps = [x.coordinates for x in parent.points]
+                        t.cs_from = BlockCS(ps=ps)
                     new_transforms.append(t)
                 else:
                     raise ValueError(t)
             return new_transforms
 
     @staticmethod
-    def parse_structure(structure):
-        if structure is None or not structure:
+    def parse_structure(structure, do_structure):
+        if structure is None or not do_structure:
             return [None for _ in range(12)], [None for _ in range(6)], [None]
         elif isinstance(structure, list):
             cs_ss = []  # Curves
@@ -339,13 +348,13 @@ class Block:
             raise ValueError(structure)
 
     @staticmethod
-    def parse_quadrate(quadrate):
-        if quadrate is None or not quadrate:
+    def parse_do_quadrate(do_quadrate):
+        if do_quadrate is None or not do_quadrate:
             return [None for _ in range(6)]
-        elif quadrate:
+        elif do_quadrate:
             return [Quadrate(name='surface') for _ in range(6)]
         else:
-            raise ValueError(quadrate)
+            raise ValueError(do_quadrate)
 
     @staticmethod
     def parse_zone(zone):
@@ -561,9 +570,11 @@ class Block:
             internal_volumes = []
             for i, c in enumerate(self.children):
                 if c.do_register:
-                    if not c.is_registered:
-                        raise ValueError('Register children before parent!')
                     internal_volumes.append(c.volumes)
+                else:
+                    for j, c2 in enumerate(c.children):
+                        if c2.do_register:
+                            internal_volumes.append(c2.volumes)
             volumes_surfaces = [[z.tag for z in y.surfaces_loops[0].surfaces]
                                 for x in internal_volumes
                                 for y in x]

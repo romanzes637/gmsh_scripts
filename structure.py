@@ -44,7 +44,7 @@ from registry import get_curve_structure, register_structure_curve, \
     get_surface_structure, register_structure_surface, \
     get_volume_structure, register_structure_volume, \
     get_surface_quadrate, register_quadrate_surface, get_boolean_new2olds
-from support import DataTree
+from support import DataTree, flatten
 from point import Point
 from curve import Curve
 from surface import Surface
@@ -97,8 +97,12 @@ class StructureBlock:
         v_dts = gmsh.model.getEntities(3)
         new_olds = get_boolean_new2olds()
         for vi, v_dt in enumerate(v_dts):  # Volumes
+            print(v_dt)
             # Check
             dt = DataTree([v_dt])
+            vs_ps = set(flatten(dt.vs_ss_cs_ps_dt[0]))  # Points
+            if len(vs_ps) != 8:  # 8 points in volume
+                continue
             if len(dt.vs_ss_dt[0]) != 6:  # 6 surfaces in volume
                 continue
             ss_st, ss_cs_st = [], []  # Surfaces, Surfaces curves structures
@@ -145,11 +149,14 @@ class StructureBlock:
             v_t = v_dt[1]
             old_vts = new_olds.get(v_t, None)
             if old_vts is None:
-                old_vts = [v_t]
-            for old_vt in old_vts:
+                old_vt = v_t
+            else:
+                old_vt = v_t if v_t in old_vts else None
+            if v_t is not None:
                 v_st = get_volume_structure(old_vt)  # Volume structure
                 if v_st is None:
                     continue
+                print(v_t, old_vts)
                 # Do structure
                 v = Volume(tag=v_dt[1], structure=v_st)
                 register_structure_volume(v)

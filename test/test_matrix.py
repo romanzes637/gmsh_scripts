@@ -125,7 +125,7 @@ class TestMatrix(unittest.TestCase):
             m_trace = Matrix(factory=factory, matrix=points,
                              use_register_tag=use_register_tag,
                              transforms=['tok2car'],
-                             do_register_map=do_register_map)
+                             items_do_register_map=do_register_map)
             points = [
                 [1, 2, 3],  # r - inner radius (r < r2)
                 ['180:5', '360:5'],  # phi - inner angle [0, 2*pi)
@@ -162,7 +162,7 @@ class TestMatrix(unittest.TestCase):
             m_product = Matrix(factory=factory, matrix=points,
                                use_register_tag=use_register_tag,
                                transforms=['tok2car'],
-                               do_register_map=do_register_map)
+                               items_do_register_map=do_register_map)
             t0 = time.perf_counter()
             m_trace.transform()
             m_product.transform()
@@ -482,12 +482,12 @@ class TestMatrix(unittest.TestCase):
                 b = Block(factory=factory, points=[10, 20, 30, 5.0],
                           boolean_level=0,
                           structure=structure_out,
-                          quadrate=quadrate_out,
+                          do_quadrate=quadrate_out,
                           zone='Block1')
                 b2 = Block(factory=factory, parent=b, points=[1, 2, 3, 0.5],
                            boolean_level=1,
                            structure=structure_in,
-                           quadrate=quadrate_in,
+                           do_quadrate=quadrate_in,
                            zone='Block2')
                 b.add_child(b2)
                 Boolean()(factory, model_name, b)
@@ -575,8 +575,8 @@ class TestMatrix(unittest.TestCase):
                            [-15, '15:4'],
                            mesh_size],
                        structure_map=structure_all,
-                       quadrate_map=quadrate_all,
-                       boolean_level_map=0,
+                       items_do_quadrate_map=quadrate_all,
+                       items_boolean_level_map=0,
                        zone_map='Rock')
             curves = [['line', [[10, 0, x], [10, 0, x + 10], 'sph']]
                       for x in np.linspace(0, 80, 9)]
@@ -592,8 +592,8 @@ class TestMatrix(unittest.TestCase):
                        parent=b,
                        transforms=['pat2car', [-5, 0, -15]],
                        structure_map=structure_all,
-                       quadrate_map=quadrate_all,
-                       boolean_level_map=1,
+                       items_do_quadrate_map=quadrate_all,
+                       items_boolean_level_map=1,
                        zone_map='Tunnel1')
             b.add_child(m)
             m = Matrix(factory=factory, matrix=points,
@@ -601,8 +601,8 @@ class TestMatrix(unittest.TestCase):
                        transforms=['pat2car',
                                    [5, 0, 0, 0, 0, 1, 45], [-5, 0, -15]],
                        structure_map=structure_all,
-                       quadrate_map=quadrate_all,
-                       boolean_level_map=1,
+                       items_do_quadrate_map=quadrate_all,
+                       items_boolean_level_map=1,
                        zone_map='Tunnel2')
             b.add_child(m)
             if strategy[0] == 'boolean_edge_max':

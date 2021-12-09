@@ -242,7 +242,7 @@ class BlockToCartesian(Transform):
         cs_from (Block): Block Coordinate System
     """
 
-    def __init__(self, cs_from, **kwargs):
+    def __init__(self, cs_from=None, **kwargs):
         super().__init__(cs_from=cs_from, cs_to=Cartesian(), **kwargs)
 
     def __call__(self, p):
