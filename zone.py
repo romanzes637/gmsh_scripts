@@ -53,20 +53,25 @@ class DirectionByNormal(Zone):
     Args:
         dims (list): Which dims to zones
         dims_interfaces (list): Which dims to interfaces zones
-        join_entities (list of list): Which entities are join together
+        join_interfaces (list): Which interfaces should be joined together,
+            Variants:
+                1. [[volumes zones], [volumes zones], ...]
+                2. [[[volumes zones], [entities zones]], ...]
+            If the zone set with * symbol then join all zones which includes
+            the zone else only zones that fully match the zone.
         self_separator (str): separator in volume, surface, curve and point
         intra_separator (str): separator between volume, surface, curve and point
         inter_separator (str): separator between interfaces
     """
 
     def __init__(self, dims=None, dims_interfaces=None,
-                 join_entities=None,
+                 join_interfaces=None,
                  self_separator='_', intra_separator='-', inter_separator='|',
                  zones=None, zones_directions=None):
         super().__init__()
         self.dims = [2, 3] if dims is None else dims
         self.dims_interfaces = [] if dims_interfaces is None else dims_interfaces
-        self.join_interfaces = [] if join_entities is None else join_entities
+        self.join_interfaces = [] if join_interfaces is None else join_interfaces
         self.self_separator = self_separator
         self.intra_separator = intra_separator
         self.inter_separator = inter_separator

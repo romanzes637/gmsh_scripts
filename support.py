@@ -363,7 +363,7 @@ class GmshOptionsDecorator:
             'Mesh.MinimumCircleNodes': 7,
             # Minimum number of nodes used to mesh circles and ellipses
             # Default value: 7
-            'MinimumCurveNodes': 3,
+            'Mesh.MinimumCurveNodes': 3,
             # Minimum number of nodes used to mesh curves other than lines,
             # circles and ellipses
             # Default value: 3

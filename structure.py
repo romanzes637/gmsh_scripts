@@ -97,7 +97,7 @@ class StructureBlock:
         v_dts = gmsh.model.getEntities(3)
         new_olds = get_boolean_new2olds()
         for vi, v_dt in enumerate(v_dts):  # Volumes
-            print(v_dt)
+            # print(v_dt)
             # Check
             dt = DataTree([v_dt])
             vs_ps = set(flatten(dt.vs_ss_cs_ps_dt[0]))  # Points
@@ -156,7 +156,7 @@ class StructureBlock:
                 v_st = get_volume_structure(old_vt)  # Volume structure
                 if v_st is None:
                     continue
-                print(v_t, old_vts)
+                # print(v_t, old_vts)
                 # Do structure
                 v = Volume(tag=v_dt[1], structure=v_st)
                 register_structure_volume(v)
