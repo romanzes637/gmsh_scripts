@@ -104,9 +104,21 @@ class Base(Strategy):
                     path = f'{self.output_path}.{f}'
                     logging.info(f'Writing {path}')
                     timeit(gmsh.write)(path)
+            # Quality
+            gmsh.plugin.setNumber('AnalyseMeshQuality', 'JacobianDeterminant', 1)
+            gmsh.plugin.setNumber('AnalyseMeshQuality', 'IGEMeasure', 1)
+            gmsh.plugin.setNumber('AnalyseMeshQuality', 'ICNMeasure', 1)
+            gmsh.plugin.setNumber('AnalyseMeshQuality', 'Recompute', 1)
+            gmsh.plugin.setNumber('AnalyseMeshQuality', 'DimensionOfElements', -1)
+            gmsh.plugin.run('AnalyseMeshQuality')
             log = gmsh.logger.get()
             for message in log:
-                logging.debug(message)
+                if any([message.startswith(x)
+                        for x in ['Info: minJ', 'Info: minJ/maxJ',
+                                  'Info: IGE', 'Info: ICN']]):
+                    logging.info(message)
+                else:
+                    logging.debug(message)
             gmsh.logger.stop()
             plot_statistics()
         else:
