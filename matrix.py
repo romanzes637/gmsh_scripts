@@ -226,7 +226,7 @@ class Matrix(Block):
             # from pprint import pprint
             # pprint(block_points)
             # Structures  TODO Interpolation?
-            # sx0, sy0, sz0 = [ss[i][x] for i, x in enumerate(p_ids0[-3:][::-1])]
+            sx0, sy0, sz0 = [ss[i][x] for i, x in enumerate(p_ids0[-3:][::-1])]
             sx1, sy1, sz1 = [ss[i][x] for i, x in enumerate(p_ids1[-3:][::-1])]
             block_structure = [sx1, sy1, sz1]
             block_structure = [gs if x is None else x

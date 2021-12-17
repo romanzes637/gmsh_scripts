@@ -654,7 +654,11 @@ def parse_layers2grid(layers, sep_i=';', sep_si=':'):
     else:
         m_z0_g = None
     m_zs_g = m_nzs + [m_z0_g] + m_zs  # NZ + 0 +  Z
-    # Grid structures
+    # Grid structures TODO inverse bug with curves
+    s_nxs = [x if x is None or len(x) == 1 or x[1] != 0 else [x[0], x[1], 1 / x[2]]
+             for x in s_nxs]
+    s_nys = [x if x is None or len(x) == 1 or x[1] != 0 else [x[0], x[1], 1 / x[2]]
+             for x in s_nys]
     s_xs_g = s_nxs[:-1] + s_xs  # NX + X
     s_ys_g = s_nys[:-1] + s_ys  # NY + Y
     last_s_nz = s_nzs[-1] if len(s_nzs) > 0 else None
@@ -703,7 +707,7 @@ def parse_layers2grid(layers, sep_i=';', sep_si=':'):
                 lli = (0, 0, lzi, lxi)  # Layer local index
                 lgi = nx * lzi + lxi  # Layer global index
             else:  # NZ layer
-                lzi = gzi  # Layer NZ local item index
+                lzi = gcz - gzi - 1  # Layer NZ local item index
                 lli = (0, 1, lzi, lxi)  # Layer local index
                 lgi = nx * (nz + lzi) + lxi  # Layer global index
             g2l_b2b_l2l[gli].append(lli)
@@ -715,7 +719,7 @@ def parse_layers2grid(layers, sep_i=';', sep_si=':'):
                 lli = (1, 0, lzi, lyi)  # Layer local index
                 lgi = nx * (nz + nnz) + ny * lzi + lyi  # Layer global index
             else:  # NZ layer
-                lzi = gzi  # Layer NZ local item index
+                lzi = gcz - gzi - 1  # Layer NZ local item index
                 lli = (1, 1, lzi, lyi)  # Layer local index
                 lgi = nx * (nz + nnz) + ny * (nz + lzi) + lyi
             g2l_b2b_l2l[gli].append(lli)
@@ -727,7 +731,7 @@ def parse_layers2grid(layers, sep_i=';', sep_si=':'):
                 lli = (2, 0, lzi, lnxi)  # Layer local index
                 lgi = (nx + ny) * (nz + nnz) + nnx * lzi + lnxi
             else:  # NZ layer
-                lzi = gzi  # Layer NZ local item index
+                lzi = gcz - gzi - 1  # Layer NZ local item index
                 lli = (2, 1, lzi, lnxi)  # Layer local index
                 lgi = (nx + ny) * (nz + nnz) + nnx * (nz + lzi) + lnxi
             g2l_b2b_l2l[gli].append(lli)
@@ -739,7 +743,7 @@ def parse_layers2grid(layers, sep_i=';', sep_si=':'):
                 lli = (3, 0, lzi, lnyi)  # Layer local index
                 lgi = (nx + ny + nnx) * (nz + nnz) + nny * lzi + lnyi
             else:  # NZ
-                lzi = gzi  # Layer NZ local item index
+                lzi = gcz - gzi - 1  # Layer NZ local item index
                 lli = (3, 1, lzi, lnyi)  # Layer local index
                 lgi = (nx + ny + nnx) * (nz + nnz) + nny * (nz + lzi) + lnyi
             g2l_b2b_l2l[gli].append(lli)

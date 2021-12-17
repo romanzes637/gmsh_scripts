@@ -356,13 +356,25 @@ class LayerXYToCartesian(Transform):
         cs = p.coordinate_system
         px, py, pz = p.coordinates
         n_layers = len(cs.layers[0])
+        # print(cs.layers)
         lx0, ly0, lnx0, lny0 = (cs.layers[i][0] for i in range(4))
+        lz0, lnz0 = 0, 0
+        # print(lx0, ly0, lnx0, lny0)
+        zs = cs.layers[5][::-1] + cs.layers[4]
+        n_zs = len(zs)
+        # print(cs.layers_curves)
+        zs_curves = cs.layers_curves[5][::-1] + cs.layers_curves[4]
+        zs_types = cs.layers_types[5][::-1] + cs.layers_types[4]
+        # print(zs)
+        # print(zs_curves)
+        # print(zs_types)
         for j in range(n_layers):
             lx, ly, lnx, lny = (cs.layers[i][j] for i in range(4))
             n_x, n_y, n_nx, n_ny = (cs.layers_curves[i][j][0] for i in range(4))
             lt_x, lt_y, lt_nx, lt_ny = (cs.layers_types[i][j] for i in range(4))
             # print(lt_x, lt_y, lt_nx, lt_ny)
-            if np.isclose(py, ly0) and np.isclose(px, lx):  # I sector X
+            atol = 1e-18
+            if np.isclose(py, ly0, atol=atol) and np.isclose(px, lx, atol=atol):  # I sector X
                 logging.debug('I sector X')
                 py, px = self.update_coordinate(p0=py, pn=px,
                                                 n0=n_y, nn=n_x,
@@ -370,7 +382,7 @@ class LayerXYToCartesian(Transform):
                                                 ln0=lx0, lnn=lx,
                                                 lt=lt_x)
                 break
-            elif np.isclose(px, lx0) and np.isclose(py, ly):  # I sector Y
+            elif np.isclose(px, lx0, atol=atol) and np.isclose(py, ly, atol=atol):  # I sector Y
                 logging.debug('I sector Y')
                 px, py = self.update_coordinate(p0=px, pn=py,
                                                 n0=n_x, nn=n_y,
@@ -378,7 +390,7 @@ class LayerXYToCartesian(Transform):
                                                 ln0=ly0, lnn=ly,
                                                 lt=lt_y)
                 break
-            elif np.isclose(px, lnx0) and np.isclose(py, ly):  # II sector Y
+            elif np.isclose(px, lnx0, atol=atol) and np.isclose(py, ly, atol=atol):  # II sector Y
                 logging.debug('II sector Y')
                 px, py = self.update_coordinate(p0=px, pn=py,
                                                 n0=n_nx, nn=n_y,
@@ -386,7 +398,7 @@ class LayerXYToCartesian(Transform):
                                                 ln0=ly0, lnn=ly,
                                                 lt=lt_y)
                 break
-            elif np.isclose(py, ly0) and np.isclose(px, lnx):  # II sector X
+            elif np.isclose(py, ly0, atol=atol) and np.isclose(px, lnx, atol=atol):  # II sector X
                 logging.debug('II sector NX')
                 py, px = self.update_coordinate(p0=py, pn=px,
                                                 n0=n_y, nn=n_nx,
@@ -394,7 +406,7 @@ class LayerXYToCartesian(Transform):
                                                 ln0=lnx0, lnn=lnx,
                                                 lt=lt_nx)
                 break
-            elif np.isclose(py, lny0) and np.isclose(px, lnx):  # III sector X
+            elif np.isclose(py, lny0, atol=atol) and np.isclose(px, lnx, atol=atol):  # III sector X
                 logging.debug('III sector NX')
                 py, px = self.update_coordinate(p0=py, pn=px,
                                                 n0=n_ny, nn=n_nx,
@@ -402,7 +414,7 @@ class LayerXYToCartesian(Transform):
                                                 ln0=lnx0, lnn=lnx,
                                                 lt=lt_nx)
                 break
-            elif np.isclose(px, lnx0) and np.isclose(py, lny):  # III sector Y
+            elif np.isclose(px, lnx0, atol=atol) and np.isclose(py, lny, atol=atol):  # III sector Y
                 logging.debug('III sector NY')
                 px, py = self.update_coordinate(p0=px, pn=py,
                                                 n0=n_nx, nn=n_ny,
@@ -410,7 +422,7 @@ class LayerXYToCartesian(Transform):
                                                 ln0=lny0, lnn=lny,
                                                 lt=lt_ny)
                 break
-            elif np.isclose(px, lx0) and np.isclose(py, lny):  # IV sector Y
+            elif np.isclose(px, lx0, atol=atol) and np.isclose(py, lny, atol=atol):  # IV sector Y
                 logging.debug('IV sector NY')
                 px, py = self.update_coordinate(p0=px, pn=py,
                                                 n0=n_x, nn=n_ny,
@@ -418,7 +430,7 @@ class LayerXYToCartesian(Transform):
                                                 ln0=lny0, lnn=lny,
                                                 lt=lt_ny)
                 break
-            elif np.isclose(py, lny0) and np.isclose(px, lx):  # IV sector X
+            elif np.isclose(py, lny0, atol=atol) and np.isclose(px, lx, atol=atol):  # IV sector X
                 logging.debug('IV sector X')
                 py, px = self.update_coordinate(p0=py, pn=px,
                                                 n0=n_ny, nn=n_x,

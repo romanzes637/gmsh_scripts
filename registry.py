@@ -5,7 +5,7 @@ import copy
 import gmsh
 
 FACTORY = 'geo'
-POINT_TOL = 8
+POINT_TOL = 12
 POINTS = {}
 CURVES = {}
 CURVES_LOOPS = {}

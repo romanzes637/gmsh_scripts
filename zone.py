@@ -35,6 +35,48 @@ class Zone:
                     gmsh.model.setPhysicalName(dim, tag, z)
 
 
+class Block(Zone):
+    """Name from zone field of entity
+
+            """
+
+    def __init__(self, dims=None, dims_interfaces=None, inter_separator='|'):
+        super().__init__()
+        self.dims = [2, 3] if dims is None else dims
+        self.dims_interfaces = [] if dims_interfaces is None else dims_interfaces
+        self.inter_separator = [] if inter_separator is None else inter_separator
+
+    def evaluate_map(self, block):
+        dt2zs = {}
+        for b in block:
+            if 2 in self.dims:
+                for i, s in enumerate(b.surfaces):
+                    if s.tag is None:
+                        continue
+                    dt = (2, s.tag)
+                    z = b.surfaces_zones[i]
+                    dt2zs.setdefault(dt, []).append(z)
+            if 3 in self.dims:
+                for i, v in enumerate(b.volumes):
+                    if v.tag is None:
+                        continue
+                    dt = (3, v.tag)
+                    z = b.volume_zone
+                    dt2zs.setdefault(dt, []).append(z)
+        # Interfaces
+        for dt in list(dt2zs.keys()):
+            zs = dt2zs[dt]
+            dim, tag = dt
+            if len(zs) != 1:  # Interface
+                if dim in self.dims_interfaces:
+                    dt2zs[dt] = [self.inter_separator.join(zs)]
+                else:
+                    dt2zs.pop(dt)
+            else:  # Boundary
+                continue
+        return dt2zs
+
+
 class NoZone(Zone):
     """Name from zone field of entity
 
@@ -327,5 +369,6 @@ str2obj = {
     Zone.__name__: Zone,
     NoZone.__name__: NoZone,
     Mesh.__name__: Mesh,
-    DirectionByNormal.__name__: DirectionByNormal
+    DirectionByNormal.__name__: DirectionByNormal,
+    Block.__name__: Block
 }

@@ -113,8 +113,10 @@ class Path(CoordinateSystem):
         local_weights (list of list): Curves weights in local curve coordinate system
     """
     def __init__(self, origin=np.zeros(3), curves=None, orientations=None,
-                 transforms=None, weights=None, local_weights=None, **kwargs):
+                 transforms=None, weights=None, local_weights=None,
+                 do_normalize=False, **kwargs):
         super().__init__(dim=3, origin=origin, **kwargs)
+        self.do_normalize = do_normalize
         curves = [] if curves is None else curves
         transforms = [[] for _ in curves] if transforms is None else transforms
         self.weights = [1 for _ in curves] if weights is None else weights
@@ -144,6 +146,7 @@ class Path(CoordinateSystem):
                 pass
             else:
                 raise ValueError(o)
+
         from transform import str2obj as transform_factory
         orientations = [[transform_factory[y.coordinate_system.__class__.__name__]()(y)
                          for y in x] for x in orientations]
@@ -158,10 +161,10 @@ class Path(CoordinateSystem):
                 pass
             else:
                 raise ValueError(o)
-        # TODO Do normalization? Do +1 0
-        for i, o in enumerate(orientations):
-            for j, v in enumerate(o):
-                v.coordinates = v.coordinates / np.linalg.norm(v.coordinates)
+        if self.do_normalize:  # TODO Do normalization? Do +1 0
+            for i, o in enumerate(orientations):
+                for j, v in enumerate(o):
+                    v.coordinates = v.coordinates / np.linalg.norm(v.coordinates)
         return orientations
 
     def register(self):
@@ -276,32 +279,37 @@ class Path(CoordinateSystem):
             a = a * der_part
             rot = Rotate(origin=[0, 0, 0], direction=d, angle=a)
             ps = [rot(x) for x in ps]
-        cs = Affine(origin=v, vs=[x.coordinates / np.linalg.norm(x.coordinates) for x in ps])
-        # cs = Affine(origin=v, vs=[x.coordinates for x in ps])
+        if self.do_normalize:
+            vs = [x.coordinates / np.linalg.norm(x.coordinates) for x in ps]
+        else:
+            vs = [x.coordinates for x in ps]
+        cs = Affine(origin=v, vs=vs)
         return cs
 
 
 class LayerXY(CoordinateSystem):
-    """Different layers by X and Y axes and same by Z axis
+    """Different layers by X, Y and Z axis
 
     Args:
         layers (list):
-            [[c_x1, c_x2, ..., c_xN],
-            [c_y1, c_y2, ..., c_yN],
-            [c_nx1, c_nx2, ..., c_nxN],
-            [c_ny1, c_ny2, ..., c_nyN]],
-            where N - number of layers,
-            l - coordinate of the layer by X, Y, NX, NY axis (0, inf).
-            Parsed by py:method:`matrix.Matrix:parse_grid`
+            [[c_x_1, c_x_2,  ..., c_x_NX],
+            [c_y_1,  c_y_2,  ..., c_y_NY],
+            [c_nx_1, c_nx_2, ..., c_nx_NNX],
+            [c_ny_1, c_ny_2, ..., c_ny_NNY]],
+            [c_z_1,  c_z_2,  ..., c_z_NZ]],
+            [c_nz_1, c_nz_2, ..., c_nz_NNZ]],
+            where N - number of layers, c (float): coordinate (0, inf).
         layers_curves (list):
-            [[name_x1, name_x2, ..., name_xN],
-            [name_y1, name_y2, ..., name_yN],
-            [name_nx1, name_nx2, ..., name_nxN],
-            [name_ny1, name_ny2, ..., name_nyN]],
+            [[name_x_1, name_x_2,  ..., name_x_NX],
+            [name_y_1,  name_y_2,  ..., name_y_NY],
+            [name_nx_1, name_nx_2, ..., name_nx_NNX],
+            [name_ny_1, name_ny_2, ..., name_ny_NNY]],
+            [name_z_1,  name_z_2,  ..., name_z_NZ]],
+            [name_nz_1, name_nz_2, ..., name_nz_NNZ]],
             where N - number of layers,
             name - curve name (see py:class:`curve.Curve` class)
-        layers_types (list): [type_x, type_y, type_nx, type_ny],
-            where type: 'in' (inscribe), 'out' (circumscribed).
+        layers_types (list): [type_x, type_y, type_nx, type_ny, type_z, type_nz],
+            where type (str): 'in' - inscribed, 'out' - circumscribed.
     """
 
     def __init__(self, origin=np.zeros(3), layers=None, layers_curves=None,
@@ -309,6 +317,7 @@ class LayerXY(CoordinateSystem):
         super().__init__(dim=3, origin=origin, **kwargs)
         layers[2] = [-x for x in layers[2]]  # NX
         layers[3] = [-x for x in layers[3]]  # NY
+        layers[5] = [-x for x in layers[5]]  # NZ
         self.layers = layers
         self.layers_curves = layers_curves
         self.layers_types = layers_types

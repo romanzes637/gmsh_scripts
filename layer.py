@@ -56,9 +56,9 @@ class Layer(Matrix):
         for i, l in enumerate(parsed_layers_curves):
             for j, c in enumerate(l):
                 parsed_layers_curves[i][j] = [c] if isinstance(c, str) else c
-        lxy = LayerXY(layers=parsed_layers_cs[:-2],  # Without Z and NZ
-                      layers_curves=parsed_layers_curves[:-2],  # Without Z and NZ
-                      layers_types=parsed_layers_types[:-2])  # Without Z and NZ
+        lxy = LayerXY(layers=parsed_layers_cs,
+                      layers_curves=parsed_layers_curves,
+                      layers_types=parsed_layers_types)
         grid.append(lxy)
         # Curves
         items_curves, items_curves_map = Layer.get_layers_curves(
@@ -219,12 +219,14 @@ class Layer(Matrix):
                     lt, zt, zi, ci = li  # layer type, Z type, Z index, coord. index
                     if zt == 0:  # Z
                         zs = [0] + parsed_layers_coordinates[4]
+                        pzi = zi
+                        zi = zi + 1
                     elif zt == 1:  # NZ
-                        zs = parsed_layers_coordinates[5][::-1] + [0]
+                        # zs = parsed_layers_coordinates[5][::-1] + [0]
+                        zs = [0] + parsed_layers_coordinates[5]
+                        pzi = zi + 1
                     else:
                         raise ValueError(li)
-                    zi += 1
-                    pzi = zi - 1
                     z, pz = zs[zi], zs[pzi]
                     cc = parsed_layers_curves[lt][ci]  # current curve
                     cn = cc[0]  # current curve name
@@ -305,12 +307,15 @@ class Layer(Matrix):
                 lt, zt, zi, ci = li  # layer type, Z type, Z index, coord. index
                 if zt == 0:  # Z
                     zs = [0] + parsed_layers_coordinates[4]
+                    pzi = zi
+                    zi = zi + 1
                 elif zt == 1:  # NZ
-                    zs = parsed_layers_coordinates[5][::-1] + [0]
+                    # zs = parsed_layers_coordinates[5][::-1] + [0]
+                    zs = [0] + parsed_layers_coordinates[5]
+                    pzi = zi + 1
                 else:
                     raise ValueError(li)
-                zi += 1
-                pzi, pci = zi - 1, ci - 1
+                pci = ci - 1
                 z, pz = zs[zi], zs[pzi]
                 cc = parsed_layers_curves[lt][ci]  # current curve
                 pc = parsed_layers_curves[lt][pci]  # previous curve

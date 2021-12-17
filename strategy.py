@@ -8,6 +8,7 @@ from registry import synchronize as synchronize_registry
 from support import timeit, plot_statistics
 from boolean import BooleanAllBlock
 from zone import DirectionByNormal
+from zone import Block as BlockZone
 from size import NoSize
 from structure import StructureBlock
 from quadrate import  NoQuadrate
@@ -164,7 +165,80 @@ class Fast(Strategy):
         gmsh.model.remove()
 
 
+class NoBoolean(Strategy):
+    """
+
+    """
+
+    def __init__(
+            self,
+            factory=None,
+            model_name=None,
+            output_path=None,
+            output_formats=None,
+            zone_function=BlockZone(),
+            size_function=NoSize(),
+            structure_function=StructureBlock(),
+            quadrate_function=NoQuadrate(),
+            optimize_function=OptimizeOne(),
+            refine_function=NoRefine(),
+            smooth_function=NoSmooth(),
+    ):
+        super().__init__(factory, model_name, output_path, output_formats)
+        self.zone_function = zone_function
+        self.size_function = size_function
+        self.structure_function = structure_function
+        self.quadrate_function = quadrate_function
+        self.optimize_function = optimize_function
+        self.refine_function = refine_function
+        self.smooth_function = smooth_function
+
+    def __call__(self, block):
+        super().__call__(block)
+        gmsh.logger.start()
+        gmsh.model.add(self.model_name)
+        timeit(block.transform)()
+        timeit(block.register)()
+        timeit(synchronize_registry)()
+        timeit(self.structure_function)(block)  # Must be after synchronize!
+        timeit(self.quadrate_function)(block)
+        timeit(self.smooth_function)()
+        timeit(self.size_function)(block)
+        timeit(synchronize_registry)()  # Must be after structure!
+        timeit(block.pre_unregister)()  # Must be after synchronize!
+        timeit(self.zone_function)(block)  # Must be after unregister!
+        timeit(block.unregister)()  # Must be after synchronize!
+        timeit(gmsh.write)(f'{self.model_name}.geo_unrolled')
+        timeit(gmsh.model.mesh.generate)(3)
+        timeit(self.refine_function)()
+        timeit(self.optimize_function)()
+        for f in self.output_formats:
+            if f != 'geo_unrolled':
+                path = f'{self.output_path}.{f}'
+                logging.info(f'Writing {path}')
+                timeit(gmsh.write)(path)
+        # Quality
+        gmsh.plugin.setNumber('AnalyseMeshQuality', 'JacobianDeterminant', 1)
+        gmsh.plugin.setNumber('AnalyseMeshQuality', 'IGEMeasure', 1)
+        gmsh.plugin.setNumber('AnalyseMeshQuality', 'ICNMeasure', 1)
+        gmsh.plugin.setNumber('AnalyseMeshQuality', 'Recompute', 1)
+        gmsh.plugin.setNumber('AnalyseMeshQuality', 'DimensionOfElements', -1)
+        gmsh.plugin.run('AnalyseMeshQuality')
+        log = gmsh.logger.get()
+        for message in log:
+            if any([message.startswith(x)
+                    for x in ['Info: minJ', 'Info: minJ/maxJ',
+                              'Info: IGE', 'Info: ICN']]):
+                logging.info(message)
+            else:
+                logging.debug(message)
+        gmsh.logger.stop()
+        plot_statistics()
+        gmsh.model.remove()
+
+
 str2obj = {
     Base.__name__: Base,
-    Fast.__name__: Fast
+    Fast.__name__: Fast,
+    NoBoolean.__name__: NoBoolean
 }
