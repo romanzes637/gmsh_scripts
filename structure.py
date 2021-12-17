@@ -117,7 +117,11 @@ class StructureBlock:
                 ss_ps_dt = set()  # Surfaces points dim-tags
                 for ci, ps_dt in enumerate(cs_ps_dt):  # Curves
                     ss_ps_dt.update(ps_dt)
-                    ps_cs = [dt.ps_dt_to_cs[x] for x in ps_dt]
+                    c_dt = dt.vs_ss_cs_dt[0][si][ci]
+                    if c_dt[1] > 0:
+                        ps_cs = [dt.ps_dt_to_cs[x] for x in ps_dt]
+                    else:
+                        ps_cs = [dt.ps_dt_to_cs[x] for x in ps_dt[::-1]]
                     c_ps = [Point(list(x)) for x in ps_cs]  # Curves points
                     c_st = get_curve_structure(c_ps)
                     if c_st is None:

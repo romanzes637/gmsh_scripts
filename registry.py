@@ -553,6 +553,7 @@ def register_curve_structure(points, structure):
     # TODO Using only first and last points
     # key = tuple(y for x in points for y in x.coordinates)
     key = tuple(y for x in [points[0], points[-1]] for y in x.coordinates)
+    # CURVE_STRUCTURE.setdefault(key, structure)
     CURVE_STRUCTURE.setdefault(key, structure)
 
 
