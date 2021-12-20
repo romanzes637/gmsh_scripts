@@ -315,10 +315,10 @@ class LayerXY(CoordinateSystem):
     def __init__(self, origin=np.zeros(3), layers=None, layers_curves=None,
                  layers_types=None, **kwargs):
         super().__init__(dim=3, origin=origin, **kwargs)
-        layers[2] = [-x for x in layers[2]]  # NX
-        layers[3] = [-x for x in layers[3]]  # NY
-        layers[5] = [-x for x in layers[5]]  # NZ
-        self.layers = layers
+        self.layers = [x for x in layers]
+        self.layers[2] = [-x for x in layers[2]]  # NX
+        self.layers[3] = [-x for x in layers[3]]  # NY
+        self.layers[5] = [-x for x in layers[5]]  # NZ
         self.layers_curves = layers_curves
         self.layers_types = layers_types
 

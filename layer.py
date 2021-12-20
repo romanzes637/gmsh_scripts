@@ -223,7 +223,7 @@ class Layer(Matrix):
                         zi = zi + 1
                     elif zt == 1:  # NZ
                         # zs = parsed_layers_coordinates[5][::-1] + [0]
-                        zs = [0] + parsed_layers_coordinates[5]
+                        zs = [0] + [-1 * x for x in parsed_layers_coordinates[5]]
                         pzi = zi + 1
                     else:
                         raise ValueError(li)
@@ -311,7 +311,7 @@ class Layer(Matrix):
                     zi = zi + 1
                 elif zt == 1:  # NZ
                     # zs = parsed_layers_coordinates[5][::-1] + [0]
-                    zs = [0] + parsed_layers_coordinates[5]
+                    zs = [0] + [-1 * x for x in parsed_layers_coordinates[5]]
                     pzi = zi + 1
                 else:
                     raise ValueError(li)

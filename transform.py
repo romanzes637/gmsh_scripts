@@ -358,13 +358,13 @@ class LayerXYToCartesian(Transform):
         n_layers = len(cs.layers[0])
         # print(cs.layers)
         lx0, ly0, lnx0, lny0 = (cs.layers[i][0] for i in range(4))
-        lz0, lnz0 = 0, 0
+        # lz0, lnz0 = 0, 0
         # print(lx0, ly0, lnx0, lny0)
-        zs = cs.layers[5][::-1] + cs.layers[4]
-        n_zs = len(zs)
+        # zs = cs.layers[5][::-1] + cs.layers[4]
+        # n_zs = len(zs)
         # print(cs.layers_curves)
-        zs_curves = cs.layers_curves[5][::-1] + cs.layers_curves[4]
-        zs_types = cs.layers_types[5][::-1] + cs.layers_types[4]
+        # zs_curves = cs.layers_curves[5][::-1] + cs.layers_curves[4]
+        # zs_types = cs.layers_types[5][::-1] + cs.layers_types[4]
         # print(zs)
         # print(zs_curves)
         # print(zs_types)
@@ -373,7 +373,7 @@ class LayerXYToCartesian(Transform):
             n_x, n_y, n_nx, n_ny = (cs.layers_curves[i][j][0] for i in range(4))
             lt_x, lt_y, lt_nx, lt_ny = (cs.layers_types[i][j] for i in range(4))
             # print(lt_x, lt_y, lt_nx, lt_ny)
-            atol = 1e-18
+            atol = 1e-8
             if np.isclose(py, ly0, atol=atol) and np.isclose(px, lx, atol=atol):  # I sector X
                 logging.debug('I sector X')
                 py, px = self.update_coordinate(p0=py, pn=px,
