@@ -3,9 +3,6 @@ import copy
 import numpy as np
 
 from block import Block
-from point import Point
-from coordinate_system import Block as BlockCS
-from transform import BlockToCartesian, Translate
 from parse import parse_grid
 from coordinate_system import str2obj as cs_str2obj
 from support import flatten
@@ -126,9 +123,12 @@ class Matrix(Block):
         t = {"name": "CartesianToCartesianByBlock",
              "block_coordinates": [0, 0, 0]}
         for i, ts in enumerate(items_children_transforms):
-            new_ts = [[copy.deepcopy(t)] + x
-                      if x is not None else [copy.deepcopy(t)]
-                      for x in ts] if ts is not None else [[copy.deepcopy(t)]]
+            if ts is not None:
+                new_ts = [[copy.deepcopy(t)] + x
+                          if x is not None else [copy.deepcopy(t)] for x in ts]
+            else:
+                nc = len(items_children[i]) if items_children[i] is not None else 1
+                new_ts = [[copy.deepcopy(t)] for _ in range(nc)]
             items_children_transforms[i] = new_ts
         # Items
         items = [Block(

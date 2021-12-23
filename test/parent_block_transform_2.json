@@ -2,7 +2,7 @@
   "metadata": {
     "issues": ["Issue: PCL Error: A segment and a facet intersect at point. Solution: Set appropriate mesh size or set MeshSizeFromCurvature = 12 See: https://gitlab.onelab.info/gmsh/gmsh/-/issues/766"],
     "run": {
-      "factory": "occ",
+      "factory": "geo",
       "log_level": "DEBUG",
       "log_path": null,
       "options": {
