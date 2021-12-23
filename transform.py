@@ -3,6 +3,7 @@ import logging
 
 import numpy as np
 
+from point import Point
 from coordinate_system import CoordinateSystem, Cartesian, Cylindrical, \
     Spherical, Toroidal, Tokamak, Block, Path, Affine, LayerXY
 
@@ -241,7 +242,7 @@ class BlockToCartesian(Transform):
     xi, eta, zeta - local block coordinates
 
     Args:
-        cs_from (Block): Block Coordinate System
+        cs_from (coordinate_system.Block): Block Coordinate System
     """
 
     def __init__(self, cs_from=None, **kwargs):
@@ -258,6 +259,40 @@ class BlockToCartesian(Transform):
                       for x, y, z in order])
         p.coordinates = n.dot(ps)
         p.coordinate_system = self.cs_to
+        return p
+
+
+class CartesianToCartesianByBlock(Transform):
+    """Convert coordinates of the Point from Cartesian to Cartesian system by Block coordinates.
+
+    [x, y, z] -> [x, y, z] + [dx, dy, dz]
+
+    [dx, dy, dz] = [xi, eta, zeta] - block_coordinates in Cartesian system
+
+    Args:
+        block (block.Block): Block object
+        block_coordinates (list or np.ndarray):
+           xi, eta, zeta  - block local coordinates
+    """
+
+    def __init__(self, block=None, block_coordinates=None, **kwargs):
+        super().__init__(cs_from=Cartesian(), cs_to=Cartesian(), **kwargs)
+        self.block = block
+        if block_coordinates is None:
+            block_coordinates = np.array([0, 0, 0])
+        if not isinstance(block_coordinates, np.ndarray):
+            block_coordinates = np.array(block_coordinates)
+        self.block_coordinates = block_coordinates
+
+    def __call__(self, p):
+        p = super().__call__(p)
+        ps = [x.coordinates for x in self.block.points]  # Block points
+        b_cs = Block(ps=ps)  # Block coordinate system
+        b2car = BlockToCartesian(cs_from=b_cs)  # Block to Cartesian map
+        pb = Point(coordinates=self.block_coordinates,
+                   coordinate_system=b_cs)  # Point in Block
+        pc = b2car(pb)  # Point in Block with Cartesian coordinates
+        p.coordinates = p.coordinates + pc.coordinates  # Translate
         return p
 
 
@@ -503,5 +538,6 @@ str2obj = {
     LayerXYToCartesian.__name__: LayerXYToCartesian,
     'lxy2car': LayerXYToCartesian,
     AnyAsSome.__name__: AnyAsSome,
-    'any1some': AnyAsSome
+    'any1some': AnyAsSome,
+    CartesianToCartesianByBlock.__name__: CartesianToCartesianByBlock
 }

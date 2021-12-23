@@ -70,8 +70,35 @@ class Tokamak(CoordinateSystem):
         super().__init__(dim=6, origin=origin, **kwargs)
 
 
+class Hexahedral(CoordinateSystem):
+    """Natural Hexahedral Coordinate System
+
+    * xi [-1, 1]
+    * eta [-1, 1]
+    * zeta [-1, 1]
+
+    Args:
+        ps (np.ndarray or list of list): points coordinates of hexahedron
+        order (np.ndarray or list of list): order of points
+        origin (np.ndarray or list): Origin
+    """
+
+    def __init__(self, origin=np.zeros(3), ps=None, order=None, **kwargs):
+        super().__init__(dim=3, origin=origin, **kwargs)
+        if ps is None:
+            ps = [[1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1],
+                  [1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1]]
+        self.ps = ps if isinstance(ps, np.ndarray) else np.array(ps)
+        if order is None:
+            self.order = np.array(
+                [[1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1],
+                 [1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1]])
+        else:
+            self.order = order if isinstance(order, np.ndarray) else np.array(order)
+
+
 class Block(CoordinateSystem):
-    """Local Block Coordinate System
+    """Block Coordinate System
 
     * xi [-1, 1]
     * eta [-1, 1]
@@ -338,6 +365,8 @@ str2obj = {
     'tor': Toroidal,
     Tokamak.__name__: Tokamak,
     'tok': Tokamak,
+    Hexahedral.__name__: Hexahedral,
+    'hex': Hexahedral,
     Block.__name__: Block,
     'blo': Block,
     Path.__name__: Path,

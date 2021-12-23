@@ -28,7 +28,7 @@ class BooleanAllBlock(Boolean):
 
     def __call__(self, block):
         dts = [(3, b.volumes[0].tag) for b in block
-               if b.do_register and b.boolean_level is not None]
+               if b.volumes[0].tag is not None and b.boolean_level is not None]
         logging.info(f'n_volumes: {len(dts)}')
         if len(dts) > 1:
             obj_dts, tool_dts = dts[:1], dts[1:]

@@ -5,6 +5,7 @@ import logging
 
 from support import check_on_file, LoggingDecorator, GmshDecorator, GmshOptionsDecorator
 from factory import FACTORY as FACTORY
+from factory import FactoryKeyError, FactoryValueError
 
 
 def init_walk(obj, prev_obj=None, prev_indices=None, prev_keys=None):
@@ -55,9 +56,9 @@ def init_walk(obj, prev_obj=None, prev_indices=None, prev_keys=None):
                     v['path'] = real_path
             try:
                 obj[k] = FACTORY(v)
-            except ValueError as e:  # TODO handle exception
+            except FactoryValueError:
                 pass
-            except KeyError as e:  # TODO handle exception
+            except FactoryKeyError:
                 pass
         # Remove children fields
         if obj is not None:
@@ -98,9 +99,9 @@ def init_walk(obj, prev_obj=None, prev_indices=None, prev_keys=None):
                     x['path'] = real_path
             try:
                 obj[i] = FACTORY(x)
-            except ValueError as e:  # TODO handle exception
+            except FactoryValueError:
                 pass
-            except KeyError as e:  # TODO handle exception
+            except FactoryKeyError:
                 pass
         if len(prev_index) == 0:  # End of the list
             prev_indices.append([])

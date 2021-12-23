@@ -3,6 +3,24 @@ import json
 from support import check_on_file
 
 
+class FactoryKeyError(Exception):
+
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return str(self.value)
+
+
+class FactoryValueError(Exception):
+
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return str(self.value)
+
+
 class Factory:
     def __init__(self):
         # Import str2objs
@@ -73,11 +91,11 @@ class Factory:
                     data = json.load(f)
                 key, args, kwargs = data.pop('class'), [], data
         else:
-            raise ValueError(obj)
+            raise FactoryValueError(obj)
         if isinstance(key, str) and key in self.str2obj:
             return self.str2obj[key](*args, **kwargs)
         else:
-            raise KeyError(key)
+            raise FactoryKeyError(key)
 
 
 FACTORY = Factory()

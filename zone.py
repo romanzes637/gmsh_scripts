@@ -160,8 +160,9 @@ class DirectionByNormal(Zone):
                     # s_bb = gmsh.model.getBoundingBox(*s_dt)
                     # print(s_bb)
                     e2bb[s_dt] = s_bb
-                    n = gmsh.model.getNormal(s_dt[1], [0.5, 0.5])
-                    if any(np.isnan(x) for x in n):
+                    n = gmsh.model.getNormal(s_dt[1], [0.5, 0.5])  # Normal
+                    # TODO Check what nan and empty mean
+                    if any(np.isnan(x) for x in n) or len(n) == 0:
                         s_zs = ['X', 'Y', 'Z']
                     else:
                         weights = [[np.dot(n, y) for y in x]

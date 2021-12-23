@@ -6,7 +6,7 @@ import numpy as np
 
 from support import volumes_surfaces_to_volumes_groups_surfaces
 from transform import str2obj as tr_str2obj
-from transform import BlockToCartesian
+from transform import BlockToCartesian, CartesianToCartesianByBlock
 from transform import reduce_transforms
 from registry import register_point, register_curve, register_curve_loop, \
     register_surface, register_surface_loop, register_volume, \
@@ -98,7 +98,7 @@ class Block:
                  do_unregister_boolean=False,
                  transforms=None, self_transforms=None,
                  do_quadrate=False,
-                 do_structure=True, structure=None, structure_type='LLL',
+                 do_structure=True, structure=None, structure_type=None,
                  zone=None,
                  boolean_level=None,
                  path=None,
@@ -125,17 +125,16 @@ class Block:
         self.curves_structures, self.surfaces_structures, \
         self.volumes_structures = self.parse_structure(structure, do_structure)
         self.surfaces_quadrates = self.parse_do_quadrate(do_quadrate)
+        structure_type = 'LLL' if structure_type is None else structure_type
         self.surfaces_arrangement, self.surfaces_points, self.volume_points = \
             self.parse_structure_type(structure_type)
         # Zones
         self.points_zones, self.curves_zones, self.surfaces_zones, \
         self.volume_zone = self.parse_zone(zone)
         # Boolean level
-        self.boolean_level = boolean_level
+        self.boolean_level = 0 if boolean_level is None else boolean_level
         # Path
         self.path = path
-        # Flags
-        self.is_registered = False
         # Parent/Children
         self.parent = parent
         self.children = [] if children is None else children
@@ -299,12 +298,16 @@ class Block:
                     if tr_str2obj[name] == BlockToCartesian:
                         ps = [x.coordinates for x in parent.points]
                         kwargs['cs_from'] = BlockCS(ps=ps)
+                    if tr_str2obj[name] == CartesianToCartesianByBlock:
+                        kwargs['block'] = parent
                     new_transforms.append(tr_str2obj[name](**kwargs))
                 elif type(t).__name__ in tr_str2obj:
                     name = type(t).__name__
                     if tr_str2obj[name] == BlockToCartesian:
                         ps = [x.coordinates for x in parent.points]
                         t.cs_from = BlockCS(ps=ps)
+                    if tr_str2obj[name] == CartesianToCartesianByBlock:
+                        t.block = parent
                     new_transforms.append(t)
                 else:
                     raise ValueError(t)
@@ -482,7 +485,7 @@ class Block:
             for i, c in enumerate(self.children):
                 c.register()
         # Self
-        if not self.do_register or self.is_registered:
+        if not self.do_register:
             return
         self.register_points()
         self.register_curve_points()
@@ -497,37 +500,40 @@ class Block:
     def add_child(self, child, transforms=None):
         transforms = [] if transforms is None else transforms
         self.children.append(child)
-        transforms = self.parse_transforms(transforms, self.parent)
+        transforms = self.parse_transforms(transforms, self)
         self.children_transforms.append(transforms)
 
     def transform(self):
+        # Self Transform
+        for i, p in enumerate(self.points):
+            if isinstance(p.coordinate_system, BlockCS):
+                p.coordinate_system.ps = [x.coordinates
+                                          for x in self.parent.points]
+            self.points[i] = reduce_transforms(self.self_transforms, p)
+        # Curve Points
+        for i, c in enumerate(self.curves):
+            for j, p in enumerate(c.points):
+                if isinstance(p.coordinate_system, BlockCS):
+                    p.coordinate_system.ps = [x.coordinates
+                                              for x in self.parent.points]
+                self.curves[i].points[j] = reduce_transforms(self.self_transforms, p)
         # Children
         for i, c in enumerate(self.children):
             c.transforms.extend(self.children_transforms[i])
             c.transforms.extend(self.transforms)
             c.transform()
-        # Self
-        if not self.do_register:
-            return
+        # Transform
         for i, p in enumerate(self.points):
             if isinstance(p.coordinate_system, BlockCS):
-                if self.parent is None:
-                    raise ValueError(
-                        'The parent must exist with Block Coordinate System!')
                 p.coordinate_system.ps = [x.coordinates
                                           for x in self.parent.points]
-            p = reduce_transforms(self.self_transforms, p)
             self.points[i] = reduce_transforms(self.transforms, p)
         # Curve Points
         for i, c in enumerate(self.curves):
             for j, p in enumerate(c.points):
                 if isinstance(p.coordinate_system, BlockCS):
-                    if self.parent is None:
-                        raise ValueError(
-                            'The parent must exist with Block Coordinate System!')
                     p.coordinate_system.ps = [x.coordinates
                                               for x in self.parent.points]
-                p = reduce_transforms(self.self_transforms, p)
                 self.curves[i].points[j] = reduce_transforms(self.transforms, p)
 
     def register_points(self):
@@ -588,7 +594,6 @@ class Block:
         v.surfaces_loops = self.surfaces_loops
         self.volumes[0] = register_volume(v)
         register_volume2block(self.volumes[0].tag, self)
-        self.is_registered = True
 
     def register_structure(self):
         for i, c in enumerate(self.curves):
@@ -624,28 +629,6 @@ class Block:
                 register_surface_quadrate(ps, q)
 
     def pre_unregister(self):
-        """
-
-        N - no boolean
-        B - only this block
-        O - owner, this boolean level > other boolean levels == max boolean level
-        S - shared owner, this boolean level == other boolean levels == max boolean level
-        1 - remove
-        0 - leave
-
-        +---+---------------+-----------------------+---+---+---+---+
-        | n | do_unregister | do_unregister_boolean | N | 1 | O | S |
-        +===+===============+=======================+===+===+===+===+
-        | 1 |       0       |           0           | 0 | 0 | 0 | 0 |
-        | 2 |       0       |           1           | 0 | 0 | 1 | 1 |
-        | 3 |       0       |           2           | 0 | 0 | 1 | 0 |
-        | 4 |       0       |           3           | 0 | 0 | 0 | 1 |
-        | 5 |       1       |           0           | 1 | 1 | 0 | 0 |
-        | 6 |       1       |           1           | 1 | 1 | 1 | 1 |
-        | 7 |       1       |           2           | 1 | 1 | 1 | 0 |
-        | 8 |       1       |           3           | 1 | 1 | 0 | 1 |
-        +---+---------------+-----------------------+---+---+---+---+
-        """
         # Children
         if self.do_unregister_children:
             for i, c in enumerate(self.children):
@@ -832,6 +815,5 @@ class Block:
 
 
 str2obj = {
-    Block.__name__: Block,
-    Block.__name__.lower(): Block,
+    Block.__name__: Block
 }

@@ -12,7 +12,8 @@ class Layer(Matrix):
     def __init__(
             # Layer
             self, layer=None, layer_curves=None, layer_types=None,
-            items_do_register_map=None, items_do_unregister_map=None,
+            items_do_register_map=None, items_do_register_children_map=None,
+            items_do_unregister_map=None,
             items_do_unregister_children_map=None,
             items_do_unregister_boolean_map=None,
             items_do_quadrate_map=None,
@@ -70,9 +71,12 @@ class Layer(Matrix):
             items_boolean_level_map, None, g2l_b2b_g2g, (int,))
         # print(np.array(boolean_level_map).reshape((n_blocks_z, n_blocks_y, n_blocks_x)))
         # Register/Unregister
-        items_default_do_register_map = [0 if x is None else 1 for x in g2l_b2b_g2g]
+        items_default_do_register_map = [0 if x is None else 1
+                                         for x in g2l_b2b_g2g]
         items_do_register_map = Layer.parse_layers_block_map(
             items_do_register_map, 1, g2l_b2b_g2g, (bool, int))
+        items_do_register_children_map = Layer.parse_layers_block_map(
+            items_do_register_children_map, 1, g2l_b2b_g2g, (bool, int))
         items_do_unregister_map = Layer.parse_layers_block_map(
             items_do_unregister_map, 0, g2l_b2b_g2g, (bool, int))
         items_do_unregister_children_map = Layer.parse_layers_block_map(
@@ -81,6 +85,8 @@ class Layer(Matrix):
             items_do_unregister_boolean_map, 0, g2l_b2b_g2g, (bool, int))
         items_do_register_map = [x * y for x, y in zip(
             items_default_do_register_map, items_do_register_map)]
+        items_do_register_children_map = [x * y for x, y in zip(
+            items_default_do_register_map, items_do_register_children_map)]
         # Structure and Quadrate
         items_do_quadrate_map = Layer.parse_layers_block_map(
             items_do_quadrate_map, 0, g2l_b2b_g2g, (bool, int))
@@ -123,6 +129,7 @@ class Layer(Matrix):
             items_curves=items_curves,
             items_curves_map=items_curves_map,
             items_do_register_map=items_do_register_map,
+            items_do_register_children_map=items_do_register_children_map,
             items_do_unregister_map=items_do_unregister_map,
             items_do_unregister_children_map=items_do_unregister_children_map,
             items_do_unregister_boolean_map=items_do_unregister_boolean_map,

@@ -123,10 +123,18 @@ class Matrix(Block):
             items_children_transforms = [None]
         items_children_transforms_map = Matrix.parse_matrix_items_map(
             items_children_transforms_map, 0, new2old_b2b, (int,))
+        t = {"name": "CartesianToCartesianByBlock",
+             "block_coordinates": [0, 0, 0]}
+        for i, ts in enumerate(items_children_transforms):
+            new_ts = [[copy.deepcopy(t)] + x
+                      if x is not None else [copy.deepcopy(t)]
+                      for x in ts] if ts is not None else [[copy.deepcopy(t)]]
+            items_children_transforms[i] = new_ts
         # Items
         items = [Block(
             points=x,
-            curves=items_curves[items_curves_map[i]],
+            curves=items_curves[items_curves_map[i]]
+            if items_curves_map[i] is not None else None,
             do_register=items_do_register_map[i],
             do_register_children=items_do_register_children_map[i],
             do_unregister=items_do_unregister_map[i],
@@ -139,7 +147,8 @@ class Matrix(Block):
             do_quadrate=items_do_quadrate_map[i],
             do_structure=items_do_structure_map[i],
             structure=items_structures[i],
-            structure_type=items_structure_type[items_structure_type_map[i]],
+            structure_type=items_structure_type[items_structure_type_map[i]]
+            if items_structure_type_map[i] is not None else None,
             zone=items_zone[items_zone_map[i]],
             boolean_level=items_boolean_level_map[i],
             parent=self,
@@ -147,20 +156,7 @@ class Matrix(Block):
                 items_children[items_children_map[i]]),
             children_transforms=copy.deepcopy(
                 items_children_transforms[items_children_transforms_map[i]]))
-            for i, x in enumerate(items_points)
-            if items_do_register_map[i]]
-        # Items Children Transforms
-        for item in items:  # Translate children to center of item
-            ps = [x.coordinates for x in item.points]
-            b = BlockCS(ps=ps)
-            b2car = BlockToCartesian(cs_from=b)
-            p = Point(coordinates=[0, 0, 0])  # center
-            p = b2car(p)
-            t = Translate(p.coordinates)
-            for j, ts in enumerate(item.children_transforms):
-                if ts is None:
-                    ts = transforms
-                item.children_transforms[j] = [t] + ts
+            for i, x in enumerate(items_points)]
         # All Children (Items + Children)
         children = [] if children is None else children
         all_children = children + items
