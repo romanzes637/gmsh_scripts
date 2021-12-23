@@ -74,9 +74,6 @@ class Block:
     | Z surface
     | S5: C1  -> -C7 -> -C2 -> C6
 
-    Note:
-        If boolean_level is not None then no internal volumes of children.
-
     Args:
         points (list of dict, list of list, list): 8 corner points of the block
         curves (list of dict, list of list, list, list of Curve): 12 edge curves of the block
@@ -99,7 +96,7 @@ class Block:
                  do_register=True, do_register_children=True,
                  do_unregister=False, do_unregister_children=True,
                  do_unregister_boolean=False,
-                 transforms=None,
+                 transforms=None, self_transforms=None,
                  do_quadrate=False,
                  do_structure=True, structure=None, structure_type='LLL',
                  zone=None,
@@ -123,6 +120,7 @@ class Block:
         self.do_unregister_boolean = do_unregister_boolean
         # Transforms
         self.transforms = self.parse_transforms(transforms, parent)
+        self.self_transforms = self.parse_transforms(self_transforms, parent)
         # Structure and Quadrate
         self.curves_structures, self.surfaces_structures, \
         self.volumes_structures = self.parse_structure(structure, do_structure)
@@ -146,8 +144,6 @@ class Block:
         for i, t in enumerate(children_transforms):
             children_transforms[i] = self.parse_transforms(t, self)
         self.children_transforms = children_transforms
-        # print(self.volume_zone, self.boolean_level)
-        # print(len(self.children), [len(x.children) for x in self.children])
 
     curves_points = [
         [1, 0], [5, 4], [6, 7], [2, 3],  # X1, X2, X3, X4
@@ -520,6 +516,7 @@ class Block:
                         'The parent must exist with Block Coordinate System!')
                 p.coordinate_system.ps = [x.coordinates
                                           for x in self.parent.points]
+            p = reduce_transforms(self.self_transforms, p)
             self.points[i] = reduce_transforms(self.transforms, p)
         # Curve Points
         for i, c in enumerate(self.curves):
@@ -530,6 +527,7 @@ class Block:
                             'The parent must exist with Block Coordinate System!')
                     p.coordinate_system.ps = [x.coordinates
                                               for x in self.parent.points]
+                p = reduce_transforms(self.self_transforms, p)
                 self.curves[i].points[j] = reduce_transforms(self.transforms, p)
 
     def register_points(self):

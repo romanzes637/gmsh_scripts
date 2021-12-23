@@ -1,0 +1,7 @@
+{
+  "data": {
+	"class": "block.Matrix",
+    "matrix": [[-0.2, 0.2], [-0.2, 0.2], [-0.2, 0.2]],
+    "items_zone": ["M2"]
+  }
+}

@@ -29,6 +29,7 @@ class Matrix(Block):
             items_do_unregister_map=None, items_do_unregister_children_map=None,
             items_do_unregister_boolean_map=None,
             items_transforms=None, items_transforms_map=None,
+            items_self_transforms=None, items_self_transforms_map=None,
             items_do_quadrate_map=None,
             items_do_structure_map=None,
             # structure (from matrix)
@@ -44,7 +45,7 @@ class Matrix(Block):
             do_register=False, do_register_children=True,
             do_unregister=False, do_unregister_children=True,
             do_unregister_boolean=False,
-            transforms=None,
+            transforms=None, self_transforms=None,
             do_quadrate=False,
             do_structure=True, structure=None, structure_type='LLL',
             zone=None,
@@ -101,17 +102,23 @@ class Matrix(Block):
         items_zone = ['Matrix'] if items_zone is None else items_zone
         items_zone_map = Matrix.parse_matrix_items_map(
             items_zone_map, 0, new2old_b2b, (int,))
-        # Transforms Children
+        # Transforms
+        transforms = [] if transforms is None else transforms
+        # Items Transforms
         if items_transforms is None:
             items_transforms = [None]
         items_transforms_map = Matrix.parse_matrix_items_map(
             items_transforms_map, 0, new2old_b2b, (int,))
-        # Children
-        # print(items_children)
+        # Items Self Transforms
+        if items_self_transforms is None:
+            items_self_transforms = [None]
+        items_self_transforms_map = Matrix.parse_matrix_items_map(
+            items_self_transforms_map, 0, new2old_b2b, (int,))
+        # Items Children
         items_children = [None] if items_children is None else items_children
         items_children_map = Matrix.parse_matrix_items_map(
             items_children_map, 0, new2old_b2b, (int,))
-        # print(items_children_map)
+        # Items Children Transforms
         if items_children_transforms is None:
             items_children_transforms = [None]
         items_children_transforms_map = Matrix.parse_matrix_items_map(
@@ -125,7 +132,10 @@ class Matrix(Block):
             do_unregister=items_do_unregister_map[i],
             do_unregister_children=items_do_unregister_children_map[i],
             do_unregister_boolean=items_do_unregister_boolean_map[i],
-            transforms=copy.deepcopy(items_transforms[items_transforms_map[i]]),
+            transforms=copy.deepcopy(
+                items_transforms[items_transforms_map[i]]),
+            self_transforms=copy.deepcopy(
+                items_self_transforms[items_self_transforms_map[i]]),
             do_quadrate=items_do_quadrate_map[i],
             do_structure=items_do_structure_map[i],
             structure=items_structures[i],
@@ -133,29 +143,31 @@ class Matrix(Block):
             zone=items_zone[items_zone_map[i]],
             boolean_level=items_boolean_level_map[i],
             parent=self,
-            children=copy.deepcopy(items_children[items_children_map[i]]),
-            children_transforms=copy.deepcopy(items_children_transforms[items_children_transforms_map[i]]))
+            children=copy.deepcopy(
+                items_children[items_children_map[i]]),
+            children_transforms=copy.deepcopy(
+                items_children_transforms[items_children_transforms_map[i]]))
             for i, x in enumerate(items_points)
             if items_do_register_map[i]]
-        # Add children transform to center of item TODO check!
-        for item in items:
+        # Items Children Transforms
+        for item in items:  # Translate children to center of item
             ps = [x.coordinates for x in item.points]
             b = BlockCS(ps=ps)
             b2car = BlockToCartesian(cs_from=b)
-            p = Point(coordinates=[0, 0, 0])
+            p = Point(coordinates=[0, 0, 0])  # center
             p = b2car(p)
             t = Translate(p.coordinates)
             for j, ts in enumerate(item.children_transforms):
                 if ts is None:
-                    ts = []
+                    ts = transforms
                 item.children_transforms[j] = [t] + ts
-        # Transforms
-        transforms = [] if transforms is None else transforms
-        children_items_transforms = [[] for _ in items]
+        # All Children (Items + Children)
         children = [] if children is None else children
+        all_children = children + items
+        # All Children Transforms
+        children_items_transforms = [[] for _ in items]
         if children_transforms is None:
             children_transforms = [[] for _ in children]
-        all_children = children + items
         all_children_transforms = children_transforms + children_items_transforms
         super().__init__(
             points=points, curves=curves, surfaces=surfaces, volume=volume,
@@ -165,6 +177,7 @@ class Matrix(Block):
             do_unregister_children=do_unregister_children,
             do_unregister_boolean=do_unregister_boolean,
             transforms=transforms,
+            self_transforms=self_transforms,
             do_quadrate=do_quadrate,
             do_structure=do_structure,
             structure=structure,

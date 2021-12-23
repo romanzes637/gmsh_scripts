@@ -20,6 +20,7 @@ class Layer(Matrix):
             items_boolean_level_map=None,
             items_zone=None, items_zone_map=None,
             items_transforms=None, items_transforms_map=None,
+            items_self_transforms=None, items_self_transforms_map=None,
             items_children=None, items_children_map=None,
             items_children_transforms=None,
             items_children_transforms_map=None,
@@ -29,6 +30,7 @@ class Layer(Matrix):
             do_register_children=True, do_unregister_children=True,
             do_unregister_boolean=False,
             transforms=None,
+            self_transforms=None,
             do_quadrate=False,
             do_structure=True, structure=None, structure_type='LLL',
             zone=None, parent=None, children=None, children_transforms=None,
@@ -86,30 +88,36 @@ class Layer(Matrix):
             items_do_structure_map, 1, g2l_b2b_g2g, (bool, int))
         items_structure_type, items_structure_type_map = Layer.get_structure_type(
             parsed_g2l_b2b_l2l)
-        # print(np.array(structure_type_map).reshape((n_blocks_z, n_blocks_y, n_blocks_x)))
         # Zones
         items_zone = ['Layer'] if items_zone is None else items_zone
         items_zone_map = Layer.parse_layers_block_map(items_zone_map, 0, g2l_b2b_g2g, (int,))
-        # Transforms Children
+        # Items Transforms
         if items_transforms is None:
             items_transforms = [None]
         items_transforms_map = Layer.parse_layers_block_map(
             items_transforms_map, 0, g2l_b2b_g2g, (int,))
-        # Children
-        items_children = [None] if items_children is None else items_children
-        items_children_map = Layer.parse_layers_block_map(
-            items_children_map, 0, g2l_b2b_g2g, (int,))
-        if items_children_transforms is None:
-            items_children_transforms = [None]
-        items_children_transforms_map = Layer.parse_layers_block_map(
-            items_children_transforms_map, 0, g2l_b2b_g2g, (int,))
-        # Transforms
-        transforms = [] if transforms is None else transforms
+        # Items Self Transforms
+        if items_self_transforms is None:
+            items_self_transforms = [None]
         lxy2car = tr_str2obj['LayerXYToCartesian']()
         any1some = tr_str2obj['AnyAsSome'](cs_to=coordinate_system)
         some2car = tr_str2obj[f'{type(coordinate_system).__name__}ToCartesian'](
             cs_from=coordinate_system)
-        transforms = [lxy2car, any1some, some2car] + transforms
+        item_self_transforms = [lxy2car, any1some, some2car]
+        items_self_transforms = [item_self_transforms + x
+                                 if x is not None else item_self_transforms
+                                 for x in items_transforms]
+        items_self_transforms_map = Layer.parse_layers_block_map(
+            items_self_transforms_map, 0, g2l_b2b_g2g, (int,))
+        # Items Children
+        items_children = [None] if items_children is None else items_children
+        items_children_map = Layer.parse_layers_block_map(
+            items_children_map, 0, g2l_b2b_g2g, (int,))
+        # Items Children Transforms
+        if items_children_transforms is None:
+            items_children_transforms = [None]
+        items_children_transforms_map = Layer.parse_layers_block_map(
+            items_children_transforms_map, 0, g2l_b2b_g2g, (int,))
         super().__init__(
             matrix=grid,
             items_curves=items_curves,
@@ -127,6 +135,8 @@ class Layer(Matrix):
             items_zone_map=items_zone_map,
             items_transforms=items_transforms,
             items_transforms_map=items_transforms_map,
+            items_self_transforms=items_self_transforms,
+            items_self_transforms_map=items_self_transforms_map,
             items_children=items_children,
             items_children_map=items_children_map,
             items_children_transforms=items_children_transforms,
@@ -139,6 +149,7 @@ class Layer(Matrix):
             do_unregister_children=do_unregister_children,
             do_unregister_boolean=do_unregister_boolean,
             transforms=transforms,
+            self_transforms=self_transforms,
             do_quadrate=do_quadrate,
             do_structure=do_structure,
             structure=structure,
