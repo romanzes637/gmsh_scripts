@@ -1,696 +1,676 @@
+import logging
+import time
 import os
-import math
-from pprint import pprint
+import socket
+import sys
+import getpass
 
 import numpy as np
 import gmsh
 
 
-# FIXME Bug with this approach:
-# File "/share/home/butovr/gmsh_scripts/support.py", line 14,
-# in get_volume_points_edges_data
-# surfaces_dim_tags = gmsh.model.getBoundary([[3, volume]])
-# File "/home/butovr/Programs/gmsh/api/gmsh.py", line 517,
-# in getBoundary ierr.value)
-# ValueError: ('gmshModelGetBoundary
+class LoggingDecorator:
+    """Decorator for logger initialization
 
-
-def get_volume_points_edges_data(volume):
+    Args:
+        filename (str): path to log file
+        filemode (str): mode of log file
+        fmt (str): format of messages
+            See https://docs.python.org/3/library/logging.html#logrecord-attributes
+        datefmt (str): format of the date
+        level (int or str): CRITICAL = 50, FATAL = CRITICAL, ERROR = 40,
+            WARNING = 30, WARN = WARNING, INFO = 20, DEBUG = 10, NOTSET = 0
     """
-    Return volume points edges data.
-    For point's characteristic length (lc) auto setting.
-    :param int volume: volume index
-    :return:
-    {point: (n_edges, edges_min_length, edges_max_length, edges_avg_length)}
-    :rtype: dict
+
+    def __init__(self, filename=None, filemode='a', fmt=None, datefmt=None,
+                 level='INFO'):
+        self.filename = filename
+        self.filemode = filemode
+        self.level = level
+        if fmt is None:
+            fmt = '%(asctime)s.%(msecs)03d%(tz)s|' \
+                  '%(hostname)s|%(ip)s|%(user)s|%(process)d|' \
+                  '%(levelname)s|%(filename)s|%(lineno)d|%(message)s'
+        self.fmt = fmt
+        self.datefmt = '%Y-%m-%dT%H:%M:%S' if datefmt is None else datefmt
+
+    def __call__(self, f=None):
+        def wrapper(*args, **kwargs):
+            fmt = self.fmt.replace('%(hostname)s', socket.gethostname())
+            fmt = fmt.replace('%(ip)s',
+                              socket.gethostbyname(socket.gethostname()))
+            fmt = fmt.replace('%(user)s', getpass.getuser())
+            fmt = fmt.replace('%(tz)s', time.strftime('%z'))
+            logging.basicConfig(filename=self.filename, filemode=self.filemode,
+                                format=fmt, datefmt=self.datefmt,
+                                level=self.level)
+            logging.info('Logging initialized')
+            logging.info(f'hostname: {socket.gethostname()}')
+            logging.info(f'ip: {socket.gethostbyname(socket.gethostname())}')
+            logging.info(f'user: {getpass.getuser()}')
+            logging.info(f'pid: {os.getpid()}')
+            logging.info(f'python: {sys.executable}')
+            logging.info(f'script: {__file__}')
+            logging.info(f'working directory: {os.getcwd()}')
+            out = f(*args, **kwargs) if f is not None else None
+            return out
+
+        return wrapper
+
+
+class GmshDecorator:
+    """Decorator fot gmsh initialization
+
+    1. Initialize
+    2. Call function
+    3. Finalize
     """
-    # Get volume edges
-    volume_dim_tag = (3, volume)
-    surfaces_dim_tags = gmsh.model.getBoundary([volume_dim_tag])
-    edges = set()
-    for sdt in surfaces_dim_tags:
-        curves_dim_tags = gmsh.model.getBoundary([sdt])
-        for cdt in curves_dim_tags:
-            edges.add(abs(cdt[1]))
-    # Get volume points
-    points_dim_tags = gmsh.model.getBoundary([volume_dim_tag], recursive=True)
-    points = tuple(x[1] for x in points_dim_tags)
-    # Get points edges and edges points
-    points_edges = {x: set() for x in points}
-    edges_points = dict()
-    for e in edges:
-        edge_dim_tag = (1, e)
-        points_dim_tags = gmsh.model.getBoundary([edge_dim_tag])
-        edges_points[e] = tuple(x[1] for x in points_dim_tags)
-        for p in edges_points[e]:
-            points_edges[p].add(e)
-    # Calculate edges lengths
-    edges_lengths = get_volume_edges_lengths(volume)
-    # Prepare the output
-    points_edges_data = dict()
-    for p in points:
-        lengths = list()
-        for e in points_edges[p]:
-            lengths.append(edges_lengths[e])
-        n_edges = len(lengths)
-        min_length = min(lengths)
-        max_length = max(lengths)
-        mean_length = sum(lengths) / n_edges
-        points_edges_data[p] = (
-            n_edges,
-            min_length,
-            max_length,
-            mean_length
-        )
-        # print(volume)
-        # pprint(points_edges)
-        # pprint(edges_points)
-    return points_edges_data
+
+    def __init__(self):
+        pass
+
+    def __call__(self, f=None):
+        def wrapper(*args, **kwargs):
+            gmsh.initialize()
+            logging.info('Gmsh initialized')
+            out = f(*args, **kwargs) if f is not None else None
+            gmsh.finalize()
+            logging.info('Gmsh finalized')
+            return out
+
+        return wrapper
 
 
-def get_volume_edges_lengths(volume):
+class GmshOptionsDecorator:
+    """Decorator for setting gmsh options
+
+    1. Set options
+    2. Call function
+
+    Options:
+        https://gmsh.info/doc/texinfo/gmsh.html#Options
+
+    Unstructured mesh:
+        Gmsh provides a choice between several 2D and 3D unstructured algorithms.
+        Each algorithm has its own advantages and disadvantages.
+
+        For all 2D unstructured algorithms a Delaunay mesh that contains
+        all the points of the 1D mesh is initially constructed using
+        a divide-and-conquer algorithm5. Missing edges are recovered using
+        edge swaps6. After this initial step several algorithms can be applied
+        to generate the final mesh:
+
+        The “MeshAdapt” algorithm7 is based on local mesh modifications.
+        This technique makes use of edge swaps, splits, and collapses:
+        long edges are split, short edges are collapsed, and edges are swapped
+        if a better geometrical configuration is obtained.
+        The “Delaunay” algorithm is inspired by the work of the GAMMA team at
+        INRIA8. New points are inserted sequentially at the circumcenter of
+        the element that has the largest adimensional circumradius.
+        The mesh is then reconnected using an anisotropic Delaunay criterion.
+        The “Frontal-Delaunay” algorithm is inspired by the work of S. Rebay9.
+        Other experimental algorithms with specific features are also available.
+        In particular, “Frontal-Delaunay for Quads”10 is a variant of
+        the “Frontal-Delaunay” algorithm aiming at generating right-angle triangles
+        suitable for recombination; and “BAMG”11 allows to generate anisotropic triangulations.
+        For very complex curved surfaces the “MeshAdapt” algorithm is the most robust.
+        When high element quality is important, the “Frontal-Delaunay” algorithm
+        should be tried. For very large meshes of plane surfaces the “Delaunay”
+        algorithm is the fastest; it usually also handles complex mesh size fields
+        better than the “Frontal-Delaunay”. When the “Delaunay” or “Frontal-Delaunay”
+        algorithms fail, “MeshAdapt” is automatically triggered.
+        The “Automatic” algorithm uses “Delaunay” for plane surfaces
+        and “MeshAdapt” for all other surfaces.
+
+        Several 3D unstructured algorithms are also available:
+
+        The “Delaunay” algorithm is split into three separate steps.
+        First, an initial mesh of the union of all the volumes in the model
+        is performed, without inserting points in the volume.
+        The surface mesh is then recovered using H. Si’s boundary recovery
+        algorithm Tetgen/BR. Then a three-dimensional version of the
+        2D Delaunay algorithm described above is applied to insert points in
+        the volume to respect the mesh size constraints.
+        The “Frontal” algorithm uses J. Schoeberl’s Netgen algorithm 12.
+        The “HXT” algorithm13 is a new efficient and parallel reimplementaton
+        of the Delaunay algorithm.
+        Other experimental algorithms with specific features are also available.
+        In particular, “MMG3D”14 allows to generate anisotropic tetrahedralizations.
+        The “Delaunay” algorithm is currently the most robust and is the only
+        one that supports the automatic generation of hybrid meshes with pyramids.
+        Embedded model entities and the Field mechanism to specify element sizes
+        (see Specifying mesh element sizes) are currently only supported by the
+        “Delaunay” and “HXT” algorithms.
+
+        If your version of Gmsh is compiled with OpenMP support
+        (see Compiling the source code), most of the meshing steps can be performed in parallel:
+
+        1D and 2D meshing is parallelized using a coarse-grained approach,
+        i.e. curves (resp. surfaces) are each meshed sequentially, but several
+        curves (resp. surfaces) can be meshed at the same time.
+        3D meshing using HXT is parallelized using a fine-grained approach,
+        i.e. the actual meshing procedure for a single volume is done is parallel.
+        The number of threads can be controlled with the -nt flag on the command line
+        (see Command-line options), or with the
+        General.NumThreads, Mesh.MaxNumThreads1D, Mesh.MaxNumThreads2D and Mesh.MaxNumThreads3D
+        options (see General options list and Mesh options list).
+        To determine the size of mesh elements, Gmsh locally computes the minimum of
+
+        1) the size of the model bounding box;
+        2) if `Mesh.MeshSizeFromPoints' is set, the mesh size specified at
+           geometrical points;
+        3) if `Mesh.MeshSizeFromCurvature' is positive, the mesh size based on
+           curvature (the value specifying the number of elements per 2 * pi rad);
+        4) the background mesh size field;
+        5) any per-entity mesh size constraint.
+
+        This value is then constrained in the interval [`Mesh.MeshSizeMin',
+        `Mesh.MeshSizeMax'] and multiplied by `Mesh.MeshSizeFactor'.  In addition,
+        boundary mesh sizes (on curves or surfaces) are interpolated inside the
+        enclosed entity (surface or volume, respectively) if the option
+        `Mesh.MeshSizeExtendFromBoundary' is set (which is the case by default).
+
+        When the element size is fully specified by a background mesh size field (as
+        it is in this example), it is thus often desirable to set
+
+        Mesh.MeshSizeExtendFromBoundary = 0;
+        Mesh.MeshSizeFromPoints = 0;
+        Mesh.MeshSizeFromCurvature = 0;
+
+        This will prevent over-refinement due to small mesh sizes on the boundary.
+
+    Quadrate:
+        To generate quadrangles instead of triangles, we can simply add
+        gmsh.model.mesh.setRecombine(2, pl)
+        If we'd had several surfaces, we could have used the global option
+        "Mesh.RecombineAll":
+
+        gmsh.option.setNumber("Mesh.RecombineAll", 1)
+
+        The default recombination algorithm is called "Blossom": it uses a minimum
+        cost perfect matching algorithm to generate fully quadrilateral meshes from
+        triangulations. More details about the algorithm can be found in the
+        following paper: J.-F. Remacle, J. Lambrechts, B. Seny, E. Marchandise,
+        A. Johnen and C. Geuzaine, "Blossom-Quad: a non-uniform quadrilateral mesh
+        generator using a minimum cost perfect matching algorithm", International
+        Journal for Numerical Methods in Engineering 89, pp. 1102-1119, 2012.
+
+        For even better 2D (planar) quadrilateral meshes, you can try the
+        experimental "Frontal-Delaunay for quads" meshing algorithm, which is a
+        triangulation algorithm that enables to create right triangles almost
+        everywhere: J.-F. Remacle, F. Henrotte, T. Carrier-Baudouin, E. Bechet,
+        E. Marchandise, C. Geuzaine and T. Mouton. A frontal Delaunay quad mesh
+        generator using the L^inf norm. International Journal for Numerical Methods
+        in Engineering, 94, pp. 494-512, 2013. Uncomment the following line to try
+        the Frontal-Delaunay algorithms for quads:
+
+        gmsh.option.setNumber("Mesh.Algorithm", 8)
+
+        The default recombination algorithm might leave some triangles in the mesh, if
+        recombining all the triangles leads to badly shaped quads. In such cases, to
+        generate full-quad meshes, you can either subdivide the resulting hybrid mesh
+        (with `Mesh.SubdivisionAlgorithm' set to 1), or use the full-quad
+        recombination algorithm, which will automatically perform a coarser mesh
+        followed by recombination, smoothing and subdivision. Uncomment the following
+        line to try the full-quad algorithm:
+
+        gmsh.option.setNumber("Mesh.RecombinationAlgorithm", 2) # or 3
+
+        You can also set the subdivision step alone, with
+
+        gmsh.option.setNumber("Mesh.SubdivisionAlgorithm", 1)
+
+        gmsh.model.mesh.generate(2)
+
+        Note that you could also apply the recombination algorithm and/or the
+        subdivision step explicitly after meshing, as follows:
+
+        gmsh.model.mesh.generate(2)
+        gmsh.model.mesh.recombine()
+        gmsh.option.setNumber("Mesh.SubdivisionAlgorithm", 1)
+        gmsh.model.mesh.refine()
     """
-    Return volume edges straight (start point to end point, not curved) lengths.
-    :param volume: volume index
-    :return: dictionary (edge: edge_length)
+
+    def __init__(self, options=None):
+        # Default options
+        default_options = {
+            'General.Terminal': 0,
+            'General.AbortOnError': 0,
+            # Abort on error? (0: no,  1: abort meshing,
+            # 2: throw an exception unless in interactive mode,
+            # 3: throw an exception always, 4: exit)
+            # Default value: 0
+            'Geometry.OCCParallel': 1,
+            # Use multi-threaded OpenCASCADE boolean operators
+            # Default value: 0
+            'Geometry.AutoCoherence': 1,
+            # Should all duplicate entities be automatically
+            # removed with the built-in geometry kernel?
+            # If Geometry.AutoCoherence = 2, also remove degenerate entities.
+            # The option has no effect with the OpenCASCADE kernel
+            # Default value: 1
+            'Geometry.OCCAutoFix': 1,
+            # Automatically fix orientation of wires, faces,
+            # shells and volumes when creating new entities
+            # with the OpenCASCADE kernel
+            # Default value: 1
+            'Geometry.OCCDisableStl': 0,
+            # Disable STL creation in OpenCASCADE kernel
+            # Default value: 0
+            'Geometry.OCCBoundsUseStl': 0,
+            # Use STL mesh for computing bounds of OpenCASCADE shapes
+            # (more accurate, but slower)
+            # Default value: 0
+            'Geometry.OCCBooleanPreserveNumbering': 1,
+            # Try to preserve the numbering of entities through OpenCASCADE
+            # boolean operations
+            # Default value: 1
+            'Geometry.OCCThruSectionsDegree': -1,
+            # Maximum degree of surfaces generated by thrusections with
+            # the OpenCASCADE kernel, if not explicitly specified
+            # (default OCC value if negative)
+            # Default value: -1
+            'Geometry.OCCUnionUnify': 1,
+            # Try to unify faces and edges (remove internal seams) which lie
+            # on the same geometry after performing a boolean union with
+            # the OpenCASCADE kernel
+            # Default value: 1
+            'Geometry.OCCUseGenericClosestPoint': 0,
+            # Use generic algorithm to compute point projections in
+            # the OpenCASCADE kernel (less robust, but significally faster in
+            # some configurations)
+            # Default value: 0
+            "Mesh.Algorithm": 6,
+            # 2D mesh algorithm (1: MeshAdapt, 2: Automatic,
+            # 3: Initial mesh only, 5: Delaunay, 6: Frontal-Delaunay, 7: BAMG,
+            # 8: Frontal-Delaunay for Quads, 9: Packing of Parallelograms)
+            # Default value: 6
+            'Mesh.Algorithm3D': 1,
+            # 3D mesh algorithm (1: Delaunay, 3: Initial mesh only, 4: Frontal,
+            # 7: MMG3D, 9: R_tree, 10: HXT)
+            # Default value: 1
+            'Mesh.SubdivisionAlgorithm': 0,
+            # Mesh subdivision algorithm (0: none, 1: all quadrangles,
+            # 2: all hexahedra, 3: barycentric)
+            # Default value: 0
+            'Mesh.RecombinationAlgorithm': 1,
+            # Mesh recombination algorithm (0: simple, 1: blossom,
+            # 2: simple full-quad, 3: blossom full-quad)
+            # Default value: 1
+            'Mesh.RecombineAll': 0,
+            # Apply recombination algorithm to all surfaces,
+            # ignoring per-surface spec
+            # Default value: 0
+            'Mesh.RecombineOptimizeTopology': 5,
+            # Mesh.RecombineOptimizeTopology
+            # Number of topological optimization passes (removal of diamonds,
+            # ...) of recombined surface meshes
+            # Default value: 5
+            'Mesh.Recombine3DAll': 0,
+            # Apply recombination3D algorithm to all volumes, ignoring
+            # per-volume spec (experimental)
+            # Default value: 0
+            'Mesh.Recombine3DLevel': 0,
+            # 3d recombination level (0: hex, 1: hex+prisms,
+            # 2: hex+prism+pyramids) (experimental)
+            # Default value: 0
+            'Mesh.Recombine3DConformity': 0,
+            # 3d recombination conformity type (0: nonconforming,
+            # 1: trihedra, 2: pyramids+trihedra, 3:pyramids+hexSplit+trihedra,
+            # 4:hexSplit+trihedra)(experimental)
+            # Default value: 0
+            'Mesh.RefineSteps': 10,
+            # Number of refinement steps in the MeshAdapt-based 2D algorithms
+            # Default value: 10
+            'Mesh.Smoothing': 1,
+            # Number of smoothing steps applied to the final mesh
+            # Default value: 1
+            'Mesh.SmoothNormals': 0,
+            # Smooth the mesh normals?
+            # Default value: 0
+            'Mesh.SmoothCrossField': 0,
+            # Apply n barycentric smoothing passes to the 3D cross field
+            # Default value: 0
+            'Mesh.MeshSizeFactor': 1,
+            # Factor applied to all mesh element sizes
+            # Default value: 1
+            'Mesh.MeshSizeMin': 0,
+            # Minimum mesh element size
+            # Default value: 0
+            'Mesh.MeshSizeMax': 1e+22,
+            # Maximum mesh element size
+            # Default value: 1e+22
+            'Mesh.MeshSizeFromPoints': 1,
+            # Compute mesh element sizes from values given at geometry points
+            # Default value: 1
+            'Mesh.MeshSizeExtendFromBoundary': 1,
+            # Extend computation of mesh element sizes from the boundaries
+            # into the interior (for 3D Delaunay, use 1: longest or 2:
+            # shortest surface edge length)
+            # Default value: 1
+            'Mesh.MeshSizeFromCurvature': 0,
+            # Automatically compute mesh element sizes from curvature, using
+            # the value as the target number of elements per 2 * Pi radians
+            # Default value: 0
+            'Mesh.MeshSizeFromCurvatureIsotropic': 0,
+            # Force isotropic curvature estimation when the mesh size is
+            # computed from curvature
+            # Default value: 0
+            'Mesh.MeshSizeFromParametricPoints': 0,
+            # Compute mesh element sizes from values given at geometry
+            # points defining parametric curves
+            # Default value: 0
+            'Mesh.MinimumCircleNodes': 7,
+            # Minimum number of nodes used to mesh circles and ellipses
+            # Default value: 7
+            'Mesh.MinimumCurveNodes': 3,
+            # Minimum number of nodes used to mesh curves other than lines,
+            # circles and ellipses
+            # Default value: 3
+            'Mesh.Optimize': 0,
+            # Optimize the mesh to improve the quality of tetrahedral elements
+            # Default value: 1
+            'Mesh.OptimizeThreshold': 0.3,
+            # Optimize tetrahedra that have a quality below ...
+            # Default value: 0.3
+            'Mesh.OptimizeNetgen': 0,
+            # Optimize the mesh using Netgen to improve the quality of tetrahedral elements
+            # Default value: 0
+        }
+        # Update by new options
+        options = {} if options is None else options
+        default_options.update(options)
+        self.options = default_options
+
+    def __call__(self, f=None):
+        def wrapper(*args, **kwargs):
+            logging.info('Gmsh options')
+            for k, v in self.options.items():
+                gmsh.option.setNumber(k, v)
+                logging.info(f'{k}: {v}')
+            logging.info('Gmsh options end')
+            out = f(*args, **kwargs) if f is not None else None
+            return out
+
+        return wrapper
+
+
+def flatten(iterable, types=(list,)):
+    """Flatten iterable through types
+
+    Args:
+        iterable: some iterable
+        types: types to recurse
+
+    Returns:
+        generator of object: elements
     """
-    # Get volume edges
-    volume_dim_tag = (3, volume)
-    surfaces_dim_tags = gmsh.model.getBoundary([volume_dim_tag])
-    edges = set()
-    for sdt in surfaces_dim_tags:
-        edges_dim_tags = gmsh.model.getBoundary([sdt])
-        for edt in edges_dim_tags:
-            edges.add(abs(edt[1]))
-    # Get edges points
-    edges_points = dict()
-    for e in edges:
-        edge_dim_tag = (1, e)
-        points_dim_tags = gmsh.model.getBoundary([edge_dim_tag])
-        edges_points[e] = [x[1] for x in points_dim_tags]
-    # Calculate edges lengths
-    edges_lengths = dict()
-    for e in edges:
-        ps = edges_points[e]
-        bb0 = gmsh.model.getBoundingBox(0, ps[0])
-        bb1 = gmsh.model.getBoundingBox(0, ps[1])
-        cs0 = [bb0[0], bb0[1], bb0[2]]
-        cs1 = [bb1[0], bb1[1], bb1[2]]
-        vector = [cs1[0] - cs0[0], cs1[1] - cs0[1], cs1[2] - cs0[2]]
-        length = math.sqrt(
-            vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[
-                2])
-        edges_lengths[e] = length
-    return edges_lengths
+    if isinstance(iterable, types):
+        for element in iterable:
+            yield from flatten(element, types)
+    else:
+        yield iterable
 
 
-def get_points_coordinates():
-    points_coordinates = dict()
-    points_dim_tags = gmsh.model.getEntities(0)
-    for dt in points_dim_tags:
-        point = dt[1]
-        bb = gmsh.model.getBoundingBox(0, point)
-        coordinates = [bb[0], bb[1], bb[2]]
-        points_coordinates[point] = coordinates
-    return points_coordinates
+class DataTree:
+    """Volumes data tree
+    # TODO add surfaces loops
+    Args:
+        vs_dt (list of tuple): Volumes dim-tags
+
+    Attributes:
+        vs_dt (list of tuple): Volumes dim-tags
+        vs_ss_dt (list of tuple): Surfaces dim-tags of volumes
+        vs_ss_cs_dt (list of tuple): Curves dim-tags of surfaces of volumes
+        vs_ss_cs_ps_dt (list of tuple): Points dim-tags of curves of surfaces of volumes
+        ps_dt_to_cs (dict): Points dim-tags to coordinates
+    """
+
+    def __init__(self, vs_dt):
+        vs_ss_dt = []  # Surfaces dim-tags of volumes
+        vs_ss_cs_dt = []  # Curves dim-tags of surfaces of volumes
+        vs_ss_cs_ps_dt = []  # Points dim-tags of curves of surfaces of volumes
+        for v_dt in vs_dt:
+            # Surfaces dim-tags of the volume
+            ss_dt = gmsh.model.getBoundary(dimTags=[v_dt], combined=False,
+                                           oriented=True, recursive=False)
+            ss_cs_dt = []  # Curves dim-tags of surfaces
+            ss_cs_ps_dt = []  # Points dim-tags of curves of surfaces
+            for s_dt in ss_dt:
+                # Curves dim-tags of the surface
+                cs_dt = gmsh.model.getBoundary(dimTags=[s_dt], combined=False,
+                                               oriented=True, recursive=False)
+                ss_cs_dt.append(cs_dt)
+                cs_ps_dt = []  # Points dim-tags of curves
+                for c_dt in cs_dt:
+                    # Points of the the curve
+                    ps_dt = gmsh.model.getBoundary(dimTags=[c_dt],
+                                                   combined=False,
+                                                   oriented=True,
+                                                   recursive=False)
+                    cs_ps_dt.append(ps_dt)
+                ss_cs_ps_dt.append(cs_ps_dt)
+            vs_ss_dt.append(ss_dt)
+            vs_ss_cs_dt.append(ss_cs_dt)
+            vs_ss_cs_ps_dt.append(ss_cs_ps_dt)
+        ps_dt = set(flatten(vs_ss_cs_ps_dt))
+        self.ps_dt_to_cs = {x: gmsh.model.getBoundingBox(*x)[:3] for x in ps_dt}
+        self.vs_dt = vs_dt
+        self.vs_ss_dt = vs_ss_dt
+        self.vs_ss_cs_dt = vs_ss_cs_dt
+        self.vs_ss_cs_ps_dt = vs_ss_cs_ps_dt
+        self.b_sls, self.b_s2sl, self.i_sls, self.i_s2sl = self.evaluate_global_surfaces_loops(vs_ss_dt, vs_ss_cs_dt)
+
+    @staticmethod
+    def evaluate_boundary_surfaces(vs_ss_dt):
+        b_ss = set()  # Boundary surfaces
+        for ss_dt in vs_ss_dt:
+            for s_dt in ss_dt:
+                if s_dt in b_ss:
+                    b_ss.remove(s_dt)
+                else:
+                    b_ss.add(s_dt)
+        return b_ss
+
+    @staticmethod
+    def evaluate_global_surfaces_loops(vs_ss_dt, vs_ss_cs_dt):
+        b_ss = DataTree.evaluate_boundary_surfaces(vs_ss_dt)
+        b_sls, i_sls = [], []
+        b_s2sl, i_s2sl = {}, {}
+        ss_dt = set(flatten(vs_ss_dt))
+        while len(ss_dt) > 0:
+            sl, sl_cs, b = [], set(), True  # Surface loop, Curves of surface loop
+            new_s = True
+            while new_s:
+                new_s = False
+                for v_i, ss_cs_dt in enumerate(vs_ss_cs_dt):
+                    for s_i, cs_dt in enumerate(ss_cs_dt):  # For each remaining surface
+                        s_dt = vs_ss_dt[v_i][s_i]
+                        if s_dt not in ss_dt:
+                            continue
+                        if len(sl) == 0:
+                            b = s_dt in b_ss
+                        else:
+                            if (s_dt in b_ss) != b:
+                                continue
+                        for c_dt in cs_dt:  # For each curve of the surface
+                            c_t = abs(c_dt[1])  # Curve tag
+                            if len(sl_cs) == 0 or c_t in sl_cs:
+                                new_s = True
+                                # Add all curves of the surface
+                                sl_cs.update(abs(x[1]) for x in ss_cs_dt[s_i])
+                                ss_dt.remove(s_dt)  # Remove surface from iteration
+                                sl.append(s_dt[1])  # Add surface to loop
+                                if b:
+                                    b_s2sl[s_dt[1]] = len(b_sls)
+                                else:
+                                    i_s2sl[s_dt[1]] = len(i_sls)
+                                break
+            if b:
+                b_sls.append(sl)
+            else:
+                i_sls.append(sl)
+        return b_sls, b_s2sl, i_sls, i_s2sl
 
 
-def get_edges_points():
-    edges_points = dict()
-    edges_dim_tags = gmsh.model.getEntities(1)
-    for dt in edges_dim_tags:
-        points_dim_tags = gmsh.model.getBoundary([dt], combined=False)
-        edge = dt[1]
-        points = [x[1] for x in points_dim_tags]
-        edges_points[edge] = points
-    return edges_points
+def plot_statistics():
+    logging.info('Mesh statistics')
+    types_names = {
+        1: '2-node line',
+        2: '3-node triangle',
+        3: '4-node quadrangle',
+        4: '4-node tetrahedron',
+        5: '8-node hexahedron',
+        6: '6-node prism',
+        7: '5-node pyramid',
+        8: '3-node second order line',
+        9: '6-node second order triangle',
+        10: '9-node second order quadrangle',
+        11: '10-node second order tetrahedron',
+        12: '27-node second order hexahedron',
+        13: '18-node second order prism',
+        14: '14-node second order pyramid',
+        15: '1-node point',
+        16: '8-node second order quadrangle',
+        17: '20-node second order hexahedron',
+        18: '15-node second order prism',
+        19: '13-node second order pyramid'}
+    n_elements, nodes = 0, set()
+    element_types, element_tags, node_tags = gmsh.model.mesh.get_elements(-1)
+    for i, et in enumerate(element_types):
+        name, ets, nts = types_names[et], element_tags[i], node_tags[i]
+        logging.info(f'{name}: {len(ets)} ')
+        n_elements += len(ets)
+        nodes.update(nts)
+    logging.info(f'Total: {len(nodes)} nodes and {n_elements} elements')
 
 
-def get_surfaces_edges():
-    surfaces_edges = dict()
-    surfaces_dim_tags = gmsh.model.getEntities(2)
-    for dt in surfaces_dim_tags:
-        edges_dim_tags = gmsh.model.getBoundary([dt], combined=False)
-        surface = dt[1]
-        edges = [x[1] for x in edges_dim_tags]
-        surfaces_edges[surface] = edges
-    return surfaces_edges
+def timeit(f):
+    def wrapper(*args, **kwargs):
+        t = time.perf_counter()
+        out = f(*args, **kwargs)
+        try:
+            name = f.__name__
+        except Exception:
+            name = f.__class__.__name__
+        logging.info(f'{name} - {time.perf_counter() - t:.3f}s')
+        return out
+
+    return wrapper
 
 
-def get_volumes_surfaces():
-    volumes_surfaces = dict()
-    volumes_dim_tags = gmsh.model.getEntities(3)
-    for dt in volumes_dim_tags:
-        surfaces_dim_tags = gmsh.model.getBoundary([dt], combined=False)
-        volume = dt[1]
-        surfaces = [x[1] for x in surfaces_dim_tags]
-        volumes_surfaces[volume] = surfaces
-    return volumes_surfaces
+def beta_function(xs, a, b, n=10000):
+    """Beta function
+
+    https://en.wikipedia.org/wiki/Beta_function#Incomplete_beta_function
+
+    Args:
+        xs (float, np.ndarray): argument(s)
+        a (float): alpha
+        b (float): beta
+        n (int): number of integration steps
+
+    Returns:
+        float, np.ndarray: value
+    """
+    ts, dt = np.linspace(0, xs, n, retstep=True)
+    ts = np.ma.masked_values(ts, 0)  # leads to inf
+    ts = np.ma.masked_values(ts, 1)  # leads to inf
+    vs = ts ** (a - 1) * (1 - ts) ** (b - 1) * dt
+    vs = vs.filled(0)
+    return np.sum(vs, axis=0)
 
 
-def get_geometry():
-    geo = dict()
-    geo['volumes'] = get_volumes_surfaces()
-    geo['surfaces'] = get_surfaces_edges()
-    geo['edges'] = get_edges_points()
-    geo['points'] = get_points_coordinates()
-    return geo
+def beta_pdf(xs, a, b, n=10000):
+    """Beta probability density function
 
+    https://en.wikipedia.org/wiki/Beta_distribution#Probability_density_function
 
-def get_volumes_geometry():
-    volumes_surfaces = dict()
-    surfaces_edges = dict()
-    edges_points = dict()
-    points_coordinates = dict()
-    volumes_dim_tags = gmsh.model.getEntities(3)
-    # Volumes
-    surfaces = set()
-    for dt in volumes_dim_tags:
-        surfaces_dim_tags = gmsh.model.getBoundary([dt], combined=False)
-        volume = dt[1]
-        volume_surfaces = [x[1] for x in surfaces_dim_tags]
-        volumes_surfaces[volume] = volume_surfaces
-        surfaces.update(set(volume_surfaces))
-    # Surfaces
-    edges = set()
-    for s in surfaces:
-        dim_tag = (2, s)
-        edges_dim_tags = gmsh.model.getBoundary([dim_tag], combined=False)
-        surface_edges = [x[1] for x in edges_dim_tags]
-        surfaces_edges[s] = surface_edges
-        abs_surfaces_edges = [abs(x) for x in surface_edges]
-        edges.update(set(abs_surfaces_edges))
-    # Edges
-    points = set()
-    for e in edges:
-        dim_tag = (1, e)
-        points_dim_tags = gmsh.model.getBoundary([dim_tag], combined=False)
-        edge_points = [x[1] for x in points_dim_tags]
-        edges_points[e] = edge_points
-        points.update(set(edge_points))
-    # Points
-    for p in points:
-        bb = gmsh.model.getBoundingBox(0, p)
-        coordinates = [bb[0], bb[1], bb[2]]
-        points_coordinates[p] = coordinates
-    # Geometry
-    geo = dict()
-    geo['volumes'] = volumes_surfaces
-    geo['surfaces'] = surfaces_edges
-    geo['edges'] = edges_points
-    geo['points'] = points_coordinates
-    return geo
+    Args:
+        xs (float, np.ndarray): argument(s)
+        a (float): alpha
+        b (float): beta
+        n (int): number of integration steps
 
-
-def check_geometry(geometry, check_duplicates=False):
-    out = dict()
-    # Points
-    out['unused_points'] = dict()
-    used_points = set()
-    out['empty_points'] = dict()
-    # Edges
-    out['unused_edges'] = dict()
-    used_edges = set()
-    out['empty_edges'] = dict()
-    out['one_edges'] = dict()
-    out['loop_edges'] = dict()
-    # Surfaces
-    out['unused_surfaces'] = dict()
-    used_surfaces = set()
-    out['empty_surfaces'] = dict()
-    out['one_surfaces'] = dict()
-    out['loop_surfaces'] = dict()
-    # Volumes
-    out['loop_volumes'] = dict()
-    out['empty_volumes'] = dict()
-    out['one_volumes'] = dict()
-    if check_duplicates:
-        out['duplicate_points'] = dict()
-        out['duplicate_edges'] = dict()
-        out['duplicate_surfaces'] = dict()
-        out['duplicate_volumes'] = dict()
-    for volume, surfaces in geometry['volumes'].items():
-        if len(surfaces) == 0:
-            out['empty_volumes'][volume] = surfaces
-        elif len(surfaces) == 1:
-            out['one_volumes'][volume] = surfaces
-        if len(surfaces) != len(set(surfaces)):
-            out['loop_volumes'][volume] = surfaces
-        used_surfaces.update(surfaces)
-        if check_duplicates:
-            for volume2, surfaces2 in geometry['volumes'].items():
-                if surfaces2 == surfaces:
-                    if volume2 != volume:
-                        out['duplicate_volumes'].setdefault(volume2, set()).add(
-                            volume)
-                        out['duplicate_volumes'].setdefault(volume, set()).add(
-                            volume2)
-    for surface, edges in geometry['surfaces'].items():
-        if len(edges) == 0:
-            out['empty_surfaces'][surface] = edges
-        elif len(edges) == 1:
-            out['one_surfaces'][surface] = edges
-        if len(edges) != len(set(edges)):
-            out['loop_surfaces'][surface] = edges
-        abs_edges = [abs(x) for x in edges]
-        used_edges.update(abs_edges)
-        if surface not in used_surfaces:
-            out['unused_surfaces'][surface] = edges
-        if check_duplicates:
-            for surface2, edges2 in geometry['surfaces'].items():
-                if edges2 == edges:
-                    if surface2 != surface:
-                        out['duplicate_surfaces'].setdefault(surface2,
-                                                             set()).add(surface)
-                        out['duplicate_surfaces'].setdefault(surface,
-                                                             set()).add(
-                            surface2)
-    for edge, points in geometry['edges'].items():
-        if len(points) == 0:
-            out['empty_edges'][edge] = points
-        elif len(points) == 1:
-            out['one_edges'][edge] = points
-        if len(points) != len(set(points)):
-            out['loop_edges'][edge] = points
-        used_points.update(points)
-        if edge not in used_edges:
-            out['unused_edges'][edge] = points
-        if check_duplicates:
-            for edge2, points2 in geometry['edges'].items():
-                if points2 == points:
-                    if edge2 != edge:
-                        out['duplicate_edges'].setdefault(edge2, set()).add(
-                            edge)
-                        out['duplicate_edges'].setdefault(edge, set()).add(
-                            edge2)
-    for point, coordinates in geometry['points'].items():
-        if len(coordinates) == 0:
-            out['empty_points'][point] = coordinates
-        if point not in used_points:
-            out['unused_points'][point] = coordinates
-        if check_duplicates:
-            for point2, coordinates2 in geometry['points'].items():
-                tolerance = gmsh.option.getNumber("Geometry.Tolerance")
-                duplicates = list()
-                n_coordinates = len(coordinates2)
-                for i in range(n_coordinates):
-                    difference = abs(coordinates2[i] - coordinates[i])
-                    if difference < tolerance:
-                        duplicates.append(1)
-                    else:
-                        duplicates.append(0)
-                if sum(duplicates) == n_coordinates:
-                    if point2 != point:
-                        out['duplicate_points'].setdefault(point2, set()).add(
-                            point)
-                        out['duplicate_points'].setdefault(point, set()).add(
-                            point2)
-    for k, v in out.items():
-        result = True if len(v) == 0 else False
-        answer = 'OK' if result else 'BAD'
-        print('{} {}'.format(k, answer))
-        if not result:
-            pprint(v)
-    return out
-
-
-def initialize_geometry(factory, geometry):
-    # Geometry with new indices
-    new_geo = dict()
-    new_geo['volumes'] = dict()
-    new_geo['surfaces'] = dict()
-    new_geo['edges'] = dict()
-    new_geo['points'] = dict()
-    # Old to new indices maps
-    old_points_to_new_points = dict()
-    old_edges_to_new_edges = dict()
-    old_surfaces_to_new_surfaces = dict()
-    old_volumes_to_new_volumes = dict()
-    print('Initialize Points')
-    for i, (k, v) in enumerate(geometry['points'].items()):
-        print('Point {} {}/{}'.format(k, i + 1, len(geometry['points'])))
-        old_tag = k
-        new_tag = factory.addPoint(v[0], v[1], v[2])
-        old_points_to_new_points[old_tag] = new_tag
-        new_geo['points'][new_tag] = v
-    print('Initialize Edges')
-    for i, (k, v) in enumerate(geometry['edges'].items()):
-        print('Edge {} {}/{}'.format(k, i + 1, len(geometry['edges'])))
-        old_points = v
-        new_points = [old_points_to_new_points[x] for x in old_points]
-        old_tag = k
-        new_tag = factory.addLine(new_points[0], new_points[1])
-        old_edges_to_new_edges[old_tag] = new_tag
-        new_geo['edges'][new_tag] = new_points
-    print('Initialize Surfaces')
-    for i, (k, v) in enumerate(geometry['surfaces'].items()):
-        print('Surface {} {}/{}'.format(k, i + 1, len(geometry['surfaces'])))
-        old_edges = v
-        old_tag = k
-        new_edges = [math.copysign(1, x) * old_edges_to_new_edges[abs(x)] for x
-                     in old_edges]
-        if factory == gmsh.model.occ:
-            abs_new_edges = [abs(x) for x in new_edges]
-            # curve_loop_tag = factory.addCurveLoop(abs_new_edges)
-            # FIXME signed edges doesn't work
-            curve_loop_tag = factory.addWire(
-                abs_new_edges)  # FIXME signed edges doesn't work
-            new_tag = factory.addSurfaceFilling(curve_loop_tag)
+    Returns:
+        float, np.ndarray: value
+    """
+    t = beta_function(1, a, b, n)
+    if a < 1 or b < 1:  # Correct 0 and 1
+        _, dt = np.linspace(0, 1, n, retstep=True)
+        if isinstance(xs, np.ndarray):
+            xs[np.isclose(xs, 0)] = dt
+            xs[np.isclose(xs, 1)] = 1 - dt
         else:
-            curve_loop_tag = factory.addCurveLoop(new_edges)
-            new_tag = factory.addSurfaceFilling([curve_loop_tag])
-        old_surfaces_to_new_surfaces[old_tag] = new_tag
-        new_geo['surfaces'][new_tag] = new_edges
-    print('Initialize Volumes')
-    for i, (k, v) in enumerate(geometry['volumes'].items()):
-        print('Volume {} {}/{}'.format(k, i + 1, len(geometry['volumes'])))
-        old_surfaces = v
-        new_surfaces = [old_surfaces_to_new_surfaces[x] for x in old_surfaces]
-        old_tag = k
-        surface_loop_tag = factory.addSurfaceLoop(
-            new_surfaces)  # FIXME always return -1
-        new_tag = factory.addVolume([surface_loop_tag])
-        old_volumes_to_new_volumes[old_tag] = new_tag
-        new_geo['volumes'][new_tag] = new_surfaces
-    return new_geo
+            xs = dt if np.isclose(xs, 0) else xs
+            xs = 1 - dt if np.isclose(xs, 1) else xs
+    return xs ** (a - 1) * (1 - xs) ** (b - 1) / t
 
 
-def auto_points_sizes(c=1.0):
-    points_sizes = dict()
-    volumes_dim_tags = gmsh.model.getEntities(3)
-    for vdt in volumes_dim_tags:
-        # Evaluate new_size
-        ps_es_data = get_volume_points_edges_data(vdt[1])
-        min_length = list()
-        for k, v in ps_es_data.items():
-            min_length.append(c * v[1])
-        new_size = min(min_length)
-        # Update sizes
-        for k, v in ps_es_data.items():
-            update_size = True
-            old_size = points_sizes.get(k)
-            if old_size is not None:
-                if new_size > old_size:
-                    update_size = False
-            if update_size:
-                points_sizes[k] = new_size
-                point_dim_tag = (0, k)
-                gmsh.model.mesh.setSize([point_dim_tag], new_size)
-    return points_sizes
+def beta_cdf(xs, a, b, n=10000):
+    """Beta cumulative distribution function
 
+    https://en.wikipedia.org/wiki/Beta_distribution#Cumulative_distribution_function
+    https://en.wikipedia.org/wiki/Beta_function#Incomplete_beta_function
 
-def auto_boundary_points_sizes(c=1.0):
-    volumes_dim_tags = gmsh.model.getEntities(3)
-    # Get boundary surfaces
-    surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags)
-    # Get boundary surfaces edges
-    edges_dim_tags = gmsh.model.getBoundary(surfaces_dim_tags, combined=False,
-                                            oriented=False)
-    # Points' edges and edges
-    points_edges = dict()
-    edges = dict()
-    for dim_tag in edges_dim_tags:
-        dim, tag = dim_tag
-        points_dim_tags = gmsh.model.getBoundary([dim_tag])
-        edges[tag] = tuple(x[1] for x in points_dim_tags)
-        for p in edges[tag]:
-            points_edges.setdefault(p, set()).add(tag)
-    # Calculate edges lengths
-    edges_lengths = dict()
-    for edge, points in edges.items():
-        bb0 = gmsh.model.getBoundingBox(0, points[0])
-        bb1 = gmsh.model.getBoundingBox(0, points[1])
-        cs0 = [bb0[0], bb0[1], bb0[2]]
-        cs1 = [bb1[0], bb1[1], bb1[2]]
-        vector = [cs1[0] - cs0[0], cs1[1] - cs0[1], cs1[2] - cs0[2]]
-        length = math.sqrt(
-            vector[0] * vector[0] + vector[1] * vector[1] + vector[2] *
-            vector[2])
-        edges_lengths[edge] = length
-    points_sizes = dict()
-    for point, edges in points_edges.items():
-        lengths = [edges_lengths[x] for x in edges]
-        points_sizes[point] = min(lengths) * c
-    print(points_sizes)
-    for point, size in points_sizes.items():
-        gmsh.model.mesh.setSize([(0, point)], size)
+    Args:
+        xs (float, np.ndarray): argument(s)
+        a (float): alpha
+        b (float): beta
+        n (int): number of integration steps
 
-
-def auto_boundary_points_sizes_min_edge_in_surface(c=1.0):
-    points_sizes = dict()
-    volumes_dim_tags = gmsh.model.getEntities(3)
-    # Get boundary surfaces
-    surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags)
-    for surface_dim_tag in surfaces_dim_tags:
-        # Get boundary surface edges
-        edges_dim_tags = gmsh.model.getBoundary([surface_dim_tag],
-                                                combined=False,
-                                                oriented=False)
-        # Edges and points' edges
-        edges = dict()
-        points_edges = dict()
-        for dim_tag in edges_dim_tags:
-            dim, tag = dim_tag
-            points_dim_tags = gmsh.model.getBoundary([dim_tag])
-            edges[tag] = tuple(x[1] for x in points_dim_tags)
-            for p in edges[tag]:
-                points_edges.setdefault(p, set()).add(tag)
-        # Calculate edges lengths
-        edges_lengths = dict()
-        for edge, points in edges.items():
-            bb0 = gmsh.model.getBoundingBox(0, points[0])
-            bb1 = gmsh.model.getBoundingBox(0, points[1])
-            cs0 = [bb0[0], bb0[1], bb0[2]]
-            cs1 = [bb1[0], bb1[1], bb1[2]]
-            vector = [cs1[0] - cs0[0], cs1[1] - cs0[1], cs1[2] - cs0[2]]
-            length = math.sqrt(
-                vector[0] * vector[0] + vector[1] * vector[1] + vector[2] *
-                vector[2])
-            edges_lengths[edge] = length
-        for point, edges in points_edges.items():
-            lengths = [edges_lengths[x] for x in edges]
-            new_size = min(lengths) * c
-            old_size = points_sizes.get(point, None)
-            if old_size is not None:
-                points_sizes[point] = min(new_size, old_size)
-            else:
-                points_sizes[point] = new_size
-    for point, size in points_sizes.items():
-        gmsh.model.mesh.setSize([(0, point)], size)
-
-
-def auto_primitive_points_sizes_min_curve(primitive_obj, points_sizes_dict,
-                                          c=1.0):
-    for v in primitive_obj.volumes:
-        ps_cs_data = get_volume_points_edges_data(v)
-        for pd in ps_cs_data:
-            p = pd[0]  # point index
-            size = c * pd[1]  # c * min curve length
-            old_size = points_sizes_dict.get(p)
-            if old_size is not None:
-                if size < old_size:
-                    points_sizes_dict[p] = size
-                    gmsh.model.mesh.setSize([(0, p)], size)
-            else:
-                points_sizes_dict[p] = size
-                gmsh.model.mesh.setSize([(0, p)], size)
-
-
-def auto_primitive_points_sizes_min_curve_in_volume(primitive_obj, points_sizes,
-                                                    c=1.0):
-    for volume in primitive_obj.volumes:
-        # Evaluate new_size
-        ps_es_data = get_volume_points_edges_data(volume)
-        min_length = list()
-        for k, v in ps_es_data.items():
-            min_length.append(c * v[1])
-        new_size = min(min_length)
-        # Update sizes
-        for k, v in ps_es_data.items():
-            update_size = True
-            old_size = points_sizes.get(k)
-            if old_size is not None:
-                if new_size > old_size:
-                    update_size = False
-            if update_size:
-                points_sizes[k] = new_size
-                point_dim_tag = (0, k)
-                gmsh.model.mesh.setSize([point_dim_tag], new_size)
-
-
-def auto_complex_points_sizes_min_curve(complex_obj, points_sizes_dict, k=1.0):
-    for p in complex_obj.primitives:
-        auto_primitive_points_sizes_min_curve(p, points_sizes_dict, k)
-
-
-def auto_complex_points_sizes_min_curve_in_volume(complex_obj,
-                                                  points_sizes_dict, k=1.0):
-    for p in complex_obj.primitives:
-        auto_primitive_points_sizes_min_curve_in_volume(p, points_sizes_dict, k)
-
-
-def set_boundary_points_sizes(size):
-    volumes_dim_tags = gmsh.model.getEntities(3)
-    points_dim_tags = gmsh.model.getBoundary(volumes_dim_tags, recursive=True)
-    gmsh.model.mesh.setSize(points_dim_tags, size)
-
-
-def set_points_sizes(size):
-    points_dim_tags = gmsh.model.getEntities(0)
-    gmsh.model.mesh.setSize(points_dim_tags, size)
-
-
-def get_bounding_box_by_boundary_surfaces(boundary_surfaces):
-    points_x = dict()
-    points_y = dict()
-    points_z = dict()
-    surfaces_dim_tags = [(2, x) for x in boundary_surfaces]
-    points_dim_tags = gmsh.model.getBoundary(surfaces_dim_tags, combined=False,
-                                             recursive=True)
-    for dt in points_dim_tags:
-        dim = dt[0]
-        p = dt[1]
-        bb = gmsh.model.getBoundingBox(dim, p)
-        points_x[p] = bb[0]
-        points_y[p] = bb[1]
-        points_z[p] = bb[2]
-    pprint(points_x)
-    pprint(points_y)
-    pprint(points_z)
-    p_max_x = max(points_x, key=(lambda x: points_x[x]))
-    p_min_x = min(points_x, key=(lambda x: points_x[x]))
-    p_max_y = max(points_y, key=(lambda x: points_y[x]))
-    p_min_y = min(points_y, key=(lambda x: points_y[x]))
-    p_max_z = max(points_z, key=(lambda x: points_z[x]))
-    p_min_z = min(points_z, key=(lambda x: points_z[x]))
-    max_x = points_x[p_max_x]
-    min_x = points_x[p_min_x]
-    max_y = points_y[p_max_y]
-    min_y = points_y[p_min_y]
-    max_z = points_z[p_max_z]
-    min_z = points_z[p_min_z]
-    return min_x, min_y, min_z, max_x, max_y, max_z
-
-
-def get_boundary_surfaces():
-    volumes_dim_tags = gmsh.model.getEntities(3)
-    surfaces_dim_tags = gmsh.model.getBoundary(volumes_dim_tags)
-    surfaces = [x[1] for x in surfaces_dim_tags]
-    return surfaces
-
-
-def get_interior_surfaces():
-    ss = set(x[1] for x in gmsh.model.getEntities(2))
-    bss = set(x[1] for x in gmsh.model.getBoundary(gmsh.model.getEntities(3)))
-    iss = ss - bss
-    return iss
-
-
-def boundary_surfaces_to_six_side_groups():
+    Returns:
+        float, np.ndarray: value [0, 1]
     """
-    Try group boundary surfaces them into 6 groups by sides of cuboid:
-    NX, NY, NZ, X, Y, Z
-    :return: dict surfaces_groups
+    t = beta_function(1, a, b, n)
+    # Different integrations steps by x value
+    if isinstance(xs, np.ndarray):
+        tx = np.array([beta_function(x, a, b, int(np.ceil(n * x))) for x in xs])
+    else:
+        nx = int(np.ceil(n * xs))
+        tx = beta_function(xs, a, b, nx)  # Incomplete beta function
+    return tx / t
+
+
+def check_on_file(path):
+    """Check path on the file
+
+    In the order:
+    1. If file at absolute path
+    2. Else if file at relative to current working directory path
+    3. Else if file at relative to running script directory path
+    4. Else if file at relative to real running script directory path
+    (with eliminating all symbolics links)
+    0. Else no file
+
+    Args:
+        path (str): path to check
+
+    Returns:
+        tuple: result, expanded path to file or None
     """
-    boundary_surfaces = get_boundary_surfaces()
-    surfaces_groups = {
-        'NX': list(),
-        'NY': list(),
-        'NZ': list(),
-        'X': list(),
-        'Y': list(),
-        'Z': list(),
-    }
-    # Points coordinates
-    points_x = dict()
-    points_y = dict()
-    points_z = dict()
-    surfaces_dim_tags = [(2, x) for x in boundary_surfaces]
-    points_dim_tags = gmsh.model.getBoundary(surfaces_dim_tags, combined=False,
-                                             recursive=True)
-    for dt in points_dim_tags:
-        dim = dt[0]
-        p = dt[1]
-        bb = gmsh.model.getBoundingBox(dim, p)
-        points_x[p] = bb[0]
-        points_y[p] = bb[1]
-        points_z[p] = bb[2]
-    # Evaluate bounding box
-    p_max_x = max(points_x, key=(lambda x: points_x[x]))
-    p_min_x = min(points_x, key=(lambda x: points_x[x]))
-    p_max_y = max(points_y, key=(lambda x: points_y[x]))
-    p_min_y = min(points_y, key=(lambda x: points_y[x]))
-    p_max_z = max(points_z, key=(lambda x: points_z[x]))
-    p_min_z = min(points_z, key=(lambda x: points_z[x]))
-    max_x = points_x[p_max_x]
-    min_x = points_x[p_min_x]
-    max_y = points_y[p_max_y]
-    min_y = points_y[p_min_y]
-    max_z = points_z[p_max_z]
-    min_z = points_z[p_min_z]
-    # Check surfaces for parallel to NX, NY, NZ, X, Y, Z
-    for s in boundary_surfaces:
-        surface_dim_tag = (2, s)
-        points_dim_tags = gmsh.model.getBoundary([surface_dim_tag],
-                                                 combined=False, recursive=True)
-        s_points_xs = list()
-        s_points_ys = list()
-        s_points_zs = list()
-        for dt in points_dim_tags:
-            p = dt[1]
-            s_points_xs.append(points_x[p])
-            s_points_ys.append(points_y[p])
-            s_points_zs.append(points_z[p])
-        tol = gmsh.option.getNumber("Geometry.Tolerance")
-        done = False
-        while not done:
-            # Check X
-            s_min_x = min(s_points_xs)
-            s_max_x = max(s_points_xs)
-            if abs(s_max_x - s_min_x) < tol:
-                # Check X or NX
-                while not done:
-                    if abs(s_min_x - min_x) < tol:
-                        surfaces_groups['NX'].append(s)
-                        done = True
-                    elif abs(s_max_x - max_x) < tol:
-                        surfaces_groups['X'].append(s)
-                        done = True
-                    else:
-                        tol *= 10
-                break
-            # Check Y
-            s_min_y = min(s_points_ys)
-            s_max_y = max(s_points_ys)
-            if abs(s_max_y - s_min_y) < tol:
-                # Check Y or NY
-                while not done:
-                    if abs(s_min_y - min_y) < tol:
-                        surfaces_groups['NY'].append(s)
-                        done = True
-                    elif abs(s_max_y - max_y) < tol:
-                        surfaces_groups['Y'].append(s)
-                        done = True
-                    else:
-                        tol *= 10
-                break
-            # Check Z
-            s_min_z = min(s_points_zs)
-            s_max_z = max(s_points_zs)
-            if abs(s_max_z - s_min_z) < tol:
-                # Check Z or NZ
-                while not done:
-                    if abs(s_min_z - min_z) < tol:
-                        surfaces_groups['NZ'].append(s)
-                        done = True
-                    elif abs(s_max_z - max_z) < tol:
-                        surfaces_groups['Z'].append(s)
-                        done = True
-                    else:
-                        tol *= 10
-                break
-            tol *= 10
-    return surfaces_groups
+    # Expand path
+    path_expand_vars = os.path.expandvars(path)
+    path_expand_vars_user = os.path.expanduser(path_expand_vars)
+    # Get directories
+    wd_path = os.getcwd()
+    script_dir_path = os.path.dirname(os.path.abspath(__file__))
+    # Set paths to file check
+    clear_path = path_expand_vars_user
+    rel_wd_path = os.path.join(wd_path, path_expand_vars_user)
+    rel_script_path = os.path.join(script_dir_path, path_expand_vars_user)
+    real_rel_script_path = os.path.realpath(rel_script_path)
+    # Check on file:
+    if os.path.isfile(clear_path):
+        return 'clear', clear_path
+    elif os.path.isfile(rel_wd_path):
+        return 'relative_to_cwd', rel_wd_path
+    elif os.path.isfile(rel_script_path):
+        return 'relative_to_script', rel_script_path
+    elif os.path.isfile(real_rel_script_path):
+        return 'relative_to_real_script', real_rel_script_path
+    else:  # No file
+        return None, None
 
 
 def volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces):
@@ -702,25 +682,6 @@ def volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces):
     :return: volumes_groups_surfaces [[vg1_s1, ..., vg1_si], ...]
     """
     vs_indexes = set(range(len(volumes_surfaces)))
-    # gs = list()
-    # gs_out = list()
-    # for i, ss in enumerate(volumes_surfaces):
-    #     new_group = True
-    #     for j, g in enumerate(gs):
-    #         for s in ss:
-    #             if s in g:
-    #                 gs[j].update(ss)
-    #                 gs_out[j].symmetric_difference_update(ss)
-    #                 new_group = False
-    #     if new_group:
-    #         gs.append(set(ss))
-    #         gs_out.append(set(ss))
-    # print(gs)
-    # if len(gs) > 1:
-    #     print(gs[0].intersection(gs[1]))
-    # if len(gs) > 2:
-    #     print(gs[1].intersection(gs[2]))
-    #     print(gs[2].intersection(gs[0]))
     while len(vs_indexes) != 0:
         current_index = list(vs_indexes)[0]
         current_surfaces = set(volumes_surfaces[current_index])
@@ -745,502 +706,3 @@ def volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces):
         vs_indexes.remove(current_index)
     volumes_surfaces_groups = [x for x in volumes_surfaces if len(x) != 0]
     return volumes_surfaces_groups
-
-
-def auto_volumes_groups_surfaces():
-    volumes_dim_tags = gmsh.model.getEntities(3)
-    volumes_surfaces = list()
-    for vdt in volumes_dim_tags:
-        surfaces_dim_tags = gmsh.model.getBoundary([vdt], oriented=False)
-        ss = [x[1] for x in surfaces_dim_tags]
-        volumes_surfaces.append(ss)
-    return volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces)
-
-
-def volumes_groups_surfaces(volumes):
-    volumes_dim_tags = [(3, x) for x in volumes]
-    volumes_surfaces = list()
-    for vdt in volumes_dim_tags:
-        surfaces_dim_tags = gmsh.model.getBoundary([vdt], oriented=False)
-        ss = [x[1] for x in surfaces_dim_tags]
-        volumes_surfaces.append(ss)
-    return volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces)
-
-
-def volumes_groups_surfaces_registry(volumes, registry_volumes):
-    volumes_surfaces = [registry_volumes[x] for x in volumes]
-    return volumes_surfaces_to_volumes_groups_surfaces(volumes_surfaces)
-
-
-def get_volume_composition(volume):
-    volume_dt = (3, volume)
-    points_dts = gmsh.model.getBoundary([volume_dt], recursive=True)
-    n_points = len(points_dts)
-    surfaces_dts = gmsh.model.getBoundary([volume_dt])
-    n_surfaces = len(surfaces_dts)
-    edges = set()
-    for surface_dt in surfaces_dts:
-        edges_dts = gmsh.model.getBoundary([surface_dt], oriented=False)
-        for edge_dt in edges_dts:
-            edge = edge_dt[1]
-            edges.add(edge)
-    n_edges = len(edges)
-    return n_points, n_surfaces, n_edges
-
-
-def is_cuboid(volume):
-    result = False
-    n_points = 8
-    n_surfaces = 6
-    n_edges = 12
-    n_edges_per_surface = 4  # FIXME needs to check this?
-    volume_dt = (3, volume)
-    points_dts = gmsh.model.getBoundary([volume_dt], recursive=True)
-    if len(points_dts) == n_points:
-        surfaces_dts = gmsh.model.getBoundary([volume_dt])
-        if len(surfaces_dts) == n_surfaces:
-            edges = set()
-            is_n_edges_per_surface = True
-            for surface_dt in surfaces_dts:
-                edges_dts = gmsh.model.getBoundary([surface_dt])
-                if len(edges_dts) == n_edges_per_surface:
-                    for edge_dt in edges_dts:
-                        edge = abs(edge_dt[1])
-                        edges.add(edge)
-                else:
-                    is_n_edges_per_surface = False
-                    break
-            if len(edges) == n_edges and is_n_edges_per_surface:
-                result = True
-    return result
-
-
-def structure_cuboid(volume, structured_surfaces, structured_edges,
-                     min_edge_nodes, c=1.0):
-    volume_dt = (3, volume)
-    surfaces_dts = gmsh.model.getBoundary([volume_dt])
-    surfaces_edges = dict()
-    surfaces_points = dict()
-    edges = set()
-    for surface_dt in surfaces_dts:
-        edges_dts = gmsh.model.getBoundary([surface_dt],
-                                           combined=False)  # Save order
-        surface = surface_dt[1]
-        surfaces_edges[surface] = list()
-        surfaces_points[surface] = list()
-        for edge_dt in edges_dts:
-            edge = abs(edge_dt[1])
-            surfaces_edges[surface].append(edge)
-            edges.add(edge)
-            points_dts = gmsh.model.getBoundary([edge_dt],
-                                                combined=False)  # Save order
-            p0 = points_dts[0][1]
-            p1 = points_dts[1][1]
-            if p0 not in surfaces_points[surface]:
-                surfaces_points[surface].append(p0)
-            if p1 not in surfaces_points[surface]:
-                surfaces_points[surface].append(p1)
-    # pprint(surfaces_points)
-    min_point = min(min(x) for x in surfaces_points.values())
-    first_point = min_point
-    diagonal_surfaces = list()
-    for k, v in surfaces_points.items():
-        if first_point not in v:
-            diagonal_surfaces.append(k)
-    diagonal_point = None
-    diagonal_point_set = set()
-    for s in diagonal_surfaces:
-        diagonal_point_set.update(set(surfaces_points[s]))
-    for s in diagonal_surfaces:
-        diagonal_point_set.intersection_update(set(surfaces_points[s]))
-    for p in diagonal_point_set:
-        diagonal_point = p
-    circular_permutations = {
-        0: [0, 1, 2, 3],
-        1: [3, 0, 1, 2],
-        2: [2, 3, 0, 1],
-        3: [1, 2, 3, 0]
-    }
-    for k, v in surfaces_points.items():
-        if first_point in v:
-            point = first_point
-        else:
-            point = diagonal_point
-        for p in circular_permutations.values():
-            new_v = [v[x] for x in p]
-            if new_v[0] == point:
-                surfaces_points[k] = new_v
-                break
-    # pprint(surfaces_points)
-    edges_groups = dict()
-    groups_edges = dict()
-    for i in range(3):
-        groups_edges[i] = list()
-        start_edge = None
-        for e in edges:
-            if e not in edges_groups:
-                start_edge = e
-                break
-        edges_groups[start_edge] = i
-        groups_edges[i].append(start_edge)
-        start_edge_surfaces = list()
-        for k, v in surfaces_edges.items():
-            if start_edge in v:
-                start_edge_surfaces.append(k)
-        get_opposite_edge_index = {
-            0: 2,
-            1: 3,
-            2: 0,
-            3: 1
-        }
-        opposite_edge = None
-        for s in start_edge_surfaces:
-            surface_edges = surfaces_edges[s]
-            start_edge_index = surface_edges.index(start_edge)
-            opposite_edge_index = get_opposite_edge_index[start_edge_index]
-            opposite_edge = surface_edges[opposite_edge_index]
-            edges_groups[opposite_edge] = i
-            groups_edges[i].append(opposite_edge)
-        for k, v in surfaces_edges.items():
-            if k not in start_edge_surfaces:
-                if opposite_edge in v:
-                    last_opposite_edge_index = v.index(opposite_edge)
-                    diagonal_edge_index = get_opposite_edge_index[
-                        last_opposite_edge_index]
-                    diagonal_edge = v[diagonal_edge_index]
-                    edges_groups[diagonal_edge] = i
-                    groups_edges[i].append(diagonal_edge)
-                    break
-    # pprint(edges_groups)
-    # pprint(groups_edges)
-    edges_lengths = get_volume_edges_lengths(volume)
-    groups_min_lengths = dict()
-    for group, edges in groups_edges.items():
-        lengths = [edges_lengths[x] for x in edges]
-        groups_min_lengths[group] = min(lengths)
-    # pprint(groups_min_lengths)
-    min_length = min(groups_min_lengths.values())
-    # number of nodes
-    groups_n_nodes = dict()
-    for group, length in groups_min_lengths.items():
-        a = max(c * length / min_length, 1)
-        n_nodes = int(min_edge_nodes * a)
-        groups_n_nodes[group] = n_nodes
-    # correct number of nodes from already structured edges
-    for edge, group in edges_groups.items():
-        if edge in structured_edges:
-            groups_n_nodes[group] = structured_edges[edge]
-    # pprint(groups_n_nodes)
-    # Structure
-    for edge, group in edges_groups.items():
-        if edge not in structured_edges:
-            n_nodes = groups_n_nodes[group]
-            gmsh.model.mesh.setTransfiniteCurve(edge, n_nodes, "Progression", 1)
-            structured_edges[edge] = n_nodes
-    for surface, points in surfaces_points.items():
-        if surface not in structured_surfaces:
-            gmsh.model.mesh.setTransfiniteSurface(surface, cornerTags=points)
-            structured_surfaces.add(surface)
-    gmsh.model.mesh.setTransfiniteVolume(volume)
-
-
-def check_file(path):
-    """
-    Check path on the existing file in the order:
-    0. If file at absolute path
-    1. Else if file at relative to current working directory path
-    2. Else if file at relative to running script directory path
-    3. Else if file at relative to real running script directory path
-    (with eliminating all symbolics links)
-    -1. Else no file
-    :param str path:
-    :return dict: {'type': int, 'path': str}
-    """
-    # Expand path
-    path_expand_vars = os.path.expandvars(path)
-    path_expand_vars_user = os.path.expanduser(path_expand_vars)
-    # Get directories
-    wd_path = os.getcwd()
-    script_dir_path = os.path.dirname(os.path.abspath(__file__))
-    # Set paths to file check
-    clear_path = path_expand_vars_user
-    rel_wd_path = os.path.join(wd_path, path_expand_vars_user)
-    rel_script_path = os.path.join(script_dir_path, path_expand_vars_user)
-    real_rel_script_path = os.path.realpath(rel_script_path)
-    # Check on file:
-    result = dict()
-    if os.path.isfile(clear_path):
-        result['type'] = 0
-        result['path'] = clear_path
-    elif os.path.isfile(rel_wd_path):
-        result['type'] = 1
-        result['path'] = rel_wd_path
-    elif os.path.isfile(rel_script_path):
-        result['type'] = 2
-        result['path'] = rel_script_path
-    elif os.path.isfile(real_rel_script_path):
-        result['type'] = 3
-        result['path'] = real_rel_script_path
-    else:  # No file
-        result['type'] = -1
-        result['path'] = path
-    return result
-
-
-def rotation_matrix(axis, theta, deg=True):
-    """
-    Return the rotation matrix associated with counterclockwise rotation about
-    the given axis by theta degrees.
-    """
-    theta = np.radians(theta) if deg else theta
-    axis = np.array(axis)
-    axis = axis / np.sqrt(np.dot(axis, axis))
-    a = np.cos(0.5 * theta)
-    b, c, d = -axis * np.sin(0.5 * theta)
-    aa, bb, cc, dd = a * a, b * b, c * c, d * d
-    bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
-    return np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
-                     [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
-                     [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
-
-
-def transform(ps, data, mask=None, deg=True):
-    mask = mask if mask is not None else np.zeros_like(ps)
-    mps = np.ma.array(ps, mask=mask)
-    if len(data) == 7:  # rotation around dir by angle relative to origin
-        origin, direction, angle = data[:3], data[3:6], data[6]
-        m = rotation_matrix(direction, angle, deg)
-        lps = mps - origin  # local coordinates relative to origin
-        mps = np.ma.dot(lps, m.T)
-        mps = np.ma.add(mps, origin)
-    elif len(data) == 4:  # rotation about dir by angle relative to (0, 0, 0)
-        direction, angle = data[:3], data[3]
-        m = rotation_matrix(direction, angle, deg)
-        mps = np.ma.dot(mps, m.T)
-    elif len(data) == 3:  # displacement
-        displacement = data[:3]
-        mps = np.ma.add(mps, displacement)
-    else:
-        raise ValueError(data)
-    ps = mps.filled(ps)
-    return ps
-
-
-def transform_transform(t, data, deg=True):
-    if len(t) == 3:  # displacement
-        return list(transform([t[:3]], data, deg=deg)[0])
-    elif len(t) == 4:  # rotation direction, angle
-        return list(transform([t[:3]], data, deg=deg)[0]) + transform[4]
-    elif len(t) == 7:  # rotation origin, direction, angle
-        return list(transform([t[:3]], data, deg=deg)[0]) \
-               + list(transform([t[3:6]], data, deg=deg)[0]) + t[6]
-    else:
-        raise ValueError(t)
-
-
-def transform_transforms(ts, data, deg=True):
-    return [transform_transform(t, data, deg) for t in ts]
-
-
-def cylindrical_to_cartesian(cs, deg=True):
-    """
-    [[x, y, z], ...], [[r, phi, z], ...] or [[r, phi, theta], ...], where
-    x, y, z  (inf, inf),
-    r - radius [0, inf),
-    phi - azimuthal angle [0, 360) (counterclockwise from X to Y),
-    theta - polar angle [0, 180] [from top to bottom, i.e XY-plane is 90]
-    """
-    if deg:
-        return [cs[0] * np.cos(np.radians(cs[1])),
-                cs[0] * np.sin(np.radians(cs[1])), cs[2]]
-    else:
-        return [cs[0] * np.cos(cs[1]), cs[0] * np.sin(cs[1]), cs[2]]
-
-
-def toroidal_to_cartesian(cs, deg=True):
-    """
-    [r, phi, theta, r2] -> [x, y, z]
-    r - inner radius (r < r2)
-    phi - inner angle [0-360]
-    theta - outer angle [0-360]
-    r2 - outer radius
-    """
-    r, phi, theta, r2 = cs[:4]
-    if deg:
-        phi, theta = np.radians(phi), np.radians(theta)
-    return [r2 * np.cos(theta) + r * np.cos(phi) * np.cos(theta),
-            r2 * np.sin(theta) + r * np.cos(phi) * np.sin(theta),
-            r * np.sin(phi)]
-
-
-def tokamak_to_cartesian(cs, deg=True):
-    """
-    [r, phi, theta, r2, kxy, kz]
-    r - inner radius (r < r2)
-    phi - inner angle [0-360]
-    theta - outer angle [0-360]
-    r2 - outer radius
-    kxy - inner radius XY scale coefficient in positive outer radius direction
-    kz - inner radius Z scale coefficient
-    """
-    r, phi, theta, r2, kxy, kz = cs[:6]
-    if deg:
-        phi, theta = np.radians(phi), np.radians(theta)
-    if 0 <= phi <= 0.5 * np.pi or 1.5 * np.pi <= phi <= 2 * np.pi:
-        return [
-            r2 * np.cos(theta) + kxy * r * np.cos(phi) * np.cos(theta),
-            r2 * np.sin(theta) + kxy * r * np.cos(phi) * np.sin(theta),
-            kz * r * np.sin(phi)]
-    else:
-        return [
-            r2 * np.cos(theta) + r * np.cos(phi) * np.cos(theta),
-            r2 * np.sin(theta) + r * np.cos(phi) * np.sin(theta),
-            kz * r * np.sin(phi)]
-
-
-def spherical_to_cartesian(cs, deg=True):
-    """
-    [[x, y, z], ...], [[r, phi, z], ...] or [[r, phi, theta], ...], where
-    x, y, z  (inf, inf),
-    r - radius [0, inf),
-    phi - azimuthal angle [0, 360) (counterclockwise from X to Y),
-    theta - polar angle [0, 180] [from top to bottom, i.e XY-plane is 90]
-    """
-    if deg:
-        return [
-            cs[0] * np.cos(np.radians(cs[1])) * np.sin(np.radians(cs[2])),
-            cs[0] * np.sin(np.radians(cs[1])) * np.sin(np.radians(cs[2])),
-            cs[0] * np.cos(np.radians(cs[2]))]
-    else:
-        return [cs[0] * np.cos(cs[1]) * np.sin(cs[2]),
-                cs[0] * np.sin(cs[1]) * np.sin(cs[2]),
-                cs[0] * np.cos(cs[2])]
-
-
-def cartesian_to_cartesian(cs, deg=True):
-    return cs[:3]
-
-
-def cell_to_local(cs, deg=True):
-    x, y, z, xc, yc, zc, x0, x1, y0, y1, z0, z1 = cs
-    return [x0 + x * (x1 - x0), y0 + y * (y1 - y0), z0 + z * (z1 - z0)]
-
-
-coordinates_to_coordinates_map = {
-    ('cylindrical', 'cartesian'): cylindrical_to_cartesian,
-    ('spherical', 'cartesian'): spherical_to_cartesian,
-    ('cartesian', 'cartesian'): cartesian_to_cartesian,
-    ('toroidal', 'cartesian'): toroidal_to_cartesian,
-    ('tokamak', 'cartesian'): tokamak_to_cartesian,
-    ('cell', 'local'): cell_to_local
-}
-
-
-def transform_to_transform(t, cs0, cs1, c=None):
-    f = coordinates_to_coordinates_map[(cs0, cs1)]
-    if c is not None:
-        if len(t) == 3:  # displacement
-            return f(t + c)
-        elif len(t) == 4:  # rotation direction, angle
-            return f(t[:3] + c) + [t[3]]
-        elif len(t) == 7:  # rotation origin, direction, angle
-            return f(t[:3] + c) + f(t[3:6] + c) + [t[6]]
-        else:
-            raise ValueError(t)
-    else:
-        if len(t) == 3:  # displacement
-            return f(t)
-        elif len(t) == 4:  # rotation direction, angle
-            return f(t[:3]) + [t[3]]
-        elif len(t) == 7:  # rotation origin, direction, angle
-            return f(t[:3]) + f(t[3:6]) + [t[6]]
-        else:
-            raise ValueError(t)
-
-
-def transforms_to_transforms(ts, cs0, cs1, cs=None):
-    if cs is None:
-        return [transform_to_transform(t, cs0, cs1) for t in ts]
-    else:
-        return [transform_to_transform(t, cs0, cs1, c) for t, c in zip(ts, cs)]
-
-
-def coordinates_to_coordinates(ps, cs0, cs1):
-    f = coordinates_to_coordinates_map[(cs0, cs1)]
-    return [f(x) for x in ps]
-
-
-def parse_indexing(cs, coordinates_type):
-    """
-    Parse grid coordinates indexing
-    """
-    new_cs = []  # new coordinates
-    n2o = {}  # new to old local item map
-    ni = 0  # new index
-    oi = 0  # old index
-    for i, c in enumerate(cs):
-        if isinstance(c, (int, float)):
-            if coordinates_type == 'direct':  # Divide dc interval into nc parts
-                new_cs.append(c)
-                if i != len(cs) - 1:  # skip last coordinate
-                    n2o[ni] = oi
-                    ni += 1
-                    oi += 1
-            elif coordinates_type == 'delta':
-                new_cs.append(c)
-                n2o[ni] = oi
-                ni += 1
-                oi += 1
-            else:
-                raise ValueError(coordinates_type)
-        elif isinstance(c, str):  # Advanced indexing
-            if coordinates_type == 'direct':  # Divide dc interval into nc parts
-                c0, c1, nc = cs[i - 1], cs[i + 1], int(c)
-                dc = (c1 - c0) / nc
-                for _ in range(nc - 1):
-                    new_cs.append(new_cs[ni - 1] + dc)
-                    n2o[ni] = oi - 1
-                    ni += 1
-            elif coordinates_type == 'delta':
-                dc, nc = cs[i - 1], int(c)  # Copy dc interval nc times
-                for _ in range(nc):
-                    new_cs.append(dc)
-                    n2o[ni] = oi - 1
-                    ni += 1
-            else:
-                raise ValueError(coordinates_type)
-    return new_cs, n2o
-
-
-def rotation(ps, origin, direction, angle, **kwargs):
-    """Rotation of points around direction at origin by angle
-    Args:
-        ps:
-        origin:
-        direction:
-        angle:
-
-    Returns:
-        nps: (list of list of float or list of float): new point(s)
-    """
-    m = rotation_matrix(direction, angle)
-    lps = np.subtract(ps, origin)  # local coordinates relative to origin
-    return np.matmul(lps, m.T) + origin
-
-
-def affine(ps, origin, vs, **kwargs):
-    """Affine transformation of point(s) (y = Ax + b)
-    A - coordinate system basis vectors
-    b - coordinate system origin
-    x - old points
-    y - new points
-    Args:
-        ps: (list of list of float or list of float): point(s)
-        (number of points, old dim) or (old dim)
-        origin: (list of float): coordinate system origin (new dim)
-        vs: (list of list of float): coordinate system basis vectors
-        (old dim, new dim)
-    Returns:
-        nps: (list of list of float or list of float): new point(s)
-    """
-    return np.matmul(ps, vs) + origin

@@ -9,8 +9,8 @@
   "data": {
     "class": "block.Layer",
     "layer": [
-      [".00035;1;10", ".0007;1;5", "0.00386;1;15:0:1.2", "0.00455;1;5"],
-      ["0.25;1;5", "0.5;1;5", "0.75;1;20", "1.0;1;10"],
+      [".00035;1;10", ".0007;1;5", "0.0038;1;17", "0.00386;1;5", "0.00455;1;9"],
+      ["0.25;1;15", "0.5;1;30:0:0.95", "0.75;1;20", "1.0;1;10"],
     {"class": "coordinate_system.Path",
         "curves": [
           ["line", [[0, 0, 0], [0, 0, 0.125]]],
@@ -28,27 +28,28 @@
         "do_normalize": false
       }],
     "layer_curves": [
-      ["line", "circle_arc", "circle_arc", "circle_arc"],
+      ["line", "circle_arc", "circle_arc", "circle_arc", "circle_arc"],
       ["line", "line", "line", "line"]
     ],
     "items_zone": [
       "Gap",
       ["Tablet", ["Internal", "Internal", "Internal", "Internal", "Bottom", "Z"]],
+      ["Gas", ["NX", "X", "NY", "Y", "Bottom", "Z"]],
       ["Shell", ["ShellL", "ShellL", "ShellL", "ShellL", "Bottom", "Z"]],
       ["Sleeve", ["SleeveL1", "SleeveL1", "SleeveL1", "SleeveL1", "Internal", "SleeveZ"]],
       ["Sleeve", ["SleeveL2", "SleeveL2", "SleeveL2", "SleeveL2", "NZ", "Top"]]
     ],
     "items_zone_map": [
-      [0, 0, 1, 2],
-      [0, 0, 1, 2],
-      [3, 3, 3, 3],
-      [4, 4, 4, 4]
+      [0, 0, 1, 2, 3],
+      [0, 0, 1, 2, 3],
+      [4, 4, 4, 4, 4],
+      [5, 5, 5, 5, 5]
     ],
     "items_do_register_map": [
-      [0, 0, 1, 1],
-      [0, 0, 1, 1],
-      [1, 1, 1, 1],
-      [1, 1, 1, 1]
+      [0, 0, 1, 1, 1],
+      [0, 0, 1, 1, 1],
+      [1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1]
     ],
     "items_do_quadrate_map": 1
   }

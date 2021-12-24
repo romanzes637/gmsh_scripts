@@ -1,0 +1,79 @@
+{
+  "metadata": {
+    "issues": ["Issue: PCL Error: A segment and a facet intersect at point. Solution: Set appropriate mesh size or set MeshSizeFromCurvature = 12 See: https://gitlab.onelab.info/gmsh/gmsh/-/issues/766"],
+    "run": {
+      "factory": "geo",
+      "log_level": "DEBUG",
+      "log_path": null,
+      "strategy": {
+        "class": "strategy.Base",
+        "boolean_function": "boolean.BooleanAllBlock",
+        "structure_function": "structure.StructureBlock",
+        "quadrate_function": "quadrate.NoQuadrate",
+        "size_function": "size.NoSize",
+        "zone_function": {
+          "class": "zone.DirectionByInterval",
+          "dims_interfaces": []},
+        "optimize_function": {
+          "class": "optimize.OptimizeMany",
+          "optimizers": [["", 1]],
+          "force": false,
+          "threshold": 0.3},
+        "refine_function": {
+          "class": "refine.RefineBySplit",
+          "n_iterations": 0},
+        "smooth_function": {
+          "class": "smooth.SmoothByDim",
+          "dims": [0, 1, 2, 3],
+          "n_iterations": 0,
+          "smooth_normals": false,
+          "smooth_cross_field": false}
+      },
+      "options": {
+        "Geometry.OCCParallel": 1,
+        "Mesh.Algorithm": 6,
+        "Mesh.Algorithm3D": 1,
+        "Mesh.SubdivisionAlgorithm": 2,
+        "Mesh.RecombinationAlgorithm": 1,
+        "Mesh.RecombineAll": 0,
+        "Mesh.RecombineOptimizeTopology": 5,
+        "Mesh.Recombine3DAll": 0,
+        "Mesh.Recombine3DLevel": 0,
+        "Mesh.Recombine3DConformity": 0,
+        "Mesh.MeshSizeFactor": 1,
+        "Mesh.MeshSizeMin": 0,
+        "Mesh.MeshSizeMax": 1e+22,
+        "Mesh.MeshSizeFromPoints": 0,
+        "Mesh.MeshSizeExtendFromBoundary": 0,
+        "Mesh.MeshSizeFromCurvature": 12,
+        "Mesh.MeshSizeFromCurvatureIsotropic": 0,
+        "Mesh.MeshSizeFromParametricPoints": 0,
+        "Mesh.MinimumCircleNodes": 7,
+        "Mesh.MinimumCurveNodes": 3
+      }
+    }
+  },
+  "data": {
+    "class": "block.Block",
+    "do_register": 0,
+    "children": [
+      "input/experiment_sweden_rock.json",
+      "input/experiment_sweden_tunnel.json",
+      "input/experiment_sweden_borehole.json",
+      "input/experiment_sweden_borehole.json",
+      "input/experiment_sweden_heater.json"
+    ],
+    "children_transforms": [
+      [],
+      [[0, 0, 0, 0, 1, 0, -90], [28.5, 0, 0]],
+      [[1.375, 0, -10.75]],
+      [[-1.375, 0, -10.75]],
+      [[0.5, 1.9, -10.75]]
+    ],
+    "children_items_zone": [["Rock"], ["Tunnel"], ["Borehole1"], ["Borehole2"],
+      ["Heater1"]],
+    "children_items_boolean_level_map": [0, 2, 1, 1, 1],
+    "children_items_do_unregister_boolean_map": [0, 0, 0, 0, 0],
+    "children_items_quadrate_map": [0, 0, 0, 0, 0]
+  }
+}

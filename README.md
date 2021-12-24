@@ -1,7 +1,8 @@
 ![readme](/images/readme.png)
 
 # gmsh_scripts
-Mixed (structured/unstructured, tetrahedral/hexahedral) MultiBlock 3D mesh generator with boolean operations based on [gmsh](https://gmsh.info/)
+3D structured/unstructured/tetrahedral/hexahedral multi-block mesh generator 
+with boolean operations based on [gmsh](https://gmsh.info/)
 
 ## Installation
 1. Download and install python https://www.python.org/downloads/
@@ -51,6 +52,8 @@ Section `"arguments"` contains input data for Complex "Cylinder":
 * `"transfinite_h_data"` - data for structured mesh by height layers. Size rate is from bottom to top
 * `"transfinite_phi_data"` - data for circumferential structured mesh
 
+
+
 ### Unstructured tetrahedral mesh
 ```shell
 python complex_factory -i input/test_cylinder_simple.json
@@ -73,7 +76,7 @@ python complex_factory -i input/test_cylinder_simple.json -tr
 
 ## [User manual (In Russian)](https://docs.google.com/document/d/166MPpgo0n661rmQZg7IS_MhNxlCueseOpwgqPBXQ8hI/edit?usp=sharing)
 
-## [Screencasts (In Russian)](https://drive.google.com/drive/folders/19GORaa3Ph5f3IRG8sOTtKvHMmjgZvNHC?usp=sharing)
+## [Video tutorials (In Russian)](https://youtube.com/playlist?list=PLNPHDKBRjaZmMzjxtoZVzeWSHZB-x9ayi)
 
 ## Cite
 
@@ -89,3 +92,5 @@ Roman Butov
 https://github.com/romanzes637
 
 romanbutov637@gmail.com
+
+Made in IBRAE RAN ([Nuclear Safety Institute of the Russian Academy of Sciences](http://en.ibrae.ac.ru/))
