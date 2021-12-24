@@ -1,4 +1,4 @@
-![readme](/images/readme.png)
+![readme](/images/readme.jpg)
 
 # gmsh_scripts
 3D structured/unstructured/tetrahedral/hexahedral multi-block mesh generator 
