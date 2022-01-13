@@ -513,6 +513,24 @@ class DataTree:
         return b_sls, b_s2sl, i_sls, i_s2sl
 
 
+def plot_quality():
+    gmsh.plugin.setNumber('AnalyseMeshQuality', 'JacobianDeterminant', 1)
+    gmsh.plugin.setNumber('AnalyseMeshQuality', 'IGEMeasure', 1)
+    gmsh.plugin.setNumber('AnalyseMeshQuality', 'ICNMeasure', 1)
+    gmsh.plugin.setNumber('AnalyseMeshQuality', 'Recompute', 1)
+    gmsh.plugin.setNumber('AnalyseMeshQuality', 'DimensionOfElements', -1)
+    gmsh.plugin.run('AnalyseMeshQuality')
+    logging.info('Mesh quality')
+    log = gmsh.logger.get()
+    for message in log:
+        if any([message.startswith(x)
+                for x in ['Info: minJ', 'Info: minJ/maxJ',
+                          'Info: IGE', 'Info: ICN']]):
+            logging.info(message)
+        else:
+            logging.debug(message)
+
+
 def plot_statistics():
     logging.info('Mesh statistics')
     types_names = {

@@ -5,7 +5,7 @@ import gmsh
 
 from registry import reset as reset_registry
 from registry import synchronize as synchronize_registry
-from support import timeit, plot_statistics
+from support import timeit, plot_statistics, plot_quality
 from boolean import BooleanAllBlock
 from zone import DirectionByNormal
 from zone import Block as BlockZone
@@ -100,28 +100,14 @@ class Base(Strategy):
             timeit(gmsh.model.mesh.generate)(3)
             timeit(self.refine_function)()
             timeit(self.optimize_function)()
+            plot_statistics()
+            plot_quality()
             for f in self.output_formats:
                 if f != 'geo_unrolled':
                     path = f'{self.output_path}.{f}'
                     logging.info(f'Writing {path}')
                     timeit(gmsh.write)(path)
-            # Quality
-            gmsh.plugin.setNumber('AnalyseMeshQuality', 'JacobianDeterminant', 1)
-            gmsh.plugin.setNumber('AnalyseMeshQuality', 'IGEMeasure', 1)
-            gmsh.plugin.setNumber('AnalyseMeshQuality', 'ICNMeasure', 1)
-            gmsh.plugin.setNumber('AnalyseMeshQuality', 'Recompute', 1)
-            gmsh.plugin.setNumber('AnalyseMeshQuality', 'DimensionOfElements', -1)
-            gmsh.plugin.run('AnalyseMeshQuality')
-            log = gmsh.logger.get()
-            for message in log:
-                if any([message.startswith(x)
-                        for x in ['Info: minJ', 'Info: minJ/maxJ',
-                                  'Info: IGE', 'Info: ICN']]):
-                    logging.info(message)
-                else:
-                    logging.debug(message)
             gmsh.logger.stop()
-            plot_statistics()
         else:
             raise ValueError(self.factory)
         gmsh.model.remove()
@@ -152,6 +138,8 @@ class Fast(Strategy):
             logging.info(f'Writing {path}')
             timeit(gmsh.write)(path)
         timeit(gmsh.model.mesh.generate)(3)
+        plot_statistics()
+        plot_quality()
         for f in self.output_formats:
             if f != 'geo_unrolled':
                 path = f'{self.output_path}.{f}'
@@ -160,7 +148,6 @@ class Fast(Strategy):
         log = gmsh.logger.get()
         for x in log:
             logging.info(x)
-        plot_statistics()
         gmsh.logger.stop()
         gmsh.model.remove()
 
@@ -212,28 +199,14 @@ class NoBoolean(Strategy):
         timeit(gmsh.model.mesh.generate)(3)
         timeit(self.refine_function)()
         timeit(self.optimize_function)()
+        plot_statistics()
+        plot_quality()
         for f in self.output_formats:
             if f != 'geo_unrolled':
                 path = f'{self.output_path}.{f}'
                 logging.info(f'Writing {path}')
                 timeit(gmsh.write)(path)
-        # Quality
-        gmsh.plugin.setNumber('AnalyseMeshQuality', 'JacobianDeterminant', 1)
-        gmsh.plugin.setNumber('AnalyseMeshQuality', 'IGEMeasure', 1)
-        gmsh.plugin.setNumber('AnalyseMeshQuality', 'ICNMeasure', 1)
-        gmsh.plugin.setNumber('AnalyseMeshQuality', 'Recompute', 1)
-        gmsh.plugin.setNumber('AnalyseMeshQuality', 'DimensionOfElements', -1)
-        gmsh.plugin.run('AnalyseMeshQuality')
-        log = gmsh.logger.get()
-        for message in log:
-            if any([message.startswith(x)
-                    for x in ['Info: minJ', 'Info: minJ/maxJ',
-                              'Info: IGE', 'Info: ICN']]):
-                logging.info(message)
-            else:
-                logging.debug(message)
         gmsh.logger.stop()
-        plot_statistics()
         gmsh.model.remove()
 
 
