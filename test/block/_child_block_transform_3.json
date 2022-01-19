@@ -1,0 +1,11 @@
+{
+  "data": {
+	"class": "block.Layer",
+    "layer": [[0.5, 1.50],[0.5]],
+    "items_zone": ["L3"],
+    "items_children": [["_item_block_transform_1.json"]],
+    "items_children_transforms": [[[[0, 0, 0.1]]]],
+    "children": ["_child_block_transform_4.json"],
+    "children_transforms": [[[0, 0, 1]]]
+  }
+}

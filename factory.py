@@ -37,6 +37,8 @@ class Factory:
         str2objs.append({f'curve_loop.{k}': v for k, v in str2obj.items()})
         from layer import str2obj
         str2objs.append({f'block.{k}': v for k, v in str2obj.items()})
+        from quarter_layer import str2obj
+        str2objs.append({f'block.{k}': v for k, v in str2obj.items()})
         from matrix import str2obj
         str2objs.append({f'block.{k}': v for k, v in str2obj.items()})
         from point import str2obj

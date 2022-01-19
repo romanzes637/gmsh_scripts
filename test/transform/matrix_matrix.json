@@ -1,0 +1,18 @@
+{
+  "metadata": {
+    "run": {
+      "factory": "geo",
+      "log_level": "DEBUG",
+      "log_path": null,
+      "output_formats": []
+    }
+  },
+  "data": {
+    "class": "block.Matrix",
+    "items_do_register_map": 0,
+    "matrix": [[5, 10, 15], [0, 45, 90], [0, 45, 90],
+      "coordinate_system.Cylindrical"],
+    "items_self_transforms": [["transform.CylindricalToCartesian"]],
+    "items_children": [["_matrix_child.json"]]
+  }
+}

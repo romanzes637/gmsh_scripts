@@ -1,0 +1,25 @@
+{
+  "data": {
+    "class": "block.Layer",
+    "layer": [[0.4, 1.2], [1],
+      {"class": "coordinate_system.Path",
+        "curves": [
+          ["line", [[-1, 0, 0.5], [-0.5, 0, 1]]],
+          ["line", [[-0.5, 0, 1], [0.5, 0, 3]]],
+          ["line", [[0.5, 0, 3], [3, 0, 8]]]
+        ],
+        "orientations": [
+          [[1, 0, 30], "coordinate_system.Spherical"],
+          [[1, 0, 20], "coordinate_system.Spherical"],
+          [[1, 0, 30], "coordinate_system.Spherical"],
+          [[1, 0, 45], "coordinate_system.Spherical"]
+        ]
+      }],
+    "layer_curves": [["circle_arc", "circle_arc"], ["line"]],
+	"items_boolean_level_map": [1, 0],
+    "items_do_register_map": [1, 1],
+    "items_do_unregister_map": [1, 0],
+    "items_do_unregister_boolean_map": [1, 0],
+    "children": ["_child_block_2_2_2.json"]
+  }
+}

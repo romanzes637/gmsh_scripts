@@ -1,0 +1,15 @@
+{
+  "metadata": {
+    "run": {
+      "factory": "geo",
+      "log_level": "DEBUG",
+      "log_path": null,
+      "output_formats": ["geo_unrolled"]
+    }
+  },
+  "data": {
+    "class": "block.QuarterLayer",
+    "layer": [[1, 2], [1, 2]],
+    "layer_curves": [["line", "circle_arc"], ["line", "line"]]
+  }
+}

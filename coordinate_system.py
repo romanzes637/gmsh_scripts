@@ -314,7 +314,7 @@ class Path(CoordinateSystem):
         return cs
 
 
-class LayerXY(CoordinateSystem):
+class Layer(CoordinateSystem):
     """Different layers by X, Y and Z axis
 
     Args:
@@ -335,17 +335,54 @@ class LayerXY(CoordinateSystem):
             [name_nz_1, name_nz_2, ..., name_nz_NNZ]],
             where N - number of layers,
             name - curve name (see py:class:`curve.Curve` class)
-        layers_types (list): [type_x, type_y, type_nx, type_ny, type_z, type_nz],
+        layers_types (list):
+            [[type_x_1, type_x_2,  ..., type_x_NX],
+             [type_y_1,  type_y_2,  ..., type_y_NY],
+             [type_z_1,  type_z_2,  ..., type_z_NZ]],
+             [type_nz_1, type_nz_2, ..., type_nz_NNZ]],
             where type (str): 'in' - inscribed, 'out' - circumscribed.
     """
 
     def __init__(self, origin=np.zeros(3), layers=None, layers_curves=None,
                  layers_types=None, **kwargs):
         super().__init__(dim=3, origin=origin, **kwargs)
-        self.layers = [x for x in layers]
-        self.layers[2] = [-x for x in layers[2]]  # NX
-        self.layers[3] = [-x for x in layers[3]]  # NY
-        self.layers[5] = [-x for x in layers[5]]  # NZ
+        self.layers = [x for x in layers] if layers is not None else [[] for _ in range(6)]
+        self.layers[2] = [-x for x in self.layers[2]]  # NX
+        self.layers[3] = [-x for x in self.layers[3]]  # NY
+        self.layers[5] = [-x for x in self.layers[5]]  # NZ
+        self.layers_curves = layers_curves
+        self.layers_types = layers_types
+
+
+class QuarterLayer(CoordinateSystem):
+    """Quarter of Layer by +X and +Y directions
+
+    Args:
+        layers (list):
+            [[c_x_1, c_x_2,  ..., c_x_NX],
+             [c_y_1,  c_y_2,  ..., c_y_NY],
+             [c_z_1,  c_z_2,  ..., c_z_NZ]],
+             [c_nz_1, c_nz_2, ..., c_nz_NNZ]],
+            where N - number of layers, c (float): coordinate (0, inf).
+        layers_curves (list):
+            [[name_x_1, name_x_2,  ..., name_x_NX],
+             [name_y_1,  name_y_2,  ..., name_y_NY],
+             [name_z_1,  name_z_2,  ..., name_z_NZ]],
+             [name_nz_1, name_nz_2, ..., name_nz_NNZ]],
+            where N - number of layers,
+            name - curve name (see py:class:`curve.Curve` class)
+        layers_types (list):
+            [[type_x_1, type_x_2,  ..., type_x_NX],
+             [type_y_1,  type_y_2,  ..., type_y_NY],
+             [type_z_1,  type_z_2,  ..., type_z_NZ]],
+             [type_nz_1, type_nz_2, ..., type_nz_NNZ]],
+            where type (str): 'in' - inscribed, 'out' - circumscribed.
+
+    """
+    def __init__(self, origin=np.zeros(3), layers=None, layers_curves=None,
+                 layers_types=None, **kwargs):
+        super().__init__(dim=3, origin=origin, **kwargs)
+        self.layers = [x for x in layers] if layers is not None else [[] for _ in range(4)]
         self.layers_curves = layers_curves
         self.layers_types = layers_types
 
@@ -371,6 +408,6 @@ str2obj = {
     'blo': Block,
     Path.__name__: Path,
     'pth': Path,
-    LayerXY.__name__: LayerXY,
-    'lxy': Path
+    Layer.__name__: Layer,
+    QuarterLayer.__name__: QuarterLayer
 }

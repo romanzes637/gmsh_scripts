@@ -1,0 +1,14 @@
+{
+  "metadata": {
+    "run": {
+      "factory": "geo",
+      "log_level": "DEBUG",
+      "log_path": null,
+      "output_formats": []
+    }
+  },
+  "data": {
+    "class": "block.Matrix",
+    "matrix": [[-1, 1], [-1, 1], [-1, 1]]
+  }
+}

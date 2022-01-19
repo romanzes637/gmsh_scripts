@@ -5,7 +5,7 @@ import numpy as np
 
 from point import Point
 from coordinate_system import CoordinateSystem, Cartesian, Cylindrical, \
-    Spherical, Toroidal, Tokamak, Block, Path, Affine, LayerXY
+    Spherical, Toroidal, Tokamak, Block, Path, Affine, Layer, QuarterLayer
 
 from registry import POINT_TOL
 
@@ -380,7 +380,7 @@ class PathToCartesian(Transform):
         return p
 
 
-class LayerXYToCartesian(Transform):
+class LayerToCartesian(Transform):
     def __init__(self, **kwargs):
         super().__init__(cs_to=Cartesian(), **kwargs)
 
@@ -388,7 +388,7 @@ class LayerXYToCartesian(Transform):
         p = super().__call__(p)
         if isinstance(p.coordinate_system, type(self.cs_to)):
             return p
-        if not isinstance(p.coordinate_system, LayerXY):
+        if not isinstance(p.coordinate_system, Layer):
             return p
         cs = p.coordinate_system
         px, py, pz = p.coordinates
@@ -438,7 +438,7 @@ class LayerXYToCartesian(Transform):
                                                 lt=lt_nx)
                 break
             elif np.isclose(py, lny0, atol=atol) and np.isclose(px, lnx, atol=atol):  # III sector X
-                logging.debug('III sector NX')
+                # logging.debug('III sector NX')
                 py, px = self.update_coordinate(p0=py, pn=px,
                                                 n0=n_ny, nn=n_nx,
                                                 l00=lny0, l0n=lny,
@@ -467,6 +467,62 @@ class LayerXYToCartesian(Transform):
                                                 l00=lny0, l0n=lny,
                                                 ln0=lx0, lnn=lx,
                                                 lt=lt_x)
+                break
+            else:
+                continue
+        p.coordinates = np.array([px, py, pz]) + cs.origin
+        p.coordinate_system = self.cs_to
+        return p
+
+    @staticmethod
+    def update_coordinate(p0, pn, n0, nn, l00, l0n, ln0, lnn, lt):
+        if n0 == 'circle_arc' and nn == 'circle_arc' and lt == 'in':
+            r = abs(pn)  # radius
+            p0 = np.sign(p0) * r / 2 ** 0.5
+            pn = np.sign(pn) * r / 2 ** 0.5
+        else:
+            p0 = l0n
+        return p0, pn
+
+
+class QuarterLayerToCartesian(Transform):
+    def __init__(self, **kwargs):
+        super().__init__(cs_to=Cartesian(), **kwargs)
+
+    def __call__(self, p):
+        p = super().__call__(p)
+        print(p)
+        if isinstance(p.coordinate_system, type(self.cs_to)):
+            return p
+        if not isinstance(p.coordinate_system, QuarterLayer):
+            return p
+        print('HERE')
+        cs = p.coordinate_system
+        px, py, pz = p.coordinates
+        n_layers = len(cs.layers[0])
+        lx0, ly0 = (cs.layers[i][0] for i in range(2))
+        atol = 10 ** -POINT_TOL
+        print(n_layers)
+        for j in range(n_layers):
+            print(j)
+            lx, ly = (cs.layers[i][j] for i in range(2))
+            n_x, n_y = (cs.layers_curves[i][j][0] for i in range(2))
+            lt_x, lt_y = (cs.layers_types[i][j] for i in range(2))
+            if np.isclose(py, ly0, atol=atol) and np.isclose(px, lx, atol=atol):  # I sector X
+                logging.debug('I sector X')
+                py, px = self.update_coordinate(p0=py, pn=px,
+                                                n0=n_y, nn=n_x,
+                                                l00=ly0, l0n=ly,
+                                                ln0=lx0, lnn=lx,
+                                                lt=lt_x)
+                break
+            elif np.isclose(px, lx0, atol=atol) and np.isclose(py, ly, atol=atol):  # I sector Y
+                logging.debug('I sector Y')
+                px, py = self.update_coordinate(p0=px, pn=py,
+                                                n0=n_x, nn=n_y,
+                                                l00=lx0, l0n=lx,
+                                                ln0=ly0, lnn=ly,
+                                                lt=lt_y)
                 break
             else:
                 continue
@@ -535,9 +591,8 @@ str2obj = {
     PathToCartesian.__name__: PathToCartesian,
     Path.__name__: PathToCartesian,
     'pat2car': PathToCartesian,
-    LayerXYToCartesian.__name__: LayerXYToCartesian,
-    'lxy2car': LayerXYToCartesian,
+    LayerToCartesian.__name__: LayerToCartesian,
     AnyAsSome.__name__: AnyAsSome,
-    'any1some': AnyAsSome,
-    CartesianToCartesianByBlock.__name__: CartesianToCartesianByBlock
+    CartesianToCartesianByBlock.__name__: CartesianToCartesianByBlock,
+    QuarterLayerToCartesian.__name__: QuarterLayerToCartesian
 }

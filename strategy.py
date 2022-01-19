@@ -82,7 +82,8 @@ class Base(Strategy):
             timeit(block.pre_unregister)()  # Must be after synchronize!
             timeit(self.zone_function)(block)  # Must be after unregister!
             timeit(block.unregister)()  # Must be after synchronize!
-            timeit(gmsh.write)(f'{self.model_name}.geo_unrolled')
+            if 'geo_unrolled' in self.output_formats:
+                timeit(gmsh.write)(f'{self.model_name}.geo_unrolled')
         elif self.factory == 'occ':
             timeit(self.boolean_function)(block)
             timeit(synchronize_registry)()
@@ -195,7 +196,8 @@ class NoBoolean(Strategy):
         timeit(block.pre_unregister)()  # Must be after synchronize!
         timeit(self.zone_function)(block)  # Must be after unregister!
         timeit(block.unregister)()  # Must be after synchronize!
-        timeit(gmsh.write)(f'{self.model_name}.geo_unrolled')
+        if 'geo_unrolled' in self.output_formats:
+            timeit(gmsh.write)(f'{self.model_name}.geo_unrolled')
         timeit(gmsh.model.mesh.generate)(3)
         timeit(self.refine_function)()
         timeit(self.optimize_function)()
