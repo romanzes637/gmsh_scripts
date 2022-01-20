@@ -3,9 +3,9 @@ import os
 import argparse
 import logging
 
-from support import check_on_file, LoggingDecorator, GmshDecorator, GmshOptionsDecorator
-from factory import FACTORY as FACTORY
-from factory import FactoryKeyError, FactoryValueError
+from src.support.support import check_on_file, LoggingDecorator, GmshDecorator, GmshOptionsDecorator
+from src.factory import FACTORY as FACTORY
+from src.factory import FactoryKeyError, FactoryValueError
 
 
 def init_walk(obj, prev_obj=None, prev_indices=None, prev_keys=None):
