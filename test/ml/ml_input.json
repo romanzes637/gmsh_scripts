@@ -1,0 +1,20 @@
+{
+  "metadata": {
+    "ml": {}
+  },
+  "data": {
+    "class": "ml.process.optimize.Optuna",
+    "processes": [
+      {"class": "ml.process.change.json.gmsh_scripts.Input",
+        "path": "_run_input.json",
+        "new_path": "_run_input_new.json",
+        "variables_map": {
+          "metadata": {"run": {
+            "factory": {"class": "ml.variable.Categorical", "name": "factory", "choices": ["geo", "occ"]},
+            "options": {
+              "Mesh.MeshSizeFactor": {"class": "ml.variable.Continuous", "name": "Mesh.MeshSizeFactor", "low": 0.8, "high": 1.2},
+              "Mesh.MeshSizeExtendFromBoundary": {"class": "ml.variable.Discrete", "name": "MeshSizeExtendFromBoundary", "low": 0, "high": 2, "num": 3}
+            }}}}}
+      ]
+  }
+}

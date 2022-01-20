@@ -3,6 +3,15 @@ import json
 from src.support.support import check_on_file
 
 
+class FactoryClassError(Exception):
+
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return str(self.value)
+
+
 class FactoryKeyError(Exception):
 
     def __init__(self, value):
@@ -67,6 +76,10 @@ class Factory:
         str2objs.append({f'refine.{k}': v for k, v in str2obj.items()})
         from src.smooth.smooth import str2obj
         str2objs.append({f'smooth.{k}': v for k, v in str2obj.items()})
+        from src.ml.process.factory import str2obj
+        str2objs.append({k: v for k, v in str2obj.items()})
+        from src.ml.variable.factory import str2obj
+        str2objs.append({k: v for k, v in str2obj.items()})
         # Make global str2obj and obj2str(s)
         str2obj, obj2str = {}, {}
         for s2o in str2objs:
@@ -81,7 +94,10 @@ class Factory:
 
     def __call__(self, obj):
         if isinstance(obj, dict):
-            key, args, kwargs = obj.pop('class'), [], obj
+            if 'class' in obj:
+                key, args, kwargs = obj.pop('class'), [], obj
+            else:
+                raise FactoryClassError(obj)
         elif isinstance(obj, list) and len(obj) > 1:
             key, args, kwargs = obj[0], obj[1:], {}
         elif isinstance(obj, str):
@@ -91,7 +107,10 @@ class Factory:
             else:  # obj is a path
                 with open(path) as f:
                     data = json.load(f)
-                key, args, kwargs = data.pop('class'), [], data
+                if 'class' in obj:
+                    key, args, kwargs = data.pop('class'), [], data
+                else:
+                    raise FactoryClassError(obj)
         else:
             raise FactoryValueError(obj)
         if isinstance(key, str) and key in self.str2obj:

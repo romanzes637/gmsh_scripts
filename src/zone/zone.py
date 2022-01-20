@@ -278,7 +278,6 @@ class DirectionByNormal(Zone):
             else:  # No volumes are unregistered
                 if dim == 2:  # Surface
                     if len(vs_us) == 1:  # Boundary
-                        print(e_dt, z)
                         dt2zs[e_dt] = [z]
                     elif len(vs_us) == 2:  # Interface
                         if 2 in self.dims_interfaces:

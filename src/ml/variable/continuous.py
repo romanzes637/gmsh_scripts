@@ -1,4 +1,5 @@
-from variable import Variable
+from src.ml.variable.variable import Variable
+import numpy as np
 
 
 class Continuous(Variable):
@@ -6,3 +7,6 @@ class Continuous(Variable):
         super().__init__(name=name)
         self.low = low
         self.high = high
+
+    def __call__(self, *args, **kwargs):
+        return np.random.uniform(self.low, self.high)
