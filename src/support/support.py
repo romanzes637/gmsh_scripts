@@ -567,10 +567,11 @@ def timeit(f):
     def wrapper(*args, **kwargs):
         t = time.perf_counter()
         out = f(*args, **kwargs)
-        try:
-            name = f.__name__
-        except Exception:
-            name = f.__class__.__name__
+        module = f.__module__
+        try:  # function
+            name = module + '.' + f.__name__
+        except Exception:  # class
+            name = module + '.' + f.__class__.__name__
         logging.info(f'{name} - {time.perf_counter() - t:.3f}s')
         return out
 

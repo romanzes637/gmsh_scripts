@@ -139,6 +139,8 @@ class Block:
         self.children = [] if children is None else children
         if children_transforms is None:
             children_transforms = [[] for _ in self.children]
+        if len(self.children) != len(children_transforms):
+            print(self.children, children_transforms)
         for i, t in enumerate(children_transforms):
             children_transforms[i] = self.parse_transforms(t, self)
         self.children_transforms = children_transforms

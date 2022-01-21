@@ -117,21 +117,11 @@ def parse_arguments():
     parser.add_argument('-o', '--output_path',
                         help='output file path without extension',
                         default=argparse.SUPPRESS)
-    parser.add_argument('-f', '--output_formats', nargs='*',
-                        help='output file extension(s)',
-                        default=argparse.SUPPRESS,
-                        choices=['auto', 'msh1', 'msh2', 'msh22', 'msh3',
-                                 'msh4', 'msh40', 'msh41', 'msh', 'unv', 'vtk',
-                                 'wrl', 'mail', 'stl', 'p3d', 'mesh', 'bdf',
-                                 'cgns', 'med', 'diff', 'ir3', 'inp', 'ply2',
-                                 'celum', 'su2', 'x3d', 'dat', 'neu', 'm', 'key'])
     parser.add_argument('-l', '--log_path', help='log file path',
                         default=argparse.SUPPRESS)
     parser.add_argument('-v', '--log_level', default=argparse.SUPPRESS,
                         choices=['CRITICAL', 'FATAL', 'ERROR', 'WARNING',
                                  'WARN', 'INFO', 'DEBUG', 'NOTSET'])
-    parser.add_argument('-g', '--factory', help='gmsh factory',
-                        default=argparse.SUPPRESS, choices=['geo', 'occ'])
     parser.add_argument('-s', '--strategy', default=argparse.SUPPRESS,
                         choices=[x for x in FACTORY.str2obj
                                  if isinstance(x, str)
@@ -171,17 +161,12 @@ def parse_arguments():
 
 def run(args):
     logging.info(f'args: {args}')
-    # Initialize
     top_kwargs = args['data']
     init_walk(top_kwargs)
-    # top_kwargs['path'] = args['input_path']
-    top_block = FACTORY(top_kwargs)
-    top_block()
-    # set_parent(top_block)
-    # Strategy
-    # init_walk(args['strategy'])
-    # strategy = FACTORY(args['strategy'])
-    # strategy(top_block)
+    top = FACTORY(top_kwargs)
+    top()
+    from pprint import pprint
+    pprint(top.get_state())
 
 
 if __name__ == '__main__':

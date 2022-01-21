@@ -115,21 +115,28 @@ class Matrix(Block):
         items_children = [None] if items_children is None else items_children
         items_children_map = Matrix.parse_matrix_items_map(
             items_children_map, 0, new2old_b2b, (int,))
-        # Items Children Transforms
+        # Items Children Transforms TODO bugs...
         if items_children_transforms is None:
             items_children_transforms = [None]
         items_children_transforms_map = Matrix.parse_matrix_items_map(
             items_children_transforms_map, 0, new2old_b2b, (int,))
         t = {"name": "CartesianToCartesianByBlock",
              "block_coordinates": [0, 0, 0]}
-        for i, ts in enumerate(items_children_transforms):
+        if len(items_children_transforms) == 1:
+            ts = items_children_transforms[0]
             if ts is not None:
-                new_ts = [[copy.deepcopy(t)] + x
-                          if x is not None else [copy.deepcopy(t)] for x in ts]
+                items_children_transforms[0] = [[copy.deepcopy(t)] + x
+                                                if x is not None else [copy.deepcopy(t)] for x in ts]
             else:
-                nc = len(items_children[i]) if items_children[i] is not None else 1
-                new_ts = [[copy.deepcopy(t)] for _ in range(nc)]
-            items_children_transforms[i] = new_ts
+                pass
+        else:
+            for i, ts in enumerate(items_children_transforms):
+                if ts is not None:
+                    new_ts = [[copy.deepcopy(t)] + x
+                              if x is not None else [copy.deepcopy(t)] for x in ts]
+                else:
+                    new_ts = ts
+                items_children_transforms[i] = new_ts
         # Items
         items = [Block(
             points=x,

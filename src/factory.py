@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 from src.support.support import check_on_file
 
@@ -76,9 +77,11 @@ class Factory:
         str2objs.append({f'refine.{k}': v for k, v in str2obj.items()})
         from src.smooth.smooth import str2obj
         str2objs.append({f'smooth.{k}': v for k, v in str2obj.items()})
-        from src.ml.process.factory import str2obj
+        from src.ml.action.factory import str2obj
         str2objs.append({k: v for k, v in str2obj.items()})
         from src.ml.variable.factory import str2obj
+        str2objs.append({k: v for k, v in str2obj.items()})
+        from src.ml.value.factory import str2obj
         str2objs.append({k: v for k, v in str2obj.items()})
         # Make global str2obj and obj2str(s)
         str2obj, obj2str = {}, {}
@@ -102,15 +105,15 @@ class Factory:
             key, args, kwargs = obj[0], obj[1:], {}
         elif isinstance(obj, str):
             result, path = check_on_file(obj)  # Check on path to file
-            if result is None:  # obj is a key
-                key, args, kwargs = obj, [], {}
-            else:  # obj is a path
+            if result is not None and Path(path).suffix == '.json':
                 with open(path) as f:
                     data = json.load(f)
                 if 'class' in obj:
                     key, args, kwargs = data.pop('class'), [], data
                 else:
                     raise FactoryClassError(obj)
+            else:
+                key, args, kwargs = obj, [], {}
         else:
             raise FactoryValueError(obj)
         if isinstance(key, str) and key in self.str2obj:

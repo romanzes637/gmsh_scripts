@@ -2,14 +2,7 @@
   "metadata": {
     "run": {
       "factory": "occ",
-      "log_level": "DEBUG",
-      "log_path": null,
-      "strategy": {
-        "class": "strategy.Base",
-        "zone_function": {
-          "class": "zone.DirectionByNormal"
-        }
-      },
+      "log_level": "INFO",
       "options": {
         "Geometry.OCCParallel": 1,
         "Mesh.Algorithm": 6,
@@ -26,7 +19,7 @@
         "Mesh.MeshSizeMax": 1e+22,
         "Mesh.MeshSizeFromPoints": 1,
         "Mesh.MeshSizeExtendFromBoundary": 1,
-        "Mesh.MeshSizeFromCurvature": 30,
+        "Mesh.MeshSizeFromCurvature": 21,
         "Mesh.MeshSizeFromCurvatureIsotropic": 0,
         "Mesh.MeshSizeFromParametricPoints": 0,
         "Mesh.MinimumCircleNodes": 7,
@@ -37,15 +30,11 @@
   "data": {
     "class": "block.Layer",
     "layer": [
-      ["0.050;1;7", "0.2675;1;3", "0.2825;1;7", "0.4825;1;3"],
-      ["1.470;1;3", "2.170;1;5", "2.470;1;3"]],
+      ["1;1;5", "2;1;5"],
+      ["1;1;5", "2;1;5"]],
     "layer_curves": [
-      ["line", "circle_arc", "circle_arc", "line"],
-      ["line", "line", "line"]],
-    "items_zone": ["Mat3", "Mat4", "Mat5", "Mat6", "Mat7"],
-    "items_zone_map": [
-      [3, 3, 4, 2],
-      [1, 1, 1, 1],
-      [0, 0, 0, 0]]
+      ["line", "circle_arc"],
+      ["line", "line"]],
+    "items_do_structure_map": 0
   }
 }
