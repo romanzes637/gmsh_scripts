@@ -64,25 +64,31 @@ def features(var, s, fs=None):
 
 
 class GmshScripts(Action):
-    def __init__(self, tag=None, state_tag=None, subactions=None, executor=None,
-                 propagate_state_tag=None,
+    def __init__(self, tag=None, subactions=None, executor=None,
+                 state=None, do_propagate_state=None,
                  path=None, new_path=None, variables=None):
-        super().__init__(tag=tag, state_tag=state_tag, subactions=subactions,
-                         executor=executor, propagate_state_tag=propagate_state_tag)
+        super().__init__(tag=tag, subactions=subactions, executor=executor,
+                         state=state, do_propagate_state=do_propagate_state)
         self.path = path
         self.new_path = new_path
         self.variables = [] if variables is None else variables
 
     def __call__(self, *args, **kwargs):
-        super().__call__(*args, **kwargs)
-        with open(self.path) as f:
-            d = json.load(f)
-        samples = [sample(deepcopy(x)) for x in self.variables]
-        for s in samples:
-            update(d, s)
-        with open(self.new_path, 'w') as f:
-            json.dump(d, f, indent=2)
-        fs = {}  # return features
-        for v, s in zip(self.variables, samples):
-            fs = features(v, s, fs)
-        return fs
+        def call(self, *args, **kwargs):
+            super().__call__(*args, **kwargs)
+            with open(self.path) as f:
+                d = json.load(f)
+            samples = [sample(deepcopy(x)) for x in self.variables]
+            for s in samples:
+                update(d, s)
+            with open(self.new_path, 'w') as f:
+                json.dump(d, f, indent=2)
+            fs = {}  # return features
+            for v, s in zip(self.variables, samples):
+                fs = features(v, s, fs)
+            return fs
+
+        if self.state is not None:
+            return self.state(call)(self, *args, **kwargs)
+        else:
+            return call(self, *args, **kwargs)

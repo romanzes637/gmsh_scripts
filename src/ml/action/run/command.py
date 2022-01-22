@@ -15,7 +15,13 @@ class Command(Action):
         self.capture_output = capture_output
 
     def __call__(self, *args, **kwargs):
-        super().__call__(*args, **kwargs)
-        r = subprocess.run(args=self.args, shell=self.shell, check=self.check,
-                           capture_output=self.capture_output)
-        return r.returncode
+        def call(self, *args, **kwargs):
+            super().__call__(*args, **kwargs)
+            r = subprocess.run(args=self.args, shell=self.shell, check=self.check,
+                               capture_output=self.capture_output)
+            return r.returncode
+
+        if self.state is not None:
+            return self.state(call)(self, *args, **kwargs)
+        else:
+            return call(self, *args, **kwargs)

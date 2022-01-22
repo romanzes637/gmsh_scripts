@@ -13,67 +13,41 @@
 import concurrent.futures
 import uuid
 
-STATE = []
-
 
 class Action:
-    def __init__(self, tag=None, state_tag=None, subactions=None, executor=None,
-                 propagate_state_tag=None):
+    def __init__(self, tag=None, subactions=None, executor=None,
+                 state=None, do_propagate_state=None):
         self.subactions = [] if subactions is None else subactions
         self.tag = tag if tag is not None else str(uuid.uuid4())
-        self.state_tag = state_tag if state_tag is not None else str(uuid.uuid4())
         self.executor = executor  # 'thread' or 'process' or None (consecutive)
-        self.propagate_state_tag = True if propagate_state_tag is None else False
-        self.do_propagate_state_tag()
+        self.state = state
+        self.do_propagate_state = True if do_propagate_state is None else False
+        self.propagate_state()
+
+    def propagate_state(self):
+        for x in self.subactions:
+            x.state = self.state
+            x.propagate_state()
 
     def __call__(self, *args, **kwargs):
-        if self.executor == 'thread':
-            executor = concurrent.futures.ThreadPoolExecutor()
-        elif self.executor == 'process':
-            executor = concurrent.futures.ProcessPoolExecutor()
-        else:  # consecutive
-            executor = None
-        if executor is not None:
-            future_to_action = {executor.submit(x, *args, *kwargs): x
-                                for x in self.subactions}
-            for f in concurrent.futures.as_completed(future_to_action):
-                a = future_to_action[f]
-                try:
-                    r = f.result()
-                except Exception as e:
-                    a.add_state(args, kwargs, None, [e])
-                else:
-                    a.add_state(args, kwargs, r, None)
-            executor.shutdown()
+        def call(self, *args, **kwargs):
+            if self.executor == 'thread':
+                executor = concurrent.futures.ThreadPoolExecutor()
+            elif self.executor == 'process':
+                executor = concurrent.futures.ProcessPoolExecutor()
+            else:  # consecutive
+                executor = None
+            if executor is not None:
+                for future in concurrent.futures.as_completed(executor.submit(
+                        a, *args, *kwargs) for a in self.subactions):
+                    future.result()
+                executor.shutdown()
+            else:
+                for a in self.subactions:
+                    a(*args, **kwargs)
+            return None
+
+        if self.state is not None:
+            return self.state(call)(self, *args, **kwargs)
         else:
-            for a in self.subactions:
-                try:
-                    r = a(args, kwargs)
-                except Exception as e:
-                    a.add_state(args, kwargs, None, [e])
-                else:
-                    a.add_state(args, kwargs, r, None)
-        return None
-
-    def add_state(self, args, kwargs, result, exceptions):
-        state = self.get_state()
-        s = {'action': {'tag': self.tag,
-                        'state_tag': self.state_tag,
-                        'subactions_tags': [x.tag for x in self.subactions],
-                        'subactions_state_tags': [x.state_tag for x in self.subactions],
-                        'executor': self.executor},
-             'args': args,
-             'kwargs': kwargs,
-             'result': result,
-             'exceptions': exceptions}
-        state.append(s)
-
-    def get_state(self):
-        assert self.state_tag is not None
-        global STATE
-        return STATE
-
-    def do_propagate_state_tag(self):
-        for x in self.subactions:
-            x.state_tag = self.state_tag
-            x.do_propagate_state_tag()
+            return call(self, *args, **kwargs)

@@ -3,7 +3,7 @@ import os
 import argparse
 import logging
 
-from src.support.support import check_on_file, LoggingDecorator, GmshDecorator, GmshOptionsDecorator
+from src.support.support import check_on_file, LoggingDecorator
 from src.factory import FACTORY as FACTORY
 from src.factory import FactoryKeyError, FactoryValueError, FactoryClassError
 
@@ -166,7 +166,8 @@ def run(args):
     top = FACTORY(top_kwargs)
     top()
     from pprint import pprint
-    pprint(top.get_state())
+    from src.ml.action.state import STATE
+    pprint(STATE)
 
 
 if __name__ == '__main__':
