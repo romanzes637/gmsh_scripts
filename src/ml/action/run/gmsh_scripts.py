@@ -6,11 +6,11 @@ from src.ml.action.action import Action
 
 
 class GmshScripts(Action):
-    def __init__(self, tag=None,  subactions=None, executor=None,
-                 state=None, do_propagate_state=None,
+    def __init__(self, tag=None, subactions=None, executor=None,
+                 episode=None, do_propagate_episode=None,
                  run_path=None, input_path=None):
-        super().__init__(tag=tag,  subactions=subactions, executor=executor,
-                         state=state, do_propagate_state=do_propagate_state)
+        super().__init__(tag=tag, subactions=subactions, executor=executor,
+                         episode=episode, do_propagate_episode=do_propagate_episode)
         self.run_path = run_path
         self.input_path = input_path
 
@@ -24,7 +24,7 @@ class GmshScripts(Action):
                                check=True)
             return r
 
-        if self.state is not None:
-            return self.state(call)(self, *args, **kwargs)
+        if self.episode is not None:
+            return self.episode(call)(self, *args, **kwargs)
         else:
             return call(self, *args, **kwargs)

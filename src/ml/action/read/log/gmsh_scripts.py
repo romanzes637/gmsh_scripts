@@ -5,10 +5,10 @@ from src.ml.action.action import Action
 
 class GmshScripts(Action):
     def __init__(self, tag=None, subactions=None, executor=None,
-                 state=None, do_propagate_state=None,
+                 episode=None, do_propagate_episode=None,
                  log_path=None, values=None, last=True):
-        super().__init__(tag=tag,  subactions=subactions, executor=executor,
-                         state=state, do_propagate_state=do_propagate_state)
+        super().__init__(tag=tag, subactions=subactions, executor=executor,
+                         episode=episode, do_propagate_episode=do_propagate_episode)
         self.log_path = log_path
         self.values = [] if values is None else values
         self.last = last
@@ -27,7 +27,7 @@ class GmshScripts(Action):
                 fs = {k: v[-1] for k, v in fs.items()}
             return fs
 
-        if self.state is not None:
-            return self.state(call)(self, *args, **kwargs)
+        if self.episode is not None:
+            return self.episode(call)(self, *args, **kwargs)
         else:
             return call(self, *args, **kwargs)

@@ -5,10 +5,10 @@ import os
 import getpass
 import uuid
 
-STATE = []
+EPISODE = []
 
 
-class State:
+class Episode:
     def __init__(self, tag=None, *args, **kwargs):
         self.tag = tag if tag is not None else str(uuid.uuid4())
 
@@ -38,9 +38,9 @@ class State:
         s = {'action': {'tag': a.tag,
                         'type': a.__module__ + '.' + a.__class__.__qualname__,
                         'function': f.__module__ + '.' + f.__qualname__,
-                        'state_tag': a.state.tag,
+                        'state_tag': a.episode.tag,
                         'subactions_tags': [x.tag for x in a.subactions],
-                        'subactions_state_tags': [x.state.tag for x in a.subactions],
+                        'subactions_state_tags': [x.episode.tag for x in a.subactions],
                         'executor': a.executor},
              'args': args,
              'kwargs': kwargs,
@@ -50,5 +50,5 @@ class State:
 
     def get_state(self):
         assert self.tag is not None
-        global STATE
-        return STATE
+        global EPISODE
+        return EPISODE

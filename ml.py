@@ -166,8 +166,8 @@ def run(args):
     top = FACTORY(top_kwargs)
     top()
     from pprint import pprint
-    from src.ml.action.state import STATE
-    pprint(STATE)
+    from src.ml.action.episode import EPISODE
+    pprint(EPISODE)
 
 
 if __name__ == '__main__':

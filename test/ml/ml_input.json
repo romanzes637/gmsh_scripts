@@ -4,7 +4,7 @@
   },
   "data": {
     "class": "ml.action.Action",
-    "state": {"class": "ml.action.State"},
+    "episode": {"class": "ml.action.Episode"},
     "subactions": [
       {"class": "ml.action.update.json.GmshScripts",
         "path": "_run_input.json",

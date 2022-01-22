@@ -65,10 +65,10 @@ def features(var, s, fs=None):
 
 class GmshScripts(Action):
     def __init__(self, tag=None, subactions=None, executor=None,
-                 state=None, do_propagate_state=None,
+                 episode=None, do_propagate_episode=None,
                  path=None, new_path=None, variables=None):
         super().__init__(tag=tag, subactions=subactions, executor=executor,
-                         state=state, do_propagate_state=do_propagate_state)
+                         episode=episode, do_propagate_episode=do_propagate_episode)
         self.path = path
         self.new_path = new_path
         self.variables = [] if variables is None else variables
@@ -88,7 +88,7 @@ class GmshScripts(Action):
                 fs = features(v, s, fs)
             return fs
 
-        if self.state is not None:
-            return self.state(call)(self, *args, **kwargs)
+        if self.episode is not None:
+            return self.episode(call)(self, *args, **kwargs)
         else:
             return call(self, *args, **kwargs)

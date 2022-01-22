@@ -16,18 +16,18 @@ import uuid
 
 class Action:
     def __init__(self, tag=None, subactions=None, executor=None,
-                 state=None, do_propagate_state=None):
+                 episode=None, do_propagate_episode=None):
         self.subactions = [] if subactions is None else subactions
         self.tag = tag if tag is not None else str(uuid.uuid4())
         self.executor = executor  # 'thread' or 'process' or None (consecutive)
-        self.state = state
-        self.do_propagate_state = True if do_propagate_state is None else False
-        self.propagate_state()
+        self.episode = episode
+        self.do_propagate_episode = True if do_propagate_episode is None else False
+        self.propagate_episode()
 
-    def propagate_state(self):
+    def propagate_episode(self):
         for x in self.subactions:
-            x.state = self.state
-            x.propagate_state()
+            x.episode = self.episode
+            x.propagate_episode()
 
     def __call__(self, *args, **kwargs):
         def call(self, *args, **kwargs):
@@ -47,7 +47,7 @@ class Action:
                     a(*args, **kwargs)
             return None
 
-        if self.state is not None:
-            return self.state(call)(self, *args, **kwargs)
+        if self.episode is not None:
+            return self.episode(call)(self, *args, **kwargs)
         else:
             return call(self, *args, **kwargs)
