@@ -1,0 +1,75 @@
+{
+  "metadata": {
+    "comments": "J - Jacobian determinant, IGE - Inverse Gradient Error, ICN - Condition Number",
+    "ml": {}
+  },
+  "data": {
+    "class": "ml.action.optimize.Optuna",
+    "episode": {"class": "ml.action.Episode"},
+    "storage": null,
+    "load_if_exists": true,
+    "delete_study": false,
+    "study": "test_optuna_memory",
+    "n_trials": 3,
+    "work_dir": "work_dir",
+    "copies": ["_run_input.json"],
+    "actions": [
+      {"class": "ml.action.update.json.GmshScripts",
+        "path": "_run_input.json",
+        "new_path": "_run_input_new_file.json",
+        "variables": [
+          {"metadata": {"run": {"options": {"Mesh.MeshSizeFactor":
+          {"class": "ml.variable.Continuous", "name": "size_factor", "low": 0.8, "high": 1.2}}}}},
+          {"metadata": {"run": {"options": {"Mesh.MeshSizeExtendFromBoundary":
+          {"class": "ml.variable.Discrete", "name": "size_boundary", "low": 0, "high": 2, "num": 3}}}}}]},
+      {"class": "ml.action.run.GmshScripts",
+        "run_path": "../../../run.py",
+        "write_mesh": false,
+        "input_path": "_run_input_new_file.json"},
+      {"class": "ml.action.read.log.GmshScripts",
+        "log_path": "_run_input_new_file.log",
+        "values": [
+          {"class": "ml.value.Regex", "name": "minJ_min", "value_type": "float", "regex": "Info: minJ .*((?<==)[\\s0-9.e-]*(?=,))"},
+          {"class": "ml.value.Regex", "name": "minJ_avg", "value_type": "float", "regex": "Info: minJ .*((?<=,)[\\s0-9.e-]*(?=,))"},
+          {"class": "ml.value.Regex", "name": "minJ_max", "value_type": "float", "regex": "Info: minJ .*((?<=,)[\\s0-9.e-]*(?=\\())"},
+          {"class": "ml.value.Regex", "name": "minJ_by_maxJ_min", "value_type": "float", "regex": "Info: minJ/maxJ .*((?<==)[\\s0-9.e-]*(?=,))"},
+          {"class": "ml.value.Regex", "name": "minJ_by_maxJ_avg", "value_type": "float", "regex": "Info: minJ/maxJ .*((?<=,)[\\s0-9.e-]*(?=,))"},
+          {"class": "ml.value.Regex", "name": "minJ_by_maxJ_max", "value_type": "float", "regex": "Info: minJ/maxJ .*((?<=,)[\\s0-9.e-]*(?=\\())"},
+          {"class": "ml.value.Regex", "name": "IGE_min", "value_type": "float", "regex": "Info: IGE .*((?<==)[\\s0-9.e-]*(?=,))"},
+          {"class": "ml.value.Regex", "name": "IGE_avg", "value_type": "float", "regex": "Info: IGE .*((?<=,)[\\s0-9.e-]*(?=,))"},
+          {"class": "ml.value.Regex", "name": "IGE_max", "value_type": "float", "regex": "Info: IGE .*((?<=,)[\\s0-9.e-]*(?=\\())"},
+          {"class": "ml.value.Regex", "name": "ICN_min", "value_type": "float", "regex": "Info: ICN .*((?<==)[\\s0-9.e-]*(?=,))"},
+          {"class": "ml.value.Regex", "name": "ICN_avg", "value_type": "float", "regex": "Info: ICN .*((?<=,)[\\s0-9.e-]*(?=,))"},
+          {"class": "ml.value.Regex", "name": "ICN_max", "value_type": "float", "regex": "Info: ICN .*((?<=,)[\\s0-9.e-]*(?=\\())"},
+          {"class": "ml.value.Regex", "name": "blocks", "value_type": "int", "regex": "number of blocks:.*((?<=:)[\\s0-9]*(?=))"},
+          {"class": "ml.value.Regex", "name": "volumes", "value_type": "int", "regex": "n_volumes:.*((?<=:)[\\s0-9]*(?=))"},
+          {"class": "ml.value.Regex", "name": "nodes", "value_type": "int", "regex": "Total:.*((?<=:)[\\s0-9]*(?=nodes))"},
+          {"class": "ml.value.Regex", "name": "elements", "value_type": "int", "regex": "Total:.*((?<=and)[\\s0-9]*(?=elements))"},
+          {"class": "ml.value.Regex", "name": "transform_time", "value_type": "float", "regex": "src.block.block.transform -((?<=-)[\\s0-9.e+-]*(?=s))"},
+          {"class": "ml.value.Regex", "name": "register_time", "value_type": "float", "regex": "src.block.block.register -((?<=-)[\\s0-9.e+-]*(?=s))"},
+          {"class": "ml.value.Regex", "name": "boolean_time", "value_type": "float", "regex": "src.boolean.*-((?<=-)[\\s0-9.e+-]*(?=s))"},
+          {"class": "ml.value.Regex", "name": "synchronize_time", "value_type": "float", "regex": "src.registry.synchronize -((?<=-)[\\s0-9.e+-]*(?=s))"},
+          {"class": "ml.value.Regex", "name": "structure_time", "value_type": "float", "regex": "src.structure.*-((?<=-)[\\s0-9.e+-]*(?=s))"},
+          {"class": "ml.value.Regex", "name": "quadrate_time", "value_type": "float", "regex": "src.quadrate.*-((?<=-)[\\s0-9.e+-]*(?=s))"},
+          {"class": "ml.value.Regex", "name": "smooth_time", "value_type": "float", "regex": "src.smooth.*-((?<=-)[\\s0-9.e+-]*(?=s))"},
+          {"class": "ml.value.Regex", "name": "size_time", "value_type": "float", "regex": "src.size.*-((?<=-)[\\s0-9.e+-]*(?=s))"},
+          {"class": "ml.value.Regex", "name": "pre_unregister_time", "value_type": "float", "regex": "src.block.block.pre_unregister -((?<=-)[\\s0-9.e+-]*(?=s))"},
+          {"class": "ml.value.Regex", "name": "zone_time", "value_type": "float", "regex": "src.zone.*-((?<=-)[\\s0-9.e+-]*(?=s))"},
+          {"class": "ml.value.Regex", "name": "unregister_time", "value_type": "float", "regex": "src.block.block.unregister -((?<=-)[\\s0-9.e+-]*(?=s))"},
+          {"class": "ml.value.Regex", "name": "generate_time", "value_type": "float", "regex": "gmsh.generate -((?<=-)[\\s0-9.e+-]*(?=s))"},
+          {"class": "ml.value.Regex", "name": "optimize_time", "value_type": "float", "regex": "src.optimize.*-((?<=-)[\\s0-9.e+-]*(?=s))"},
+          {"class": "ml.value.Regex", "name": "refine_time", "value_type": "float", "regex": "src.refine.*-((?<=-)[\\s0-9.e+-]*(?=s))"},
+          {"class": "ml.value.Regex", "name": "write_time", "value_type": "float", "regex": "gmsh.write - ((?<=-)[\\s0-9.e+-]*(?=s))"}
+        ]}
+      ],
+    "directions": {
+      "minJ_by_maxJ_min": "maximize",
+      "IGE_min": "maximize",
+      "ICN_min": "maximize",
+      "elements": "minimize"
+    },
+    "constraints": {
+      "minJ_min": [["gt", 0], ["le", 1]]
+    }
+  }
+}
