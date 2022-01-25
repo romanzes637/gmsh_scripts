@@ -39,7 +39,7 @@ class Action:
                 executor = None
             if executor is not None:
                 for future in concurrent.futures.as_completed(executor.submit(
-                        a, *args, *kwargs) for a in self.subactions):
+                        a, *args, **kwargs) for a in self.subactions):
                     future.result()
                 executor.shutdown()
             else:

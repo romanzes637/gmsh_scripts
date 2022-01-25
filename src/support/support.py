@@ -42,7 +42,8 @@ class LoggingDecorator:
                               socket.gethostbyname(socket.gethostname()))
             fmt = fmt.replace('%(user)s', getpass.getuser())
             fmt = fmt.replace('%(tz)s', time.strftime('%z'))
-            logging.basicConfig(filename=Path(self.filename).resolve(),
+            filename = self.filename if self.filename is None else Path(self.filename).resolve()
+            logging.basicConfig(filename=filename,
                                 filemode=self.filemode,
                                 format=fmt, datefmt=self.datefmt,
                                 level=self.level)
