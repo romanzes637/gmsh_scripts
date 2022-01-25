@@ -3,19 +3,6 @@ import mysql.connector
 import time
 # import plotly
 
-# Requires optuna https://optuna.readthedocs.io/en/stable/index.html
-# Requires mysql https://dev.mysql.com/doc/mysql-installation-excerpt/5.7/en/
-# Requires mysql-connector-python https://pypi.org/project/mysql-connector-python/
-# Requires plotly for visualization https://plotly.com/
-# Parallelization https://optuna.readthedocs.io/en/stable/tutorial/10_key_features/004_distributed.html
-# Multi-objective https://optuna.readthedocs.io/en/v2.7.0/tutorial/20_recipes/002_multi_objective.html
-# Pruners https://optuna.readthedocs.io/en/stable/reference/pruners.html#module-optuna.pruners
-# Samplers https://optuna.readthedocs.io/en/stable/reference/samplers.html#module-optuna.samplers
-# Nan https://optuna.readthedocs.io/en/stable/faq.html#how-are-nans-returned-by-trials-handled
-# States https://optuna.readthedocs.io/en/stable/reference/generated/optuna.trial.TrialState.html#optuna.trial.TrialState
-# TODO sklearn? https://scikit-learn.org/stable/modules/grid_search.html
-# TODO hyperopt? http://hyperopt.github.io/hyperopt/
-
 
 class Objective:
     def __init__(self, min_x, max_x):
