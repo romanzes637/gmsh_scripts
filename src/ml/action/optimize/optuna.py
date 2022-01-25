@@ -1,4 +1,4 @@
-"""Optuna optimization
+"""Optuna optimization pipeline
 
 Requires optuna https://optuna.readthedocs.io/en/stable/index.html
 Requires mysql https://dev.mysql.com/doc/mysql-installation-excerpt/5.7/en/
@@ -13,13 +13,13 @@ States https://optuna.readthedocs.io/en/stable/reference/generated/optuna.trial.
 TODO sklearn? https://scikit-learn.org/stable/modules/grid_search.html
 TODO hyperopt? http://hyperopt.github.io/hyperopt/
 """
-
 import optuna
 from copy import deepcopy
 from pathlib import Path
 import shutil
 import os
 import uuid
+import logging
 
 # import mysql.connector
 
@@ -32,6 +32,13 @@ from src.ml.variable.fixed import Fixed
 
 
 class Optuna(Action):
+    """Optuna optimization action
+
+    Args:
+        storage (str): dialect+driver://username:password@host:port/database
+            see SQLAlchemy https://docs.sqlalchemy.org/en/14/core/engines.html
+    """
+
     def __init__(self, tag=None, subactions=None, executor=None,
                  episode=None, do_propagate_episode=None,
                  storage=None, study=None, load_if_exists=False, directions=None,
@@ -86,13 +93,14 @@ class Optuna(Action):
                 for k, v in values.items():
                     trial.set_user_attr(k, v)
                 return tuple(values[k] for k, v in self.directions.items())
-            # get_storage(host='localhost', port='3306', user='root', password='42',
-            #             dialect_driver='mysql+mysqlconnector',
-            #             db_name='example'):
-            # return optuna.storages.RDBStorage(
-            #     url=f"{dialect_driver}://{user}:{password}@{host}:{port}/{db_name}")
-            # storage = optuna.storages.RDBStorage(self.storage)
-            # optuna.logging.set_verbosity(optuna.logging.WARNING)
+
+            # TODO multiprocessing logging
+            logger = logging.getLogger()
+            default_handler = logger.handlers[0]
+            logger.handlers = []
+            logger.addHandler(logging.FileHandler(self.study_dir / f'study.log'))
+            optuna.logging.enable_propagation()  # Propagate logs to the root logger.
+            optuna.logging.disable_default_handler()  # Stop showing logs in sys.stderr.
             if len(self.directions) == 1:
                 direction = list(self.directions.values())[0]
                 study = optuna.create_study(storage=self.storage,
@@ -110,6 +118,8 @@ class Optuna(Action):
             else:
                 raise ValueError(self.directions)
             Optuna.plot(study, self.directions, self.study_dir)
+            logger.handlers = []
+            logger.addHandler(default_handler)
             return study.best_trial if len(self.directions) == 1 else study.best_trials
 
         if self.episode is not None:

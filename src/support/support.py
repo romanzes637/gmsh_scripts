@@ -4,6 +4,7 @@ import os
 import socket
 import sys
 import getpass
+from pathlib import Path
 
 import numpy as np
 import gmsh
@@ -41,7 +42,8 @@ class LoggingDecorator:
                               socket.gethostbyname(socket.gethostname()))
             fmt = fmt.replace('%(user)s', getpass.getuser())
             fmt = fmt.replace('%(tz)s', time.strftime('%z'))
-            logging.basicConfig(filename=self.filename, filemode=self.filemode,
+            logging.basicConfig(filename=Path(self.filename).resolve(),
+                                filemode=self.filemode,
                                 format=fmt, datefmt=self.datefmt,
                                 level=self.level)
             logging.info('Logging initialized')
