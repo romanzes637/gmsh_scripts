@@ -48,7 +48,7 @@ class Optuna(Action):
     def __init__(self, tag=None, subactions=None, executor=None,
                  episode=None, do_propagate_episode=None,
                  storage=None, study=None, load_if_exists=False, directions=None,
-                 constraints=None, delete_study=False,
+                 constraints=None, delete_study=False, write_study=False,
                  actions=None, n_trials=None, work_dir=None, copies=None,
                  optimize_executor=None, optimize_max_workers=None,
                  optimize_n_jobs=None, timeout=None):
@@ -70,6 +70,7 @@ class Optuna(Action):
         self.optimize_n_jobs = 1 if optimize_n_jobs is None else optimize_n_jobs
         self.timeout = timeout
         self.delete_study = delete_study
+        self.write_study = write_study
 
     class Objective:
         def __init__(self, optuna_action=None):
@@ -112,7 +113,7 @@ class Optuna(Action):
                     values.update(vs)
             for k, v in values.items():
                 trial.set_user_attr(k, v)
-            return tuple(values[k] for k, v in self.optuna_action.directions.items())
+            return tuple(values.get(k, float('nan')) for k, v in self.optuna_action.directions.items())
 
     def __call__(self, *args, **kwargs):
         def call(self, *args, **kwargs):
@@ -121,6 +122,10 @@ class Optuna(Action):
                 return None
             self.study_dir.mkdir(parents=True, exist_ok=True)
             self.study_dir = self.study_dir.resolve()
+            if self.write_study:
+                study = self.create_study()  # For write
+                self.write(study, self.directions, self.study_dir)
+                return None
             # optuna.logging.disable_default_handler()
             # logger = logging.getLogger()
             # default_handler = logger.handlers[0]
