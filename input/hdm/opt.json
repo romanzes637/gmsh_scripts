@@ -11,7 +11,7 @@
     "delete_study": false,
     "write_study": false,
     "study": "hdm",
-    "n_trials": 3,
+    "n_trials": 300,
     "work_dir": "opt",
     "copies": [
       "cell.json",
@@ -32,12 +32,13 @@
           {"metadata": {"run": {"options": {"Mesh.MeshSizeMax":
           {"class": "ml.variable.Continuous", "name": "size_max", "low": 1, "high": 5}}}}},
           {"metadata": {"run": {"options": {"Mesh.MeshSizeFactor":
-          {"class": "ml.variable.Continuous", "name": "size_factor", "low": 0.8, "high": 1.2}}}}},
+          {"class": "ml.variable.Continuous", "name": "size_factor", "low": 0.5, "high": 1}}}}},
           {"metadata": {"run": {"options": {"Mesh.MeshSizeExtendFromBoundary":
-          {"class": "ml.variable.Discrete", "name": "size_boundary", "low": 0, "high": 2, "num": 3}}}}}]},
+          {"class": "ml.variable.Discrete", "name": "size_boundary", "low": 1, "high": 2, "num": 2}}}}}]},
       {"class": "ml.action.run.GmshScripts",
         "run_path": "../../run.py",
         "write_mesh": true,
+        "nohup": true,
         "input_path": "cell_containers.json"},
       {"class": "ml.action.read.log.GmshScripts",
         "log_path": "cell_containers.log",
