@@ -24,6 +24,7 @@ import logging
 import concurrent.futures
 import operator
 import os
+from itertools import combinations
 
 # import mysql.connector
 
@@ -293,7 +294,50 @@ class Optuna(Action):
                 ns, ds = list(directions.keys()), list(directions.values())
                 optuna.visualization.plot_pareto_front(
                     study, target_names=ns, include_dominated_trials=True).write_html(
-                    p / f"_plot_pareto_front-{'-'.join(f'{n}-{d}' for n, d in zip(ns, ds))}.html")
+                    p / f"pareto_front-{'-'.join(f'{n}-{d}' for n, d in zip(ns, ds))}.html")
+            except Exception as e:
+                print(e)
+        else:
+            try:  # required plotly
+                import plotly.express as px
+
+                n = len(directions)
+                ns = list(directions.keys())
+                ds = list(directions.values())
+                df = study.trials_dataframe()
+                old2new = {f'values_{i}': f'values_{x}' for i, x in enumerate(ns)}
+                df = df.rename(columns=old2new)
+                hover_data = [x for x in df.columns
+                              if x.startswith('parameters_')
+                              or x.startswith('values_')
+                              or (x.startswith('user_attrs_') and 'time' not in x)
+                              or x == 'duration']
+                for c in combinations(range(n), 2):
+                    c_vs = [old2new[f'values_{x}'] for x in c]
+                    c_ns = [ns[x] for x in c]
+                    c_ds = [ds[x] for x in c]
+                    labels = dict(zip(c_vs, c_ns))
+                    fig = px.scatter(
+                        df, x=c_vs[0], y=c_vs[1],
+                        color='user_attrs_elements',
+                        hover_name="number",
+                        hover_data=hover_data,
+                        labels=labels)
+                    fig.layout.coloraxis.colorbar.title = 'elements'
+                    fig.write_html(p / f"pareto_front-{'-'.join(f'{n}-{d}' for n, d in zip(c_ns, c_ds))}.html")
+                for c in combinations(range(n), 3):
+                    c_vs = [old2new[f'values_{x}'] for x in c]
+                    c_ns = [ns[x] for x in c]
+                    c_ds = [ds[x] for x in c]
+                    labels = dict(zip(c_vs, c_ns))
+                    fig = px.scatter_3d(
+                        df, x=c_vs[0], y=c_vs[1], z=c_vs[2],
+                        color='user_attrs_elements',
+                        hover_name="number",
+                        hover_data=hover_data,
+                        labels=labels)
+                    fig.layout.coloraxis.colorbar.title = 'elements'
+                    fig.write_html(p / f"pareto_front-{'-'.join(f'{n}-{d}' for n, d in zip(c_ns, c_ds))}.html")
             except Exception as e:
                 print(e)
 
