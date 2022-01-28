@@ -28,7 +28,7 @@ class GmshScripts(Action):
                        str(self.run_path),
                        str(Path(self.input_path).resolve()),
                        '-f']
-            if self.nohup:
+            if self.nohup and sys.platform != 'win32':
                 cmd = ['nohup'] + cmd
             r = subprocess.run(args=cmd,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
