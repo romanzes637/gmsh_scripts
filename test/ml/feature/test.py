@@ -1,6 +1,6 @@
 import unittest
 
-from src.ml.feature.feature import Feature
+from src.ml.action.feature.feature import Feature
 
 
 class TestFeature(unittest.TestCase):

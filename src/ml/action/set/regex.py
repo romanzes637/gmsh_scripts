@@ -1,10 +1,13 @@
-from src.ml.feature.setter.setter import Setter
+from src.ml.action.set.set import Set
 import re
 
 
-class Regex(Setter):
-    def __init__(self, regex, text, value_type='str'):
-        super().__init__()
+class Regex(Set):
+    def __init__(self, regex, text, value_type='str',
+                 tag=None, subactions=None, executor=None,
+                 episode=None, do_propagate_episode=None):
+        super().__init__(tag=tag, subactions=subactions, executor=executor,
+                         episode=episode, do_propagate_episode=do_propagate_episode)
         self.regex = regex
         self.text = text
         self.value_type = value_type
@@ -24,4 +27,4 @@ class Regex(Setter):
             else:
                 v = [t(x.strip()) for x in r]
         feature.value = v
-        return feature.value
+        return feature

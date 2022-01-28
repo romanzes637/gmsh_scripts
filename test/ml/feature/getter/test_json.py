@@ -2,8 +2,8 @@ import unittest
 import json
 from pathlib import Path
 
-from src.ml.feature.getter.json import Json
-from src.ml.feature.feature import Feature
+from src.ml.action.get.json import Json
+from src.ml.action.feature.feature import Feature
 
 
 class TestJson(unittest.TestCase):
@@ -175,7 +175,7 @@ class TestJson(unittest.TestCase):
         f = Feature(key='feature',
                     value={'hello_': 0, 'world-': 1, 'MAN': 'DO'},
                     getter=j)
-        f.get()
+        r = f.get()
         with open(p) as f:
             d = json.load(f)
         self.assertDictEqual(d, {'a': '0;1;DO'})

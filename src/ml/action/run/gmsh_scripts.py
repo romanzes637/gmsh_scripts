@@ -3,10 +3,10 @@ import sys
 from pathlib import Path
 import logging
 
-from src.ml.action.action import Action
+from src.ml.action.run.run import Run
 
 
-class GmshScripts(Action):
+class GmshScripts(Run):
     def __init__(self, tag=None, subactions=None, executor=None,
                  episode=None, do_propagate_episode=None,
                  run_path=None, input_path=None, write_mesh=False, nohup=True):

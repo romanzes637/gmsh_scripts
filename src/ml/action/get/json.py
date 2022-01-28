@@ -3,9 +3,15 @@ from pathlib import Path
 from copy import deepcopy
 import re
 
+from src.ml.action.get.get import Get
 
-class Json:
-    def __init__(self, path, mapping, regex='\{[A-Za-z0-9\-\_]*\}'):
+
+class Json(Get):
+    def __init__(self, path, mapping, regex='\{[A-Za-z0-9\-\_]*\}',
+                 tag=None, subactions=None, executor=None,
+                 episode=None, do_propagate_episode=None):
+        super().__init__(tag=tag, subactions=subactions, executor=executor,
+                         episode=episode, do_propagate_episode=do_propagate_episode)
         self.path = path
         self.mapping = mapping
         self.regex = regex
@@ -17,8 +23,8 @@ class Json:
                 d = json.load(f)
             d = self.update(d, self.mapping, feature, self.regex)
             with open(p, 'w') as f:
-                json.dump(d, f)
-            return d
+                json.dump(d, f, indent=2)
+            return feature
 
     @staticmethod
     def update(d, m, f, r):
@@ -86,8 +92,11 @@ class Json:
                 raise ValueError(f'No pattern in string "{v}"')
             if v.isdigit():
                 v = int(v)
-            elif v.isnumeric():
-                v = float(v)
+            else:
+                try:
+                    v = float(v)
+                except ValueError:
+                    pass
             return v
         else:
             raise ValueError(f'Should be a string: {v}')

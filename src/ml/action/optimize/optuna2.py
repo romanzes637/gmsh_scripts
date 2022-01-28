@@ -26,17 +26,16 @@ import operator
 import os
 from itertools import combinations
 
-# import mysql.connector
-
 from src.ml.action.action import Action
-from src.ml.variable.variable import Variable
-from src.ml.variable.categorical import Categorical
-from src.ml.variable.continuous import Continuous
-from src.ml.variable.discrete import Discrete
-from src.ml.variable.fixed import Fixed
+from src.ml.action.feature.feature import Feature
+from src.ml.action.run.run import Run
+from src.ml.action.set.value import Value
+from src.ml.action.set.continuous import Continuous
+from src.ml.action.set.categorical import Categorical
+from src.ml.action.set.discrete import Discrete
 
 
-class Optuna(Action):
+class Optuna2(Action):
     """Optuna optimization action
 
     Args:
@@ -46,19 +45,19 @@ class Optuna(Action):
             see https://docs.python.org/3/library/operator.html#mapping-operators-to-functions
     """
 
-    def __init__(self, tag=None, subactions=None, executor=None,
-                 episode=None, do_propagate_episode=None,
-                 storage=None, study=None, load_if_exists=False, directions=None,
+    def __init__(self, storage=None, study=None, load_if_exists=False, objectives=None,
                  constraints=None, delete_study=False, write_study=False,
                  actions=None, n_trials=None, work_dir=None, copies=None,
                  optimize_executor=None, optimize_max_workers=None,
-                 optimize_n_jobs=None, timeout=None):
+                 optimize_n_jobs=None, timeout=None,
+                 tag=None, subactions=None, executor=None,
+                 episode=None, do_propagate_episode=None):
         super().__init__(tag=tag, subactions=subactions, executor=executor,
                          episode=episode, do_propagate_episode=do_propagate_episode)
         self.storage = storage
         self.study = str(uuid.uuid4()) if study is None else study
         self.load_if_exists = load_if_exists
-        self.directions = directions
+        self.objectives = objectives
         self.constraints = {} if constraints is None else constraints
         self.actions = actions
         self.n_trials = 1 if n_trials is None else n_trials
@@ -92,29 +91,42 @@ class Optuna(Action):
                 else:
                     raise ValueError(p)
             os.chdir(trial_dir)
-            values, variables = {}, {}
+            # Do
+            fs = []  # features
             for a in self.optuna_action.actions:
-                if 'ml.action.update.json' in a.__module__:
-                    old_variables = deepcopy(a.variables)
-                    for v in a.variables:
-                        self.optuna_action.set_setter_from_trial(v, trial)
-                    vs = a()
-                    if not self.optuna_action.check_constraints(self.optuna_action.constraints, vs):
-                        return tuple(float('nan') for _ in self.optuna_action.directions)
-                    variables.update(vs)
-                    a.variables = old_variables
-                elif 'ml.action.run' in a.__module__:
+                if isinstance(a, Feature):
+                    s = a.setter
+                    if isinstance(s, Continuous):
+                        a.setter = Value(value=trial.suggest_float(
+                            name=a.key, low=s.low, high=s.high))
+                    elif isinstance(s, Categorical):
+                        a.setter = Value(value=trial.suggest_categorical(
+                            name=a.key, choices=s.choices))
+                    elif isinstance(s, Discrete):
+                        if isinstance(s.low, int) and isinstance(s.high, int):
+                            step = (s.high - s.low) // (s.num - 1)
+                            v = trial.suggest_int(
+                                name=a.key, low=s.low, high=s.high, step=step)
+                        else:
+                            step = (s.high - s.low) / (s.num - 1)
+                            v = trial.suggest_float(
+                                name=a.key, low=s.low, high=s.high, step=step)
+                        a.setter = Value(value=v)
+                    a()
+                    a.setter = s
+                    if a.key in self.optuna_action.constraints:
+                        if not a.value:
+                            return float('nan')
+                    fs.append(a)
+                elif isinstance(a, Run):
                     r = a()
-                    if r.returncode:
-                        return tuple(float('nan') for _ in self.optuna_action.directions)
-                elif 'ml.action.read' in a.__module__:
-                    vs = a()
-                    if not self.optuna_action.check_constraints(self.optuna_action.constraints, vs):
-                        return tuple(float('nan') for _ in self.optuna_action.directions)
-                    values.update(vs)
-            for k, v in values.items():
+                    if r.returncode != 0:
+                        return float('nan')
+            fs_map = {x.key: x.value for x in fs}
+            for k, v in fs_map.items():
                 trial.set_user_attr(k, v)
-            return tuple(values.get(k, float('nan')) for k, v in self.optuna_action.directions.items())
+            return tuple(fs_map.get(k, float('nan'))
+                         for k, v in self.optuna_action.objectives.items())
 
     def __call__(self, *args, **kwargs):
         def call(self, *args, **kwargs):
@@ -125,7 +137,7 @@ class Optuna(Action):
             self.study_dir = self.study_dir.resolve()
             if self.write_study:
                 study = self.create_study()  # For write
-                self.write(study, self.directions, self.study_dir)
+                self.write(study, self.objectives, self.study_dir)
                 return None
             # optuna.logging.disable_default_handler()
             # logger = logging.getLogger()
@@ -168,8 +180,8 @@ class Optuna(Action):
             # TODO multiprocessing logging
             # logger.handlers = []
             # logger.addHandler(default_handler)
-            self.write(study, self.directions, self.study_dir)
-            return study.best_trial if len(self.directions) == 1 else study.best_trials
+            self.write(study, self.objectives, self.study_dir)
+            return study.best_trial if len(self.objectives) == 1 else study.best_trials
 
         if self.episode is not None:
             return self.episode(call)(self, *args, **kwargs)
@@ -177,50 +189,21 @@ class Optuna(Action):
             return call(self, *args, **kwargs)
 
     def create_study(self):
-        if len(self.directions) == 1:
-            direction = list(self.directions.values())[0]
+        if len(self.objectives) == 1:
+            direction = list(self.objectives.values())[0]
             study = optuna.create_study(storage=self.storage,
                                         study_name=self.study,
                                         load_if_exists=self.load_if_exists,
                                         direction=direction)
-        elif len(self.directions) > 1:  # Multi-objective
-            directions = list(self.directions.values())
+        elif len(self.objectives) > 1:  # Multi-objective
+            directions = list(self.objectives.values())
             study = optuna.create_study(storage=self.storage,
                                         study_name=self.study,
                                         load_if_exists=self.load_if_exists,
                                         directions=directions)
         else:
-            raise ValueError(self.directions)
+            raise ValueError(self.objectives)
         return study
-
-    @staticmethod
-    def set_variable_from_trial(d, trial, vs=None):
-        vs = {} if vs is None else vs
-        for k, v in d.items():
-            if isinstance(v, dict):
-                Optuna.set_variable_from_trial(v, trial, vs)
-            elif isinstance(v, Variable):
-                name = v.name
-                if isinstance(v, Categorical):
-                    v = trial.suggest_categorical(v.name, v.choices)
-                elif isinstance(v, Continuous):
-                    v = trial.suggest_float(v.name, v.low, v.high)
-                elif isinstance(v, Discrete):
-                    if isinstance(v.low, int) and isinstance(v.high, int):
-                        step = (v.high - v.low) // (v.num - 1)
-                        v = trial.suggest_int(v.name, v.low, v.high, step)
-                    else:
-                        step = (v.high - v.low) / (v.num - 1)
-                        v = trial.suggest_float(v.name, v.low, v.high, step)
-                elif isinstance(v, Fixed):
-                    v = v()  # Sample fixed
-                else:
-                    raise ValueError(v)
-                d[k] = Fixed(name=name, variable=v)
-                vs[name] = v
-            else:
-                raise ValueError(v)
-        return vs
 
     @staticmethod
     def check_constraints(cs, vs):
