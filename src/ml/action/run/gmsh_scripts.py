@@ -1,6 +1,7 @@
 import subprocess
 import sys
 from pathlib import Path
+import logging
 
 from src.ml.action.action import Action
 
@@ -30,9 +31,12 @@ class GmshScripts(Action):
                        '-f']
             if self.nohup and sys.platform != 'win32':
                 cmd = ['nohup'] + cmd
-            r = subprocess.run(args=cmd,
-                               stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                               check=True)
+            try:
+                r = subprocess.run(args=cmd,
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   check=True)
+            except subprocess.CalledProcessError as e:
+                return e
             return r
 
         if self.episode is not None:
