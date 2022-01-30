@@ -14,26 +14,25 @@ TODO sklearn? https://scikit-learn.org/stable/modules/grid_search.html
 TODO hyperopt? http://hyperopt.github.io/hyperopt/
 TODO multiprocessing logging (frozen by now) https://optuna.readthedocs.io/en/latest/faq.html#how-to-suppress-log-messages-of-optuna
 """
-import optuna
-from copy import deepcopy
 from pathlib import Path
 import shutil
-import os
 import uuid
 import logging
 import concurrent.futures
-import operator
 import os
 from itertools import combinations
+import time
+import sys
 
-# import mysql.connector
+import optuna
 
 from src.ml.action.action import Action
-from src.ml.variable.variable import Variable
-from src.ml.variable.categorical import Categorical
-from src.ml.variable.continuous import Continuous
-from src.ml.variable.discrete import Discrete
-from src.ml.variable.fixed import Fixed
+from src.ml.action.feature.feature import Feature
+from src.ml.action.run.run import Run
+from src.ml.action.set.value import Value
+from src.ml.action.set.continuous import Continuous
+from src.ml.action.set.categorical import Categorical
+from src.ml.action.set.discrete import Discrete
 
 
 class Optuna(Action):
@@ -42,36 +41,46 @@ class Optuna(Action):
     Args:
         storage (str): dialect+driver://username:password@host:port/database
             see SQLAlchemy https://docs.sqlalchemy.org/en/14/core/engines.html
-        constraints (dict): {name: [[operator, value], [operator], ...]}
-            see https://docs.python.org/3/library/operator.html#mapping-operators-to-functions
     """
 
-    def __init__(self, tag=None, subactions=None, executor=None,
-                 episode=None, do_propagate_episode=None,
-                 storage=None, study=None, load_if_exists=False, directions=None,
-                 constraints=None, delete_study=False, write_study=False,
-                 actions=None, n_trials=None, work_dir=None, copies=None,
-                 optimize_executor=None, optimize_max_workers=None,
-                 optimize_n_jobs=None, timeout=None):
-        super().__init__(tag=tag, subactions=subactions, executor=executor,
-                         episode=episode, do_propagate_episode=do_propagate_episode)
+    def __init__(self, storage=None, study_name=None, load_if_exists=None,
+                 n_trials=None, optimize_timeout=None,
+                 do_delete_study=None, do_write_results=None,
+                 sampler=None, sampler_kwargs=None,
+                 pruner=None, pruner_kwargs=None,
+                 objectives=None, constraints=None,
+                 copies=None, links=None,
+                 do_optimize=None, optimize_path=None,
+                 optimize_executor=None, optimize_executor_kwargs=None,
+                 do_update_sub_actions=None, update_trial_number=None, do_sub_call=None,
+                 color_key=None,
+                 **kwargs):
+        super().__init__(**kwargs)
         self.storage = storage
-        self.study = str(uuid.uuid4()) if study is None else study
-        self.load_if_exists = load_if_exists
-        self.directions = directions
+        self.study_name = str(uuid.uuid4()) if study_name is None else study_name
+        self.load_if_exists = True if load_if_exists is None else load_if_exists
+        self.delete_study = False if do_delete_study is None else do_delete_study
+        self.objectives = {} if objectives is None else objectives
         self.constraints = {} if constraints is None else constraints
-        self.actions = actions
-        self.n_trials = 1 if n_trials is None else n_trials
-        self.work_dir = Path().resolve() if work_dir is None else Path(work_dir).resolve()
+        self.n_trials = n_trials
+        self.optimize_timeout = optimize_timeout
         self.copies = [] if copies is None else [Path(x).resolve() for x in copies]
-        study_dir = self.work_dir / self.study
-        self.study_dir = study_dir.resolve()
+        self.links = [] if links is None else [Path(x).resolve() for x in links]
+        self.sampler = sampler
+        self.sampler_kwargs = {} if sampler_kwargs is None else sampler_kwargs
+        self.pruner = pruner
+        self.pruner_kwargs = {} if pruner_kwargs is None else pruner_kwargs
+        self.do_optimize = True if do_optimize is None else do_optimize
+        self.optimize_path = Path(str(uuid.uuid4())).resolve() if optimize_path is None else Path(optimize_path).resolve()
         self.optimize_executor = optimize_executor
-        self.optimize_max_workers = optimize_max_workers
-        self.optimize_n_jobs = 1 if optimize_n_jobs is None else optimize_n_jobs
-        self.timeout = timeout
-        self.delete_study = delete_study
-        self.write_study = write_study
+        self.optimize_executor_kwargs = optimize_executor_kwargs
+        study_dir = self.optimize_path / self.study_name
+        self.study_dir = study_dir.resolve()
+        self.do_update_sub_actions = False if do_update_sub_actions is None else do_update_sub_actions
+        self.update_trial_number = update_trial_number
+        self.do_sub_call = False if do_sub_call is None else do_sub_call
+        self.do_write_results = True if do_write_results is None else do_write_results
+        self.color_key = color_key
 
     class Objective:
         def __init__(self, optuna_action=None):
@@ -91,180 +100,226 @@ class Optuna(Action):
                     shutil.copy(p, trial_dir)
                 else:
                     raise ValueError(p)
+            for link in self.optuna_action.links:
+                if link.is_dir():
+                    os.symlink(link, trial_dir / link.name,
+                               target_is_directory=True)
+                elif link.is_file():
+                    os.symlink(link, trial_dir / link.name,
+                               target_is_directory=False)
+                else:
+                    raise ValueError(link)
             os.chdir(trial_dir)
-            values, variables = {}, {}
-            for a in self.optuna_action.actions:
-                if 'ml.action.update.json' in a.__module__:
-                    old_variables = deepcopy(a.variables)
-                    for v in a.variables:
-                        self.optuna_action.set_setter_from_trial(v, trial)
-                    vs = a()
-                    if not self.optuna_action.check_constraints(self.optuna_action.constraints, vs):
-                        return tuple(float('nan') for _ in self.optuna_action.directions)
-                    variables.update(vs)
-                    a.variables = old_variables
-                elif 'ml.action.run' in a.__module__:
-                    r = a()
-                    if r.returncode:
-                        return tuple(float('nan') for _ in self.optuna_action.directions)
-                elif 'ml.action.read' in a.__module__:
-                    vs = a()
-                    if not self.optuna_action.check_constraints(self.optuna_action.constraints, vs):
-                        return tuple(float('nan') for _ in self.optuna_action.directions)
-                    values.update(vs)
-            for k, v in values.items():
-                trial.set_user_attr(k, v)
-            return tuple(values.get(k, float('nan')) for k, v in self.optuna_action.directions.items())
+            # Do
+            fs = []  # features
+            for a in self.optuna_action.sub_actions:
+                if isinstance(a, Feature):
+                    s = a.setter
+                    if isinstance(s, Continuous):
+                        a.setter = Value(value=trial.suggest_float(
+                            name=a.key, low=s.low, high=s.high))
+                    elif isinstance(s, Categorical):
+                        a.setter = Value(value=trial.suggest_categorical(
+                            name=a.key, choices=s.choices))
+                    elif isinstance(s, Discrete):
+                        if isinstance(s.low, int) and isinstance(s.high, int):
+                            step = (s.high - s.low) // (s.num - 1)
+                            v = trial.suggest_int(
+                                name=a.key, low=s.low, high=s.high, step=step)
+                        else:
+                            step = (s.high - s.low) / (s.num - 1)
+                            v = trial.suggest_float(
+                                name=a.key, low=s.low, high=s.high, step=step)
+                        a.setter = Value(value=v)
+                    a()
+                    a.setter = s
+                    trial.set_user_attr(a.key, a.value)
+                    if a.key in self.optuna_action.constraints:
+                        if not a.value:
+                            return float('nan')
+                    fs.append(a)
+                elif isinstance(a, Run):
+                    r, _ = a()
+                    if r.returncode != 0:
+                        return float('nan')
+            fs_map = {x.key: x.value for x in fs}
+            return tuple(fs_map.get(k, float('nan'))
+                         for k, v in self.optuna_action.objectives.items())
 
-    def __call__(self, *args, **kwargs):
-        def call(self, *args, **kwargs):
-            if self.delete_study:
-                optuna.delete_study(study_name=self.study, storage=self.storage)
-                return None
-            self.study_dir.mkdir(parents=True, exist_ok=True)
-            self.study_dir = self.study_dir.resolve()
-            if self.write_study:
-                study = self.create_study()  # For write
-                self.write(study, self.directions, self.study_dir)
-                return None
-            # optuna.logging.disable_default_handler()
-            # logger = logging.getLogger()
-            # default_handler = logger.handlers[0]
-            # optuna.logging.enable_propagation()  # Propagate logs to the root logger.
-            # optuna.logging.disable_default_handler()  # Stop showing logs in sys.stderr.
-            # log_path = self.study_dir / f'study.log'
-            # logger = logging.getLogger()
-            # logger.handlers = []
-            # logger.addHandler(logging.FileHandler(log_path))
-            if self.optimize_executor == 'thread':
-                executor = concurrent.futures.ThreadPoolExecutor(
-                    max_workers=self.optimize_max_workers)
-            elif self.optimize_executor == 'process':
-                executor = concurrent.futures.ProcessPoolExecutor(
-                    max_workers=self.optimize_max_workers)
-            else:  # consecutive
-                executor = None
-            if executor is not None:
-                # TODO multiprocessing logging
-                optuna.logging.set_verbosity(optuna.logging.WARNING)
-                # TODO as_completed timeout?
-                futures = (concurrent.futures.as_completed(executor.submit(
-                    self.create_study().optimize,
-                    func=self.Objective(self),
-                    n_trials=self.n_trials,
-                    timeout=self.timeout) for _ in range(self.optimize_n_jobs)))
-                for future in futures:
-                    future.result()
-                executor.shutdown()
-                study = self.create_study()  # For write
-            else:
-                # TODO multiprocessing logging
+    def pre_call(self, action=None, *args, **kwargs):
+        root = Path().resolve()
+        if self.delete_study:
+            optuna.delete_study(study_name=self.study_name, storage=self.storage)
+            return self, action
+        self.study_dir.mkdir(parents=True, exist_ok=True)
+        self.study_dir = self.study_dir.resolve()
+        if self.do_optimize:
+            if self.optimize_executor is None:
                 optuna.logging.enable_propagation()  # Propagate logs to the root logger.
                 optuna.logging.disable_default_handler()  # Stop showing logs in sys.stderr.
                 study = self.create_study()
                 study.optimize(func=self.Objective(self),
                                n_trials=self.n_trials,
-                               timeout=self.timeout)
-            # TODO multiprocessing logging
-            # logger.handlers = []
-            # logger.addHandler(default_handler)
-            self.write(study, self.directions, self.study_dir)
-            return study.best_trial if len(self.directions) == 1 else study.best_trials
-
-        if self.episode is not None:
-            return self.episode(call)(self, *args, **kwargs)
+                               timeout=self.optimize_timeout)
+            else:
+                executor = getattr(concurrent.futures, self.optimize_executor)
+                try:
+                    with executor(**self.optimize_executor_kwargs) as e:
+                        # TODO multiprocessing logging
+                        # optuna.logging.disable_default_handler()
+                        # logger = logging.getLogger()
+                        # default_handler = logger.handlers[0]
+                        # optuna.logging.enable_propagation()  # Propagate logs to the root logger.
+                        # optuna.logging.disable_default_handler()  # Stop showing logs in sys.stderr.
+                        # log_path = self.study_dir / f'study.log'
+                        # logger = logging.getLogger()
+                        # logger.handlers = []
+                        # logger.addHandler(logging.FileHandler(log_path))
+                        # TODO n_jobs == max_workers of executor?
+                        optuna.logging.set_verbosity(optuna.logging.WARNING)
+                        fs = (e.submit(
+                            self.create_study().optimize,
+                            func=self.Objective(self),
+                            n_trials=self.n_trials)
+                            for _ in range(e._max_workers))
+                        for f in concurrent.futures.as_completed(
+                                fs=fs, timeout=self.optimize_timeout):
+                            f.result()
+                except concurrent.futures.TimeoutError as timeout_error:
+                    logging.warning(timeout_error)
+                study = self.create_study()  # For write
         else:
-            return call(self, *args, **kwargs)
+            optuna.logging.enable_propagation()  # Propagate logs to the root logger.
+            optuna.logging.disable_default_handler()  # Stop showing logs in sys.stderr.
+            study = self.create_study()
+        if self.do_write_results:
+            self.write_results(study)
+        os.chdir(root)
+        if self.do_update_sub_actions:
+            self.update_sub_actions(study)
+        return self, action
+
+    def sub_call(self, action=None, *args, **kwargs):
+        if self.do_sub_call:
+            return super().sub_call(action=action, *args, **kwargs)
+        else:
+            return self, action
 
     def create_study(self):
-        if len(self.directions) == 1:
-            direction = list(self.directions.values())[0]
+        if self.sampler is not None:
+            sampler = getattr(optuna.samplers, self.sampler)(**self.sampler_kwargs)
+        else:
+            sampler = None
+        if self.pruner is not None:
+            pruner = getattr(optuna.pruners, self.pruner)(**self.pruner_kwargs)
+        else:
+            pruner = None
+        if len(self.objectives) == 1:
+            direction = list(self.objectives.values())[0]
             study = optuna.create_study(storage=self.storage,
-                                        study_name=self.study,
+                                        study_name=self.study_name,
                                         load_if_exists=self.load_if_exists,
+                                        sampler=sampler,
+                                        pruner=pruner,
                                         direction=direction)
-        elif len(self.directions) > 1:  # Multi-objective
-            directions = list(self.directions.values())
+        elif len(self.objectives) > 1:  # Multi-objective
+            directions = list(self.objectives.values())
             study = optuna.create_study(storage=self.storage,
-                                        study_name=self.study,
+                                        study_name=self.study_name,
                                         load_if_exists=self.load_if_exists,
+                                        sampler=sampler,
+                                        pruner=pruner,
                                         directions=directions)
         else:
-            raise ValueError(self.directions)
+            raise ValueError(self.objectives)
         return study
 
-    @staticmethod
-    def set_variable_from_trial(d, trial, vs=None):
-        vs = {} if vs is None else vs
-        for k, v in d.items():
-            if isinstance(v, dict):
-                Optuna.set_variable_from_trial(v, trial, vs)
-            elif isinstance(v, Variable):
-                name = v.name
-                if isinstance(v, Categorical):
-                    v = trial.suggest_categorical(v.name, v.choices)
-                elif isinstance(v, Continuous):
-                    v = trial.suggest_float(v.name, v.low, v.high)
-                elif isinstance(v, Discrete):
-                    if isinstance(v.low, int) and isinstance(v.high, int):
-                        step = (v.high - v.low) // (v.num - 1)
-                        v = trial.suggest_int(v.name, v.low, v.high, step)
-                    else:
-                        step = (v.high - v.low) / (v.num - 1)
-                        v = trial.suggest_float(v.name, v.low, v.high, step)
-                elif isinstance(v, Fixed):
-                    v = v()  # Sample fixed
+    def update_sub_actions(self, study):
+        if len(study.trials) == 0:
+            logging.warning(f'No trials in study {self.study_name} for update!')
+            return
+        if self.update_trial_number is None:  # Choose best
+            if study.directions is not None:
+                if len(study.best_trials) > 0:
+                    trial = study.best_trials[0]
                 else:
-                    raise ValueError(v)
-                d[k] = Fixed(name=name, variable=v)
-                vs[name] = v
+                    trial = None
+            elif study.direction is not None:
+                trial = study.best_trial
             else:
-                raise ValueError(v)
-        return vs
+                trial = None
+        else:  # update_trial_number is index
+            if self.update_trial_number < len(study.trials):
+                trial = study.trials[self.update_trial_number]
+            else:
+                trial = None
+        if trial is not None:
+            for a in self.sub_actions:
+                if isinstance(a, Feature):
+                    if a.key in trial.params:
+                        v = trial.params[a.key]
+                        a.setter = Value(value=v)
 
-    @staticmethod
-    def check_constraints(cs, vs):
-        """Check values/variables on constraints
-
-        Args:
-            cs (dict): constraints - {name: [[operator, value], [operator], ...]}
-                see https://docs.python.org/3/library/operator.html#mapping-operators-to-functions
-            vs (dict): variables/values - {name: value}
-
-        Returns:
-            bool: check result
-        """
-        for k, v in vs.items():
-            if k in cs:
-                cs_k = cs[k]
-                for c in cs_k:
-                    if len(c) == 2:  # binary operator
-                        o, v2 = getattr(operator, c[0]), c[1]
-                        r = o(v, v2)
-                    elif len(c) == 1:  # unary operator
-                        o = getattr(operator, c[0])
-                        r = o(v)
-                    else:
-                        raise ValueError(cs, vs, k, v, c)
-                    if not r:
-                        return False
-        return True
-
-    @staticmethod
-    def write(study, directions, path=None):
-        """Write study data and visualization
-
-        Args:
-            study:
-            directions:
-            path:
-        """
-        p = Path().resolve() if path is None else path
+    def write_results(self, study):
+        if len(study.trials) == 0:
+            logging.warning(f'No trials in study {self.study_name} to write!')
+            return
+        p = self.study_dir
         try:  # required pandas
             study.trials_dataframe().to_csv(p / 'data.csv')
         except Exception as e:
             print(e)
-        for i, (n, d) in enumerate(directions.items()):
+        # Pareto front
+        if len(self.objectives) > 1:
+            try:  # required plotly
+                import plotly.express as px
+
+                n = len(self.objectives)
+                ns = list(self.objectives.keys())
+                ds = list(self.objectives.values())
+                df = study.trials_dataframe()
+                old2new = {f'values_{i}': f'values_{x}' for i, x in enumerate(ns)}
+                df = df.rename(columns=old2new)
+                hover_data = [x for x in df.columns
+                              if x.startswith('params_')
+                              or x.startswith('values_')
+                              or (x.startswith('user_attrs_') and 'time' not in x)
+                              or x == 'duration']
+                if self.color_key is not None:
+                    color = f'user_attrs_{self.color_key}'
+                else:
+                    color = None
+                for c in combinations(range(n), 2):
+                    c_vs = [old2new[f'values_{x}'] for x in c]
+                    c_ns = [ns[x] for x in c]
+                    c_ds = [ds[x] for x in c]
+                    labels = dict(zip(c_vs, c_ns))
+                    fig = px.scatter(
+                        df, x=c_vs[0], y=c_vs[1],
+                        color=color,
+                        hover_name="number",
+                        hover_data=hover_data,
+                        labels=labels)
+                    if color is not None:
+                        fig.layout.coloraxis.colorbar.title = color
+                    fig.write_html(p / f"pareto_front-{'-'.join(f'{n}-{d}' for n, d in zip(c_ns, c_ds))}.html")
+                for c in combinations(range(n), 3):
+                    c_vs = [old2new[f'values_{x}'] for x in c]
+                    c_ns = [ns[x] for x in c]
+                    c_ds = [ds[x] for x in c]
+                    labels = dict(zip(c_vs, c_ns))
+                    fig = px.scatter_3d(
+                        df, x=c_vs[0], y=c_vs[1], z=c_vs[2],
+                        color=color,
+                        hover_name="number",
+                        hover_data=hover_data,
+                        labels=labels)
+                    if color is not None:
+                        fig.layout.coloraxis.colorbar.title = color
+                    fig.write_html(p / f"pareto_front-{'-'.join(f'{n}-{d}' for n, d in zip(c_ns, c_ds))}.html")
+            except Exception as e:
+                print(e)
+        for i, (n, d) in enumerate(self.objectives.items()):
             try:  # required plotly
                 optuna.visualization.plot_optimization_history(
                     study, target_name=n, target=lambda x: x.values[i]).write_html(
@@ -289,54 +344,3 @@ class Optuna(Action):
                     p / f"param_importances-{d}-{n}.html")
             except Exception as e:
                 print(e)
-        try:  # required plotly
-            import plotly.express as px
-
-            n = len(directions)
-            ns = list(directions.keys())
-            ds = list(directions.values())
-            df = study.trials_dataframe()
-            old2new = {f'values_{i}': f'values_{x}' for i, x in enumerate(ns)}
-            df = df.rename(columns=old2new)
-            hover_data = [x for x in df.columns
-                          if x.startswith('params_')
-                          or x.startswith('values_')
-                          or (x.startswith('user_attrs_') and 'time' not in x)
-                          or x == 'duration']
-            for c in combinations(range(n), 2):
-                c_vs = [old2new[f'values_{x}'] for x in c]
-                c_ns = [ns[x] for x in c]
-                c_ds = [ds[x] for x in c]
-                labels = dict(zip(c_vs, c_ns))
-                fig = px.scatter(
-                    df, x=c_vs[0], y=c_vs[1],
-                    color='user_attrs_elements',
-                    hover_name="number",
-                    hover_data=hover_data,
-                    labels=labels)
-                fig.layout.coloraxis.colorbar.title = 'elements'
-                fig.write_html(p / f"pareto_front-{'-'.join(f'{n}-{d}' for n, d in zip(c_ns, c_ds))}.html")
-            for c in combinations(range(n), 3):
-                c_vs = [old2new[f'values_{x}'] for x in c]
-                c_ns = [ns[x] for x in c]
-                c_ds = [ds[x] for x in c]
-                labels = dict(zip(c_vs, c_ns))
-                fig = px.scatter_3d(
-                    df, x=c_vs[0], y=c_vs[1], z=c_vs[2],
-                    color='user_attrs_elements',
-                    hover_name="number",
-                    hover_data=hover_data,
-                    labels=labels)
-                fig.layout.coloraxis.colorbar.title = 'elements'
-                fig.write_html(p / f"pareto_front-{'-'.join(f'{n}-{d}' for n, d in zip(c_ns, c_ds))}.html")
-        except Exception as e:
-            print(e)
-        # if len(directions) in [2, 3]:
-        #     try:  # required plotly
-        #         ns, ds = list(directions.keys()), list(directions.values())
-        #         optuna.visualization.plot_pareto_front(
-        #             study, target_names=ns, include_dominated_trials=True).write_html(
-        #             p / f"pareto_front-{'-'.join(f'{n}-{d}' for n, d in zip(ns, ds))}.html")
-        #     except Exception as e:
-        #         print(e)
-        # else:

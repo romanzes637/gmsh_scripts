@@ -7,24 +7,21 @@ from src.ml.action.get.get import Get
 
 
 class Json(Get):
-    def __init__(self, path, mapping, regex='\{[A-Za-z0-9\-\_]*\}',
-                 tag=None, subactions=None, executor=None,
-                 episode=None, do_propagate_episode=None):
-        super().__init__(tag=tag, subactions=subactions, executor=executor,
-                         episode=episode, do_propagate_episode=do_propagate_episode)
+    def __init__(self, path, mapping, regex='\{[A-Za-z0-9\-\_]*\}', **kwargs):
+        super().__init__(**kwargs)
         self.path = path
         self.mapping = mapping
         self.regex = regex
 
-    def __call__(self, feature, *args, **kwargs):
+    def post_call(self, action=None, *args, **kwargs):
         p = Path(self.path).resolve()
         if p.exists() and p.is_file():
             with open(p) as f:
                 d = json.load(f)
-            d = self.update(d, self.mapping, feature, self.regex)
+            d = self.update(d, self.mapping, action, self.regex)
             with open(p, 'w') as f:
                 json.dump(d, f, indent=2)
-            return feature
+        return self, action
 
     @staticmethod
     def update(d, m, f, r):

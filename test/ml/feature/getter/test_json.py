@@ -175,7 +175,7 @@ class TestJson(unittest.TestCase):
         f = Feature(key='feature',
                     value={'hello_': 0, 'world-': 1, 'MAN': 'DO'},
                     getter=j)
-        r = f.get()
+        f()
         with open(p) as f:
             d = json.load(f)
         self.assertDictEqual(d, {'a': '0;1;DO'})

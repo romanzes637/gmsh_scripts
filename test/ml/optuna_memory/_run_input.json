@@ -14,27 +14,42 @@
         "Mesh.Recombine3DAll": 0,
         "Mesh.Recombine3DLevel": 0,
         "Mesh.Recombine3DConformity": 0,
-        "Mesh.MeshSizeFactor": 1,
-        "Mesh.MeshSizeMin": 0,
-        "Mesh.MeshSizeMax": 1e+22,
+        "Mesh.MeshSizeFactor": 0.6196945841403138,
+        "Mesh.MeshSizeMin": 0.28406219060840787,
+        "Mesh.MeshSizeMax": 3.4363732733415326,
         "Mesh.MeshSizeFromPoints": 1,
         "Mesh.MeshSizeExtendFromBoundary": 1,
-        "Mesh.MeshSizeFromCurvature": 21,
+        "Mesh.MeshSizeFromCurvature": 18,
         "Mesh.MeshSizeFromCurvatureIsotropic": 0,
         "Mesh.MeshSizeFromParametricPoints": 0,
         "Mesh.MinimumCircleNodes": 7,
         "Mesh.MinimumCurveNodes": 3
-      }
+      },
+      "log_path": "_run_input.log"
     }
   },
   "data": {
     "class": "block.Layer",
     "layer": [
-      ["1;1;5", "2;1;5"],
-      ["1;1;5", "2;1;5"]],
+      [
+        "1;0.5958490287559935;5",
+        "2;0.5958490287559935;5"
+      ],
+      [
+        "1;0.5958490287559935;5",
+        "2;0.5958490287559935;5"
+      ]
+    ],
     "layer_curves": [
-      ["line", "circle_arc"],
-      ["line", "line"]],
+      [
+        "line",
+        "circle_arc"
+      ],
+      [
+        "line",
+        "line"
+      ]
+    ],
     "items_do_structure_map": 0
   }
 }

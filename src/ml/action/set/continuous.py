@@ -1,16 +1,16 @@
-from src.ml.action.set.variable import Variable
 import numpy as np
+
+from src.ml.action.set.variable import Variable
+from src.ml.action.feature.feature import Feature
 
 
 class Continuous(Variable):
-    def __init__(self, low, high,
-                 tag=None, subactions=None, executor=None,
-                 episode=None, do_propagate_episode=None):
-        super().__init__(tag=tag, subactions=subactions, executor=executor,
-                         episode=episode, do_propagate_episode=do_propagate_episode)
+    def __init__(self, low, high, **kwargs):
+        super().__init__(**kwargs)
         self.low = low
         self.high = high
 
-    def __call__(self, feature, *args, **kwargs):
-        feature.value = np.random.uniform(self.low, self.high)
-        return feature
+    def post_call(self, action=None, *args, **kwargs):
+        if isinstance(action, Feature):
+            action.value = np.random.uniform(self.low, self.high)
+        return self, action

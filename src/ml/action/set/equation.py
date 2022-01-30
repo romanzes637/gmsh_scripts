@@ -7,33 +7,29 @@ import re
 import numpy as np
 
 from src.ml.action.set.variable import Variable
+from src.ml.action.feature.feature import Feature
 
 
 class Equation(Variable):
-    def __init__(self, equation, features=None, regex='\{[A-Za-z0-9\-\_]*\}',
-                 tag=None, subactions=None, executor=None,
-                 episode=None, do_propagate_episode=None):
-        super().__init__(tag=tag, subactions=subactions, executor=executor,
-                         episode=episode, do_propagate_episode=do_propagate_episode)
+    def __init__(self, equation, regex='\{[A-Za-z0-9\-\_]*\}', **kwargs):
+        super().__init__(**kwargs)
         self.equation = equation
         self.regex = regex
-        self.features = [] if features is None else features
 
-    def __call__(self, feature, *args, **kwargs):
-        for f in self.features:
-            f.set()
-        v = self.parse(self.equation, self.features, self.regex)
-        v = eval(v)
-        if isinstance(v, str):
-            if v.isdigit():
-                v = int(v)
-            else:
-                try:
-                    v = float(v)
-                except ValueError:
-                    pass
-        feature.value = v
-        return feature
+    def post_call(self, action=None, *args, **kwargs):
+        if isinstance(action, Feature):
+            v = self.parse(self.equation, self.sub_actions, self.regex)
+            v = eval(v)
+            if isinstance(v, str):
+                if v.isdigit():
+                    v = int(v)
+                else:
+                    try:
+                        v = float(v)
+                    except ValueError:
+                        pass
+            action.value = v
+            return action
 
     @staticmethod
     def parse(v, fs, r):

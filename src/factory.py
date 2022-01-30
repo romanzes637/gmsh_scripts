@@ -79,10 +79,6 @@ class Factory:
         str2objs.append({f'smooth.{k}': v for k, v in str2obj.items()})
         from src.ml.action.factory import str2obj
         str2objs.append({k: v for k, v in str2obj.items()})
-        from src.ml.variable.factory import str2obj
-        str2objs.append({k: v for k, v in str2obj.items()})
-        from src.ml.value.factory import str2obj
-        str2objs.append({k: v for k, v in str2obj.items()})
         # Make global str2obj and obj2str(s)
         str2obj, obj2str = {}, {}
         for s2o in str2objs:

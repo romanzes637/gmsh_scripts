@@ -35,30 +35,19 @@ class Feature(Action):
         setter (collections.abc.Callable): callable that update feature
     """
 
-    def __init__(self, tag=None, subactions=None, executor=None,
-                 episode=None, do_propagate_episode=None,
-                 key=None, value=None, getter=None, setter=None):
-        super().__init__(tag=tag, subactions=subactions, executor=executor,
-                         episode=episode, do_propagate_episode=do_propagate_episode)
+    def __init__(self, key=None, value=None, getter=None, setter=None, **kwargs):
+        super().__init__(**kwargs)
         self.key = key
         self.value = value
         self.getter = getter
         self.setter = setter
 
-    def get(self):
-        return self.getter(self) if self.getter is not None else self
+    def pre_call(self, action=None, *args, **kwargs):
+        if self.setter is not None:
+            self.setter(action=self)
+        return self, action
 
-    def set(self):
-        return self.setter(self) if self.setter is not None else self
-
-    def call(self, *args, **kwargs):
-        self.set()
-        self.get()
-        return self
-
-    def __call__(self, *args, **kwargs):
-        super().__call__(*args, **kwargs)
-        if self.episode is not None:
-            return self.episode(self.call)(self, *args, **kwargs)
-        else:
-            return self.call(self, *args, **kwargs)
+    def post_call(self, action=None, *args, **kwargs):
+        if self.getter is not None:
+            self.getter(action=self)
+        return self, action

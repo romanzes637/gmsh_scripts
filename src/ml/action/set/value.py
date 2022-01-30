@@ -1,13 +1,13 @@
 from src.ml.action.set.set import Set
+from src.ml.action.feature.feature import Feature
 
 
 class Value(Set):
-    def __init__(self, value, tag=None, subactions=None, executor=None,
-                 episode=None, do_propagate_episode=None):
-        super().__init__(tag=tag, subactions=subactions, executor=executor,
-                         episode=episode, do_propagate_episode=do_propagate_episode)
+    def __init__(self, value, **kwargs):
+        super().__init__(**kwargs)
         self.value = value
 
-    def __call__(self, feature, *args, **kwargs):
-        feature.value = self.value
-        return feature
+    def post_call(self, action=None, *args, **kwargs):
+        if isinstance(action, Feature):
+            action.value = self.value
+        return self, action
