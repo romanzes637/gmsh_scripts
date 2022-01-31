@@ -1,12 +1,11 @@
 import subprocess
 import sys
 from pathlib import Path
-import logging
 
-from src.ml.action.run.run import Run
+from src.ml.action.run.subprocess import Subprocess
 
 
-class GmshScripts(Run):
+class GmshScripts(Subprocess):
     def __init__(self, run_path=None, input_path=None, write_mesh=False, nohup=True,
                  **kwargs):
         super().__init__(**kwargs)

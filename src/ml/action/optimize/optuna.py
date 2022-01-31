@@ -3,6 +3,7 @@
 Requires optuna https://optuna.readthedocs.io/en/stable/index.html
 Requires mysql https://dev.mysql.com/doc/mysql-installation-excerpt/5.7/en/
 Requires mysql-connector-python https://pypi.org/project/mysql-connector-python/
+Requires psycopg for postgresql https://www.psycopg.org/
 Requires plotly for visualization https://plotly.com/
 Parallelization https://optuna.readthedocs.io/en/stable/tutorial/10_key_features/004_distributed.html
 Multi-objective https://optuna.readthedocs.io/en/v2.7.0/tutorial/20_recipes/002_multi_objective.html
@@ -18,17 +19,14 @@ from pathlib import Path
 import shutil
 import uuid
 import logging
-import concurrent.futures
 import os
 from itertools import combinations
-import time
-import sys
 
 import optuna
 
 from src.ml.action.action import Action
 from src.ml.action.feature.feature import Feature
-from src.ml.action.run.run import Run
+from src.ml.action.run.subprocess import Subprocess
 from src.ml.action.set.value import Value
 from src.ml.action.set.continuous import Continuous
 from src.ml.action.set.categorical import Categorical
@@ -43,44 +41,40 @@ class Optuna(Action):
             see SQLAlchemy https://docs.sqlalchemy.org/en/14/core/engines.html
     """
 
-    def __init__(self, storage=None, study_name=None, load_if_exists=None,
-                 n_trials=None, optimize_timeout=None,
-                 do_delete_study=None, do_write_results=None,
+    def __init__(self, storage=None, study_name=None, work_path=None,
+                 do_create_study=None, do_read_study=None, do_delete_study=None,
+                 do_write_results=None, write_results_color_key=None,
+                 do_optimize=None, n_trials=1,
+                 objectives=None, constraints=None,
                  sampler=None, sampler_kwargs=None,
                  pruner=None, pruner_kwargs=None,
-                 objectives=None, constraints=None,
                  copies=None, links=None,
-                 do_optimize=None, optimize_path=None,
-                 optimize_executor=None, optimize_executor_kwargs=None,
-                 do_update_sub_actions=None, update_trial_number=None, do_sub_call=None,
-                 color_key=None,
+                 do_update_sub_actions=None, update_sub_actions_trial=None,
+                 do_call_sub_actions=None,
                  **kwargs):
         super().__init__(**kwargs)
         self.storage = storage
         self.study_name = str(uuid.uuid4()) if study_name is None else study_name
-        self.load_if_exists = True if load_if_exists is None else load_if_exists
-        self.delete_study = False if do_delete_study is None else do_delete_study
+        self.work_path = Path(str(uuid.uuid4())).resolve() if work_path is None else Path(work_path).resolve()
+        self.do_create_study = True if do_create_study is None else do_create_study
+        self.do_read_study = True if do_read_study is None else do_read_study
+        self.do_delete_study = False if do_delete_study is None else do_delete_study
+        self.do_write_results = True if do_write_results is None else do_write_results
+        self.write_results_color_key = write_results_color_key
+        self.do_optimize = True if do_optimize is None else do_optimize
+        self.n_trials = n_trials
         self.objectives = {} if objectives is None else objectives
         self.constraints = {} if constraints is None else constraints
-        self.n_trials = n_trials
-        self.optimize_timeout = optimize_timeout
         self.copies = [] if copies is None else [Path(x).resolve() for x in copies]
         self.links = [] if links is None else [Path(x).resolve() for x in links]
         self.sampler = sampler
         self.sampler_kwargs = {} if sampler_kwargs is None else sampler_kwargs
         self.pruner = pruner
         self.pruner_kwargs = {} if pruner_kwargs is None else pruner_kwargs
-        self.do_optimize = True if do_optimize is None else do_optimize
-        self.optimize_path = Path(str(uuid.uuid4())).resolve() if optimize_path is None else Path(optimize_path).resolve()
-        self.optimize_executor = optimize_executor
-        self.optimize_executor_kwargs = optimize_executor_kwargs
-        study_dir = self.optimize_path / self.study_name
-        self.study_dir = study_dir.resolve()
+        self.study_dir = (self.work_path / self.study_name).resolve()
         self.do_update_sub_actions = False if do_update_sub_actions is None else do_update_sub_actions
-        self.update_trial_number = update_trial_number
-        self.do_sub_call = False if do_sub_call is None else do_sub_call
-        self.do_write_results = True if do_write_results is None else do_write_results
-        self.color_key = color_key
+        self.update_sub_actions_trial = update_sub_actions_trial
+        self.do_call_sub_actions = False if do_call_sub_actions is None else do_call_sub_actions
 
     class Objective:
         def __init__(self, optuna_action=None):
@@ -88,8 +82,7 @@ class Optuna(Action):
 
         def __call__(self, trial):
             # TODO multiprocessing logging
-            if self.optuna_action.optimize_executor is not None:
-                optuna.logging.set_verbosity(optuna.logging.WARNING)
+            optuna.logging.set_verbosity(optuna.logging.WARNING)
             trial_dir = self.optuna_action.study_dir / str(trial.number)
             trial_dir = trial_dir.resolve()
             trial_dir.mkdir(parents=True, exist_ok=True)
@@ -110,7 +103,6 @@ class Optuna(Action):
                 else:
                     raise ValueError(link)
             os.chdir(trial_dir)
-            # Do
             fs = []  # features
             for a in self.optuna_action.sub_actions:
                 if isinstance(a, Feature):
@@ -138,72 +130,37 @@ class Optuna(Action):
                         if not a.value:
                             return float('nan')
                     fs.append(a)
-                elif isinstance(a, Run):
-                    r, _ = a()
-                    if r.returncode != 0:
+                elif isinstance(a, Subprocess):
+                    a()
+                    if a.returncode != 0:
                         return float('nan')
             fs_map = {x.key: x.value for x in fs}
-            return tuple(fs_map.get(k, float('nan'))
-                         for k, v in self.optuna_action.objectives.items())
+            objectives = []
+            for i, (k, v) in enumerate(self.optuna_action.objectives.items()):
+                o = fs_map.get(k, None)
+                objectives.append(float('nan') if o is None else o)
+                trial.set_user_attr(f'value_{i}_{k}', None)
+            return tuple(objectives)
 
-    def pre_call(self, action=None, *args, **kwargs):
+    def sub_call(self, actions=None, *args, **kwargs):
         root = Path().resolve()
-        if self.delete_study:
-            optuna.delete_study(study_name=self.study_name, storage=self.storage)
-            return self, action
+        if self.do_delete_study:
+            optuna.delete_study(storage=self.storage, study_name=self.study_name)
+            return
         self.study_dir.mkdir(parents=True, exist_ok=True)
         self.study_dir = self.study_dir.resolve()
+        # TODO multiprocessing logging
+        optuna.logging.enable_propagation()  # Propagate logs to the root logger.
+        optuna.logging.disable_default_handler()  # Stop showing logs in sys.stderr.
+        study = self.create_study()
         if self.do_optimize:
-            if self.optimize_executor is None:
-                optuna.logging.enable_propagation()  # Propagate logs to the root logger.
-                optuna.logging.disable_default_handler()  # Stop showing logs in sys.stderr.
-                study = self.create_study()
-                study.optimize(func=self.Objective(self),
-                               n_trials=self.n_trials,
-                               timeout=self.optimize_timeout)
-            else:
-                executor = getattr(concurrent.futures, self.optimize_executor)
-                try:
-                    with executor(**self.optimize_executor_kwargs) as e:
-                        # TODO multiprocessing logging
-                        # optuna.logging.disable_default_handler()
-                        # logger = logging.getLogger()
-                        # default_handler = logger.handlers[0]
-                        # optuna.logging.enable_propagation()  # Propagate logs to the root logger.
-                        # optuna.logging.disable_default_handler()  # Stop showing logs in sys.stderr.
-                        # log_path = self.study_dir / f'study.log'
-                        # logger = logging.getLogger()
-                        # logger.handlers = []
-                        # logger.addHandler(logging.FileHandler(log_path))
-                        # TODO n_jobs == max_workers of executor?
-                        optuna.logging.set_verbosity(optuna.logging.WARNING)
-                        fs = (e.submit(
-                            self.create_study().optimize,
-                            func=self.Objective(self),
-                            n_trials=self.n_trials)
-                            for _ in range(e._max_workers))
-                        for f in concurrent.futures.as_completed(
-                                fs=fs, timeout=self.optimize_timeout):
-                            f.result()
-                except concurrent.futures.TimeoutError as timeout_error:
-                    logging.warning(timeout_error)
-                study = self.create_study()  # For write
-        else:
-            optuna.logging.enable_propagation()  # Propagate logs to the root logger.
-            optuna.logging.disable_default_handler()  # Stop showing logs in sys.stderr.
-            study = self.create_study()
+            study.optimize(func=self.Objective(self), n_trials=self.n_trials)
         if self.do_write_results:
             self.write_results(study)
         os.chdir(root)
         if self.do_update_sub_actions:
             self.update_sub_actions(study)
-        return self, action
-
-    def sub_call(self, action=None, *args, **kwargs):
-        if self.do_sub_call:
-            return super().sub_call(action=action, *args, **kwargs)
-        else:
-            return self, action
+            super().sub_call(actions=actions, *args, **kwargs)
 
     def create_study(self):
         if self.sampler is not None:
@@ -214,31 +171,56 @@ class Optuna(Action):
             pruner = getattr(optuna.pruners, self.pruner)(**self.pruner_kwargs)
         else:
             pruner = None
-        if len(self.objectives) == 1:
-            direction = list(self.objectives.values())[0]
-            study = optuna.create_study(storage=self.storage,
-                                        study_name=self.study_name,
-                                        load_if_exists=self.load_if_exists,
-                                        sampler=sampler,
-                                        pruner=pruner,
-                                        direction=direction)
-        elif len(self.objectives) > 1:  # Multi-objective
-            directions = list(self.objectives.values())
-            study = optuna.create_study(storage=self.storage,
-                                        study_name=self.study_name,
-                                        load_if_exists=self.load_if_exists,
-                                        sampler=sampler,
-                                        pruner=pruner,
-                                        directions=directions)
+        if self.do_create_study:
+            if self.do_read_study:
+                load_if_exists = True  # Raise exception if exists
+            else:
+                load_if_exists = False   # Load if exists
+            if len(self.objectives) == 1:
+                direction = list(self.objectives.values())[0]
+                study = optuna.create_study(storage=self.storage,
+                                            study_name=self.study_name,
+                                            load_if_exists=load_if_exists,
+                                            sampler=sampler,
+                                            pruner=pruner,
+                                            direction=direction)
+            elif len(self.objectives) > 1:  # Multi-objective
+                directions = list(self.objectives.values())
+                study = optuna.create_study(storage=self.storage,
+                                            study_name=self.study_name,
+                                            load_if_exists=load_if_exists,
+                                            sampler=sampler,
+                                            pruner=pruner,
+                                            directions=directions)
+            else:
+                raise ValueError(self.objectives)
         else:
-            raise ValueError(self.objectives)
+            if self.do_read_study:
+                study = optuna.load_study(storage=self.storage,
+                                          study_name=self.study_name,
+                                          sampler=sampler,
+                                          pruner=pruner)
+                try:
+                    self.objectives = {'value': study.direction.name.lower()}
+                except RuntimeError:
+                    objectives = {f'value_{i}': x.name.lower()
+                                  for i, x in enumerate(study.directions)}
+                    df = study.trials_dataframe()
+                    for k in list(objectives.keys()):
+                        s = f'user_attrs_{k}_'
+                        for c in df.columns:
+                            if c.startswith(s):
+                                objectives[c[len(s):]] = objectives.pop(k)
+                    self.objectives = objectives
+            else:
+                raise ValueError('do_crate_study and/or do_read_study should be set')
         return study
 
     def update_sub_actions(self, study):
         if len(study.trials) == 0:
             logging.warning(f'No trials in study {self.study_name} for update!')
             return
-        if self.update_trial_number is None:  # Choose best
+        if self.update_sub_actions_trial is None:  # Choose best
             if study.directions is not None:
                 if len(study.best_trials) > 0:
                     trial = study.best_trials[0]
@@ -249,8 +231,8 @@ class Optuna(Action):
             else:
                 trial = None
         else:  # update_trial_number is index
-            if self.update_trial_number < len(study.trials):
-                trial = study.trials[self.update_trial_number]
+            if self.update_sub_actions_trial < len(study.trials):
+                trial = study.trials[self.update_sub_actions_trial]
             else:
                 trial = None
         if trial is not None:
@@ -285,8 +267,8 @@ class Optuna(Action):
                               or x.startswith('values_')
                               or (x.startswith('user_attrs_') and 'time' not in x)
                               or x == 'duration']
-                if self.color_key is not None:
-                    color = f'user_attrs_{self.color_key}'
+                if self.write_results_color_key is not None:
+                    color = f'user_attrs_{self.write_results_color_key}'
                 else:
                     color = None
                 for c in combinations(range(n), 2):
