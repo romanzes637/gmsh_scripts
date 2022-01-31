@@ -5,6 +5,7 @@
   },
   "data": {
     "class": "action.optimize.Optuna",
+    "tag": "test_optuna_sqlite",
     "jobs": 1,
     "timeout": null,
     "n_trials": 3,
@@ -28,38 +29,38 @@
     "do_call_sub_actions": false,
     "sub_actions": [
       {"key": "log_path", "class": "action.Feature",
-        "setter": {"class": "action.setter.Value", "value": "_run_input.log"},
-        "getter": {"class": "action.getter.Json", "path": "_run_input.json",
+        "pre_call": {"class": "action.setter.Value", "value": "_run_input.log"},
+        "post_call": {"class": "action.getter.Json", "path": "_run_input.json",
           "mapping": {"metadata": {"run": {"log_path": "{}"}}}}
       },
       {"key": "size_points", "class": "action.Feature",
-        "setter": {"class": "action.setter.Continuous", "low": 0.3, "high": 0.8},
-        "getter": {"class": "action.getter.Json", "path": "_run_input.json",
+        "pre_call": {"class": "action.setter.Continuous", "low": 0.3, "high": 0.8},
+        "post_call": {"class": "action.getter.Json", "path": "_run_input.json",
           "mapping": {"data": {"layer": [["1;{};5", "2;{};5"], ["1;{};5", "2;{};5"]]}}}
       },
       {"key": "size_curvature", "class": "action.Feature",
-        "setter": {"class": "action.setter.Discrete", "low": 10, "high": 40, "num": 31},
-        "getter": {"class": "action.getter.Json", "path": "_run_input.json",
+        "pre_call": {"class": "action.setter.Discrete", "low": 10, "high": 40, "num": 31},
+        "post_call": {"class": "action.getter.Json", "path": "_run_input.json",
           "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeFromCurvature": "{}"}}}}}
       },
       {"key": "size_min", "class": "action.Feature",
-        "setter": {"class": "action.setter.Continuous", "low": 0, "high": 1},
-        "getter": {"class": "action.getter.Json", "path": "_run_input.json",
+        "pre_call": {"class": "action.setter.Continuous", "low": 0, "high": 1},
+        "post_call": {"class": "action.getter.Json", "path": "_run_input.json",
           "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeMin": "{}"}}}}}
       },
       {"key": "size_max", "class": "action.Feature",
-        "setter": {"class": "action.setter.Continuous", "low": 1, "high": 5},
-        "getter": {"class": "action.getter.Json", "path": "_run_input.json",
+        "pre_call": {"class": "action.setter.Continuous", "low": 1, "high": 5},
+        "post_call": {"class": "action.getter.Json", "path": "_run_input.json",
           "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeMax": "{}"}}}}}
       },
       {"key": "size_factor", "class": "action.Feature",
-        "setter": {"class": "action.setter.Continuous", "low": 0.5, "high": 1},
-        "getter": {"class": "action.getter.Json", "path": "_run_input.json",
+        "pre_call": {"class": "action.setter.Continuous", "low": 0.5, "high": 1},
+        "post_call": {"class": "action.getter.Json", "path": "_run_input.json",
           "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeFactor": "{}"}}}}}
       },
       {"key": "size_boundary", "class": "action.Feature",
-        "setter": {"class": "action.setter.Discrete", "low": 1, "high": 2, "num": 2},
-        "getter": {"class": "action.getter.Json", "path": "_run_input.json",
+        "pre_call": {"class": "action.setter.Discrete", "low": 1, "high": 2, "num": 2},
+        "post_call": {"class": "action.getter.Json", "path": "_run_input.json",
           "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeExtendFromBoundary": "{}"}}}}}
       },
       {"class": "action.run.GmshScripts",
@@ -68,37 +69,37 @@
         "input_path": "_run_input.json"
       },
       {"key": "elements", "class": "action.Feature",
-        "setter": {"class": "action.setter.RegexFile", "path": "_run_input.log",
+        "pre_call": {"class": "action.setter.RegexFile", "path": "_run_input.log",
           "value_type": "int", "regex": "Total:.*((?<=and)[\\s0-9]*(?=elements))"}
       },
       {"key": "constraint_J", "class": "action.Feature",
-        "setter": {"class": "action.setter.Equation", "equation": "{0} > 0",
+        "pre_call": {"class": "action.setter.Equation", "equation": "{0} > 0",
           "sub_actions": [
             {"class": "action.Feature", "key": "minJ_min",
-            "setter": {"class": "action.setter.RegexFile", "path": "_run_input.log",
+            "pre_call": {"class": "action.setter.RegexFile", "path": "_run_input.log",
               "value_type": "float", "regex": "Info: minJ .*((?<==)[\\s0-9.e-]*(?=,))"}}
           ]}
       },
       {"key": "objective_elements", "class": "action.Feature",
-        "setter": {"class": "action.setter.Equation", "equation": "{0}",
+        "pre_call": {"class": "action.setter.Equation", "equation": "{0}",
           "sub_actions": [
           {"class": "action.Feature",
             "key": "elements",
-            "setter": {"class": "action.setter.RegexFile", "path": "_run_input.log",
+            "pre_call": {"class": "action.setter.RegexFile", "path": "_run_input.log",
               "value_type": "int", "regex": "Total:.*((?<=and)[\\s0-9]*(?=elements))"}}
           ]}
       },
       {"key": "objective_metrics", "class": "action.Feature",
-        "setter": {"class": "action.setter.Equation", "equation": "min([{0}, {1}, {2}])",
+        "pre_call": {"class": "action.setter.Equation", "equation": "min([{0}, {1}, {2}])",
           "sub_actions": [
             {"key": "minJ_by_maxJ_min", "class": "action.Feature",
-            "setter": {"class": "action.setter.RegexFile", "path": "_run_input.log",
+            "pre_call": {"class": "action.setter.RegexFile", "path": "_run_input.log",
               "value_type": "float", "regex": "Info: minJ/maxJ .*((?<==)[\\s0-9.e-]*(?=,))"}},
             {"key": "IGE_min", "class": "action.Feature",
-            "setter": {"class": "action.setter.RegexFile", "path": "_run_input.log",
+            "pre_call": {"class": "action.setter.RegexFile", "path": "_run_input.log",
               "value_type": "float", "regex": "Info: IGE .*((?<==)[\\s0-9.e-]*(?=,))"}},
             {"key": "ICN_min", "class": "action.Feature",
-            "setter": {"class": "action.setter.RegexFile", "path": "_run_input.log",
+            "pre_call": {"class": "action.setter.RegexFile", "path": "_run_input.log",
               "value_type": "float", "regex": "Info: ICN .*((?<==)[\\s0-9.e-]*(?=,))"}}
           ]}
       }

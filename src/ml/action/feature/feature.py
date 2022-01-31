@@ -31,23 +31,9 @@ class Feature(Action):
      Args:
         key (str): name of the feature
         value (object): value of the feature
-        getter (collections.abc.Callable): callable that use feature
-        setter (collections.abc.Callable): callable that update feature
     """
 
-    def __init__(self, key=None, value=None, getter=None, setter=None, **kwargs):
+    def __init__(self, key=None, value=None, **kwargs):
         super().__init__(**kwargs)
         self.key = key
         self.value = value
-        self.getter = getter
-        self.setter = setter
-
-    def pre_call(self, action=None, *args, **kwargs):
-        if self.setter is not None:
-            self.setter(action=self)
-        return self, action
-
-    def post_call(self, action=None, *args, **kwargs):
-        if self.getter is not None:
-            self.getter(action=self)
-        return self, action

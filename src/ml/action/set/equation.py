@@ -7,7 +7,6 @@ import re
 import numpy as np
 
 from src.ml.action.set.variable import Variable
-from src.ml.action.feature.feature import Feature
 
 
 class Equation(Variable):
@@ -16,20 +15,18 @@ class Equation(Variable):
         self.equation = equation
         self.regex = regex
 
-    def post_call(self, action=None, *args, **kwargs):
-        if isinstance(action, Feature):
-            v = self.parse(self.equation, self.sub_actions, self.regex)
-            v = eval(v)
-            if isinstance(v, str):
-                if v.isdigit():
-                    v = int(v)
-                else:
-                    try:
-                        v = float(v)
-                    except ValueError:
-                        pass
-            action.value = v
-            return action
+    def post_call(self, actions=None, *args, **kwargs):
+        v = self.parse(self.equation, self.sub_actions, self.regex)
+        v = eval(v)
+        if isinstance(v, str):
+            if v.isdigit():
+                v = int(v)
+            else:
+                try:
+                    v = float(v)
+                except ValueError:
+                    pass
+        actions[-2].value = v
 
     @staticmethod
     def parse(v, fs, r):

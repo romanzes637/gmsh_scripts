@@ -20,7 +20,7 @@ class Episode(Action):
         super().__init__(**kwargs)
         self.tag = str(uuid.uuid4()) if tag is None else tag
 
-    def post_call(self, action=None, *args, **kwargs):
+    def post_call(self, actions=None, *args, **kwargs):
         global EPISODE
 
         meta = {}
@@ -29,8 +29,8 @@ class Episode(Action):
         meta['ip'] = socket.gethostbyname(socket.gethostname())
         meta['user'] = getpass.getuser()
         meta['pid'] = os.getpid()
-        state = {'action': {'tag': action.tag,
-                            'sub_actions_tags': [x. tag for x in action.sub_actions]
+        state = {'action': {'tag': actions[-2].tag,
+                            'sub_actions_tags': [x. tag for x in actions[-2].sub_actions]
                             },
                  'args': args,
                  'kwargs': kwargs,

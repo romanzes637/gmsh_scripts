@@ -1,4 +1,4 @@
-"""Optuna optimization pipeline
+"""Optuna optimization
 
 Requires optuna https://optuna.readthedocs.io/en/stable/index.html
 Requires mysql https://dev.mysql.com/doc/mysql-installation-excerpt/5.7/en/
@@ -11,9 +11,10 @@ Pruners https://optuna.readthedocs.io/en/stable/reference/pruners.html#module-op
 Samplers https://optuna.readthedocs.io/en/stable/reference/samplers.html#module-optuna.samplers
 Nan https://optuna.readthedocs.io/en/stable/faq.html#how-are-nans-returned-by-trials-handled
 States https://optuna.readthedocs.io/en/stable/reference/generated/optuna.trial.TrialState.html#optuna.trial.TrialState
-TODO sklearn? https://scikit-learn.org/stable/modules/grid_search.html
-TODO hyperopt? http://hyperopt.github.io/hyperopt/
-TODO multiprocessing logging (frozen by now) https://optuna.readthedocs.io/en/latest/faq.html#how-to-suppress-log-messages-of-optuna
+1. TODO sklearn? https://scikit-learn.org/stable/modules/grid_search.html
+2. TODO hyperopt? http://hyperopt.github.io/hyperopt/
+3. TODO multiprocessing logging (frozen by now) https://optuna.readthedocs.io/en/latest/faq.html#how-to-suppress-log-messages-of-optuna
+4. TODO Mouse integration
 """
 from pathlib import Path
 import shutil
@@ -82,7 +83,8 @@ class Optuna(Action):
 
         def __call__(self, trial):
             # TODO multiprocessing logging
-            optuna.logging.set_verbosity(optuna.logging.WARNING)
+            if self.optuna_action.executor is not None:
+                optuna.logging.set_verbosity(optuna.logging.WARNING)
             trial_dir = self.optuna_action.study_dir / str(trial.number)
             trial_dir = trial_dir.resolve()
             trial_dir.mkdir(parents=True, exist_ok=True)
@@ -106,12 +108,12 @@ class Optuna(Action):
             fs = []  # features
             for a in self.optuna_action.sub_actions:
                 if isinstance(a, Feature):
-                    s = a.setter
+                    s = a.pre_call
                     if isinstance(s, Continuous):
-                        a.setter = Value(value=trial.suggest_float(
+                        a.pre_call = Value(value=trial.suggest_float(
                             name=a.key, low=s.low, high=s.high))
                     elif isinstance(s, Categorical):
-                        a.setter = Value(value=trial.suggest_categorical(
+                        a.pre_call = Value(value=trial.suggest_categorical(
                             name=a.key, choices=s.choices))
                     elif isinstance(s, Discrete):
                         if isinstance(s.low, int) and isinstance(s.high, int):
@@ -122,9 +124,9 @@ class Optuna(Action):
                             step = (s.high - s.low) / (s.num - 1)
                             v = trial.suggest_float(
                                 name=a.key, low=s.low, high=s.high, step=step)
-                        a.setter = Value(value=v)
+                        a.pre_call = Value(value=v)
                     a()
-                    a.setter = s
+                    a.pre_call = s
                     trial.set_user_attr(a.key, a.value)
                     if a.key in self.optuna_action.constraints:
                         if not a.value:
@@ -139,7 +141,7 @@ class Optuna(Action):
             for i, (k, v) in enumerate(self.optuna_action.objectives.items()):
                 o = fs_map.get(k, None)
                 objectives.append(float('nan') if o is None else o)
-                trial.set_user_attr(f'value_{i}_{k}', None)
+                trial.set_user_attr(f'values_{i}_{k}', o)
             return tuple(objectives)
 
     def sub_call(self, actions=None, *args, **kwargs):
@@ -154,7 +156,8 @@ class Optuna(Action):
         optuna.logging.disable_default_handler()  # Stop showing logs in sys.stderr.
         study = self.create_study()
         if self.do_optimize:
-            study.optimize(func=self.Objective(self), n_trials=self.n_trials)
+            study.optimize(func=self.Objective(self), n_trials=self.n_trials,
+                           timeout=self.timeout)  # TODO timeout from executor?
         if self.do_write_results:
             self.write_results(study)
         os.chdir(root)
@@ -203,7 +206,7 @@ class Optuna(Action):
                 try:
                     self.objectives = {'value': study.direction.name.lower()}
                 except RuntimeError:
-                    objectives = {f'value_{i}': x.name.lower()
+                    objectives = {f'values_{i}': x.name.lower()
                                   for i, x in enumerate(study.directions)}
                     df = study.trials_dataframe()
                     for k in list(objectives.keys()):

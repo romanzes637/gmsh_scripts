@@ -25,7 +25,8 @@ class Action:
                  pre_call=None, sub_call=None, post_call=None, call=None,
                  pre_callbacks=None, pre_sub_callbacks=None,
                  sub_post_callbacks=None, post_callbacks=None, callbacks=None):
-        self.tag = str(uuid.uuid4()) if tag is None else tag
+        self.uid = str(uuid.uuid4())
+        self.tag = tag
         self.sub_actions = [] if sub_actions is None else sub_actions
         self.sup_action = sup_action
         for a in self.sub_actions:

@@ -1,7 +1,6 @@
 import numpy as np
 
 from src.ml.action.set.variable import Variable
-from src.ml.action.feature.feature import Feature
 
 
 class Continuous(Variable):
@@ -10,7 +9,5 @@ class Continuous(Variable):
         self.low = low
         self.high = high
 
-    def post_call(self, action=None, *args, **kwargs):
-        if isinstance(action, Feature):
-            action.value = np.random.uniform(self.low, self.high)
-        return self, action
+    def post_call(self, actions=None, *args, **kwargs):
+        actions[-2].value = np.random.uniform(self.low, self.high)

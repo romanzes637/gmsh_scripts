@@ -13,15 +13,13 @@ class Json(Get):
         self.mapping = mapping
         self.regex = regex
 
-    def post_call(self, action=None, *args, **kwargs):
+    def post_call(self, actions=None, *args, **kwargs):
         p = Path(self.path).resolve()
-        if p.exists() and p.is_file():
-            with open(p) as f:
-                d = json.load(f)
-            d = self.update(d, self.mapping, action, self.regex)
-            with open(p, 'w') as f:
-                json.dump(d, f, indent=2)
-        return self, action
+        with open(p) as f:
+            d = json.load(f)
+        d = self.update(d, self.mapping, actions[-2], self.regex)
+        with open(p, 'w') as f:
+            json.dump(d, f, indent=2)
 
     @staticmethod
     def update(d, m, f, r):

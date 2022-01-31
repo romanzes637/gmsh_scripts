@@ -1,7 +1,6 @@
 import numpy as np
 
 from src.ml.action.set.variable import Variable
-from src.ml.action.feature.feature import Feature
 
 
 class Categorical(Variable):
@@ -9,7 +8,5 @@ class Categorical(Variable):
         super().__init__(**kwargs)
         self.choices = choices
 
-    def post_call(self, action=None, *args, **kwargs):
-        if isinstance(action, Feature):
-            action.value = np.random.choice(self.choices)
-        return self, action
+    def post_call(self, actions=None, *args, **kwargs):
+        actions[-2].value = np.random.choice(self.choices)

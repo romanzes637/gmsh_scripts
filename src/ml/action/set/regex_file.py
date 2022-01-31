@@ -17,41 +17,33 @@ class RegexFile(Set):
 
     str_to_type = {'str': str, 'int': int, 'float': float, 'bool': bool}
 
-    def post_call(self, action=None, *args, **kwargs):
-        if isinstance(action, Feature):
-            if self.regex is None or self.path is None:
-                v = None
+    def post_call(self, actions=None, *args, **kwargs):
+        p = Path(self.path).resolve()
+        t = self.str_to_type[self.value_type]
+        rs = []
+        with open(p) as f:
+            if self.read_type == 'line':
+                for line in f:
+                    r = re.findall(self.regex, line)
+                    rs.extend(r)
+            elif self.read_type == 'all':
+                rs = re.findall(self.regex, f.read())
             else:
-                p = Path(self.path).resolve()
-                if p.exists() and p.is_file():
-                    t = self.str_to_type[self.value_type]
-                    rs = []
-                    with open(p) as f:
-                        if self.read_type == 'line':
-                            for line in f:
-                                r = re.findall(self.regex, line)
-                                rs.extend(r)
-                        elif self.read_type == 'all':
-                            rs = re.findall(self.regex, f.read())
-                        else:
-                            raise ValueError(self.read_type)
-                    if len(rs) == 0:
-                        v = None
-                    elif len(rs) == 1:
-                        v = t(rs[0].strip())
-                    else:
-                        v = [t(x.strip()) for x in rs]
-                else:
-                    v = None
-            if isinstance(v, list):
-                if self.num == 'last':
-                    action.value = v[-1]
-                elif self.num == 'first':
-                    action.value = v[0]
-                elif self.num == 'all':
-                    action.value = v
-                else:
-                    raise ValueError(self.read_type)
+                raise ValueError(self.read_type)
+        if len(rs) == 0:
+            v = None
+        elif len(rs) == 1:
+            v = t(rs[0].strip())
+        else:
+            v = [t(x.strip()) for x in rs]
+        if isinstance(v, list):
+            if self.num == 'last':
+                actions[-2].value = v[-1]
+            elif self.num == 'first':
+                actions[-2].value = v[0]
+            elif self.num == 'all':
+                actions[-2].value = v
             else:
-                action.value = v
-        return self, action
+                raise ValueError(self.num)
+        else:
+            actions[-2].value = v

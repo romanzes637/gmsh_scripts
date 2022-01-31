@@ -7,7 +7,5 @@ class Value(Set):
         super().__init__(**kwargs)
         self.value = value
 
-    def post_call(self, action=None, *args, **kwargs):
-        if isinstance(action, Feature):
-            action.value = self.value
-        return self, action
+    def post_call(self, actions=None, *args, **kwargs):
+        actions[-2].value = self.value

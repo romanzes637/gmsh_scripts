@@ -9,9 +9,8 @@ class Subprocess(Action):
         self.subprocess_kwargs = {} if subprocess_kwargs is None else subprocess_kwargs
         self.returncode = 0
 
-    def post_call(self, action=None, *args, **kwargs):
+    def post_call(self, actions=None, *args, **kwargs):
         r = subprocess.run(**self.subprocess_kwargs)
         self.returncode = r.returncode
-        return self, action
 
 

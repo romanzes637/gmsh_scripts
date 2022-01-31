@@ -172,9 +172,7 @@ class TestJson(unittest.TestCase):
         with open(p, 'w') as f:
             json.dump(d, f)
         j = Json(path=p, mapping=m)
-        f = Feature(key='feature',
-                    value={'hello_': 0, 'world-': 1, 'MAN': 'DO'},
-                    getter=j)
+        f = Feature(key='feature', value={'hello_': 0, 'world-': 1, 'MAN': 'DO'})
         f()
         with open(p) as f:
             d = json.load(f)
