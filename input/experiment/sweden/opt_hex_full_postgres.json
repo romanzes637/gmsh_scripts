@@ -36,7 +36,7 @@
           "mapping": {"metadata": {"run": {"options": {"Mesh.SubdivisionAlgorithm": "{}"}}}}}
       },
       {"key": "mesh_algorithm_3d", "class": "action.Feature",
-        "pre_call": {"class": "action.set.Categorical", "choices": [1]},
+        "pre_call": {"class": "action.set.Categorical", "choices": [1, 3, 4, 7, 9, 10]},
         "post_call": {"class": "action.get.Json", "path": "all_heater_plug.json",
           "mapping": {"metadata": {"run": {"options": {"Mesh.Algorithm3D": "{}"}}}}}
       },
