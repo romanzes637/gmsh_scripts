@@ -22,10 +22,10 @@ TODO concurrent get/set (ThreadPoolExecutor)?
     return rs
 """
 
-from src.ml.action.action import Action
+from src.ml.action.coaction import Coaction
 
 
-class Feature(Action):
+class Feature(Coaction):
     """Feature - key-value object
 
      Args:

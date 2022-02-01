@@ -15,7 +15,7 @@ class Equation(Variable):
         self.equation = equation
         self.regex = regex
 
-    def post_call(self, actions=None, *args, **kwargs):
+    def post_call(self, stack_trace=None, *args, **kwargs):
         v = self.parse(self.equation, self.sub_actions, self.regex)
         v = eval(v)
         if isinstance(v, str):
@@ -26,7 +26,7 @@ class Equation(Variable):
                     v = float(v)
                 except ValueError:
                     pass
-        actions[-2].value = v
+        stack_trace[-2].value = v
 
     @staticmethod
     def parse(v, fs, r):

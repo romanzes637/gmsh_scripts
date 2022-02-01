@@ -13,9 +13,9 @@ class Regex(Set):
 
     str_to_type = {'str': str, 'int': int, 'float': float, 'bool': bool}
 
-    def post_call(self, actions=None, *args, **kwargs):
-        if actions is None or len(actions) < 2 or not isinstance(actions[-2], Feature):
-            raise ValueError(actions)
+    def post_call(self, stack_trace=None, *args, **kwargs):
+        if stack_trace is None or len(stack_trace) < 2 or not isinstance(stack_trace[-2], Feature):
+            raise ValueError(stack_trace)
         r = re.findall(self.regex, self.text)
         t = self.str_to_type[self.value_type]
         if len(r) == 0:
@@ -24,4 +24,4 @@ class Regex(Set):
             v = t(r[0].strip())
         else:
             v = [t(x.strip()) for x in r]
-        actions[-2].value = v
+        stack_trace[-2].value = v

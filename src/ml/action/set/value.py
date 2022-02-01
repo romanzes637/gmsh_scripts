@@ -1,5 +1,4 @@
 from src.ml.action.set.set import Set
-from src.ml.action.feature.feature import Feature
 
 
 class Value(Set):
@@ -7,5 +6,5 @@ class Value(Set):
         super().__init__(**kwargs)
         self.value = value
 
-    def post_call(self, actions=None, *args, **kwargs):
-        actions[-2].value = self.value
+    def post_call(self, stack_trace=None, *args, **kwargs):
+        stack_trace[-2].value = self.value

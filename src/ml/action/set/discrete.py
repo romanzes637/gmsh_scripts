@@ -10,9 +10,9 @@ class Discrete(Variable):
         self.high = high
         self.num = num
 
-    def post_call(self, actions=None, *args, **kwargs):
+    def post_call(self, stack_trace=None, *args, **kwargs):
         v = np.random.choice(np.linspace(
             self.low, self.high, self.num, endpoint=True))
         if isinstance(self.low, int) and isinstance(self.high, int):
             v = int(v)
-        actions[-2].value = v
+        stack_trace[-2].value = v

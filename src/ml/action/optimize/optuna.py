@@ -25,7 +25,7 @@ from itertools import combinations
 
 import optuna
 
-from src.ml.action.action import Action
+from src.ml.action.coaction import Coaction
 from src.ml.action.feature.feature import Feature
 from src.ml.action.run.subprocess import Subprocess
 from src.ml.action.set.value import Value
@@ -34,7 +34,7 @@ from src.ml.action.set.categorical import Categorical
 from src.ml.action.set.discrete import Discrete
 
 
-class Optuna(Action):
+class Optuna(Coaction):
     """Optuna optimization action
 
     Args:
@@ -44,7 +44,11 @@ class Optuna(Action):
 
     def __init__(self, storage=None, study_name=None, work_path=None,
                  do_create_study=None, do_read_study=None, do_delete_study=None,
-                 do_write_results=None, write_results_color_key=None,
+                 do_write_results=None,
+                 results_color_key=None,
+                 results_color_scale=None,
+                 do_results_reverse_color=None,
+                 results_hover_keys=None,
                  do_optimize=None, n_trials=1,
                  objectives=None, constraints=None,
                  sampler=None, sampler_kwargs=None,
@@ -61,7 +65,10 @@ class Optuna(Action):
         self.do_read_study = True if do_read_study is None else do_read_study
         self.do_delete_study = False if do_delete_study is None else do_delete_study
         self.do_write_results = True if do_write_results is None else do_write_results
-        self.write_results_color_key = write_results_color_key
+        self.results_color_key = results_color_key
+        self.results_color_scale = 'Viridis' if results_color_scale is None else results_color_scale
+        self.do_results_reverse_color = False if do_results_reverse_color is None else do_results_reverse_color
+        self.results_hover_keys = [] if results_hover_keys is None else results_hover_keys
         self.do_optimize = True if do_optimize is None else do_optimize
         self.n_trials = n_trials
         self.objectives = {} if objectives is None else objectives
@@ -144,7 +151,7 @@ class Optuna(Action):
                 trial.set_user_attr(f'values_{i}_{k}', o)
             return tuple(objectives)
 
-    def sub_call(self, actions=None, *args, **kwargs):
+    def sub_call(self, stack_trace=None, *args, **kwargs):
         root = Path().resolve()
         if self.do_delete_study:
             optuna.delete_study(storage=self.storage, study_name=self.study_name)
@@ -163,7 +170,7 @@ class Optuna(Action):
         os.chdir(root)
         if self.do_update_sub_actions:
             self.update_sub_actions(study)
-            super().sub_call(actions=actions, *args, **kwargs)
+            super().sub_call(stack_trace=stack_trace, *args, **kwargs)
 
     def create_study(self):
         if self.sampler is not None:
@@ -265,15 +272,23 @@ class Optuna(Action):
                 df = study.trials_dataframe()
                 old2new = {f'values_{i}': f'values_{x}' for i, x in enumerate(ns)}
                 df = df.rename(columns=old2new)
-                hover_data = [x for x in df.columns
-                              if x.startswith('params_')
-                              or x.startswith('values_')
-                              or (x.startswith('user_attrs_') and 'time' not in x)
-                              or x == 'duration']
-                if self.write_results_color_key is not None:
-                    color = f'user_attrs_{self.write_results_color_key}'
+                hover_data = []
+                for c in df.columns:
+                    if c.startswith('params_'):
+                        hover_data.append(c)
+                    elif c.startswith('values_'):
+                        hover_data.append(c)
+                    elif c.startswith('user_attrs_'):
+                        if c[len('user_attrs_'):] in self.results_hover_keys:
+                            hover_data.append(c)
+                    elif c == 'duration':
+                        hover_data.append(c)
+                if self.results_color_key is not None:
+                    color = f'user_attrs_{self.results_color_key}'
                 else:
                     color = None
+                if self.do_results_reverse_color:
+                    self.results_color_scale += '_r'
                 for c in combinations(range(n), 2):
                     c_vs = [old2new[f'values_{x}'] for x in c]
                     c_ns = [ns[x] for x in c]
@@ -282,6 +297,7 @@ class Optuna(Action):
                     fig = px.scatter(
                         df, x=c_vs[0], y=c_vs[1],
                         color=color,
+                        color_continuous_scale=self.results_color_scale,
                         hover_name="number",
                         hover_data=hover_data,
                         labels=labels)
@@ -296,6 +312,7 @@ class Optuna(Action):
                     fig = px.scatter_3d(
                         df, x=c_vs[0], y=c_vs[1], z=c_vs[2],
                         color=color,
+                        color_continuous_scale=self.results_color_scale,
                         hover_name="number",
                         hover_data=hover_data,
                         labels=labels)

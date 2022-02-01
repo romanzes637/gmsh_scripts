@@ -16,6 +16,6 @@
     "do_delete_study": false,
     "do_optimize": false,
     "do_write_results": true,
-    "write_results_color_key": "objective_metrics"
+    "results_color_key": "objective_metrics"
   }
 }

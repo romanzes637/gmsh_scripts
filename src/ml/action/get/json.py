@@ -13,11 +13,11 @@ class Json(Get):
         self.mapping = mapping
         self.regex = regex
 
-    def post_call(self, actions=None, *args, **kwargs):
+    def post_call(self, stack_trace=None, *args, **kwargs):
         p = Path(self.path).resolve()
         with open(p) as f:
             d = json.load(f)
-        d = self.update(d, self.mapping, actions[-2], self.regex)
+        d = self.update(d, self.mapping, stack_trace[-2], self.regex)
         with open(p, 'w') as f:
             json.dump(d, f, indent=2)
 
@@ -61,9 +61,7 @@ class Json(Get):
 
     @staticmethod
     def parse(v, f, r):
-        if v is None:
-            return None
-        elif isinstance(v, str):
+        if isinstance(v, str):
             p = re.compile(r)
             cnt = 0
             m = p.search(v)
@@ -93,5 +91,5 @@ class Json(Get):
                 except ValueError:
                     pass
             return v
-        else:
-            raise ValueError(f'Should be a string: {v}')
+        else:  # not str
+            return v

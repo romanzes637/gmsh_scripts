@@ -1,0 +1,94 @@
+{
+  "metadata": {
+    "ml": {
+      "log_level": "DEBUG"
+    }
+  },
+  "data": {
+    "tag": "1", "jobs": 1, "timeout": 120, "sub_jobs": 1, "sub_timeout": 120,
+    "executor": "ProcessPoolExecutor", "executor_kwargs": {"max_workers": 1},
+    "class": "action.Sleep", "secs": 1,
+    "pre_call": {"tag": "1-pre_call", "jobs": 1, "class": "action.Sleep", "secs": 1},
+    "pre_callbacks": [
+       {"tag": "1-pre_cb", "jobs": 1, "timeout": 2, "class": "action.Sleep", "secs": 1}
+    ],
+    "pre_sub_callbacks": [
+       {"tag": "1-pre_sub_cb", "jobs": 1, "timeout": 2, "class": "action.Sleep", "secs": 1}
+    ],
+    "sub_post_callbacks": [
+       {"tag": "1-sub_post_cb", "jobs": 1, "timeout": 2, "class": "action.Sleep", "secs": 1}
+    ],
+    "post_callbacks": [
+       {"tag": "1-post_cb", "jobs": 1, "timeout": 2, "class": "action.Sleep", "secs": 1}
+    ],
+    "sub_actions": [
+      {"tag": "1-1", "jobs": 2, "timeout": 10, "sub_jobs": 2, "sub_timeout": 10,
+        "class": "action.Sleep", "secs": 1,
+        "sub_actions": [
+          {"tag": "1-1-1", "jobs": 1, "class": "action.Sleep", "secs": 1},
+          {"tag": "1-1-2", "jobs": 1, "class": "action.Sleep", "secs": 1},
+          {"tag": "1-1-3", "jobs": 1, "class": "action.Sleep", "secs": 1}
+          ]
+      },
+      {"tag": "1-2", "jobs": 2, "timeout": 10, "sub_jobs": 2, "sub_timeout": 10,
+        "executor": "ThreadPoolExecutor", "executor_kwargs": {"max_workers": 2},
+        "class": "action.Sleep", "secs": 1,
+        "sub_actions": [
+          {"tag": "1-2-1", "jobs": 1, "class": "action.Sleep", "secs": 1},
+          {"tag": "1-2-2", "jobs": 1, "class": "action.Sleep", "secs": 1},
+          {"tag": "1-2-3", "jobs": 1, "class": "action.Sleep", "secs": 1}
+          ]
+      },
+      {"tag": "1-3", "jobs": 2, "timeout": 10, "sub_jobs": 2, "sub_timeout": 10,
+        "executor": "ProcessPoolExecutor", "executor_kwargs": {"max_workers": 2},
+        "class": "action.Sleep",  "secs": 1,
+        "sub_actions": [
+          {"tag": "1-3-1", "jobs": 1, "class": "action.Sleep", "secs": 1},
+          {"tag": "1-3-2", "jobs": 1, "class": "action.Sleep", "secs": 1},
+          {"tag": "1-3-3", "jobs": 1, "class": "action.Sleep", "secs": 1}
+        ]
+      },
+      {"tag": "1-4", "jobs": 2, "timeout": 10, "sub_jobs": 2, "sub_timeout": 10,
+        "executor": "ThreadPoolExecutor", "executor_kwargs": {"max_workers": 2},
+        "sub_executor": "ThreadPoolExecutor", "sub_executor_kwargs": {"max_workers": 2},
+        "class": "action.Sleep", "secs": 1,
+        "sub_actions": [
+          {"tag": "1-4-1", "jobs": 1, "class": "action.Sleep", "secs": 1},
+          {"tag": "1-4-2", "jobs": 1, "class": "action.Sleep", "secs": 1},
+          {"tag": "1-4-3", "jobs": 1, "class": "action.Sleep", "secs": 1}
+          ]
+      },
+      {"tag": "1-5", "jobs": 2, "timeout": 10, "sub_jobs": 2, "sub_timeout": 10,
+        "executor": "ThreadPoolExecutor", "executor_kwargs": {"max_workers": 2},
+        "sub_executor": "ProcessPoolExecutor", "sub_executor_kwargs": {"max_workers": 2},
+        "class": "action.Sleep", "secs": 1,
+        "sub_actions": [
+          {"tag": "1-5-1", "jobs": 1, "class": "action.Sleep", "secs": 1},
+          {"tag": "1-5-2", "jobs": 1, "class": "action.Sleep", "secs": 1},
+          {"tag": "1-5-3", "jobs": 1, "class": "action.Sleep", "secs": 1}
+          ]
+      },
+      {"tag": "1-6", "jobs": 2, "timeout": 10, "sub_jobs": 2, "sub_timeout": 10,
+        "executor": "ProcessPoolExecutor", "executor_kwargs": {"max_workers": 2},
+        "sub_executor": "ThreadPoolExecutor", "sub_executor_kwargs": {"max_workers": 2},
+        "class": "action.Sleep", "secs": 1,
+        "sub_actions": [
+          {"tag": "1-6-1", "jobs": 1, "class": "action.Sleep", "secs": 1},
+          {"tag": "1-6-2", "jobs": 1, "class": "action.Sleep", "secs": 1},
+          {"tag": "1-6-3", "jobs": 1, "class": "action.Sleep", "secs": 1}
+          ]
+      },
+      {"tag": "1-7", "jobs": 2, "timeout": 10, "sub_jobs": 2, "sub_timeout": 10,
+        "executor": "ProcessPoolExecutor", "executor_kwargs": {"max_workers": 2},
+        "sub_executor": "ProcessPoolExecutor", "sub_executor_kwargs": {"max_workers": 2},
+        "class": "action.Sleep", "secs": 1,
+        "sub_actions": [
+          {"tag": "1-7-1", "jobs": 1, "class": "action.Sleep", "secs": 1},
+          {"tag": "1-7-2", "jobs": 1, "class": "action.Sleep", "secs": 1},
+          {"tag": "1-7-3", "jobs": 1, "class": "action.Sleep", "secs": 1}
+          ]
+      },
+      "/_sub_coaction.json"
+    ]
+  }
+}

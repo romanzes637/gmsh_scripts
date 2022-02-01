@@ -15,7 +15,7 @@ class GmshScripts(Subprocess):
         self.nohup = nohup
         self.returncode = 0
 
-    def post_call(self, actions=None, *args, **kwargs):
+    def post_call(self, stack_trace=None, *args, **kwargs):
         if self.write_mesh:
             cmd = [sys.executable,
                    str(self.run_path),

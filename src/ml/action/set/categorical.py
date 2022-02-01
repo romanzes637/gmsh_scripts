@@ -8,5 +8,5 @@ class Categorical(Variable):
         super().__init__(**kwargs)
         self.choices = choices
 
-    def post_call(self, actions=None, *args, **kwargs):
-        actions[-2].value = np.random.choice(self.choices)
+    def post_call(self, stack_trace=None, *args, **kwargs):
+        stack_trace[-2].value = np.random.choice(self.choices)

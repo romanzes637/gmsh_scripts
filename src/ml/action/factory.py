@@ -1,4 +1,5 @@
 from src.ml.action.action import Action
+from src.ml.action.coaction import Coaction
 from src.ml.action.episode.episode import Episode
 from src.ml.action.sleep.sleep import Sleep
 from src.ml.action.run.gmsh_scripts import GmshScripts as RunGmshScripts
@@ -19,21 +20,22 @@ from src.ml.action.get.json import Json
 
 str2obj = {
     'action.Action': Action,
+    'action.Coaction': Action,
     'action.Episode': Episode,
     'action.Sleep': Sleep,
-    'action.Subprocess': Subprocess,
+    'action.Feature': Feature,
+    'action.run.Subprocess': Subprocess,
     'action.run.GmshScripts': RunGmshScripts,
     'action.optimize.Optuna': Optuna,
-    'action.Feature': Feature,
-    'action.setter.Set': Set,
-    'action.setter.Value': Value,
-    'action.setter.Variable': Variable,
-    'action.setter.Continuous': Continuous,
-    'action.setter.Discrete': Discrete,
-    'action.setter.Categorical': Categorical,
-    'action.setter.Regex': SetRegex,
-    'action.setter.RegexFile': SetRegexFile,
-    'action.setter.Equation': Equation,
-    'action.getter.Get': Get,
-    'action.getter.Json': Json,
+    'action.set.Set': Set,
+    'action.set.Value': Value,
+    'action.set.Variable': Variable,
+    'action.set.Continuous': Continuous,
+    'action.set.Discrete': Discrete,
+    'action.set.Categorical': Categorical,
+    'action.set.Regex': SetRegex,
+    'action.set.RegexFile': SetRegexFile,
+    'action.set.Equation': Equation,
+    'action.get.Get': Get,
+    'action.get.Json': Json,
 }

@@ -2,7 +2,6 @@ import re
 from pathlib import Path
 
 from src.ml.action.set.set import Set
-from src.ml.action.feature.feature import Feature
 
 
 class RegexFile(Set):
@@ -17,7 +16,7 @@ class RegexFile(Set):
 
     str_to_type = {'str': str, 'int': int, 'float': float, 'bool': bool}
 
-    def post_call(self, actions=None, *args, **kwargs):
+    def post_call(self, stack_trace=None, *args, **kwargs):
         p = Path(self.path).resolve()
         t = self.str_to_type[self.value_type]
         rs = []
@@ -38,12 +37,12 @@ class RegexFile(Set):
             v = [t(x.strip()) for x in rs]
         if isinstance(v, list):
             if self.num == 'last':
-                actions[-2].value = v[-1]
+                stack_trace[-2].value = v[-1]
             elif self.num == 'first':
-                actions[-2].value = v[0]
+                stack_trace[-2].value = v[0]
             elif self.num == 'all':
-                actions[-2].value = v
+                stack_trace[-2].value = v
             else:
                 raise ValueError(self.num)
         else:
-            actions[-2].value = v
+            stack_trace[-2].value = v
