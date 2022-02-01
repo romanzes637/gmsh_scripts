@@ -9,7 +9,8 @@ import time
 
 class Action:
     def __init__(self, tag=None, sub_actions=None, sup_action=None,
-                 jobs=1, timeout=None, sub_jobs=1, sub_timeout=None,
+                 jobs=1, timeout=None,
+                 sub_jobs=1, sub_timeout=None, sub_routine=None,
                  pre_call=None, sub_call=None, post_call=None, call=None,
                  pre_callbacks=None, pre_sub_callbacks=None,
                  sub_post_callbacks=None, post_callbacks=None, callbacks=None):
@@ -23,6 +24,7 @@ class Action:
         self.timeout = timeout
         self.sub_jobs = sub_jobs
         self.sub_timeout = sub_timeout
+        self.sub_routine = 'scatter' if sub_routine is None else sub_routine  # 'broadcast'
         if pre_call is not None:
             self.pre_call = pre_call
         if sub_call is not None:
@@ -46,9 +48,14 @@ class Action:
                 for a in self.sub_actions:
                     a(stack_trace=stack_trace)
         elif self.jobs is not None and self.timeout is None:
-            for _ in range(self.sub_jobs):
+            if self.sub_routine == 'scatter':
+                for _ in range(self.sub_jobs):
+                    for a in self.sub_actions:
+                        a(stack_trace=stack_trace)
+            else:  # 'broadcast'
                 for a in self.sub_actions:
-                    a(stack_trace=stack_trace)
+                    for _ in range(self.sub_jobs):
+                        a(stack_trace=stack_trace)
         elif self.jobs is None and self.timeout is not None:
             t = time.time()
             while time.time() - t < self.timeout:
@@ -56,11 +63,18 @@ class Action:
                     a(stack_trace=stack_trace)
         else:  # self.jobs is not None and self.timeout is not None
             t = time.time()
-            for _ in range(self.jobs):
-                if time.time() - t >= self.timeout:
-                    break
+            if self.sub_routine == 'scatter':
+                for _ in range(self.jobs):
+                    for a in self.sub_actions:
+                        if time.time() - t >= self.timeout:
+                            break
+                        a(stack_trace=stack_trace)
+            else:  # 'broadcast'
                 for a in self.sub_actions:
-                    a(stack_trace=stack_trace)
+                    for _ in range(self.jobs):
+                        if time.time() - t >= self.timeout:
+                            break
+                        a(stack_trace=stack_trace)
 
     def post_call(self, stack_trace=None, *args, **kwargs):
         pass
