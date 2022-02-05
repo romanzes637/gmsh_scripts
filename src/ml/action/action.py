@@ -9,106 +9,91 @@ import time
 
 class Action:
     def __init__(self, tag=None, sub_actions=None, sup_action=None,
-                 jobs=1, timeout=None,
-                 sub_jobs=1, sub_timeout=None, sub_routine=None,
-                 pre_call=None, sub_call=None, post_call=None, call=None,
-                 pre_callbacks=None, pre_sub_callbacks=None,
-                 sub_post_callbacks=None, post_callbacks=None, callbacks=None):
+                 call=None, pre_call=None, sub_call=None, post_call=None,
+                 pre_callback=None, callback=None,
+                 pre_pre_callback=None, pre_sub_callback=None,
+                 sub_post_callback=None, post_callback=None,
+                 pre_callbacks=None, callbacks=None,
+                 pre_pre_callbacks=None, pre_sub_callbacks=None,
+                 sub_post_callbacks=None, post_callbacks=None):
         self.uid = str(uuid.uuid4())
         self.tag = tag
         self.sub_actions = [] if sub_actions is None else sub_actions
         self.sup_action = sup_action
         for a in self.sub_actions:
             a.sup_action = self
-        self.jobs = jobs
-        self.timeout = timeout
-        self.sub_jobs = sub_jobs
-        self.sub_timeout = sub_timeout
-        self.sub_routine = 'scatter' if sub_routine is None else sub_routine  # 'broadcast'
+        if call is not None:
+            self.call = call
         if pre_call is not None:
             self.pre_call = pre_call
         if sub_call is not None:
             self.sub_call = sub_call
         if post_call is not None:
             self.post_call = post_call
-        if call is not None:
-            self.call = call
+        if pre_callback is not None:
+            self.pre_callback = pre_callback
+        if callback is not None:
+            self.callback = callback
+        if pre_pre_callback is not None:
+            self.pre_pre_callback = pre_pre_callback
+        if pre_sub_callback is not None:
+            self.pre_sub_callback = pre_sub_callback
+        if sub_post_callback is not None:
+            self.sub_post_callback = sub_post_callback
+        if post_callback is not None:
+            self.post_callback = post_callback
         self.pre_callbacks = [] if pre_callbacks is None else pre_callbacks
+        self.callbacks = [] if callbacks is None else callbacks
+        self.pre_pre_callbacks = [] if pre_pre_callbacks is None else pre_pre_callbacks
         self.pre_sub_callbacks = [] if pre_sub_callbacks is None else pre_sub_callbacks
         self.sub_post_callbacks = [] if sub_post_callbacks is None else sub_post_callbacks
         self.post_callbacks = [] if post_callbacks is None else post_callbacks
-        self.callbacks = [] if callbacks is None else callbacks
+
+    def pre_pre_callback(self, stack_trace=None, *args, **kwargs):
+        for c in self.pre_pre_callbacks:
+            c(stack_trace=stack_trace, *args, **kwargs)
 
     def pre_call(self, stack_trace=None, *args, **kwargs):
         pass
 
+    def pre_sub_callback(self, stack_trace=None, *args, **kwargs):
+        for c in self.pre_sub_callbacks:
+            c(stack_trace=stack_trace, *args, **kwargs)
+
     def sub_call(self, stack_trace=None, *args, **kwargs):
-        if self.jobs is None and self.timeout is None:
-            while True:
-                for a in self.sub_actions:
-                    a(stack_trace=stack_trace)
-        elif self.jobs is not None and self.timeout is None:
-            if self.sub_routine == 'scatter':
-                for _ in range(self.sub_jobs):
-                    for a in self.sub_actions:
-                        a(stack_trace=stack_trace)
-            else:  # 'broadcast'
-                for a in self.sub_actions:
-                    for _ in range(self.sub_jobs):
-                        a(stack_trace=stack_trace)
-        elif self.jobs is None and self.timeout is not None:
-            t = time.time()
-            while time.time() - t < self.timeout:
-                for a in self.sub_actions:
-                    a(stack_trace=stack_trace)
-        else:  # self.jobs is not None and self.timeout is not None
-            t = time.time()
-            if self.sub_routine == 'scatter':
-                for _ in range(self.jobs):
-                    for a in self.sub_actions:
-                        if time.time() - t >= self.timeout:
-                            break
-                        a(stack_trace=stack_trace)
-            else:  # 'broadcast'
-                for a in self.sub_actions:
-                    for _ in range(self.jobs):
-                        if time.time() - t >= self.timeout:
-                            break
-                        a(stack_trace=stack_trace)
+        for a in self.sub_actions:
+            a(stack_trace=stack_trace, *args, **kwargs)
+
+    def sub_post_callback(self, stack_trace=None, *args, **kwargs):
+        for c in self.sub_post_callbacks:
+            c(stack_trace=stack_trace, *args, **kwargs)
 
     def post_call(self, stack_trace=None, *args, **kwargs):
         pass
 
+    def post_callback(self, stack_trace=None, *args, **kwargs):
+        for c in self.post_callbacks:
+            c(stack_trace=stack_trace, *args, **kwargs)
+
+    def pre_callback(self, stack_trace=None, *args, **kwargs):
+        for c in self.pre_callbacks:
+            c(stack_trace=stack_trace, *args, **kwargs)
+
     def call(self, stack_trace=None, *args, **kwargs):
-        for cb in self.pre_callbacks:
-            cb(stack_trace=stack_trace, *args, **kwargs)
+        self.pre_pre_callback(stack_trace=stack_trace, *args, **kwargs)
         self.pre_call(stack_trace=stack_trace, *args, **kwargs)
-        for cb in self.pre_sub_callbacks:
-            cb(stack_trace=stack_trace, *args, **kwargs)
+        self.pre_sub_callback(stack_trace=stack_trace, *args, **kwargs)
         self.sub_call(stack_trace=stack_trace, *args, **kwargs)
-        for cb in self.sub_post_callbacks:
-            cb(stack_trace=stack_trace, *args, **kwargs)
+        self.sub_post_callback(stack_trace=stack_trace, *args, **kwargs)
         self.post_call(stack_trace=stack_trace, *args, **kwargs)
-        for cb in self.post_callbacks:
-            cb(stack_trace=stack_trace, *args, **kwargs)
+        self.post_callback(stack_trace=stack_trace, *args, **kwargs)
+
+    def callback(self, stack_trace=None, *args, **kwargs):
+        for c in self.callbacks:
+            c(stack_trace=stack_trace, *args, **kwargs)
 
     def __call__(self, stack_trace=None, *args, **kwargs):
         stack_trace = [self] if stack_trace is None else stack_trace + [self]
-        if self.jobs is None and self.timeout is None:
-            while True:
-                self.call(stack_trace=stack_trace, *args, **kwargs)
-        elif self.jobs is not None and self.timeout is None:
-            for _ in range(self.jobs):
-                self.call(stack_trace=stack_trace, *args, **kwargs)
-        elif self.jobs is None and self.timeout is not None:
-            t = time.time()
-            while time.time() - t < self.timeout:
-                self.call(stack_trace=stack_trace, *args, **kwargs)
-        else:  # self.jobs is not None and self.timeout is not None
-            t = time.time()
-            for _ in range(self.jobs):
-                if time.time() - t >= self.timeout:
-                    break
-                self.call(stack_trace=stack_trace, *args, **kwargs)
-        for cb in self.callbacks:
-            cb(stack_trace=stack_trace, *args, **kwargs)
+        self.pre_callback(stack_trace=stack_trace, *args, **kwargs)
+        self.call(stack_trace=stack_trace, *args, **kwargs)
+        self.callback(stack_trace=stack_trace, *args, **kwargs)
