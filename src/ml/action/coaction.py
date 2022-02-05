@@ -264,16 +264,16 @@ class Coaction(Action):
             executor=self.cb_executor, executor_kwargs=self.cb_executor_kwargs,
             *args, **kwargs)
 
-    def __call__(self, stack_trace=None, *args, **kwargs):
-        st = [self] if stack_trace is None else stack_trace + [self]
-        print(f'{os.getpid()} {" <- ".join([x.uid if x.tag is None else x.tag for x in st[::-1]])}, '
-              f'{self.executor if self.executor is not None else "SequenceExecutor"}/'
-              f'{self.sub_executor if self.sub_executor is not None else "SequenceExecutor"}, '
-              f'{self.executor_kwargs.get("max_workers", "max")}/'
-              f'{self.sub_executor_kwargs.get("max_workers", "max")} worker(s), '
-              f'{self.jobs if self.jobs is not None else "inf"}/'
-              f'{self.sub_jobs if self.jobs is not None else "inf"} job(s), '
-              f'{self.timeout if self.timeout is not None else "inf"}/'
-              f'{self.sub_timeout if self.sub_timeout is not None else "inf"} timeout, '
-              f'{type(self)}')
-        super().__call__(stack_trace=stack_trace, *args, **kwargs)
+    # def __call__(self, stack_trace=None, *args, **kwargs):
+    #     st = [self] if stack_trace is None else stack_trace + [self]
+    #     print(f'{os.getpid()} {" <- ".join([x.uid if x.tag is None else x.tag for x in st[::-1]])}, '
+    #           f'{self.executor if self.executor is not None else "SequenceExecutor"}/'
+    #           f'{self.sub_executor if self.sub_executor is not None else "SequenceExecutor"}, '
+    #           f'{self.executor_kwargs.get("max_workers", "max")}/'
+    #           f'{self.sub_executor_kwargs.get("max_workers", "max")} worker(s), '
+    #           f'{self.jobs if self.jobs is not None else "inf"}/'
+    #           f'{self.sub_jobs if self.jobs is not None else "inf"} job(s), '
+    #           f'{self.timeout if self.timeout is not None else "inf"}/'
+    #           f'{self.sub_timeout if self.sub_timeout is not None else "inf"} timeout, '
+    #           f'{type(self)}')
+    #     super().__call__(stack_trace=stack_trace, *args, **kwargs)
