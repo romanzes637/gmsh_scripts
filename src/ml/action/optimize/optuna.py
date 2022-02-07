@@ -55,7 +55,7 @@ class Optuna(Coaction):
                  pruner=None, pruner_kwargs=None,
                  copies=None, links=None,
                  do_update_sub_actions=None, update_sub_actions_trial=None,
-                 do_call_sub_actions=None,
+                 do_sub_call=None,
                  **kwargs):
         super().__init__(**kwargs)
         self.storage = storage
@@ -82,7 +82,7 @@ class Optuna(Coaction):
         self.study_dir = (self.work_path / self.study_name).resolve()
         self.do_update_sub_actions = False if do_update_sub_actions is None else do_update_sub_actions
         self.update_sub_actions_trial = update_sub_actions_trial
-        self.do_call_sub_actions = False if do_call_sub_actions is None else do_call_sub_actions
+        self.do_sub_call = False if do_sub_call is None else do_sub_call
 
     class Objective:
         def __init__(self, optuna_action=None):
@@ -151,25 +151,28 @@ class Optuna(Coaction):
                 trial.set_user_attr(f'values_{i}_{k}', o)
             return tuple(objectives)
 
-    def sub_call(self, stack_trace=None, *args, **kwargs):
+    def pre_call(self, stack_trace=None, *args, **kwargs):
+        # TODO multiprocessing logging
+        optuna.logging.enable_propagation()  # Propagate logs to the root logger.
+        optuna.logging.disable_default_handler()  # Stop showing logs in sys.stderr.
         root = Path().resolve()
         if self.do_delete_study:
             optuna.delete_study(storage=self.storage, study_name=self.study_name)
             return
         self.study_dir.mkdir(parents=True, exist_ok=True)
         self.study_dir = self.study_dir.resolve()
-        # TODO multiprocessing logging
-        optuna.logging.enable_propagation()  # Propagate logs to the root logger.
-        optuna.logging.disable_default_handler()  # Stop showing logs in sys.stderr.
         study = self.create_study()
         if self.do_optimize:
             study.optimize(func=self.Objective(self), n_trials=self.n_trials,
                            timeout=self.timeout)  # TODO timeout from executor?
         if self.do_write_results:
             self.write_results(study)
-        os.chdir(root)
         if self.do_update_sub_actions:
             self.update_sub_actions(study)
+        os.chdir(root)
+
+    def sub_call(self, stack_trace=None, *args, **kwargs):
+        if self.do_sub_call:
             super().sub_call(stack_trace=stack_trace, *args, **kwargs)
 
     def create_study(self):
@@ -230,7 +233,7 @@ class Optuna(Coaction):
         if len(study.trials) == 0:
             logging.warning(f'No trials in study {self.study_name} for update!')
             return
-        if self.update_sub_actions_trial is None:  # Choose best
+        if self.update_sub_actions_trial is None:  # Use best trial
             if study.directions is not None:
                 if len(study.best_trials) > 0:
                     trial = study.best_trials[0]
@@ -246,11 +249,12 @@ class Optuna(Coaction):
             else:
                 trial = None
         if trial is not None:
+            logging.info(f'Updating sub_actions with trial {trial}')
             for a in self.sub_actions:
                 if isinstance(a, Feature):
                     if a.key in trial.params:
                         v = trial.params[a.key]
-                        a.setter = Value(value=v)
+                        a.pre_call = Value(value=v)
 
     def write_results(self, study):
         if len(study.trials) == 0:

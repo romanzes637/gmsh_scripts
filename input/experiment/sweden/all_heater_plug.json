@@ -81,7 +81,7 @@
       ["Heater4", "HeaterPlug4"]
     ],
     "children_items_boolean_level_map": [0, 2, 1, 1, 1, 1, 1, 1],
-    "children_items_do_unregister_boolean_map": [0, 1, 1, 1, 0, 0, 0, 0],
+    "children_items_do_unregister_boolean_map": [0, 1, 0, 1, 0, 0, 0, 0],
     "children_items_do_quadrate_map": [0, 0, 0, 0, 0, 0, 0, 0],
     "children_items_do_structure_map": [0, 0, 0, 0, 0, 0, 0, 0]
   }

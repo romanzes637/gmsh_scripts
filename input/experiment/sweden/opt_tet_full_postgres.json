@@ -38,7 +38,7 @@
       {"key": "do_unregister_boreholes", "class": "action.Feature",
         "pre_call": {"class": "action.set.Value", "value": 0},
         "post_call": {"class": "action.get.Json", "path": "all_heater_plug.json",
-          "mapping": {"data": {"children_items_do_unregister_boolean_map": [0, 1, "{}", "{}", 0, 0, 0, 0]}}}
+          "mapping": {"data": {"children_items_do_unregister_boolean_map": [0, 1, "{}", 1, 0, 0, 0, 0]}}}
       },
       {"key": "size_points_rock", "class": "action.Feature",
         "pre_call": {"class": "action.set.Continuous", "low": 0.1, "high": 5},

@@ -27,7 +27,7 @@
     "pruner_kwargs":  null,
     "do_update_sub_actions": false,
     "update_sub_actions_trial": null,
-    "do_call_sub_actions": false,
+    "do_sub_call": false,
     "sub_actions": [
       {"key": "size_points", "class": "action.Feature",
         "pre_call": {"class": "action.set.Continuous", "low": 0.3, "high": 0.8},
