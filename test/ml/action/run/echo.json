@@ -1,0 +1,42 @@
+{
+  "metadata": {
+    "ml": {
+      "log_level": "DEBUG"
+    }
+  },
+  "data": {
+    "class": "action.Coaction",
+    "sub_actions": [
+      {
+        "class": "action.run.Subprocess",
+        "subprocess_kwargs": {
+          "args": ["echo", "Hello world!"],
+          "shell": true}
+      },
+      {
+        "class": "action.run.Subprocess",
+        "subprocess_kwargs": {
+          "args": ["echo", "Hello world!", ">>", "good_echo_out.txt", "2>>", "good_echo_err.txt"],
+          "shell": true}
+      },
+      {
+        "class": "action.run.Subprocess",
+        "subprocess_kwargs": {
+          "args": ["echo", "Hello world!", ">>", "good_echo_all.txt", "2>&1"],
+          "shell": true}
+      },
+      {
+        "class": "action.run.Subprocess",
+        "subprocess_kwargs": {
+          "args": ["ohce", "Hello world!", ">>", "bad_echo_out.txt", "2>>", "bad_echo_err.txt"],
+          "shell": true}
+      },
+      {
+        "class": "action.run.Subprocess",
+        "subprocess_kwargs": {
+          "args": ["ohce", "Hello world!", ">>", "bad_echo_all.txt", "2>&1"],
+          "shell": true}
+      }
+    ]
+  }
+}

@@ -25,11 +25,6 @@
     ],
     "links": null,
     "sub_actions": [
-      {"key": "log_path", "class": "action.Feature",
-        "pre_call": {"class": "action.set.Value", "value": "gmsh.log"},
-        "post_call": {"class": "action.get.Json", "path": "all_heater_plug.json",
-          "mapping": {"metadata": {"run": {"log_path": "{}"}}}}
-      },
       {"key": "subdivision_algorithm", "class": "action.Feature",
         "pre_call": {"class": "action.set.Value", "value": 2},
         "post_call": {"class": "action.get.Json", "path": "all_heater_plug.json",
@@ -100,11 +95,11 @@
       },
       {"class": "action.run.GmshScripts",
         "run_path": "../../../run.py",
-        "write_mesh": true,
-        "input_path": "all_heater_plug.json"
+        "input_path": "all_heater_plug.json",
+        "log_path": "gmsh.log"
       },
       {"key": "constraint_J", "class": "action.Feature",
-        "pre_call": {"class": "action.set.Equation", "equation": "{0} > 0",
+        "pre_call": {"class": "action.set.Equation", "equation": "{0} is not None and {0} > 0",
           "sub_actions": [
             {"key": "minJ_min", "class": "action.Feature",
             "pre_call": {"class": "action.set.RegexFile", "path": "gmsh.log",

@@ -141,7 +141,7 @@ class Optuna(Coaction):
                     fs.append(a)
                 elif isinstance(a, Subprocess):
                     a()
-                    if a.returncode != 0:
+                    if a.result is None or a.result.returncode != 0:
                         return float('nan')
             fs_map = {x.key: x.value for x in fs}
             objectives = []

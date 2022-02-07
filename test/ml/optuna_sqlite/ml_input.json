@@ -28,11 +28,6 @@
     "update_sub_actions_trial": null,
     "do_call_sub_actions": false,
     "sub_actions": [
-      {"key": "log_path", "class": "action.Feature",
-        "pre_call": {"class": "action.set.Value", "value": "_run_input.log"},
-        "post_call": {"class": "action.get.Json", "path": "_run_input.json",
-          "mapping": {"metadata": {"run": {"log_path": "{}"}}}}
-      },
       {"key": "size_points", "class": "action.Feature",
         "pre_call": {"class": "action.set.Continuous", "low": 0.3, "high": 0.8},
         "post_call": {"class": "action.get.Json", "path": "_run_input.json",
@@ -65,15 +60,18 @@
       },
       {"class": "action.run.GmshScripts",
         "run_path": "../../../run.py",
-        "write_mesh": true,
-        "input_path": "_run_input.json"
+        "output_formats": ["msh2", "vtk"],
+        "input_path": "_run_input.json",
+        "output_path": "_run_output",
+        "log_path": "_run_input.log",
+        "log_level": "DEBUG"
       },
       {"key": "elements", "class": "action.Feature",
         "pre_call": {"class": "action.set.RegexFile", "path": "_run_input.log",
           "value_type": "int", "regex": "Total:.*((?<=and)[\\s0-9]*(?=elements))"}
       },
       {"key": "constraint_J", "class": "action.Feature",
-        "pre_call": {"class": "action.set.Equation", "equation": "{0} > 0",
+        "pre_call": {"class": "action.set.Equation", "equation": "{0} is not None and {0} > 0",
           "sub_actions": [
             {"class": "action.Feature", "key": "minJ_min",
             "pre_call": {"class": "action.set.RegexFile", "path": "_run_input.log",
