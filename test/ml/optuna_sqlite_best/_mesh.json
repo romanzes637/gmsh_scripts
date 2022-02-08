@@ -2,7 +2,6 @@
   "metadata": {
     "run": {
       "factory": "occ",
-      "log_level": "INFO",
       "options": {
         "Geometry.OCCParallel": 1,
         "Mesh.Algorithm": 6,
@@ -14,42 +13,34 @@
         "Mesh.Recombine3DAll": 0,
         "Mesh.Recombine3DLevel": 0,
         "Mesh.Recombine3DConformity": 0,
-        "Mesh.MeshSizeFactor": 0.503646,
-        "Mesh.MeshSizeMin": 0.572135,
-        "Mesh.MeshSizeMax": 1.3264,
+        "Mesh.MeshSizeFactor": 0.9127722126545827,
+        "Mesh.MeshSizeMin": 0.023596236372411584,
+        "Mesh.MeshSizeMax": 0.20998743995002472,
         "Mesh.MeshSizeFromPoints": 1,
-        "Mesh.MeshSizeExtendFromBoundary": 1,
-        "Mesh.MeshSizeFromCurvature": 20,
+        "Mesh.MeshSizeExtendFromBoundary": 2,
+        "Mesh.MeshSizeFromCurvature": 36,
         "Mesh.MeshSizeFromCurvatureIsotropic": 0,
         "Mesh.MeshSizeFromParametricPoints": 0,
         "Mesh.MinimumCircleNodes": 7,
         "Mesh.MinimumCurveNodes": 3
-      },
-      "log_path": "_run_input.log"
+      }
     }
   },
   "data": {
-    "class": "block.Layer",
-    "layer": [
+    "class": "block.Matrix",
+    "matrix": [
       [
-        "1;0.332427;5",
-        "2;0.332427;5"
+        "-1.0;0.9108000066108269",
+        "1.0;0.9108000066108269"
       ],
       [
-        "1;0.332427;5",
-        "2;0.332427;5"
-      ]
-    ],
-    "layer_curves": [
-      [
-        "line",
-        "circle_arc"
+        "-1.0;0.9108000066108269",
+        "1.0;0.9108000066108269"
       ],
       [
-        "line",
-        "line"
+        "-1.0;0.9108000066108269",
+        "1.0;0.9108000066108269"
       ]
-    ],
-    "items_do_structure_map": 0
+    ]
   }
 }

@@ -2,7 +2,6 @@
   "metadata": {
     "run": {
       "factory": "occ",
-      "log_level": "INFO",
       "options": {
         "Geometry.OCCParallel": 1,
         "Mesh.Algorithm": 6,
@@ -16,10 +15,10 @@
         "Mesh.Recombine3DConformity": 0,
         "Mesh.MeshSizeFactor": 1,
         "Mesh.MeshSizeMin": 0,
-        "Mesh.MeshSizeMax": 1e+22,
+        "Mesh.MeshSizeMax": 1,
         "Mesh.MeshSizeFromPoints": 1,
-        "Mesh.MeshSizeExtendFromBoundary": 1,
-        "Mesh.MeshSizeFromCurvature": 21,
+        "Mesh.MeshSizeExtendFromBoundary": 2,
+        "Mesh.MeshSizeFromCurvature": 12,
         "Mesh.MeshSizeFromCurvatureIsotropic": 0,
         "Mesh.MeshSizeFromParametricPoints": 0,
         "Mesh.MinimumCircleNodes": 7,
@@ -28,13 +27,7 @@
     }
   },
   "data": {
-    "class": "block.Layer",
-    "layer": [
-      ["1;1;5", "2;1;5"],
-      ["1;1;5", "2;1;5"]],
-    "layer_curves": [
-      ["line", "circle_arc"],
-      ["line", "line"]],
-    "items_do_structure_map": 0
+    "class": "block.Matrix",
+    "matrix": [[-1, 1], [-1, 1], [-1, 1]]
   }
 }

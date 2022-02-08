@@ -4,6 +4,7 @@ from copy import deepcopy
 import re
 
 from src.ml.action.get.get import Get
+from src.ml.action.feature.feature import Feature
 
 
 class Json(Get):
@@ -68,17 +69,21 @@ class Json(Get):
             while m is not None:
                 cnt += 1
                 x = ''.join(x for x in m.group(0) if x.isalnum() or x in ['-', '_'])
-                if x == '':
+                if x == '':  # From self
                     fv = str(f.value)
-                else:
-                    if isinstance(f.value, dict):
-                        fv = str(f.value[x])
-                    elif isinstance(f.value, list):
-                        fv = str(f.value[int(x)])
-                    else:
-                        raise ValueError(f'Value {f.value} of feature {f.key} '
-                                         f'is not collection/mapping '
-                                         f'but index/key {x} is set')
+                elif x.isdigit():  # From sub_actions by index
+                    fv = None
+                    a = f.sub_actions[int(x)]
+                    if isinstance(a, Feature):
+                        fv = str(a.value)
+                else:  # From sub_actions by key
+                    fv = None
+                    for a in f.sub_actions:
+                        if isinstance(a, Feature):
+                            if x == f.key:
+                                fv = str(a.value)
+                if fv is None:
+                    raise ValueError(x)
                 v = v[:m.start()] + fv + v[m.end():]
                 m = p.search(v)
             if cnt == 0:

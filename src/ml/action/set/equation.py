@@ -16,7 +16,7 @@ class Equation(Variable):
         self.regex = regex
 
     def post_call(self, stack_trace=None, *args, **kwargs):
-        v = self.parse(self.equation, self.sub_actions, self.regex)
+        v = self.parse(self.equation, stack_trace[-2].sub_actions, self.regex)
         v = eval(v)
         if isinstance(v, str):
             if v.isdigit():

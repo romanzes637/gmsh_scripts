@@ -1,0 +1,30 @@
+{
+  "metadata": {},
+  "data": {
+    "class": "action.optimize.Optuna",
+    "jobs": 1,
+    "n_trials": 1,
+    "work_path": "opt",
+    "storage": "sqlite:///example.db",
+    "study_name": "test_optuna",
+    "do_optimize": true,
+    "do_write_results": true,
+    "results_color_key": "mesh.objective_metrics",
+    "copies": ["_mesh.json"],
+    "do_update_sub_actions": false,
+    "update_sub_actions_trial": null,
+    "do_sub_call": false,
+    "sub_actions": [
+      "/_mesh_parameters.json",
+      "/_mesh_run.json",
+      "/_mesh_features.json",
+      "/_mesh_objectives.json",
+      "/_mesh_constraints.json"
+    ],
+    "objectives": {
+      "mesh.objective_elements": "maximize",
+      "mesh.objective_metrics": "minimize"
+    },
+    "constraints": ["mesh.constraint_J"]
+  }
+}

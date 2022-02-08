@@ -22,6 +22,7 @@ import uuid
 import logging
 import os
 from itertools import combinations
+import copy
 
 import optuna
 
@@ -88,6 +89,53 @@ class Optuna(Coaction):
         def __init__(self, optuna_action=None):
             self.optuna_action = optuna_action
 
+        @staticmethod
+        def evaluate_feature(f, trial):
+            def suggest_value(f, trial, sep='.'):
+                name = '' if f.key is None else f.key
+                sup_f = f.sup_action
+                while sup_f is not None and isinstance(sup_f, Feature):
+                    name = sep.join([sup_f.key, name])
+                    sup_f = sup_f.sup_action
+                s = f.pre_call
+                if isinstance(s, Continuous):
+                    f.pre_call = Value(value=trial.suggest_float(
+                        name=name, low=s.low, high=s.high))
+                elif isinstance(s, Categorical):
+                    f.pre_call = Value(value=trial.suggest_categorical(
+                        name=name, choices=s.choices))
+                elif isinstance(s, Discrete):
+                    if isinstance(s.low, int) and isinstance(s.high, int):
+                        step = (s.high - s.low) // (s.num - 1)
+                        v = trial.suggest_int(
+                            name=name, low=s.low, high=s.high, step=step)
+                    else:
+                        step = (s.high - s.low) / (s.num - 1)
+                        v = trial.suggest_float(
+                            name=name, low=s.low, high=s.high, step=step)
+                    f.pre_call = Value(value=v)
+                else:
+                    pass
+                for sub_f in f.sub_actions:
+                    if isinstance(sub_f, Feature):
+                        suggest_value(sub_f, trial)
+
+            def set_user_attr(f, trial, sep='.'):
+                name = '' if f.key is None else f.key
+                sup_f = f.sup_action
+                while sup_f is not None and isinstance(sup_f, Feature):
+                    name = sep.join([sup_f.key, name])
+                    sup_f = sup_f.sup_action
+                trial.set_user_attr(name, f.value)
+                for sub_f in f.sub_actions:
+                    if isinstance(sub_f, Feature):
+                        set_user_attr(sub_f, trial)
+
+            f2 = copy.deepcopy(f)
+            suggest_value(f2, trial)
+            f2()
+            set_user_attr(f2, trial)
+
         def __call__(self, trial):
             # TODO multiprocessing logging
             if self.optuna_action.executor is not None:
@@ -112,41 +160,19 @@ class Optuna(Coaction):
                 else:
                     raise ValueError(link)
             os.chdir(trial_dir)
-            fs = []  # features
             for a in self.optuna_action.sub_actions:
                 if isinstance(a, Feature):
-                    s = a.pre_call
-                    if isinstance(s, Continuous):
-                        a.pre_call = Value(value=trial.suggest_float(
-                            name=a.key, low=s.low, high=s.high))
-                    elif isinstance(s, Categorical):
-                        a.pre_call = Value(value=trial.suggest_categorical(
-                            name=a.key, choices=s.choices))
-                    elif isinstance(s, Discrete):
-                        if isinstance(s.low, int) and isinstance(s.high, int):
-                            step = (s.high - s.low) // (s.num - 1)
-                            v = trial.suggest_int(
-                                name=a.key, low=s.low, high=s.high, step=step)
-                        else:
-                            step = (s.high - s.low) / (s.num - 1)
-                            v = trial.suggest_float(
-                                name=a.key, low=s.low, high=s.high, step=step)
-                        a.pre_call = Value(value=v)
-                    a()
-                    a.pre_call = s
-                    trial.set_user_attr(a.key, a.value)
-                    if a.key in self.optuna_action.constraints:
-                        if not a.value:
+                    self.evaluate_feature(a, trial)
+                    for c in self.optuna_action.constraints:
+                        if not trial.user_attrs.get(c, True):
                             return float('nan')
-                    fs.append(a)
                 elif isinstance(a, Subprocess):
                     a()
                     if a.result is None or a.result.returncode != 0:
                         return float('nan')
-            fs_map = {x.key: x.value for x in fs}
             objectives = []
             for i, (k, v) in enumerate(self.optuna_action.objectives.items()):
-                o = fs_map.get(k, None)
+                o = trial.user_attrs.get(k, None)
                 objectives.append(float('nan') if o is None else o)
                 trial.set_user_attr(f'values_{i}_{k}', o)
             return tuple(objectives)
@@ -188,7 +214,7 @@ class Optuna(Coaction):
             if self.do_read_study:
                 load_if_exists = True  # Raise exception if exists
             else:
-                load_if_exists = False   # Load if exists
+                load_if_exists = False  # Load if exists
             if len(self.objectives) == 1:
                 direction = list(self.objectives.values())[0]
                 study = optuna.create_study(storage=self.storage,

@@ -20,7 +20,7 @@ from src.ml.action.get.json import Json
 
 str2obj = {
     'action.Action': Action,
-    'action.Coaction': Action,
+    'action.Coaction': Coaction,
     'action.Episode': Episode,
     'action.Sleep': Sleep,
     'action.Feature': Feature,
