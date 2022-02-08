@@ -285,7 +285,8 @@ class Optuna(Coaction):
                     elif c.startswith('user_attrs_'):
                         if c[len('user_attrs_'):] in self.results_hover_keys:
                             hover_data.append(c)
-                    elif c == 'duration':
+                    elif c in ['duration', 'datetime_start',
+                               'datetime_complete']:
                         hover_data.append(c)
                 if self.results_color_key is not None:
                     color = f'user_attrs_{self.results_color_key}'
