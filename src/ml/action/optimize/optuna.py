@@ -24,6 +24,7 @@ import os
 from itertools import combinations
 import copy
 import socket
+import platform
 
 import optuna
 
@@ -138,8 +139,23 @@ class Optuna(Coaction):
             set_user_attr(f2, trial)
 
         def __call__(self, trial):
+            def get_ip():
+                if platform.system() == 'Windows':  # VPN
+                    ip = socket.gethostbyname(socket.getfqdn())
+                else:  # Linux, Darwin
+                    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    s.settimeout(0)
+                    try:
+                        s.connect(('10.255.255.255', 1))
+                        ip = s.getsockname()[0]
+                    except Exception:
+                        ip = '127.0.0.1'
+                    finally:
+                        s.close()
+                return ip
+
             trial.set_user_attr('system.host', socket.getfqdn())
-            trial.set_user_attr('system.ip', socket.gethostbyname(socket.getfqdn()))
+            trial.set_user_attr('system.ip', get_ip())
             # TODO multiprocessing logging
             if self.optuna_action.executor is not None:
                 optuna.logging.set_verbosity(optuna.logging.WARNING)
