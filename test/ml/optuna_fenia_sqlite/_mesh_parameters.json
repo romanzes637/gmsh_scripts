@@ -9,7 +9,7 @@
     "key": "mesh",
     "sub_actions": [
       {"key": "subdivision_algorithm", "class": "action.Feature",
-        "pre_call": {"class": "action.set.Value", "value": 0},
+        "pre_call": {"class": "action.set.Categorical", "choices": [0]},
         "post_call": {"class": "action.get.Json", "path": "_mesh.json",
           "mapping": {"metadata": {"run": {"options": {"Mesh.SubdivisionAlgorithm": "{}"}}}}}
       },
@@ -26,13 +26,13 @@
       {"key": "matrix", "class": "action.Feature",
         "sub_actions": [
           {"key": "size", "class": "action.Feature",
-            "pre_call": {"class": "action.set.Categorical", "choices": [0.5, 1, 2]}},
-           {"key": "mesh_size", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 0.5, "high": 2.0}},
+          {"key": "mesh_size", "class": "action.Feature",
             "pre_call": {"class": "action.set.Continuous", "low": 0.1, "high": 1.0}}
         ],
         "post_call": {"class": "action.get.Json", "path": "_mesh.json",
           "mapping": {"data": {"matrix": [
-            ["-{0};{1}", "{0};{1}"],
+            ["-{0};{1}", "0;{1}", "{0};{1}"],
             ["-{0};{1}", "{0};{1}"],
             ["-{0};{1}", "{0};{1}"]]}}}
       },
@@ -52,7 +52,7 @@
           "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeMax": "{}"}}}}}
       },
       {"key": "size_factor", "class": "action.Feature",
-        "pre_call": {"class": "action.set.Continuous", "low": 0.8, "high": 1},
+        "pre_call": {"class": "action.set.Continuous", "low": 0.5, "high": 1.5},
         "post_call": {"class": "action.get.Json", "path": "_mesh.json",
           "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeFactor": "{}"}}}}}
       },

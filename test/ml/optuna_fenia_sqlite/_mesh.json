@@ -28,6 +28,8 @@
   },
   "data": {
     "class": "block.Matrix",
-    "matrix": [[-1, 1], [-1, 1], [-1, 1]]
+    "matrix": [[-1, 0, 1], [-1, 1], [-1, 1]],
+    "items_zone": ["A", "B"],
+    "items_zone_map": [0, 1]
   }
 }
