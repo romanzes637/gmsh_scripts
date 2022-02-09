@@ -7,18 +7,18 @@
     "key": "mesh",
     "sub_actions": [
       {"key": "objective_elements", "class": "action.Feature",
-        "pre_call": {"class": "action.set.RegexFile", "path": "mesh.log",
+        "pre_call": {"class": "action.set.RegexFile", "path": "mesh/mesh.log",
           "value_type": "int", "regex": "Total:.*((?<=and)[\\s0-9]*(?=elements))"}},
       {"key": "objective_metrics", "class": "action.Feature",
         "sub_actions": [
           {"key": "minJ_by_maxJ_min", "class": "action.Feature",
-            "pre_call": {"class": "action.set.RegexFile", "path": "mesh.log",
+            "pre_call": {"class": "action.set.RegexFile", "path": "mesh/mesh.log",
               "value_type": "float", "regex": "Info: minJ/maxJ .*((?<==)[\\s0-9.e-]*(?=,))"}},
           {"key": "IGE_min", "class": "action.Feature",
-            "pre_call": {"class": "action.set.RegexFile", "path": "mesh.log",
+            "pre_call": {"class": "action.set.RegexFile", "path": "mesh/mesh.log",
               "value_type": "float", "regex": "Info: IGE .*((?<==)[\\s0-9.e-]*(?=,))"}},
           {"key": "ICN_min", "class": "action.Feature",
-            "pre_call": {"class": "action.set.RegexFile", "path": "mesh.log",
+            "pre_call": {"class": "action.set.RegexFile", "path": "mesh/mesh.log",
               "value_type": "float", "regex": "Info: ICN .*((?<==)[\\s0-9.e-]*(?=,))"}},
           {"class": "action.set.Equation", "equation": "min([{0}, {1}, {2}])"}
         ]

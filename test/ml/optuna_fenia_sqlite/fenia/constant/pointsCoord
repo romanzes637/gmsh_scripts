@@ -1,0 +1,14 @@
+FeniaFile
+{
+    version     2.0;
+    format      ascii;
+    class       vectorList;  //labelListCompactList; //labelListList;  //labelListCompactList
+    location    constant;
+    object      pointCoord;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// "center","bottom","top","lateral-x","lateral-y","lateral-x-0.5","lateral-x-1.5" 
+7((0 0 0) (0 0 -4.250) (0 0 4.250) (2.950 0 0) (0 2.950 0) (3.450 0 0) (4.450 0 0));
+
+// ************************************************************************* //

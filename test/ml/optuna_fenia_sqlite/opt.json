@@ -11,7 +11,7 @@
     "do_optimize": true,
     "do_write_results": true,
     "results_color_key": "mesh.objective_metrics",
-    "copies": ["_mesh.json"],
+    "copies": ["mesh", "fenia"],
     "do_update_sub_actions": false,
     "update_sub_actions_trial": null,
     "do_sub_call": false,
@@ -20,7 +20,10 @@
       "/_mesh_run.json",
       "/_mesh_features.json",
       "/_mesh_objectives.json",
-      "/_mesh_constraints.json"
+      "/_mesh_constraints.json",
+      "/_fenia_convert_mesh.json",
+      "/_fenia_check_mesh.json",
+      "/_fenia_run.json"
     ],
     "objectives": {
       "mesh.objective_elements": "maximize",
