@@ -23,6 +23,7 @@ import logging
 import os
 from itertools import combinations
 import copy
+import socket
 
 import optuna
 
@@ -137,6 +138,8 @@ class Optuna(Coaction):
             set_user_attr(f2, trial)
 
         def __call__(self, trial):
+            trial.set_user_attr('system.host', socket.getfqdn())
+            trial.set_user_attr('system.ip', socket.gethostbyname(socket.getfqdn()))
             # TODO multiprocessing logging
             if self.optuna_action.executor is not None:
                 optuna.logging.set_verbosity(optuna.logging.WARNING)

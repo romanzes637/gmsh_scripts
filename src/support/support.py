@@ -48,8 +48,8 @@ class LoggingDecorator:
                                 format=fmt, datefmt=self.datefmt,
                                 level=self.level)
             logging.info('Logging initialized')
-            logging.info(f'hostname: {socket.gethostname()}')
-            logging.info(f'ip: {socket.gethostbyname(socket.gethostname())}')
+            logging.info(f'hostname: {socket.getfqdn()}')
+            logging.info(f'ip: {socket.gethostbyname(socket.getfqdn())}')
             logging.info(f'user: {getpass.getuser()}')
             logging.info(f'pid: {os.getpid()}')
             logging.info(f'python: {sys.executable}')
