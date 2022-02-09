@@ -25,6 +25,7 @@ from itertools import combinations
 import copy
 import socket
 import platform
+import time
 
 import optuna
 
@@ -156,6 +157,8 @@ class Optuna(Coaction):
 
             trial.set_user_attr('system.host', socket.getfqdn())
             trial.set_user_attr('system.ip', get_ip())
+            trial.set_user_attr('datetime.utc_offset', time.localtime().tm_gmtoff)
+
             # TODO multiprocessing logging
             if self.optuna_action.executor is not None:
                 optuna.logging.set_verbosity(optuna.logging.WARNING)
@@ -329,6 +332,10 @@ class Optuna(Coaction):
                         hover_data.append(c)
                     elif c.startswith('user_attrs_'):
                         if c[len('user_attrs_'):] in self.results_hover_keys:
+                            hover_data.append(c)
+                        elif c in ['user_attrs_datetime.utc_offset',
+                                   'user_attrs_system.host',
+                                   'user_attrs_system.ip']:
                             hover_data.append(c)
                     elif c in ['duration', 'datetime_start',
                                'datetime_complete']:

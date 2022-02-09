@@ -12,9 +12,7 @@
     "do_optimize": true,
     "do_delete_study": false,
     "do_write_results": true,
-    "results_hover_keys": [
-      "mesh.nodes", "system.host", "system.ip"
-    ],
+    "results_hover_keys": ["mesh.nodes"],
     "results_color_key": "system.ip",
     "copies": ["_mesh.json"],
     "do_update_sub_actions": false,
