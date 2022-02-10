@@ -11,6 +11,7 @@
     3.1 https://stackoverflow.com/questions/43949259/processpoolexecutor-logging-failed
     3.2 https://stackoverflow.com/questions/49782749/processpoolexecutor-logging-fails-to-log-inside-function-on-windows-but-not-on-u
 4. TODO Handle signals (SIGTERM and SIGINT, etc)
+5. TODO delays between jobs/calls?
 """
 import concurrent.futures
 import logging
@@ -22,74 +23,99 @@ from src.ml.action.action import Action
 
 class Coaction(Action):
     def __init__(self,
-                 jobs=1, timeout=None, routine=None,
+                 jobs=1, timeout=None, delay=0, routine='scatter',
                  executor=None, executor_kwargs=None,
-                 sub_jobs=1, sub_timeout=None, sub_routine=None,
+                 sub_jobs=1, sub_timeout=None, sub_delay=0,
+                 sub_routine='scatter',
                  sub_executor=None, sub_executor_kwargs=None,
-                 pre_cb_jobs=1, pre_cb_timeout=None, pre_cb_routine=None,
+                 pre_cb_jobs=1, pre_cb_timeout=None, pre_cb_delay=0,
+                 pre_cb_routine='broadcast',
                  pre_cb_executor=None, pre_cb_executor_kwargs=None,
-                 cb_jobs=1, cb_timeout=None, cb_routine=None,
+                 cb_jobs=1, cb_timeout=None, cb_delay=0,
+                 cb_routine='broadcast',
                  cb_executor=None, cb_executor_kwargs=None,
-                 pre_pre_cb_jobs=1, pre_pre_cb_timeout=None, pre_pre_cb_routine=None,
+                 pre_pre_cb_jobs=1, pre_pre_cb_timeout=None,
+                 pre_pre_cb_delay=0,  pre_pre_cb_routine='broadcast',
                  pre_pre_cb_executor=None, pre_pre_cb_executor_kwargs=None,
-                 pre_sub_cb_jobs=1, pre_sub_cb_timeout=None, pre_sub_cb_routine=None,
+                 pre_sub_cb_jobs=1, pre_sub_cb_timeout=None,
+                 pre_sub_cb_delay=0, pre_sub_cb_routine='broadcast',
                  pre_sub_cb_executor=None, pre_sub_cb_executor_kwargs=None,
-                 sub_post_cb_jobs=1, sub_post_cb_timeout=None, sub_post_cb_routine=None,
+                 sub_post_cb_jobs=1, sub_post_cb_timeout=None,
+                 sub_post_cb_delay=0, sub_post_cb_routine='broadcast',
                  sub_post_cb_executor=None, sub_post_cb_executor_kwargs=None,
-                 post_cb_jobs=1, post_cb_timeout=None, post_cb_routine=None,
+                 post_cb_jobs=1, post_cb_timeout=None,
+                 post_cb_delay=0, post_cb_routine='broadcast',
                  post_cb_executor=None, post_cb_executor_kwargs=None,
                  **kwargs):
         super().__init__(**kwargs)
         self.jobs = jobs
         self.timeout = timeout
-        self.routine = 'scatter' if routine is None else routine
+        self.delay = delay
+        self.routine = routine
         self.executor = executor
         self.executor_kwargs = {} if executor_kwargs is None else executor_kwargs
         self.sub_jobs = sub_jobs
         self.sub_timeout = sub_timeout
-        self.sub_routine = 'scatter' if sub_routine is None else sub_routine
+        self.sub_delay = sub_delay
+        self.sub_routine = sub_routine
         self.sub_executor = sub_executor
         self.sub_executor_kwargs = {} if sub_executor_kwargs is None else sub_executor_kwargs
         self.pre_cb_jobs = pre_cb_jobs
         self.pre_cb_timeout = pre_cb_timeout
-        self.pre_cb_routine = 'broadcast' if pre_cb_routine is None else pre_cb_routine
+        self.pre_cb_delay = pre_cb_delay
+        self.pre_cb_routine = pre_cb_routine
         self.pre_cb_executor = pre_cb_executor
         self.pre_cb_executor_kwargs = {} if pre_cb_executor_kwargs is None else pre_cb_executor_kwargs
         self.cb_jobs = cb_jobs
         self.cb_timeout = cb_timeout
-        self.cb_routine = 'broadcast' if cb_routine is None else cb_routine
+        self.cb_delay = cb_delay
+        self.cb_routine = cb_routine
         self.cb_executor = cb_executor
         self.cb_executor_kwargs = {} if cb_executor_kwargs is None else cb_executor_kwargs
         self.pre_pre_cb_jobs = pre_pre_cb_jobs
         self.pre_pre_cb_timeout = pre_pre_cb_timeout
-        self.pre_pre_cb_routine = 'broadcast' if pre_pre_cb_routine is None else pre_pre_cb_routine
+        self.pre_pre_cb_delay = pre_pre_cb_delay
+        self.pre_pre_cb_routine = pre_pre_cb_routine
         self.pre_pre_cb_executor = pre_pre_cb_executor
         self.pre_pre_cb_executor_kwargs = {} if pre_pre_cb_executor_kwargs is None else pre_pre_cb_executor_kwargs
         self.pre_sub_cb_jobs = pre_sub_cb_jobs
         self.pre_sub_cb_timeout = pre_sub_cb_timeout
-        self.pre_sub_cb_routine = 'broadcast' if pre_sub_cb_routine is None else pre_sub_cb_routine
+        self.pre_sub_cb_delay = pre_sub_cb_delay
+        self.pre_sub_cb_routine = pre_sub_cb_routine
         self.pre_sub_cb_executor = pre_sub_cb_executor
         self.pre_sub_cb_executor_kwargs = {} if pre_sub_cb_executor_kwargs is None else pre_sub_cb_executor_kwargs
         self.sub_post_cb_jobs = sub_post_cb_jobs
         self.sub_post_cb_timeout = sub_post_cb_timeout
-        self.sub_post_cb_routine = 'broadcast' if sub_post_cb_routine is None else sub_post_cb_routine
+        self.sub_post_cb_delay = sub_post_cb_delay
+        self.sub_post_cb_routine = sub_post_cb_routine
         self.sub_post_cb_executor = sub_post_cb_executor
         self.sub_post_cb_executor_kwargs = {} if sub_post_cb_executor_kwargs is None else sub_post_cb_executor_kwargs
         self.post_cb_jobs = post_cb_jobs
         self.post_cb_timeout = post_cb_timeout
-        self.post_cb_routine = 'broadcast' if post_cb_routine is None else post_cb_routine
+        self.post_cb_delay = post_cb_delay
+        self.post_cb_routine = post_cb_routine
         self.post_cb_executor = post_cb_executor
         self.post_cb_executor_kwargs = {} if post_cb_executor_kwargs is None else post_cb_executor_kwargs
 
     @staticmethod
-    def co_call(calls, stack_trace=None, jobs=1, timeout=None, routine='scatter',
-                executor=None, executor_kwargs=None, *args, **kwargs):
+    def co_call(calls, stack_trace=None, jobs=1, timeout=None, delay=0,
+                routine='scatter', executor=None, executor_kwargs=None,
+                *args, **kwargs):
         if executor is None:  # Sequential
             if jobs is None and timeout is None:
                 while True:
+                    time.sleep(delay)
                     for c in calls:
                         c(stack_trace=stack_trace, *args, **kwargs)
+            elif jobs is None and timeout is not None:
+                t = time.time()
+                time.sleep(delay)
+                while time.time() - t < timeout:
+                    for c in calls:
+                        c(stack_trace=stack_trace, *args, **kwargs)
+                    time.sleep(delay)
             elif jobs is not None and timeout is None:
+                time.sleep(delay)
                 if routine == 'scatter':
                     for _ in range(jobs):
                         for c in calls:
@@ -98,13 +124,9 @@ class Coaction(Action):
                     for c in calls:
                         for _ in range(jobs):
                             c(stack_trace=stack_trace, *args, **kwargs)
-            elif jobs is None and timeout is not None:
+            else:  # jobs is not None and timeout is not None
                 t = time.time()
-                while time.time() - t < timeout:
-                    for c in calls:
-                        c(stack_trace=stack_trace, *args, **kwargs)
-            else:  # self.jobs is not None and self.timeout is not None
-                t = time.time()
+                time.sleep(delay)
                 if routine == 'scatter':
                     for _ in range(jobs):
                         for c in calls:
@@ -118,134 +140,113 @@ class Coaction(Action):
                                 break
                             c(stack_trace=stack_trace, *args, **kwargs)
         else:  # Concurrent
-            n = 0  # actions done
+            d = 0  # done actions
             executor = getattr(concurrent.futures, executor)
             with executor(**executor_kwargs) as e:
+                w = e._max_workers
                 if jobs is None and timeout is None:
-                    if routine == 'scatter':
-                        while True:
-                            fs = (e.submit(x, stack_trace=stack_trace, *args, **kwargs)
-                                  for x in calls)
-                            for f in concurrent.futures.as_completed(fs=fs):
-                                f.result()
-                            n += len(calls)
-                    else:  # 'broadcast
-                        w = e._max_workers
-                        i = 0
-                        while True:
-                            if len(calls) == 0:
-                                continue
-                            elif len(calls) == i:
-                                i = 0
-                            else:
-                                i += 1
-                            c = calls[i]
-                            fs = (e.submit(c, stack_trace=stack_trace, *args, **kwargs)
-                                  for _ in range(w))
-                            for f in concurrent.futures.as_completed(fs=fs):
-                                f.result()
-                            n += w
+                    while True:
+                        time.sleep(delay)
+                        if routine == 'scatter':
+                            fs = (e.submit(x, stack_trace=stack_trace,
+                                           *args, **kwargs)
+                                  for _ in range(w) for x in calls)
+                        else:  # 'broadcast
+                            fs = (e.submit(x, stack_trace=stack_trace,
+                                           *args, **kwargs)
+                                  for x in calls for _ in range(w))
+                        for f in concurrent.futures.as_completed(fs=fs):
+                            f.result()
+                        d += len(calls) * w
                 elif jobs is None and timeout is not None:
+                    t = time.time()
+                    time.sleep(delay)
+                    while time.time() - t < timeout:
+                        if routine == 'scatter':
+                            fs = (e.submit(x, stack_trace=stack_trace,
+                                           *args, **kwargs)
+                                  for _ in range(w) for x in calls)
+                        else:  # 'broadcast
+                            fs = (e.submit(x, stack_trace=stack_trace,
+                                           *args, **kwargs)
+                                  for x in calls for _ in range(w))
+                        try:
+                            for f in concurrent.futures.as_completed(
+                                    fs=fs, timeout=timeout - (time.time() - t)):
+                                f.result()
+                        except concurrent.futures.TimeoutError as te:
+                            u = int(str(te).split('(')[0].strip()) - 1  # undone
+                        else:
+                            u = 0
+                        d += len(calls) * w - u
+                        time.sleep(delay)
+                else:  # jobs is not None
+                    time.sleep(delay)
                     if routine == 'scatter':
-                        t = time.time()
-                        while time.time() - t < timeout:
-                            fs = (e.submit(x, stack_trace=stack_trace, *args, **kwargs)
-                                  for x in calls)
-                            try:
-                                for f in concurrent.futures.as_completed(
-                                        fs=fs, timeout=timeout - (time.time() - t)):
-                                    f.result()
-                                n += len(calls)
-                            except concurrent.futures.TimeoutError as te:
-                                u = int(str(te).split('(')[0].strip()) - 1  # undone -1 because wait=True for with ...
-                                n += len(calls) - u
-                    else:  # 'broadcast
-                        t = time.time()
-                        w = e._max_workers
-                        i = 0
-                        while time.time() - t < timeout:
-                            if len(calls) == 0:
-                                continue
-                            elif len(calls) == i:
-                                i = 0
-                            else:
-                                i += 1
-                            c = calls[i]
-                            fs = (e.submit(c, stack_trace=stack_trace, *args, **kwargs)
-                                  for _ in range(w))
-                            try:
-                                for f in concurrent.futures.as_completed(
-                                        fs=fs, timeout=timeout - (time.time() - t)):
-                                    f.result()
-                                n += w
-                            except concurrent.futures.TimeoutError as te:
-                                u = int(str(te).split('(')[0].strip()) - 1  # undone -1 because wait=True for with ...
-                                n += w - u
-                else:  # self.sub_jobs is not None
-                    if routine == 'scatter':
-                        fs = (e.submit(x, stack_trace=stack_trace, *args, **kwargs)
+                        fs = (e.submit(x, stack_trace=stack_trace,
+                                       *args, **kwargs)
                               for _ in range(jobs) for x in calls)
                     else:  # 'broadcast'
-                        fs = (e.submit(x, stack_trace=stack_trace, *args, **kwargs)
+                        fs = (e.submit(x, stack_trace=stack_trace,
+                                       *args, **kwargs)
                               for x in calls for _ in range(jobs))
                     try:
                         for f in concurrent.futures.as_completed(
                                 fs=fs, timeout=timeout):
                             f.result()
-                        n += len(calls) * jobs
                     except concurrent.futures.TimeoutError as te:
-                        u = int(str(te).split('(')[0].strip()) - 1  # undone -1 because wait=True for with ...
-                        n += len(calls) * jobs - u
+                        u = int(str(te).split('(')[0].strip()) - 1  # undone
+                    else:
+                        u = 0
+                    d += len(calls) * jobs - u
 
     def pre_pre_callback(self, stack_trace=None, *args, **kwargs):
         self.co_call(
             calls=self.pre_pre_callbacks, stack_trace=stack_trace,
             jobs=self.pre_pre_cb_jobs, timeout=self.pre_pre_cb_timeout,
-            routine=self.pre_pre_cb_routine,
+            delay=self.pre_pre_cb_delay, routine=self.pre_pre_cb_routine,
             executor=self.pre_pre_cb_executor,
-            executor_kwargs=self.pre_pre_cb_executor_kwargs,
-            *args, **kwargs)
+            executor_kwargs=self.pre_pre_cb_executor_kwargs, *args, **kwargs)
 
     def pre_sub_callback(self, stack_trace=None, *args, **kwargs):
         self.co_call(
             calls=self.pre_sub_callbacks, stack_trace=stack_trace,
             jobs=self.pre_sub_cb_jobs, timeout=self.pre_sub_cb_timeout,
-            routine=self.pre_sub_cb_routine,
+            delay=self.pre_sub_cb_delay, routine=self.pre_sub_cb_routine,
             executor=self.pre_sub_cb_executor,
-            executor_kwargs=self.pre_sub_cb_executor_kwargs,
-            *args, **kwargs)
+            executor_kwargs=self.pre_sub_cb_executor_kwargs, *args, **kwargs)
 
     def sub_call(self, stack_trace=None, *args, **kwargs):
         self.co_call(
             calls=self.sub_actions, stack_trace=stack_trace,
-            jobs=self.jobs, timeout=self.timeout, routine=self.routine,
-            executor=self.executor, executor_kwargs=self.executor_kwargs,
-            *args, **kwargs)
+            jobs=self.sub_jobs, timeout=self.sub_timeout,
+            delay=self.sub_delay, routine=self.sub_routine,
+            executor=self.sub_executor,
+            executor_kwargs=self.sub_executor_kwargs, *args, **kwargs)
 
     def sub_post_callback(self, stack_trace=None, *args, **kwargs):
         self.co_call(
             calls=self.sub_post_callbacks, stack_trace=stack_trace,
             jobs=self.sub_post_cb_jobs, timeout=self.sub_post_cb_timeout,
-            routine=self.sub_post_cb_routine,
+            delay=self.sub_post_cb_delay, routine=self.sub_post_cb_routine,
             executor=self.sub_post_cb_executor,
-            executor_kwargs=self.sub_post_cb_executor_kwargs,
-            *args, **kwargs)
+            executor_kwargs=self.sub_post_cb_executor_kwargs, *args, **kwargs)
 
     def post_callback(self, stack_trace=None, *args, **kwargs):
         self.co_call(
             calls=self.post_callbacks, stack_trace=stack_trace,
             jobs=self.post_cb_jobs, timeout=self.post_cb_timeout,
-            routine=self.post_cb_routine,
+            delay=self.post_cb_delay, routine=self.post_cb_routine,
             executor=self.post_cb_executor,
-            executor_kwargs=self.post_cb_executor_kwargs,
-            *args, **kwargs)
+            executor_kwargs=self.post_cb_executor_kwargs, *args, **kwargs)
 
     def pre_callback(self, stack_trace=None, *args, **kwargs):
         self.co_call(
             calls=self.pre_callbacks, stack_trace=stack_trace,
-            jobs=self.pre_cb_jobs, timeout=self.pre_cb_timeout, routine=self.pre_cb_routine,
-            executor=self.pre_cb_executor, executor_kwargs=self.pre_cb_executor_kwargs,
-            *args, **kwargs)
+            jobs=self.pre_cb_jobs, timeout=self.pre_cb_timeout,
+            delay=self.pre_cb_delay, routine=self.pre_cb_routine,
+            executor=self.pre_cb_executor,
+            executor_kwargs=self.pre_cb_executor_kwargs, *args, **kwargs)
 
     def call(self, stack_trace=None, *args, **kwargs):
         calls = [self.pre_pre_callback, self.pre_call, self.pre_sub_callback,
@@ -253,16 +254,18 @@ class Coaction(Action):
                  self.post_callback]
         self.co_call(
             calls=calls, stack_trace=stack_trace,
-            jobs=self.jobs, timeout=self.timeout, routine=self.routine,
-            executor=self.executor, executor_kwargs=self.executor_kwargs,
-            *args, **kwargs)
+            jobs=self.jobs, timeout=self.timeout,
+            delay=self.delay, routine=self.routine,
+            executor=self.executor,
+            executor_kwargs=self.executor_kwargs, *args, **kwargs)
 
     def callback(self, stack_trace=None, *args, **kwargs):
         self.co_call(
             calls=self.callbacks, stack_trace=stack_trace,
-            jobs=self.cb_jobs, timeout=self.cb_timeout, routine=self.cb_routine,
-            executor=self.cb_executor, executor_kwargs=self.cb_executor_kwargs,
-            *args, **kwargs)
+            jobs=self.cb_jobs, timeout=self.cb_timeout,
+            delay=self.cb_delay, routine=self.cb_routine,
+            executor=self.cb_executor,
+            executor_kwargs=self.cb_executor_kwargs, *args, **kwargs)
 
     # def __call__(self, stack_trace=None, *args, **kwargs):
     #     st = [self] if stack_trace is None else stack_trace + [self]
