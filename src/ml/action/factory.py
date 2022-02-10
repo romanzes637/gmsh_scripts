@@ -17,6 +17,7 @@ from src.ml.action.set.regex_file import RegexFile as SetRegexFile
 from src.ml.action.set.equation import Equation
 from src.ml.action.get.get import Get
 from src.ml.action.get.json import Json
+from src.ml.action.get.regex_file import RegexFile as GetRegexFile
 
 str2obj = {
     'action.Action': Action,
@@ -38,4 +39,5 @@ str2obj = {
     'action.set.Equation': Equation,
     'action.get.Get': Get,
     'action.get.Json': Json,
+    'action.get.RegexFile': GetRegexFile,
 }

@@ -1,0 +1,36 @@
+{
+  "metadata": {
+  },
+  "data": {
+    "class": "action.Feature",
+    "key": "fenia.t",
+    "sub_actions": [
+      {"key": "cHeat.A", "class": "action.Feature",
+        "pre_call": {"class": "action.set.Continuous", "low": 100, "high": 1000},
+        "post_call": {"class": "action.get.RegexFile", "path": "text",
+          "read_type": "all", "regex": "(A[\\S\\s}][^}]*)(cHeat\\s*)([0-9.eE-]*)"}
+      },
+      {"key": "rho.A", "class": "action.Feature",
+        "pre_call": {"class": "action.set.Continuous", "low": 1000, "high": 2000},
+        "post_call": {"class": "action.get.RegexFile", "path": "text",
+          "read_type": "all", "regex": "(A[\\S\\s}][^}]*)(rho\\s*)([0-9.eE-]*)"}
+      },
+      {"key": "DT.A", "class": "action.Feature",
+        "pre_call": {"class": "action.set.Continuous", "low": 1, "high": 2},
+        "sub_actions": [
+          {"class": "action.get.RegexFile", "path": "text",
+          "read_type": "all", "regex": "(A[\\S\\s}][^}]*)(DT\\s*\\()([0-9.eE-]*)"},
+          {"class": "action.get.RegexFile", "path": "text",
+          "read_type": "all", "regex": "(A[\\S\\s}][^}]*)(DT\\s*\\()([0-9.eE-]*\\s)([0-9.eE-]*)"},
+          {"class": "action.get.RegexFile", "path": "text",
+          "read_type": "all", "regex": "(A[\\S\\s}][^}]*)(DT\\s*\\()([0-9.eE-]*\\s)([0-9.eE-]*\\s)([0-9.eE-]*)"}
+        ]
+      },
+      {"key": "qW.A", "class": "action.Feature",
+        "pre_call": {"class": "action.set.Continuous", "low": 100, "high": 1000},
+        "post_call": {"class": "action.get.RegexFile", "path": "text",
+          "read_type": "all", "regex": "(A[\\S\\s}][^}]*)(qW\\s*)([0-9.eE-]*)"}
+      }
+    ]
+  }
+}
