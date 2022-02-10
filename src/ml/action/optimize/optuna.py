@@ -167,7 +167,7 @@ class Optuna(Coaction):
             trial_dir.mkdir(parents=True, exist_ok=True)
             for p in self.optuna_action.copies:
                 if p.is_dir():
-                    shutil.copytree(p, trial_dir)
+                    shutil.copytree(p, trial_dir / p.name)
                 elif p.is_file():
                     shutil.copy(p, trial_dir)
                 else:

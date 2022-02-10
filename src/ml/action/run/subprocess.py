@@ -2,6 +2,7 @@ import subprocess
 import sys
 from pathlib import Path
 import io
+import copy
 
 from src.ml.action.run.run import Run
 
@@ -30,27 +31,28 @@ class Subprocess(Run):
             if cwd is not None:
                 p = Path(cwd).resolve()
                 if p.exists():
-                    self.subprocess_kwargs['cwd'] = cwd
+                    self.subprocess_kwargs['cwd'] = str(cwd)
 
     def post_call(self, stack_trace=None, *args, **kwargs):
+        subprocess_kwargs = copy.deepcopy(self.subprocess_kwargs)
         if self.nohup and sys.platform != 'win32':
-            self.subprocess_kwargs['args'] = \
-                ['nohup'] + self.subprocess_kwargs.get('args', [])
-        stdout = self.subprocess_kwargs.get('stdout', None)
+            subprocess_kwargs['args'] = \
+                ['nohup'] + subprocess_kwargs.get('args', [])
+        stdout = subprocess_kwargs.get('stdout', None)
         if stdout is not None:
             if stdout in ['PIPE', 'STDOUT', 'DEVNULL']:
                 stdout = getattr(subprocess, stdout)
             else:
                 stdout = open(file=Path(stdout).resolve(), **self.stdout_kwargs)
-            self.subprocess_kwargs['stdout'] = stdout
-        stderr = self.subprocess_kwargs.get('stderr', None)
+            subprocess_kwargs['stdout'] = stdout
+        stderr = subprocess_kwargs.get('stderr', None)
         if stderr is not None:
             if stderr in ['PIPE', 'STDOUT', 'DEVNULL']:
                 stderr = getattr(subprocess, stderr)
             else:
                 stderr = open(file=Path(stderr).resolve(), **self.stderr_kwargs)
-            self.subprocess_kwargs['stderr'] = stderr
-        self.result = subprocess.run(**self.subprocess_kwargs)
+            subprocess_kwargs['stderr'] = stderr
+        self.result = subprocess.run(**subprocess_kwargs)
         if isinstance(stdout, io.IOBase) and not stdout.closed:
             stdout.close()
         if isinstance(stderr, io.IOBase) and not stderr.closed:
