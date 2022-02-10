@@ -26,8 +26,8 @@
       "/_mesh_constraints.json"
     ],
     "objectives": {
-      "mesh.objective_elements": "maximize",
-      "mesh.objective_metrics": "minimize"
+      "mesh.objective_elements": "minimize",
+      "mesh.objective_metrics": "maximize"
     },
     "constraints": ["mesh.constraint_J"]
   }
