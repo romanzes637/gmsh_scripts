@@ -18,13 +18,13 @@ startTime       0;
 
 stopAt          endTime;
 
-endTime         36000.0; //86400 //8640000000 ~ 274 years //8640000 ~ 0.274 of year
+endTime         360000.0; //86400 //8640000000 ~ 274 years //8640000 ~ 0.274 of year
 
-deltaT          3600.0;
+deltaT          36000.0;
 
-dtMin           3600.0;  //86400.0; //432000.0;
+dtMin           36000.0;  //86400.0; //432000.0;
 
-dtMax           3600.0;  //86400.0; //432000.0;
+dtMax           36000.0;  //86400.0; //432000.0;
 
 dtIncrDecr      1.5;  // 1.2
 
@@ -34,7 +34,7 @@ nIncrDecr       3;  // 5
 
 writeControl    timeStep;
 
-writeInterval   1;
+writeInterval   5;
 
 volToPoint      true;
 

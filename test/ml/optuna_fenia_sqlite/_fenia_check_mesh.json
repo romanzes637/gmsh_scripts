@@ -4,7 +4,9 @@
     "class": "action.run.Subprocess",
     "subprocess_kwargs": {
       "args": ["checkFeniaMesh"],
-      "cwd": "fenia"
+      "cwd": "fenia",
+      "stdout": "fenia/check_mesh.out",
+      "stderr": "fenia/check_mesh.err" 
     }  
   }
 }
