@@ -12,6 +12,7 @@
     3.2 https://stackoverflow.com/questions/49782749/processpoolexecutor-logging-fails-to-log-inside-function-on-windows-but-not-on-u
 4. TODO Handle signals (SIGTERM and SIGINT, etc)
 5. TODO delays between jobs/calls?
+6. TODO concurrent keep order? (by executor.map https://stackoverflow.com/questions/67189283/how-to-keep-the-original-order-of-input-when-using-threadpoolexecutor)
 """
 import concurrent.futures
 import logging

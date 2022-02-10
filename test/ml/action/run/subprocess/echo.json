@@ -16,25 +16,41 @@
       {
         "class": "action.run.Subprocess",
         "subprocess_kwargs": {
-          "args": ["echo", "Hello world!", ">>", "good_echo_out.txt", "2>>", "good_echo_err.txt"],
+          "args": ["echo", "Hello world!"],
+          "stdout": "DEVNULL",
+          "stderr": "DEVNULL",
           "shell": true}
       },
       {
         "class": "action.run.Subprocess",
         "subprocess_kwargs": {
-          "args": ["echo", "Hello world!", ">>", "good_echo_all.txt", "2>&1"],
+          "args": ["ohce", "Hello world!"],
+          "stdout": "DEVNULL",
+          "stderr": "DEVNULL",
           "shell": true}
       },
       {
         "class": "action.run.Subprocess",
         "subprocess_kwargs": {
-          "args": ["ohce", "Hello world!", ">>", "bad_echo_out.txt", "2>>", "bad_echo_err.txt"],
+          "args": ["ohce", "Hello world!"],
+          "stdout": "bad_echo.out",
+          "stderr": "bad_echo.err",
           "shell": true}
       },
       {
         "class": "action.run.Subprocess",
         "subprocess_kwargs": {
-          "args": ["ohce", "Hello world!", ">>", "bad_echo_all.txt", "2>&1"],
+          "args": ["ohce", "Hello world!"],
+          "stdout": "bad_echo_stdout.out",
+          "stderr": "STDOUT",
+          "shell": true}
+      },
+      {
+        "class": "action.run.Subprocess",
+        "subprocess_kwargs": {
+          "args": ["echo", "Hello world!"],
+          "stdout": "good_echo.out",
+          "stderr": "good_echo.err",
           "shell": true}
       }
     ]
