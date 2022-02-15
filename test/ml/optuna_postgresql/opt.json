@@ -13,7 +13,7 @@
     "do_delete_study": false,
     "do_write_results": true,
     "results_hover_keys": ["mesh.nodes"],
-    "results_color_key": "system.ip",
+    "results_color_key": "system.host",
     "copies": ["_mesh.json"],
     "do_update_sub_actions": false,
     "update_sub_actions_trial": null,
