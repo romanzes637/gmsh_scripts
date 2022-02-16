@@ -1,0 +1,57 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+\*---------------------------------------------------------------------------*/
+FeniaFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      condMech;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+    ExtNY
+    {
+        type            default;
+    }
+    Bottom
+    {
+        type            fixedVelTr;
+        trValueZ           0.0;
+    }
+    Top
+    {
+        type            fixedVelTr;
+        trValueZ           0.0;
+    }
+    ExtNX
+    {
+        type            default;
+    }
+    ExtX
+    {
+        type            default;
+    }
+    ExtY
+    {
+        type            default;
+    }
+    PointXY
+    {
+        type            fixedVelPointsTr;
+	patchName      "ExtY";
+        trValueX           0.0;
+	pointList       (81 862 839 104 796 7168 7145 773);
+    }
+    PointYX
+    {
+        type            fixedVelPointsTr;
+	patchName      "ExtX";
+        trValueY           0.0;
+	pointList       (345 2280 2257 322 679 5847 5870 702);
+    }
+
+    
+
+
+// ************************************************************************* //

@@ -1,0 +1,12 @@
+{
+  "metadata": {},
+  "data": {
+    "class": "action.run.Subprocess",
+    "subprocess_kwargs": {
+      "args": ["gmshToFenia", "../gmsh/mesh.msh2"],
+      "cwd": "fenia",
+      "stdout": "fenia/convert_mesh.out",
+      "stderr": "fenia/convert_mesh.err" 
+    }  
+  }
+}

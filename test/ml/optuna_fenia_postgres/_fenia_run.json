@@ -1,0 +1,12 @@
+{
+  "metadata": {},
+  "data": {
+    "class": "action.run.Subprocess",
+    "subprocess_kwargs": {
+      "args": ["linLMTerm"],
+      "cwd": "fenia",
+      "stdout": "fenia/fenia.out",
+      "stderr": "fenia/fenia.err" 
+    }
+  }
+}
