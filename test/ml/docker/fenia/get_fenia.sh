@@ -1,0 +1,1 @@
+git clone -b release git@svn100.ibrae:/home/git/opf/OpenFEM-0.0.x.git
