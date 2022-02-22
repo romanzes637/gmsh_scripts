@@ -1,0 +1,1 @@
+./get_fenia.sh && docker build -t fenia .
