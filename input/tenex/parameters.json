@@ -1,0 +1,78 @@
+{
+  "metadata": {
+    "comments_algorithm_2d": "1: MeshAdapt, 2: Automatic, 3: Initial mesh only, 5: Delaunay, 6: Frontal-Delaunay (default), 7: BAMG, 8: Frontal-Delaunay for Quads, 9: Packing of Parallelograms",
+    "comments_algorithms_3d": "1: Delaunay (default), 3: Initial mesh only, 4: Frontal, 7: MMG3D, 9: R-tree, 10: HXT",
+    "comments_subdivision_algorithm": "0: none (default), 1: all quadrangles, 2: all hexahedra, 3: barycentric"
+  },
+  "data": {
+    "class": "action.Feature",
+    "key": "gmsh",
+    "sub_actions": [
+      {"key": "size_curvature", "class": "action.Feature",
+        "pre_call": {"class": "action.set.Discrete", "low": 10, "high": 40, "num": 31},
+        "post_call": {"class": "action.get.Json", "path": "container_layers.json",
+          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeFromCurvature": "{}"}}}}}
+      },
+      {"key": "size_min", "class": "action.Feature",
+        "pre_call": {"class": "action.set.Continuous", "low": 0, "high": 0.1},
+        "post_call": {"class": "action.get.Json", "path": "container_layers.json",
+          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeMin": "{}"}}}}}
+      },
+      {"key": "size_max", "class": "action.Feature",
+        "pre_call": {"class": "action.set.Continuous", "low": 0.1, "high": 1},
+        "post_call": {"class": "action.get.Json", "path": "container_layers.json",
+          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeMax": "{}"}}}}}
+      },
+      {"key": "size_factor", "class": "action.Feature",
+        "pre_call": {"class": "action.set.Continuous", "low": 0.1, "high": 2.0},
+        "post_call": {"class": "action.get.Json", "path": "container_layers.json",
+          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeFactor": "{}"}}}}}
+      },
+      {"key": "size_boundary", "class": "action.Feature",
+        "pre_call": {"class": "action.set.Discrete", "low": 1, "high": 2, "num": 2},
+        "post_call": {"class": "action.get.Json", "path": "container_layers.json",
+          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeExtendFromBoundary": "{}"}}}}}
+      },
+      {"key": "rw", "class": "action.Feature",
+        "sub_actions": [
+          {"key": "size", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 0.01, "high": 0.1}}
+        ],
+        "post_call": {"class": "action.get.Json", "path": "rw.json",
+          "mapping": {"data": {"layer": [
+            ["0.166;{0}"],
+            ["1.334;{0}"]]}}}
+      },
+      {"key": "steel", "class": "action.Feature",
+        "sub_actions": [
+          {"key": "size", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 0.01, "high": 0.1}}
+        ],
+        "post_call": {"class": "action.get.Json", "path": "steel.json",
+          "mapping": {"data": {"layer": [
+            ["0.179;{0}"],
+            ["1.350;{0}"]]}}}
+      },
+      {"key": "cast_iron", "class": "action.Feature",
+        "sub_actions": [
+          {"key": "size", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 0.01, "high": 0.1}}
+        ],
+        "post_call": {"class": "action.get.Json", "path": "cast_iron.json",
+          "mapping": {"data": {"layer": [
+            ["1.450;{0}"],
+            ["5.500;{0}"]]}}}
+      },
+      {"key": "filling", "class": "action.Feature",
+        "sub_actions": [
+          {"key": "size", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 0.01, "high": 0.1}}
+        ],
+        "post_call": {"class": "action.get.Json", "path": "filling.json",
+          "mapping": {"data": {"layer": [
+            ["1.215;{0}"],
+            ["5.030;{0}"]]}}}
+      }
+    ]
+  }
+}

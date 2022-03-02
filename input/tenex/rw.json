@@ -1,0 +1,13 @@
+{
+  "data": {
+    "class": "block.Layer",
+    "layer": [
+      ["0.166;.1"],
+      ["1.334;.1"]],
+    "layer_curves": [
+      ["circle_arc"],
+      ["line"]],
+    "items_zone": ["RW"],
+    "items_boolean_level_map": 2
+  }
+}
