@@ -20,8 +20,5 @@ RUN apt-get update && apt-get install -y \
 
 RUN git clone https://github.com/romanzes637/gmsh_scripts.git /opt/gmsh/
 WORKDIR /opt/gmsh
-RUN pip3 install --no-cache-dir -r requirements_ml.txt 
-RUN pip3 install --no-cache-dir -r requirements_postgres.txt 
-
-WORKDIR /opt/gmsh/input/tenex/borehole
-CMD ["python3", "/opt/gmsh/ml.py", "opt.json"]
+RUN pip3 install --no-cache-dir -r requirements_ml.txt
+RUN pip3 install --no-cache-dir -r requirements_postgres.txt

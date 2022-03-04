@@ -1,8 +1,10 @@
 version: "3.8"
 services:
   opt:
-    image: 10.254.55.75/tenex_borehole
+    image: 10.254.55.75/gmsh
     build: .
+    working_dir: /opt/gmsh/input/tenex/borehole
+    command: ["python", "/opt/gmsh/ml.py", "opt.json"]
     volumes:
       - tenex:/opt/gmsh/input/tenex/borehole/opt
     deploy:
@@ -10,13 +12,13 @@ services:
       replicas: 2
       placement:
         max_replicas_per_node: 1
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 8g
-        reservations:
-          cpus: '1.0'
-          memory: 2g
+#      resources:
+#        limits:
+#          cpus: '1.0'
+#          memory: 8g
+#        reservations:
+#          cpus: '1.0'
+#          memory: 4g
 
 volumes:
   tenex:
