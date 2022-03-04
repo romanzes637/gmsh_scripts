@@ -109,11 +109,11 @@ class Optuna(Coaction):
                         name=name, choices=s.choices))
                 elif isinstance(s, Discrete):
                     if isinstance(s.low, int) and isinstance(s.high, int):
-                        step = (s.high - s.low) // (s.num - 1)
+                        step = (s.high - s.low) // (s.num - 1) if s.num != 1 else 1
                         v = trial.suggest_int(
                             name=name, low=s.low, high=s.high, step=step)
                     else:
-                        step = (s.high - s.low) / (s.num - 1)
+                        step = (s.high - s.low) / (s.num - 1) if s.num != 1 else 1
                         v = trial.suggest_float(
                             name=name, low=s.low, high=s.high, step=step)
                     f.pre_call = Value(value=v)
@@ -155,6 +155,7 @@ class Optuna(Coaction):
                         s.close()
                 return ip
 
+            trial.set_user_attr('number', trial.number)
             trial.set_user_attr('system.host', socket.getfqdn())
             trial.set_user_attr('system.ip', get_ip())
             trial.set_user_attr('datetime.utc_offset', time.localtime().tm_gmtoff)

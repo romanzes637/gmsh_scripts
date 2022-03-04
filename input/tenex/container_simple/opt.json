@@ -6,38 +6,26 @@
     "n_trials": 1,
     "work_path": "opt",
     "storage": "postgresql+psycopg2://ibrae:1234@10.254.55.75:5432/ibraedb",
-    "study_name": "tenex_container",
+    "study_name": "tenex_container_simple",
     "do_delete_study": false,
     "do_optimize": true,
     "do_write_results": true,
-    "results_color_key": "gmsh.objective.elements",
-    "copies": [
-      "canister.json",
-      "cast_iron.json",
-      "container.json",
-      "container_layers.json",
-      "filling.json",
-      "inner_circle.json",
-      "layer.json",
-      "layers.json",
-      "outer_circle.json",
-      "rw.json",
-      "steel.json"
-    ],
+    "results_color_key": "number",
+    "copies": ["gmsh"],
     "do_update_sub_actions": false,
     "update_sub_actions_trial": null,
     "do_sub_call": false,
     "sub_actions": [
-      "/parameters.json",
-      "/run.json",
-      "/results.json",
-      "/objectives.json",
-      "/constraints.json"
+      "/opt_gmsh/parameters.json",
+      "/opt_gmsh/run.json",
+      "/opt_gmsh/results.json",
+      "/opt_gmsh/objectives.json",
+      "/opt_gmsh/constraints.json"
     ],
     "objectives": {
       "gmsh.objective.elements": "minimize",
       "gmsh.objective.metrics": "maximize"
     },
-    "constraints": ["mesh.constraint.J"]
+    "constraints": ["gmsh.constraint.J"]
   }
 }

@@ -23,5 +23,5 @@ WORKDIR /opt/gmsh
 RUN pip3 install --no-cache-dir -r requirements_ml.txt 
 RUN pip3 install --no-cache-dir -r requirements_postgres.txt 
 
-WORKDIR /opt/gmsh/input/tenex
-CMD ["python3", "../../ml.py", "opt.json"]
+WORKDIR /opt/gmsh/input/tenex/container_simple
+CMD ["python3", "/opt/gmsh/ml.py", "opt.json"]

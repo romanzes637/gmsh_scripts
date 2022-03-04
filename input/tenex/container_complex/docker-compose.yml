@@ -4,7 +4,7 @@ services:
     image: 10.254.55.75/tenex_container
     build: .
     volumes:
-      - tenex:/opt/gmsh/input/tenex/opt
+      - tenex:/opt/gmsh/input/tenex/container_complex/opt
     deploy:
       mode: replicated
       replicas: 2

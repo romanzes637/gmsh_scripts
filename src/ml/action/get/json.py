@@ -8,17 +8,19 @@ from src.ml.action.feature.feature import Feature
 
 
 class Json(Get):
-    def __init__(self, path, mapping, regex='\{[A-Za-z0-9\-\_]*\}', **kwargs):
+    def __init__(self, path, mapping, regex='\{[.A-Za-z0-9\-\_]*\}', depth=-2,
+                 **kwargs):
         super().__init__(**kwargs)
         self.path = path
         self.mapping = mapping
         self.regex = regex
+        self.depth = depth
 
     def post_call(self, stack_trace=None, *args, **kwargs):
         p = Path(self.path).resolve()
         with open(p) as f:
             d = json.load(f)
-        d = self.update(d, self.mapping, stack_trace[-2], self.regex)
+        d = self.update(d, self.mapping, stack_trace[self.depth], self.regex)
         with open(p, 'w') as f:
             json.dump(d, f, indent=2)
 
@@ -68,7 +70,7 @@ class Json(Get):
             m = p.search(v)
             while m is not None:
                 cnt += 1
-                x = ''.join(x for x in m.group(0) if x.isalnum() or x in ['-', '_'])
+                x = ''.join(x for x in m.group(0) if x.isalnum() or x in ['-', '_', '.'])
                 if x == '':  # From self
                     fv = str(f.value)
                 elif x.isdigit():  # From sub_actions by index
@@ -80,14 +82,14 @@ class Json(Get):
                     fv = None
                     for a in f.sub_actions:
                         if isinstance(a, Feature):
-                            if x == f.key:
+                            if x == a.key:
                                 fv = str(a.value)
                 if fv is None:
                     raise ValueError(x)
                 v = v[:m.start()] + fv + v[m.end():]
                 m = p.search(v)
             if cnt == 0:
-                raise ValueError(f'No pattern in string "{v}"')
+                return v
             if v.isdigit():
                 v = int(v)
             else:

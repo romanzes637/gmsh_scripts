@@ -1,0 +1,135 @@
+{
+  "metadata": {
+    "comments_algorithm_2d": "1: MeshAdapt, 2: Automatic, 3: Initial mesh only, 5: Delaunay, 6: Frontal-Delaunay (default), 7: BAMG, 8: Frontal-Delaunay for Quads, 9: Packing of Parallelograms",
+    "comments_algorithms_3d": "1: Delaunay (default), 3: Initial mesh only, 4: Frontal, 7: MMG3D, 9: R-tree, 10: HXT",
+    "comments_subdivision_algorithm": "0: none (default), 1: all quadrangles, 2: all hexahedra, 3: barycentric"
+  },
+  "data": {
+    "class": "action.Feature",
+    "key": "gmsh",
+    "sub_actions": [
+      {"key": "size_curvature", "class": "action.Feature",
+        "pre_call": {"class": "action.set.Discrete", "low": 80, "high": 200, "num": 121},
+        "post_call": {"class": "action.get.Json", "path": "gmsh/container.json",
+          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeFromCurvature": "{}"}}}}}
+      },
+      {"key": "size_min", "class": "action.Feature",
+        "pre_call": {"class": "action.set.Continuous", "low": 0, "high": 0.1},
+        "post_call": {"class": "action.get.Json", "path": "gmsh/container.json",
+          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeMin": "{}"}}}}}
+      },
+      {"key": "size_max", "class": "action.Feature",
+        "pre_call": {"class": "action.set.Continuous", "low": 0.1, "high": 5},
+        "post_call": {"class": "action.get.Json", "path": "gmsh/container.json",
+          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeMax": "{}"}}}}}
+      },
+      {"key": "size_factor", "class": "action.Feature",
+        "pre_call": {"class": "action.set.Continuous", "low": 0.1, "high": 2.0},
+        "post_call": {"class": "action.get.Json", "path": "gmsh/container.json",
+          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeFactor": "{}"}}}}}
+      },
+      {"key": "size_boundary", "class": "action.Feature",
+        "pre_call": {"class": "action.set.Discrete", "low": 1, "high": 2, "num": 2},
+        "post_call": {"class": "action.get.Json", "path": "gmsh/container.json",
+          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeExtendFromBoundary": "{}"}}}}}
+      },
+      {"key": "geometry", "class": "action.Feature",
+        "sub_actions": [
+          {"key": "cast_iron.size", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 0.01, "high": 0.1}},
+          {"key": "filling.size", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 0.01, "high": 0.1}},
+          {"key": "ebs.size", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 0.01, "high": 0.1}},
+          {"key": "rock.size", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 1, "high": 5}},
+          {"key": "container.height", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 5.500, "high": 5.500}},
+          {"key": "container.radius", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 1.450, "high": 1.450}},
+          {"key": "cast_iron.dz", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 0.235, "high": 0.235}},
+          {"key": "cast_iron.dr", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 0.235, "high": 0.235}},
+          {"key": "filling.height", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Equation", "equation": "{container.height}-2*{cast_iron.dz}", "depth": -3}},
+          {"key": "filling.radius", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Equation", "equation": "{container.radius}-{cast_iron.dr}", "depth": -3}},
+          {"key": "ebs.dz", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 0.1, "high": 2.0}},
+          {"key": "ebs.dr", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 0.1, "high": 2.0}},
+          {"key": "ebs.height", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Equation", "equation": "{container.height}+2*{ebs.dz}", "depth": -3}},
+          {"key": "ebs.radius", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Equation", "equation": "{container.radius}+{ebs.dr}", "depth": -3}},
+          {"key": "container.number", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Discrete", "low": 40, "high": 40, "num": 1}},
+          {"key": "container.per_borehole", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Discrete", "low": 5, "high": 5, "num": 1}},
+          {"key": "container.per_borehole_plus", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Equation", "equation": "{container.per_borehole}+1", "depth": -3}},
+          {"key": "borehole.constraint", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Equation", "equation": "{container.number} % {container.per_borehole} == 0", "depth": -3}},
+          {"key": "borehole.number", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Equation", "equation": "int({container.number}/{container.per_borehole})", "depth": -3}},
+          {"key": "borehole.number_plus", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Equation", "equation": "{borehole.number}+1", "depth": -3}},
+          {"key": "borehole.height", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Equation", "equation": "{ebs.height}*{container.per_borehole}", "depth": -3}},
+          {"key": "borehole.delta", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Equation", "equation": "-{borehole.height}/2", "depth": -3}},
+          {"key": "borehole.dx", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 10, "high": 100}},
+          {"key": "borehole.x", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Equation", "equation": "{borehole.dx}*{borehole.number}", "depth": -3}},
+          {"key": "rock.dx", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 100, "high": 100}},
+          {"key": "rock.dy", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 100, "high": 100}},
+          {"key": "rock.dz", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 100, "high": 100}},
+          {"key": "rock.dnz", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Continuous", "low": 100, "high": 100}},
+          {"key": "rock.z", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Equation", "equation": "{rock.dz}+0.5*{borehole.height}", "depth": -3}},
+          {"key": "rock.nz", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Equation", "equation": "{rock.dnz}+0.5*{borehole.height}", "depth": -3}}
+        ],
+        "post_call": {"class": "action.get.Get",
+          "sub_actions": [
+            {"class": "action.get.Json", "path": "gmsh/cast_iron.json", "depth": -3,
+              "mapping": {"data": {
+                "layer": [
+                  ["{container.radius};{cast_iron.size}"],
+                  ["{container.height};{cast_iron.size}"]]}}},
+            {"class": "action.get.Json", "path": "gmsh/filling.json", "depth": -3,
+              "mapping": {"data": {
+                "layer": [
+                  ["{filling.radius};{filling.size}"],
+                  ["{filling.height};{filling.size}"]]}}},
+            {"class": "action.get.Json", "path": "gmsh/container.json", "depth": -3,
+              "mapping": {"data": {
+                "children_transforms": [[[0, 0, "{cast_iron.dz}"]], []]}}},
+            {"class": "action.get.Json", "path": "gmsh/borehole.json", "depth": -3,
+              "mapping": {"data": {
+                "layer": [
+                  ["{ebs.radius};{ebs.size}"],
+                  ["{borehole.height}:{container.per_borehole_plus};{ebs.size}"]],
+                "transforms": [[0, 0, "{borehole.delta}"]]}}},
+            {"class": "action.get.Json", "path": "gmsh/boreholes.json", "depth": -3,
+              "mapping": {"data": {
+                "matrix": [
+                  ["i",
+                    "-{rock.dx};{rock.size}",
+                    "{rock.dx};{rock.size}",
+                    "{borehole.x}:{borehole.number_plus};{rock.size}",
+                    "{rock.dx};{rock.size}"],
+                  ["-{rock.dy};{rock.size}", "{rock.dy};{rock.size}"],
+                  ["-{rock.nz};{rock.size}", "{rock.z};{rock.size}"]]}}}
+          ]
+        }
+      }
+    ]
+  }
+}

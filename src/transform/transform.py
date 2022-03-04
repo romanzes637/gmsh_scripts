@@ -491,20 +491,16 @@ class QuarterLayerToCartesian(Transform):
 
     def __call__(self, p):
         p = super().__call__(p)
-        print(p)
         if isinstance(p.coordinate_system, type(self.cs_to)):
             return p
         if not isinstance(p.coordinate_system, QuarterLayer):
             return p
-        print('HERE')
         cs = p.coordinate_system
         px, py, pz = p.coordinates
         n_layers = len(cs.layers[0])
         lx0, ly0 = (cs.layers[i][0] for i in range(2))
         atol = 10 ** -POINT_TOL
-        print(n_layers)
         for j in range(n_layers):
-            print(j)
             lx, ly = (cs.layers[i][j] for i in range(2))
             n_x, n_y = (cs.layers_curves[i][j][0] for i in range(2))
             lt_x, lt_y = (cs.layers_types[i][j] for i in range(2))
