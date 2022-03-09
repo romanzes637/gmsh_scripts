@@ -1,0 +1,55 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+\*---------------------------------------------------------------------------*/
+FeniaFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      mechData;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// свойства для всей сетки
+
+    noZone
+    {
+     matType el;  // изменяемые в процессе решения данные всей сетки
+
+	rho            0.0 ;
+	Young            5.3e10 ;
+	Poisson            0.24 ;
+	Yield            4.0e8 ;
+	Hard            1.e9 ;
+        alpha            0.07e-4;
+    }
+
+    External
+    {
+     matType tEl;  // изменяемые в процессе решения данные всей сетки
+	rho           0.0 ;
+	Young constant           2.0e11 ;
+	Poisson constant           0.29 ;
+	Yield constant           4.0e8 ;
+	Hard constant           1.e9 ;
+        alpha constant           0.18e-4;
+
+ 
+    } 
+
+    Internal
+    {
+     matType tEl;  // изменяемые в процессе решения данные всей сетки
+	rho           0.0 ;
+	Young constant           0.83e11 ;
+	Poisson constant           0.25 ;
+	Yield constant           4.0e8 ;
+	Hard constant           1.e9 ;
+        alpha constant           0.118e-4;
+
+ 
+    } 
+
+	g         (0 0 -0.0);
+
+// ************************************************************************* //
