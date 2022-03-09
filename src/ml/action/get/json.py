@@ -8,19 +8,19 @@ from src.ml.action.feature.feature import Feature
 
 
 class Json(Get):
-    def __init__(self, path, mapping, regex='\{[.A-Za-z0-9\-\_]*\}', depth=-2,
-                 **kwargs):
+    def __init__(self, path, mapping, regex='\{[.A-Za-z0-9\-\_]*\}', **kwargs):
         super().__init__(**kwargs)
         self.path = path
         self.mapping = mapping
         self.regex = regex
-        self.depth = depth
 
     def post_call(self, stack_trace=None, *args, **kwargs):
         p = Path(self.path).resolve()
         with open(p) as f:
             d = json.load(f)
-        d = self.update(d, self.mapping, stack_trace[self.depth], self.regex)
+        context = {}
+        Feature.update_context(context, stack_trace[-2])
+        d = self.update(d, self.mapping, context, self.regex)
         with open(p, 'w') as f:
             json.dump(d, f, indent=2)
 
@@ -63,7 +63,7 @@ class Json(Get):
         return d
 
     @staticmethod
-    def parse(v, f, r):
+    def parse(v, c, r):
         if isinstance(v, str):
             p = re.compile(r)
             cnt = 0
@@ -71,19 +71,7 @@ class Json(Get):
             while m is not None:
                 cnt += 1
                 x = ''.join(x for x in m.group(0) if x.isalnum() or x in ['-', '_', '.'])
-                if x == '':  # From self
-                    fv = str(f.value)
-                elif x.isdigit():  # From sub_actions by index
-                    fv = None
-                    a = f.sub_actions[int(x)]
-                    if isinstance(a, Feature):
-                        fv = str(a.value)
-                else:  # From sub_actions by key
-                    fv = None
-                    for a in f.sub_actions:
-                        if isinstance(a, Feature):
-                            if x == a.key:
-                                fv = str(a.value)
+                fv = str(c.get(x, None))
                 if fv is None:
                     raise ValueError(x)
                 v = v[:m.start()] + fv + v[m.end():]

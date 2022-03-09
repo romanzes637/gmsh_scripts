@@ -59,7 +59,7 @@ def parse_row(row, sep_i=';', sep_si=':'):
     for o_i, item in enumerate(items):  # Old index, old item
         cs_i, ms_i, ss_i = parse_row_item(
             item, item_t, pc, pm, ps, sep_i, sep_si)
-        # TODO interpolate between last cs/ms/ss and first cs_i/ms_i/ss_i?
+        # TODO interpolate between last context/ms/ss and first cs_i/ms_i/ss_i?
         cs.extend(cs_i[1:])
         ms.extend(ms_i[1:])
         ss.extend(ss_i[1:])

@@ -5,23 +5,24 @@ from pathlib import Path
 
 from src.ml.action.get.get import Get
 from src.ml.action.get.json import Json
+from src.ml.action.feature.feature import Feature
 
 
 class Dictionary(Get):
-    def __init__(self, path, mapping, regex='\{[.A-Za-z0-9\-\_]*\}', depth=-2,
-                 dump_path=None,
+    def __init__(self, path, mapping, regex='\{[.A-Za-z0-9\-\_]*\}', dump_path=None,
                  **kwargs):
         super().__init__(**kwargs)
         self.path = path
         self.dump_path = path if dump_path is None else dump_path
         self.mapping = mapping
         self.regex = regex
-        self.depth = depth
 
     def post_call(self, stack_trace=None, *args, **kwargs):
         p = Path(self.path).resolve()
         d = self.load(p)
-        d = Json.update(d, self.mapping, stack_trace[self.depth], self.regex)
+        context = {}
+        Feature.update_context(context, stack_trace[-2])
+        d = Json.update(d, self.mapping, context, self.regex)
         dp = Path(self.dump_path).resolve()
         dp.parent.mkdir(parents=True, exist_ok=True)
         self.dump(d, dp)
@@ -59,7 +60,7 @@ class Dictionary(Get):
                         continue
                     elif k == '}':
                         break
-                    elif name is None:
+                    elif name is None and len(kvs) == 0:
                         name = k
                     else:
                         sub_name, sub_kvs = Dictionary.load_object(f, k)
@@ -91,7 +92,7 @@ class Dictionary(Get):
             f.write('{\n')
         for k, v in kvs.items():
             if isinstance(v, list):
-                f.write(f'{k} ({" ".join(v)});\n')
+                f.write(f'{k} ({" ".join([str(x) for x in v])});\n')
             elif isinstance(v, dict):
                 Dictionary.dump_object(k, v, f)
             else:

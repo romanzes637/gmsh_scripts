@@ -1,5 +1,7 @@
 import unittest
 from src.ml.action.get.foam.dictionary import Dictionary
+from src.ml.action.feature.feature import Feature
+from src.ml.action.action import Action
 
 
 class TestDictionary(unittest.TestCase):
@@ -19,8 +21,8 @@ class TestDictionary(unittest.TestCase):
         m = {None: {
                 'internalField uniform': 7
             }}
-        d = Dictionary(p, dump_path=dp, mapping=m, depth=-1)
-        d()
+        f = Feature(post_call=Dictionary(p, dump_path=dp, mapping=m))
+        f()
 
     def test_t(self):
         p = 'constant/T'
@@ -32,8 +34,8 @@ class TestDictionary(unittest.TestCase):
                 'heatTrans': 5
             }
         }
-        d = Dictionary(p, dump_path=dp, mapping=m, depth=-1)
-        d()
+        f = Feature(post_call=Dictionary(p, dump_path=dp, mapping=m))
+        f()
         d2 = Dictionary.load(dp)
         self.assertDictInDict(m, d2)
 
@@ -44,15 +46,39 @@ class TestDictionary(unittest.TestCase):
             'FeniaFile': {
                 'version:': '2.1'},
             'A': {
+                'DT': ['1', '2', '{k}']},
+            'B': {
+                'rho': 1000,
+                'DT': ['{k}', '2', '1']}
+        }
+        f = Feature(
+            sup_action=Feature(
+                key='sup', value='2.1',
+                sup_action=Feature(
+                    sup_action=Action(sub_actions=[Feature(key='act_sub', value=2)]),
+                    sub_actions=[Feature(key='sup_sup_sub', value=1)]),
+                sub_actions=[
+                    Feature(key='sup_sub', value='2'),
+                    Feature(key='sup_sub2', value='1')
+                ]),
+            key='k', value=3,
+            sub_actions=[
+                Feature(key='sub', value='3'),
+                Feature(key='sub2', value='1')
+            ],
+            post_call=Dictionary(p, dump_path=dp, mapping=m))
+        f()
+        d2 = Dictionary.load(dp)
+        m2 = {
+            'FeniaFile': {
+                'version:': '2.1'},
+            'A': {
                 'DT': ['1', '2', '3']},
             'B': {
                 'rho': 1000,
                 'DT': ['3', '2', '1']}
         }
-        d = Dictionary(p, dump_path=dp, mapping=m, depth=-1)
-        d()
-        d2 = Dictionary.load(dp)
-        self.assertDictInDict(m, d2)
+        self.assertDictInDict(m2, d2)
 
     def test_fe_solution(self):
         p = 'system/feSolution'
@@ -65,8 +91,8 @@ class TestDictionary(unittest.TestCase):
                 'U': {
                     'KSP': 'CG'},
             }}
-        d = Dictionary(p, dump_path=dp, mapping=m, depth=-1)
-        d()
+        f = Feature(post_call=Dictionary(p, dump_path=dp, mapping=m))
+        f()
         d2 = Dictionary.load(dp)
         self.assertDictInDict(m, d2)
 
@@ -77,8 +103,20 @@ class TestDictionary(unittest.TestCase):
             'deltaT': 1.0,
             'dtMax': 100
         }}
-        d = Dictionary(p, dump_path=dp, mapping=m, depth=-1)
-        d()
+        f = Feature(post_call=Dictionary(p, dump_path=dp, mapping=m))
+        f()
+        d2 = Dictionary.load(dp)
+        self.assertDictInDict(m, d2)
+
+    def test_empty(self):
+        p = 'empty'
+        dp = 'empty_'
+        m = {None: {
+            'key': 'value',
+            'object': {'key2': 'value2'}}
+        }
+        f = Feature(post_call=Dictionary(p, dump_path=dp, mapping=m))
+        f()
         d2 = Dictionary.load(dp)
         self.assertDictInDict(m, d2)
 

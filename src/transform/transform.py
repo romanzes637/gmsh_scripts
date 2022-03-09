@@ -395,10 +395,10 @@ class LayerToCartesian(Transform):
         n_layers = len(cs.layers[0])
         lx0, ly0, lnx0, lny0 = (cs.layers[i][0] for i in range(4))
         # lz0, lnz0 = 0, 0
-        # zs = cs.layers[5][::-1] + cs.layers[4]
+        # zs = context.layers[5][::-1] + context.layers[4]
         # n_zs = len(zs)
-        # zs_curves = cs.layers_curves[5][::-1] + cs.layers_curves[4]
-        # zs_types = cs.layers_types[5][::-1] + cs.layers_types[4]
+        # zs_curves = context.layers_curves[5][::-1] + context.layers_curves[4]
+        # zs_types = context.layers_types[5][::-1] + context.layers_types[4]
         atol = 10 ** -POINT_TOL
         for j in range(n_layers):
             lx, ly, lnx, lny = (cs.layers[i][j] for i in range(4))
