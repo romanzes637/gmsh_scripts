@@ -20,9 +20,8 @@ class Dictionary(Get):
     def post_call(self, stack_trace=None, *args, **kwargs):
         p = Path(self.path).resolve()
         d = self.load(p)
-        context = {}
-        Feature.update_context(context, stack_trace[-2])
-        d = Json.update(d, self.mapping, context, self.regex)
+        features = Feature.get_features(stack_trace[-2])
+        d = Json.update(d, self.mapping, features, self.regex)
         dp = Path(self.dump_path).resolve()
         dp.parent.mkdir(parents=True, exist_ok=True)
         self.dump(d, dp)

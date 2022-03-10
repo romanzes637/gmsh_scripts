@@ -18,9 +18,8 @@ class Json(Get):
         p = Path(self.path).resolve()
         with open(p) as f:
             d = json.load(f)
-        context = {}
-        Feature.update_context(context, stack_trace[-2])
-        d = self.update(d, self.mapping, context, self.regex)
+        features = Feature.get_features(stack_trace[-2])
+        d = self.update(d, self.mapping, features, self.regex)
         with open(p, 'w') as f:
             json.dump(d, f, indent=2)
 
@@ -63,7 +62,7 @@ class Json(Get):
         return d
 
     @staticmethod
-    def parse(v, c, r):
+    def parse(v, fs, r):
         if isinstance(v, str):
             p = re.compile(r)
             cnt = 0
@@ -71,10 +70,11 @@ class Json(Get):
             while m is not None:
                 cnt += 1
                 x = ''.join(x for x in m.group(0) if x.isalnum() or x in ['-', '_', '.'])
-                fv = str(c.get(x, None))
-                if fv is None:
-                    raise ValueError(x)
-                v = v[:m.start()] + fv + v[m.end():]
+                if x not in fs:
+                    ks = '"\n"'.join(fs.keys())
+                    raise ValueError(f'Key "{x}" is not in features keys:\n"{ks}"')
+                value = str(fs[x])
+                v = v[:m.start()] + value + v[m.end():]
                 m = p.search(v)
             if cnt == 0:
                 return v

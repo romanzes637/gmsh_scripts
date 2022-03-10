@@ -20,7 +20,7 @@
           {"key": "ICN_min", "class": "action.Feature",
             "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
               "value_type": "float", "regex": "Info: ICN .*((?<==)[\\s0-9.e-]*(?=,))"}},
-          {"class": "action.set.Equation", "equation": "min([{0}, {1}, {2}])"}
+          {"class": "action.set.Equation", "equation": "min([{metrics.minJ_by_maxJ_min}, {metrics.IGE_min}, {metrics.ICN_min}])"}
         ]
       }
     ]

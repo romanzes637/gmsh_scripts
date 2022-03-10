@@ -17,11 +17,12 @@ class Equation(Variable):
         self.regex = regex
 
     def post_call(self, stack_trace=None, *args, **kwargs):
-        context = {}
-        feature = stack_trace[-2]
-        Feature.update_context(context, feature)
-        v = self.parse(self.equation, context, self.regex)
+        features = Feature.get_features(stack_trace[-2])
+        v = self.parse(self.equation, features, self.regex)
+        print(features)
+        print(v)
         v = eval(v)
+        print(v)
         if isinstance(v, str):
             if v.isdigit():
                 v = int(v)
@@ -30,20 +31,21 @@ class Equation(Variable):
                     v = float(v)
                 except ValueError:
                     pass
-        feature.value = v
+        stack_trace[-2].value = v
 
     @staticmethod
-    def parse(v, c, r):
+    def parse(v, fs, r):
         p = re.compile(r)
         cnt = 0
         m = p.search(v)
         while m is not None:
             cnt += 1
             x = ''.join(x for x in m.group(0) if x.isalnum() or x in ['-', '_', '.'])
-            fv = str(c.get(x, None))
-            if fv is None:
-                raise ValueError(x)
-            v = v[:m.start()] + fv + v[m.end():]
+            if x not in fs:
+                ks = '"\n"'.join(fs.keys())
+                raise ValueError(f'Key "{x}" is not in features keys:\n"{ks}"')
+            value = str(fs[x])
+            v = v[:m.start()] + value + v[m.end():]
             m = p.search(v)
         if cnt == 0:
             raise ValueError(f'No pattern in string "{v}"')

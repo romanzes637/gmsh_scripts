@@ -11,7 +11,7 @@
           {"class": "action.Feature", "key": "minJ_min",
             "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
               "value_type": "float", "regex": "Info: minJ .*((?<==)[\\s0-9.e-]*(?=,))"}},
-          {"class": "action.set.Equation", "equation": "{0} is not None and {0} > 0"}
+          {"class": "action.set.Equation", "equation": "{J.minJ_min} is not None and {J.minJ_min} > 0"}
         ]
       }
     ]

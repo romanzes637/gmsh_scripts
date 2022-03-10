@@ -40,37 +40,39 @@ class Feature(Coaction):
         self.value = value
 
     @staticmethod
-    def update_context(context, a=None, prev_a=None, key='', sep='.'):
-        if a is None:  # top end
-            return
-        k = '' if getattr(a, 'key', '') is None else getattr(a, 'key', '')
-        if prev_a is None:  # root
-            if isinstance(a, Feature):
-                key = k
-                if key in context:
+    def get_features(action=None, prev_action=None, sep='.', key='', features=None):
+        features = {} if features is None else features
+        if action is None:  # super end
+            return features
+        k = '' if getattr(action, 'key', '') is None else getattr(action, 'key', '')
+        if prev_action is None:  # root
+            key = k
+            if isinstance(action, Feature):
+                if key in features:
                     logging.warning(f'Duplicate feature {key}: '
-                                    f'{context[key]} replaced by {a.value}')
-                context[key] = a.value
-            Feature.update_context(context, a.sup_action, a, key, sep)
-            for s in a.sub_actions:
-                Feature.update_context(context, s, a, key, sep)
+                                    f'{features[key]} replaced by {action.value}')
+                features[key] = action.value
+            Feature.get_features(action.sup_action, action, sep, key, features)
+            for s in action.sub_actions:
+                Feature.get_features(s, action, sep, key, features)
         else:
-            if prev_a.sup_action == a:  # sup action
+            if prev_action.sup_action == action:  # sup action
                 key = sep.join([k, key])
-                if isinstance(a, Feature):
-                    if key in context:
-                        logging.warning(f'Duplicate feature {key}: {context[key]} '
-                                        f'replaced by {a.value}')
-                    context[key] = a.value
-                Feature.update_context(context, a.sup_action, a, key, sep)
-                for s in a.sub_actions:
-                    if s != prev_a:
-                        Feature.update_context(context, s, a, key, sep)
+                if isinstance(action, Feature):
+                    if key in features:
+                        logging.warning(f'Duplicate feature {key}: {features[key]} '
+                                        f'replaced by {action.value}')
+                    features[key] = action.value
+                Feature.get_features(action.sup_action, action, sep, key, features)
+                for s in action.sub_actions:
+                    if s != prev_action:
+                        Feature.get_features(s, action, sep, key, features)
             else:  # sub action
                 key = sep.join([key, k])
-                if isinstance(a, Feature):
-                    if key in context:
-                        logging.warning(f'Duplicate feature {key}: {context[key]} replaced by {a.value}')
-                    context[key] = a.value
-                for s in a.sub_actions:
-                    Feature.update_context(context, s, a, key, sep)
+                if isinstance(action, Feature):
+                    if key in features:
+                        logging.warning(f'Duplicate feature {key}: {features[key]} replaced by {action.value}')
+                    features[key] = action.value
+                for s in action.sub_actions:
+                    Feature.get_features(s, action, sep, key, features)
+        return features

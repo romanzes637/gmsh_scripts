@@ -11,27 +11,27 @@
       {"key": "size_curvature", "class": "action.Feature",
         "pre_call": {"class": "action.set.Discrete", "low": 10, "high": 40, "num": 31},
         "post_call": {"class": "action.get.Json", "path": "gmsh/container.json",
-          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeFromCurvature": "{}"}}}}}
+          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeFromCurvature": "{size_curvature}"}}}}}
       },
       {"key": "size_min", "class": "action.Feature",
         "pre_call": {"class": "action.set.Continuous", "low": 0, "high": 0.1},
         "post_call": {"class": "action.get.Json", "path": "gmsh/container.json",
-          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeMin": "{}"}}}}}
+          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeMin": "{size_min}"}}}}}
       },
       {"key": "size_max", "class": "action.Feature",
         "pre_call": {"class": "action.set.Continuous", "low": 0.1, "high": 1},
         "post_call": {"class": "action.get.Json", "path": "gmsh/container.json",
-          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeMax": "{}"}}}}}
+          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeMax": "{size_max}"}}}}}
       },
       {"key": "size_factor", "class": "action.Feature",
         "pre_call": {"class": "action.set.Continuous", "low": 0.1, "high": 2.0},
         "post_call": {"class": "action.get.Json", "path": "gmsh/container.json",
-          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeFactor": "{}"}}}}}
+          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeFactor": "{size_factor}"}}}}}
       },
       {"key": "size_boundary", "class": "action.Feature",
         "pre_call": {"class": "action.set.Discrete", "low": 1, "high": 2, "num": 2},
         "post_call": {"class": "action.get.Json", "path": "gmsh/container.json",
-          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeExtendFromBoundary": "{}"}}}}}
+          "mapping": {"metadata": {"run": {"options": {"Mesh.MeshSizeExtendFromBoundary": "{size_boundary}"}}}}}
       },
       {"key": "cast_iron", "class": "action.Feature",
         "sub_actions": [
@@ -40,8 +40,8 @@
         ],
         "post_call": {"class": "action.get.Json", "path": "gmsh/cast_iron.json",
           "mapping": {"data": {"layer": [
-            ["1.450;{0}"],
-            ["5.500;{0}"]]}}}
+            ["1.450;{cast_iron.size}"],
+            ["5.500;{cast_iron.size}"]]}}}
       },
       {"key": "filling", "class": "action.Feature",
         "sub_actions": [
@@ -50,8 +50,8 @@
         ],
         "post_call": {"class": "action.get.Json", "path": "gmsh/filling.json",
           "mapping": {"data": {"layer": [
-            ["1.215;{0}"],
-            ["5.030;{0}"]]}}}
+            ["1.215;{filling.size}"],
+            ["5.030;{filling.size}"]]}}}
       }
     ]
   }
