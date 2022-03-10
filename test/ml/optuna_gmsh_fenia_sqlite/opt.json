@@ -1,0 +1,43 @@
+{
+  "metadata": {},
+  "data": {
+    "class": "action.optimize.Optuna",
+    "jobs": 1,
+    "n_trials": 1,
+    "work_path": "opt",
+    "storage": "sqlite:///example.db",
+    "study_name": "tenex_borehole",
+    "do_delete_study": false,
+    "do_optimize": true,
+    "do_write_results": true,
+    "do_plot_other": false,
+    "results_color_key": "number",
+    "copies": ["gmsh", "fenia"],
+    "do_update_sub_actions": false,
+    "update_sub_actions_trial": null,
+    "do_sub_call": false,
+    "sampler": "NSGAIISampler",
+    "pruner": "MedianPruner",
+    "sub_actions": [
+      "/opt_gmsh/parameter.json",
+      "/opt_gmsh/run.json",
+      "/opt_gmsh/result.json",
+      "/opt_gmsh/objective.json",
+      "/opt_gmsh/constraint.json",
+      "/opt_fenia/convert_mesh.json",
+      "/opt_fenia/check_mesh.json",
+      "/opt_fenia/parameter.json",
+      "/opt_fenia/run.json",
+      "/opt_fenia/result.json"
+    ],
+    "objectives": {
+      "gmsh.objective.elements": "minimize",
+      "gmsh.objective.metrics": "maximize",
+      "fenia.result.heat.temperature.max": "minimize"
+    },
+    "constraints": [
+      "gmsh.constraint.J",
+      "gmsh.parameter.geometry.borehole.constraint"
+    ]
+  }
+}

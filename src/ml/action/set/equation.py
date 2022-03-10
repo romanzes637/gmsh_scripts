@@ -19,10 +19,7 @@ class Equation(Variable):
     def post_call(self, stack_trace=None, *args, **kwargs):
         features = Feature.get_features(stack_trace[-2])
         v = self.parse(self.equation, features, self.regex)
-        print(features)
-        print(v)
         v = eval(v)
-        print(v)
         if isinstance(v, str):
             if v.isdigit():
                 v = int(v)

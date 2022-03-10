@@ -48,7 +48,8 @@ class Optuna(Coaction):
 
     def __init__(self, storage=None, study_name=None, work_path=None,
                  do_create_study=None, do_read_study=None, do_delete_study=None,
-                 do_write_results=None,
+                 do_write_results=None, do_write_csv=None, do_write_excel=None,
+                 do_plot_pareto=None, do_plot_other=None,
                  results_color_key=None,
                  results_color_scale=None,
                  do_results_reverse_color=None,
@@ -69,6 +70,10 @@ class Optuna(Coaction):
         self.do_read_study = True if do_read_study is None else do_read_study
         self.do_delete_study = False if do_delete_study is None else do_delete_study
         self.do_write_results = True if do_write_results is None else do_write_results
+        self.do_write_csv = True if do_write_csv is None else do_write_csv
+        self.do_write_excel = False if do_write_excel is None else do_write_excel
+        self.do_plot_pareto = True if do_plot_pareto is None else do_plot_pareto
+        self.do_plot_other = True if do_plot_other is None else do_plot_other
         self.results_color_key = results_color_key
         self.results_color_scale = 'Viridis' if results_color_scale is None else results_color_scale
         self.do_results_reverse_color = False if do_results_reverse_color is None else do_results_reverse_color
@@ -159,6 +164,12 @@ class Optuna(Coaction):
             trial.set_user_attr('system.host', socket.getfqdn())
             trial.set_user_attr('system.ip', get_ip())
             trial.set_user_attr('datetime.utc_offset', time.localtime().tm_gmtoff)
+            trial.set_user_attr('sampler', self.optuna_action.sampler)
+            trial.set_user_attr('pruner', self.optuna_action.pruner)
+            for k, v in self.optuna_action.sampler_kwargs.items():
+                trial.set_user_attr(f'sampler.{k}', v)
+            for k, v in self.optuna_action.pruner_kwargs.items():
+                trial.set_user_attr(f'pruner.{k}', v)
 
             # TODO multiprocessing logging
             if self.optuna_action.executor is not None:
@@ -307,100 +318,108 @@ class Optuna(Coaction):
 
     def write_results(self, study):
         if len(study.trials) == 0:
-            logging.warning(f'No trials in study {self.study_name} to write!')
+            logging.warning(f'No trials in study {self.study_name} to write/plot!')
             return
         p = self.study_dir
-        try:  # required pandas
-            study.trials_dataframe().to_csv(p / 'data.csv')
-        except Exception as e:
-            print(e)
+        if self.do_write_csv:
+            try:  # required pandas
+                study.trials_dataframe().to_csv(p / 'data.csv')
+            except Exception as e:
+                print(e)
+        if self.do_write_excel:
+            try:  # required pandas
+                study.trials_dataframe().to_excel(p / 'data.xlsx')
+            except Exception as e:
+                print(e)
         # Pareto front
-        if len(self.objectives) > 1:
-            try:  # required plotly
-                import plotly.express as px
+        if self.do_plot_pareto:
+            if len(self.objectives) > 1:
+                try:  # required plotly
+                    import plotly.express as px
 
-                n = len(self.objectives)
-                ns = list(self.objectives.keys())
-                ds = list(self.objectives.values())
-                df = study.trials_dataframe()
-                old2new = {f'values_{i}': f'values_{x}' for i, x in enumerate(ns)}
-                df = df.rename(columns=old2new)
-                hover_data = []
-                for c in df.columns:
-                    if c.startswith('params_'):
-                        hover_data.append(c)
-                    elif c.startswith('values_'):
-                        hover_data.append(c)
-                    elif c.startswith('user_attrs_'):
-                        if c[len('user_attrs_'):] in self.results_hover_keys:
+                    n = len(self.objectives)
+                    ns = list(self.objectives.keys())
+                    ds = list(self.objectives.values())
+                    df = study.trials_dataframe()
+                    old2new = {f'values_{i}': f'values_{x}' for i, x in enumerate(ns)}
+                    df = df.rename(columns=old2new)
+                    hover_data = []
+                    for c in df.columns:
+                        if c.startswith('params_'):
                             hover_data.append(c)
-                        elif c in ['user_attrs_datetime.utc_offset',
-                                   'user_attrs_system.host',
-                                   'user_attrs_system.ip']:
+                        elif c.startswith('values_'):
                             hover_data.append(c)
-                    elif c in ['duration', 'datetime_start',
-                               'datetime_complete']:
-                        hover_data.append(c)
-                if self.results_color_key is not None:
-                    color = f'user_attrs_{self.results_color_key}'
-                else:
-                    color = None
-                if self.do_results_reverse_color:
-                    self.results_color_scale += '_r'
-                for c in combinations(range(n), 2):
-                    c_vs = [old2new[f'values_{x}'] for x in c]
-                    c_ns = [ns[x] for x in c]
-                    c_ds = [ds[x] for x in c]
-                    labels = dict(zip(c_vs, c_ns))
-                    fig = px.scatter(
-                        df, x=c_vs[0], y=c_vs[1],
-                        color=color,
-                        color_continuous_scale=self.results_color_scale,
-                        hover_name="number",
-                        hover_data=hover_data,
-                        labels=labels)
-                    if color is not None:
-                        fig.layout.coloraxis.colorbar.title = color
-                    fig.write_html(p / f"pareto_front-{'-'.join(f'{n}-{d}' for n, d in zip(c_ns, c_ds))}.html")
-                for c in combinations(range(n), 3):
-                    c_vs = [old2new[f'values_{x}'] for x in c]
-                    c_ns = [ns[x] for x in c]
-                    c_ds = [ds[x] for x in c]
-                    labels = dict(zip(c_vs, c_ns))
-                    fig = px.scatter_3d(
-                        df, x=c_vs[0], y=c_vs[1], z=c_vs[2],
-                        color=color,
-                        color_continuous_scale=self.results_color_scale,
-                        hover_name="number",
-                        hover_data=hover_data,
-                        labels=labels)
-                    if color is not None:
-                        fig.layout.coloraxis.colorbar.title = color
-                    fig.write_html(p / f"pareto_front-{'-'.join(f'{n}-{d}' for n, d in zip(c_ns, c_ds))}.html")
-            except Exception as e:
-                print(e)
-        for i, (n, d) in enumerate(self.objectives.items()):
-            try:  # required plotly
-                optuna.visualization.plot_optimization_history(
-                    study, target_name=n, target=lambda x: x.values[i]).write_html(
-                    p / f"optimization_history-{d}-{n}.html")
-                optuna.visualization.plot_slice(
-                    study, target_name=n, target=lambda x: x.values[i]).write_html(
-                    p / f"slice-{d}-{n}.html")
-                optuna.visualization.plot_contour(
-                    study, target_name=n, target=lambda x: x.values[i]).write_html(
-                    p / f"contour-{d}-{n}.html")
-                optuna.visualization.plot_parallel_coordinate(
-                    study, target_name=n, target=lambda x: x.values[i]).write_html(
-                    p / f"parallel_coordinate-{d}-{n}.html")
-                optuna.visualization.plot_edf(
-                    study, target_name=n, target=lambda x: x.values[i]).write_html(
-                    p / f"edf-{d}-{n}.html")
-            except Exception as e:
-                print(e)
-            try:  # required sklearn
-                optuna.visualization.plot_param_importances(
-                    study, target_name=n, target=lambda x: x.values[i]).write_html(
-                    p / f"param_importances-{d}-{n}.html")
-            except Exception as e:
-                print(e)
+                        elif c.startswith('user_attrs_'):
+                            if c[len('user_attrs_'):] in self.results_hover_keys:
+                                hover_data.append(c)
+                            elif c in ['user_attrs_datetime.utc_offset',
+                                       'user_attrs_system.host',
+                                       'user_attrs_system.ip']:
+                                hover_data.append(c)
+                        elif c in ['duration', 'datetime_start',
+                                   'datetime_complete']:
+                            hover_data.append(c)
+                    if self.results_color_key is not None:
+                        color = f'user_attrs_{self.results_color_key}'
+                    else:
+                        color = None
+                    if self.do_results_reverse_color:
+                        self.results_color_scale += '_r'
+                    for c in combinations(range(n), 2):
+                        c_vs = [old2new[f'values_{x}'] for x in c]
+                        c_ns = [ns[x] for x in c]
+                        c_ds = [ds[x] for x in c]
+                        labels = dict(zip(c_vs, c_ns))
+                        fig = px.scatter(
+                            df, x=c_vs[0], y=c_vs[1],
+                            color=color,
+                            color_continuous_scale=self.results_color_scale,
+                            hover_name="number",
+                            hover_data=hover_data,
+                            labels=labels)
+                        if color is not None:
+                            fig.layout.coloraxis.colorbar.title = color
+                        fig.write_html(p / f"pareto_front-{'-'.join(f'{n}-{d}' for n, d in zip(c_ns, c_ds))}.html")
+                    for c in combinations(range(n), 3):
+                        c_vs = [old2new[f'values_{x}'] for x in c]
+                        c_ns = [ns[x] for x in c]
+                        c_ds = [ds[x] for x in c]
+                        labels = dict(zip(c_vs, c_ns))
+                        fig = px.scatter_3d(
+                            df, x=c_vs[0], y=c_vs[1], z=c_vs[2],
+                            color=color,
+                            color_continuous_scale=self.results_color_scale,
+                            hover_name="number",
+                            hover_data=hover_data,
+                            labels=labels)
+                        if color is not None:
+                            fig.layout.coloraxis.colorbar.title = color
+                        fig.write_html(p / f"pareto_front-{'-'.join(f'{n}-{d}' for n, d in zip(c_ns, c_ds))}.html")
+                except Exception as e:
+                    print(e)
+        if self.do_plot_other:
+            for i, (n, d) in enumerate(self.objectives.items()):
+                try:  # required plotly
+                    optuna.visualization.plot_optimization_history(
+                        study, target_name=n, target=lambda x: x.values[i]).write_html(
+                        p / f"optimization_history-{d}-{n}.html")
+                    optuna.visualization.plot_slice(
+                        study, target_name=n, target=lambda x: x.values[i]).write_html(
+                        p / f"slice-{d}-{n}.html")
+                    optuna.visualization.plot_contour(
+                        study, target_name=n, target=lambda x: x.values[i]).write_html(
+                        p / f"contour-{d}-{n}.html")
+                    optuna.visualization.plot_parallel_coordinate(
+                        study, target_name=n, target=lambda x: x.values[i]).write_html(
+                        p / f"parallel_coordinate-{d}-{n}.html")
+                    optuna.visualization.plot_edf(
+                        study, target_name=n, target=lambda x: x.values[i]).write_html(
+                        p / f"edf-{d}-{n}.html")
+                except Exception as e:
+                    print(e)
+                try:  # required sklearn
+                    optuna.visualization.plot_param_importances(
+                        study, target_name=n, target=lambda x: x.values[i]).write_html(
+                        p / f"param_importances-{d}-{n}.html")
+                except Exception as e:
+                    print(e)

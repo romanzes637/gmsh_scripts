@@ -15,6 +15,9 @@ class Dictionary(Get):
         self.path = path
         self.dump_path = path if dump_path is None else dump_path
         self.mapping = mapping
+        for k in list(self.mapping.keys()):
+            if k == '':
+                self.mapping[None] = self.mapping.pop(k)
         self.regex = regex
 
     def post_call(self, stack_trace=None, *args, **kwargs):
@@ -67,7 +70,7 @@ class Dictionary(Get):
                 elif len(vs) == 1:
                     kvs[k] = vs[0]
                 else:  # list
-                    if vs[0] in ('uniform', 'nonuniform'):  # Field workaround
+                    if vs[0] in ('uniform', 'nonuniform', 'constant'):  # Workaround
                         k += f' {vs[0]}'
                         vs = vs[1:]
                     new_vs = []

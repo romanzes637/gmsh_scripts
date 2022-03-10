@@ -18,6 +18,7 @@ from src.ml.action.set.equation import Equation
 from src.ml.action.get.get import Get
 from src.ml.action.get.json import Json
 from src.ml.action.get.regex_file import RegexFile as GetRegexFile
+from src.ml.action.get.foam.dictionary import Dictionary as FoamDictionary
 
 str2obj = {
     'action.Action': Action,
@@ -40,4 +41,5 @@ str2obj = {
     'action.get.Get': Get,
     'action.get.Json': Json,
     'action.get.RegexFile': GetRegexFile,
+    'action.get.FoamDictionary': FoamDictionary
 }

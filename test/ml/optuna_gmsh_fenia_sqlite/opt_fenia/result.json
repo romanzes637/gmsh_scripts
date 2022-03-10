@@ -1,0 +1,33 @@
+{
+  "metadata": {},
+  "data": {
+    "key": "fenia.result", "class": "action.Feature",
+    "sub_actions": [
+      {"key": "heat", "class": "action.Feature",
+        "sub_actions": [
+          {"key": "temperature", "class": "action.Feature",
+            "sub_actions": [
+              {"key": "max", "class": "action.Feature",
+                "sub_actions": [
+                  {"key": "rock", "class": "action.Feature",
+                    "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxT",
+                    "value_type": "float", "regex": "(?:internalField.*\\()(?:[0-9.]*\\s){0}([0-9.]*)"}},
+                  {"key": "filling", "class": "action.Feature",
+                    "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxT",
+                    "value_type": "float", "regex": "(?:internalField.*\\()(?:[0-9.]*\\s){1}([0-9.]*)"}},
+                  {"key": "ebs", "class": "action.Feature",
+                    "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxT",
+                    "value_type": "float", "regex": "(?:internalField.*\\()(?:[0-9.]*\\s){2}([0-9.]*)"}},
+                  {"key": "cast_iron", "class": "action.Feature",
+                    "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxT",
+                    "value_type": "float", "regex": "(?:internalField.*\\()(?:[0-9.]*\\s){3}([0-9.]*)"}},
+                  {"class": "action.set.Equation", "equation": "max([{max.cast_iron}, {max.ebs}, {max.filling}, {max.rock}])"}
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
