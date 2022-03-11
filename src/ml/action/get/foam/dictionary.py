@@ -1,5 +1,6 @@
 """FOAM dictionary
 
+TODO parse list, table, vector, tensor
 """
 from pathlib import Path
 

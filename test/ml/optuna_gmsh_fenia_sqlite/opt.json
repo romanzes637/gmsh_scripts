@@ -22,8 +22,6 @@
       "/opt_gmsh/parameter.json",
       "/opt_gmsh/run.json",
       "/opt_gmsh/result.json",
-      "/opt_gmsh/objective.json",
-      "/opt_gmsh/constraint.json",
       "/opt_fenia/convert_mesh.json",
       "/opt_fenia/check_mesh.json",
       "/opt_fenia/parameter.json",
@@ -31,13 +29,13 @@
       "/opt_fenia/result.json"
     ],
     "objectives": {
-      "gmsh.objective.elements": "minimize",
-      "gmsh.objective.metrics": "maximize",
+      "gmsh.result.elements": "minimize",
+      "gmsh.result.metric.ige.min": "maximize",
       "fenia.result.heat.temperature.max": "minimize"
     },
     "constraints": [
-      "gmsh.constraint.J",
-      "gmsh.parameter.geometry.borehole.constraint"
+      "gmsh.parameter.geometry.borehole.constraint",
+      "gmsh.result.jacobian.min.min.constraint"
     ]
   }
 }

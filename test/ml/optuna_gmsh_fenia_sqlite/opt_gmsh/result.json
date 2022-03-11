@@ -1,135 +1,109 @@
 {
   "metadata": {
-    "comments": "J - Jacobian determinant, IGE - Inverse Gradient Error, ICN - Condition Number"
-  },
-  "data": {
-    "class": "action.Feature",
-    "key": "gmsh.result",
-    "sub_actions": [
-      {"key": "elements", "class": "action.Feature",
+    "comments": "JBJ - min Jacobian By max Jacobian, IGE - Inverse Gradient Error, ICN - Condition Number"},
+  "data": {"key": "gmsh.result", "class": "action.Feature", "sub_actions": [
+    {"key": "elements", "class": "action.Feature",
+      "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
+        "value_type": "int", "regex": "Total:.*((?<=and)[\\s0-9]*(?=elements))"}},
+    {"key": "nodes", "class": "action.Feature",
+      "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
+        "value_type": "int", "regex": "Total:.*((?<=:)[\\s0-9]*(?=nodes))"}},
+    {"key": "blocks", "class": "action.Feature",
+      "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
+        "value_type": "int", "regex": "number of blocks:.*((?<=:)[\\s0-9]*(?=))"}},
+    {"key": "volumes", "class": "action.Feature",
+      "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
+        "value_type": "int", "regex": "n_volumes:.*((?<=:)[\\s0-9]*(?=))"}},
+    {"key": "jacobian", "class": "action.Feature", "sub_actions": [
+      {"key": "min", "class": "action.Feature", "sub_actions": [
+        {"key": "min", "class": "action.Feature", "sub_actions": [
+          {"key": "constraint", "class": "action.Feature",
+            "pre_call": {"class": "action.set.Equation",
+              "equation": "{min.constraint} is not None and {min.constraint} > 0"}}],
+          "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
+            "value_type": "float", "regex": "Info: minJ .*((?<==)[\\s0-9.e-]*(?=,))"}},
+        {"key": "avg", "class": "action.Feature",
+          "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
+            "value_type": "float", "regex": "Info: minJ .*((?<=,)[\\s0-9.e-]*(?=,))"}},
+        {"key": "max", "class": "action.Feature",
+          "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
+            "value_type": "float", "regex": "Info: minJ .*((?<=,)[\\s0-9.e-]*(?=\\())"}}]}]},
+    {"key": "metric", "class": "action.Feature", "sub_actions": [
+      {"key": "ige", "class": "action.Feature", "sub_actions": [
+        {"key": "min", "class": "action.Feature",
+          "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
+            "value_type": "float", "regex": "Info: IGE .*((?<==)[\\s0-9.e-]*(?=,))"}},
+        {"key": "avg", "class": "action.Feature",
+          "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
+            "value_type": "float", "regex": "Info: IGE .*((?<=,)[\\s0-9.e-]*(?=,))"}},
+        {"key": "max", "class": "action.Feature",
+          "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
+            "value_type": "float", "regex": "Info: IGE .*((?<=,)[\\s0-9.e-]*(?=\\())"}}]},
+      {"key": "icn", "class": "action.Feature", "sub_actions": [
+        {"key": "min", "class": "action.Feature",
+          "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
+            "value_type": "float", "regex": "Info: ICN .*((?<==)[\\s0-9.e-]*(?=,))"}},
+        {"key": "avg", "class": "action.Feature",
+          "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
+            "value_type": "float", "regex": "Info: ICN .*((?<=,)[\\s0-9.e-]*(?=,))"}},
+        {"key": "max", "class": "action.Feature",
+          "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
+            "value_type": "float", "regex": "Info: ICN .*((?<=,)[\\s0-9.e-]*(?=\\())"}}]},
+      {"key": "jbj", "class": "action.Feature", "sub_actions": [
+        {"key": "min", "class": "action.Feature",
+          "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
+            "value_type": "float", "regex": "Info: minJ/maxJ .*((?<==)[\\s0-9.e-]*(?=,))"}},
+        {"key": "avg", "class": "action.Feature",
+          "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
+            "value_type": "float", "regex": "Info: minJ/maxJ .*((?<=,)[\\s0-9.e-]*(?=,))"}},
+        {"key": "max", "class": "action.Feature",
+          "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
+            "value_type": "float", "regex": "Info: minJ/maxJ .*((?<=,)[\\s0-9.e-]*(?=\\())"}}]}]},
+    {"key": "time", "class": "action.Feature", "sub_actions": [
+      {"key": "transform", "class": "action.Feature",
         "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "int", "regex": "Total:.*((?<=and)[\\s0-9]*(?=elements))"}
-      },
-      {"key": "nodes", "class": "action.Feature",
+          "value_type": "float", "regex": "src.block.block.transform.*-((?<=-)[\\s0-9.e+-]*(?=s))"}},
+      {"key": "register", "class": "action.Feature",
         "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "int", "regex": "Total:.*((?<=:)[\\s0-9]*(?=nodes))"}
-      },
-      {"key": "blocks", "class": "action.Feature",
+          "value_type": "float", "regex": "src.block.block.register.*-((?<=-)[\\s0-9.e+-]*(?=s))"}},
+      {"key": "boolean", "class": "action.Feature",
         "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "int", "regex": "number of blocks:.*((?<=:)[\\s0-9]*(?=))"}
-      },
-      {"key": "volumes", "class": "action.Feature",
+          "value_type": "float", "regex": "src.boolean.*-((?<=-)[\\s0-9.e+-]*(?=s))"}},
+      {"key": "synchronize", "class": "action.Feature",
         "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "int", "regex": "n_volumes:.*((?<=:)[\\s0-9]*(?=))"}
-      },
-      {"key": "minJ_min", "class": "action.Feature",
+          "value_type": "float", "regex": "src.registry.synchronize.*-((?<=-)[\\s0-9.e+-]*(?=s))"}},
+      {"key": "structure", "class": "action.Feature",
         "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "Info: minJ .*((?<==)[\\s0-9.e-]*(?=,))"}
-      },
-      {"key": "minJ_avg", "class": "action.Feature",
+          "value_type": "float", "regex": "src.structure.*-((?<=-)[\\s0-9.e+-]*(?=s))"}},
+      {"key": "quadrate", "class": "action.Feature",
         "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "Info: minJ .*((?<=,)[\\s0-9.e-]*(?=,))"}
-      },
-      {"key": "minJ_max", "class": "action.Feature",
+          "value_type": "float", "regex": "src.quadrate.*-((?<=-)[\\s0-9.e+-]*(?=s))"}},
+      {"key": "smooth", "class": "action.Feature",
         "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "Info: minJ .*((?<=,)[\\s0-9.e-]*(?=\\())"}
-      },
-      {"key": "minJ_by_maxJ_min", "class": "action.Feature",
+          "value_type": "float", "regex": "src.smooth.*-((?<=-)[\\s0-9.e+-]*(?=s))"}},
+      {"key": "size", "class": "action.Feature",
         "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "Info: minJ/maxJ .*((?<==)[\\s0-9.e-]*(?=,))"}
-      },
-      {"key": "minJ_by_maxJ_avg", "class": "action.Feature",
+          "value_type": "float", "regex": "src.size.*-((?<=-)[\\s0-9.e+-]*(?=s))"}},
+      {"key": "pre_unregister", "class": "action.Feature",
         "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "Info: minJ/maxJ .*((?<=,)[\\s0-9.e-]*(?=,))"}
-      },
-      {"key": "minJ_by_maxJ_max", "class": "action.Feature",
+          "value_type": "float", "regex": "src.block.block.pre_unregister -((?<=-)[\\s0-9.e+-]*(?=s))"}},
+      {"key": "zone", "class": "action.Feature",
         "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "Info: minJ/maxJ .*((?<=,)[\\s0-9.e-]*(?=\\())"}
-      },
-      {"key": "IGE_min", "class": "action.Feature",
+          "value_type": "float", "regex": "src.zone.*-((?<=-)[\\s0-9.e+-]*(?=s))"}},
+      {"key": "unregister", "class": "action.Feature",
         "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "Info: IGE .*((?<==)[\\s0-9.e-]*(?=,))"}
-      },
-      {"key": "IGE_avg", "class": "action.Feature",
+          "value_type": "float", "regex": "src.block.block.unregister -((?<=-)[\\s0-9.e+-]*(?=s))"}},
+      {"key": "generate", "class": "action.Feature",
         "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "Info: IGE .*((?<=,)[\\s0-9.e-]*(?=,))"}
-      },
-      {"key": "IGE_max", "class": "action.Feature",
+          "value_type": "float", "regex": "gmsh.generate.*-((?<=-)[\\s0-9.e+-]*(?=s))"}},
+      {"key": "optimize", "class": "action.Feature",
         "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "Info: IGE .*((?<=,)[\\s0-9.e-]*(?=\\())"}
-      },
-      {"key": "ICN_min", "class": "action.Feature",
+          "value_type": "float", "regex": "src.optimize.*-((?<=-)[\\s0-9.e+-]*(?=s))"}},
+      {"key": "refine", "class": "action.Feature",
         "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "Info: ICN .*((?<==)[\\s0-9.e-]*(?=,))"}
-      },
-      {"key": "ICN_avg", "class": "action.Feature",
+          "value_type": "float", "regex": "src.refine.*-((?<=-)[\\s0-9.e+-]*(?=s))"}},
+      {"key": "write", "class": "action.Feature",
         "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "Info: ICN .*((?<=,)[\\s0-9.e-]*(?=,))"}
-      },
-      {"key": "ICN_max", "class": "action.Feature",
-        "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "Info: ICN .*((?<=,)[\\s0-9.e-]*(?=\\())"}
-      },
-      {"key": "transform_time", "class": "action.Feature",
-        "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "src.block.block.transform.*-((?<=-)[\\s0-9.e+-]*(?=s))"}
-      },
-      {"key": "register_time", "class": "action.Feature",
-        "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "src.block.block.register.*-((?<=-)[\\s0-9.e+-]*(?=s))"}
-      },
-      {"key": "boolean_time", "class": "action.Feature",
-        "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "src.boolean.*-((?<=-)[\\s0-9.e+-]*(?=s))"}
-      },
-      {"key": "synchronize_time", "class": "action.Feature",
-        "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "src.registry.synchronize.*-((?<=-)[\\s0-9.e+-]*(?=s))"}
-      },
-      {"key": "structure_time", "class": "action.Feature",
-        "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "src.structure.*-((?<=-)[\\s0-9.e+-]*(?=s))"}
-      },
-      {"key": "quadrate_time", "class": "action.Feature",
-        "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "src.quadrate.*-((?<=-)[\\s0-9.e+-]*(?=s))"}
-      },
-      {"key": "smooth_time", "class": "action.Feature",
-        "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "src.smooth.*-((?<=-)[\\s0-9.e+-]*(?=s))"}
-      },
-      {"key": "size_time", "class": "action.Feature",
-        "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "src.size.*-((?<=-)[\\s0-9.e+-]*(?=s))"}
-      },
-      {"key": "pre_unregister_time", "class": "action.Feature",
-        "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "src.block.block.pre_unregister -((?<=-)[\\s0-9.e+-]*(?=s))"}
-      },
-      {"key": "zone_time", "class": "action.Feature",
-        "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "src.zone.*-((?<=-)[\\s0-9.e+-]*(?=s))"}
-      },
-      {"key": "unregister_time", "class": "action.Feature",
-        "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "src.block.block.unregister -((?<=-)[\\s0-9.e+-]*(?=s))"}
-      },
-      {"key": "generate_time", "class": "action.Feature",
-        "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "gmsh.generate.*-((?<=-)[\\s0-9.e+-]*(?=s))"}
-      },
-      {"key": "optimize_time", "class": "action.Feature",
-        "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "src.optimize.*-((?<=-)[\\s0-9.e+-]*(?=s))"}
-      },
-      {"key": "refine_time", "class": "action.Feature",
-        "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "src.refine.*-((?<=-)[\\s0-9.e+-]*(?=s))"}
-      },
-      {"key": "write_time", "class": "action.Feature",
-        "pre_call": {"class": "action.set.RegexFile", "path": "gmsh/gmsh.log",
-          "value_type": "float", "regex": "gmsh.write.*-((?<=-)[\\s0-9.e+-]*(?=s))"}
-      }
-    ]
-  }
-}
+          "value_type": "float", "regex": "gmsh.write.*-((?<=-)[\\s0-9.e+-]*(?=s))"}},
+      {"class": "action.set.Equation",
+        "equation": "sum([{time.transform}, {time.register}, {time.boolean}, {time.synchronize}, {time.structure}, {time.quadrate}, {time.smooth}, {time.size}, {time.pre_unregister}, {time.zone}, {time.unregister}, {time.generate}, {time.optimize}, {time.refine}, {time.write}])"}]}]}}

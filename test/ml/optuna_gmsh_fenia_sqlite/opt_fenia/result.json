@@ -1,33 +1,74 @@
 {
   "metadata": {},
-  "data": {
-    "key": "fenia.result", "class": "action.Feature",
-    "sub_actions": [
-      {"key": "heat", "class": "action.Feature",
-        "sub_actions": [
-          {"key": "temperature", "class": "action.Feature",
-            "sub_actions": [
-              {"key": "max", "class": "action.Feature",
-                "sub_actions": [
-                  {"key": "rock", "class": "action.Feature",
-                    "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxT",
-                    "value_type": "float", "regex": "(?:internalField.*\\()(?:[0-9.]*\\s){0}([0-9.]*)"}},
-                  {"key": "filling", "class": "action.Feature",
-                    "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxT",
-                    "value_type": "float", "regex": "(?:internalField.*\\()(?:[0-9.]*\\s){1}([0-9.]*)"}},
-                  {"key": "ebs", "class": "action.Feature",
-                    "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxT",
-                    "value_type": "float", "regex": "(?:internalField.*\\()(?:[0-9.]*\\s){2}([0-9.]*)"}},
-                  {"key": "cast_iron", "class": "action.Feature",
-                    "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxT",
-                    "value_type": "float", "regex": "(?:internalField.*\\()(?:[0-9.]*\\s){3}([0-9.]*)"}},
-                  {"class": "action.set.Equation", "equation": "max([{max.cast_iron}, {max.ebs}, {max.filling}, {max.rock}])"}
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
-}
+  "data": {"key": "fenia.result", "class": "action.Feature", "sub_actions": [
+    {"key": "heat", "class": "action.Feature", "sub_actions": [
+      {"key": "temperature", "class": "action.Feature", "sub_actions": [
+        {"key": "rock", "class": "action.Feature", "sub_actions": [
+          {"key": "max", "class": "action.Feature",  "sub_actions": [
+            {"key": "x", "class": "action.Feature",
+              "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxPoint",
+                "value_type": "float", "regex": "(?:internalField.*\\()(?:\\([\\-0-9.\\s]*\\)[\\s\\)]){0}\\((?:[\\-0-9.]*\\s){0}([\\-0-9.]*)"}},
+            {"key": "y", "class": "action.Feature",
+              "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxPoint",
+                "value_type": "float", "regex": "(?:internalField.*\\()(?:\\([\\-0-9.\\s]*\\)[\\s\\)]){0}\\((?:[\\-0-9.]*\\s){1}([\\-0-9.]*)"}},
+            {"key": "z", "class": "action.Feature",
+              "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxPoint",
+                "value_type": "float", "regex": "(?:internalField.*\\()(?:\\([\\-0-9.\\s]*\\)[\\s\\)]){0}\\((?:[\\-0-9.]*\\s){2}([\\-0-9.]*)"}}],
+            "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxT",
+              "value_type": "float", "regex": "(?:internalField.*\\()(?:[0-9.]*\\s){0}([0-9.]*)"}}]},
+        {"key": "filling", "class": "action.Feature", "sub_actions": [
+          {"key": "max", "class": "action.Feature", "sub_actions": [
+            {"key": "x", "class": "action.Feature",
+              "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxPoint",
+                "value_type": "float", "regex": "(?:internalField.*\\()(?:\\([\\-0-9.\\s]*\\)[\\s\\)]){1}\\((?:[\\-0-9.]*\\s){0}([\\-0-9.]*)"}},
+            {"key": "y", "class": "action.Feature",
+              "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxPoint",
+                "value_type": "float", "regex": "(?:internalField.*\\()(?:\\([\\-0-9.\\s]*\\)[\\s\\)]){1}\\((?:[\\-0-9.]*\\s){1}([\\-0-9.]*)"}},
+            {"key": "z", "class": "action.Feature",
+              "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxPoint",
+                "value_type": "float", "regex": "(?:internalField.*\\()(?:\\([\\-0-9.\\s]*\\)[\\s\\)]){1}\\((?:[\\-0-9.]*\\s){2}([\\-0-9.]*)"}}],
+            "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxT",
+              "value_type": "float", "regex": "(?:internalField.*\\()(?:[0-9.]*\\s){1}([0-9.]*)"}}]},
+        {"key": "ebs", "class": "action.Feature", "sub_actions": [
+          {"key": "max", "class": "action.Feature", "sub_actions": [
+            {"key": "x", "class": "action.Feature",
+              "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxPoint",
+                "value_type": "float", "regex": "(?:internalField.*\\()(?:\\([\\-0-9.\\s]*\\)[\\s\\)]){2}\\((?:[\\-0-9.]*\\s){0}([\\-0-9.]*)"}},
+            {"key": "y", "class": "action.Feature",
+              "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxPoint",
+                "value_type": "float", "regex": "(?:internalField.*\\()(?:\\([\\-0-9.\\s]*\\)[\\s\\)]){2}\\((?:[\\-0-9.]*\\s){1}([\\-0-9.]*)"}},
+            {"key": "z", "class": "action.Feature",
+              "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxPoint",
+                "value_type": "float", "regex": "(?:internalField.*\\()(?:\\([\\-0-9.\\s]*\\)[\\s\\)]){2}\\((?:[\\-0-9.]*\\s){2}([\\-0-9.]*)"}}],
+            "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxT",
+              "value_type": "float", "regex": "(?:internalField.*\\()(?:[0-9.]*\\s){2}([0-9.]*)"}}]},
+        {"key": "cast_iron", "class": "action.Feature", "sub_actions": [
+          {"key": "max", "class": "action.Feature", "sub_actions": [
+            {"key": "x", "class": "action.Feature",
+              "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxPoint",
+                "value_type": "float", "regex": "(?:internalField.*\\()(?:\\([\\-0-9.\\s]*\\)[\\s\\)]){3}\\((?:[\\-0-9.]*\\s){0}([\\-0-9.]*)"}},
+            {"key": "y", "class": "action.Feature",
+              "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxPoint",
+                "value_type": "float", "regex": "(?:internalField.*\\()(?:\\([\\-0-9.\\s]*\\)[\\s\\)]){3}\\((?:[\\-0-9.]*\\s){1}([\\-0-9.]*)"}},
+            {"key": "z", "class": "action.Feature",
+              "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxPoint",
+                "value_type": "float", "regex": "(?:internalField.*\\()(?:\\([\\-0-9.\\s]*\\)[\\s\\)]){3}\\((?:[\\-0-9.]*\\s){2}([\\-0-9.]*)"}}],
+            "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneMaxT",
+              "value_type": "float", "regex": "(?:internalField.*\\()(?:[0-9.]*\\s){3}([0-9.]*)"}}]},
+        {"key": "max", "class": "action.Feature",
+          "pre_call": {"class": "action.set.Equation", "equation": "max([{temperature.max.cast_iron.max}, {temperature.max.ebs.max}, {temperature.max.filling.max}, {temperature.max.rock.max}])"}}]},
+      {"key": "volume", "class": "action.Feature", "sub_actions": [
+        {"key": "rock", "class": "action.Feature",
+          "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneVol",
+          "value_type": "float", "regex": "(?:internalField.*\\()(?:[0-9.]*\\s){0}([0-9.]*)"}},
+        {"key": "filling", "class": "action.Feature",
+          "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneVol",
+          "value_type": "float", "regex": "(?:internalField.*\\()(?:[0-9.]*\\s){1}([0-9.]*)"}},
+        {"key": "ebs", "class": "action.Feature",
+          "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneVol",
+          "value_type": "float", "regex": "(?:internalField.*\\()(?:[0-9.]*\\s){2}([0-9.]*)"}},
+        {"key": "cast_iron", "class": "action.Feature",
+          "pre_call": {"class": "action.set.RegexFile", "path": "fenia/zoneVol",
+          "value_type": "float", "regex": "(?:internalField.*\\()(?:[0-9.]*\\s){3}([0-9.]*)"}},
+        {"class": "action.set.Equation", "equation": "sum([{volume.cast_iron}, {volume.ebs}, {volume.filling}, {volume.rock}])"}]}
+    ]}]}}
