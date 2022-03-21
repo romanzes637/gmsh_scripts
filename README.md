@@ -11,7 +11,7 @@ with boolean operations based on [gmsh](https://gmsh.info/)
 ```shell
 pip install gmsh-scripts
 ```
-3. Create or [download](matrix.json) input file
+4. Create or [download](https://github.com/romanzes637/gmsh_scripts/blob/master/examples/matrix/matrix.json) input file
 ```json
 {
   "metadata": {
@@ -41,7 +41,7 @@ python -m gmsh_scripts matrix.json
 ```shell
 pip install -r requirements/prod.txt
 ```
-4. Create or [download](https://downgit.github.io/#/home?url=https://github.com/romanzes637/gmsh_scripts/blob/master/examples/matrix/matrix.json) input file
+4. Create or [download](https://github.com/romanzes637/gmsh_scripts/blob/master/examples/matrix/matrix.json) input file
 5. Create mesh
 ```shell
 python gmsh_scripts/run.py matrix.json
