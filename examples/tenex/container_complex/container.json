@@ -1,0 +1,14 @@
+{
+  "data": {
+    "class": "block.Block",
+    "do_register": 0,
+    "children": [
+      "/filling.json",
+      "/cast_iron.json"
+    ],
+    "children_transforms": [
+      [[0, 0, 0.235]],
+      []
+    ]
+  }
+}

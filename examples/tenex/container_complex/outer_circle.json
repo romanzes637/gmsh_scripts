@@ -1,0 +1,14 @@
+{
+  "data": {
+    "class": "block.Matrix",
+    "matrix": [
+      [0.680, 1.360],
+      [20, "380:10"],
+      [0, 1.350],
+      "Cylindrical"],
+    "items_self_transforms": [["CylindricalToCartesian"]],
+    "items_do_register_map": 0,
+    "items_children": [["/canister.json"]],
+    "items_children_transforms": [[[[0, 0, -0.675]]]]
+  }
+}

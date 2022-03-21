@@ -1,7 +1,0 @@
-{
-  "data": {
-    "class": "block.Block",
-    "do_register": 0,
-    "children": ["inner_circle.json", "outer_circle.json"]
-  }
-}

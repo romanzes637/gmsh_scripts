@@ -1,0 +1,4 @@
+-r common.txt
+build
+twine
+pytest==7.1.1

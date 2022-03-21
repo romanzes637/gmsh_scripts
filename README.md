@@ -5,16 +5,62 @@
 with boolean operations based on [gmsh](https://gmsh.info/)
 
 ## Installation
-1. Download and install python https://www.python.org/downloads/
-2. Install numpy and gmsh packages
+### Pip
+1. [Download](https://www.python.org/downloads/) and install Python
+2. Install gmsh_scripts
 ```shell
-pip install -r requirements.txt 
+pip install gmsh-scripts
 ```
-3. Download gmsh_scripts from https://github.com/romanzes637/gmsh_scripts
-4. To create mesh use complex_factory.py script
+3. Create or [download](matrix.json) input file
+```json
+{
+  "metadata": {
+    "run": {
+      "factory": "occ"
+    }
+  },
+  "data": {
+    "class": "block.Matrix",
+    "matrix": [
+      [-1, 0, 1],
+      [-2, 0, 2],
+      [-3, 0, 3]
+    ]
+  }
+}
+```
+4. Create mesh
 ```shell
-python run.py PATH_TO_INPUT_FILE
+python -m gmsh_scripts matrix.json
 ```
+
+### Github
+1. [Download](https://www.python.org/downloads/) and install Python
+2. [Download](https://github.com/romanzes637/gmsh_scripts) gmsh_scripts
+3. Install requirements
+```shell
+pip install -r requirements/prod.txt
+```
+4. Create or [download](matrix.json) input file
+5. Create mesh
+```shell
+python gmsh_scripts/run.py matrix.json
+```
+
+### Result
+![readme](/images/matrix.png)
+
+## Complex mesh from [examples](/images/matrix.png)
+### Create mesh
+```shell
+python -m gmsh_scripts all_heater_plug.json
+```
+![readme](/images/sweden_experiment.png)
+### Plot tree
+```shell
+python -m gmsh_scripts all_heater_plug.json --plot
+```
+![readme](/images/sweden_experiment_tree.png)
 
 ## [Examples album](https://photos.app.goo.gl/KngvSr6ttbyIdFEX2)
 
