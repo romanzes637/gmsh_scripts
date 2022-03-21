@@ -1,5 +1,6 @@
-import json
 from pathlib import Path
+
+from gmsh_scripts.load import load
 
 
 class FactoryClassError(Exception):
@@ -98,15 +99,11 @@ class Factory:
         elif isinstance(obj, str):
             if obj.startswith('/'):
                 p = Path(obj)
-                if p.exists() and p.suffix == '.json':
-                    with open(p) as f:
-                        data = json.load(f)
-                    if 'class' in obj:
-                        key, args, kwargs = data.pop('class'), [], data
-                    else:
-                        raise FactoryClassError(obj)
+                data = load(p)
+                if 'class' in data:
+                    key, args, kwargs = data.pop('class'), [], data
                 else:
-                    raise ValueError(p)
+                    raise FactoryClassError(obj)
             else:
                 key, args, kwargs = obj, [], {}
         else:

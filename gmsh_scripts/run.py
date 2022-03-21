@@ -4,6 +4,7 @@ import argparse
 import logging
 from pathlib import Path
 
+from gmsh_scripts.load import load
 from gmsh_scripts.support.support import LoggingDecorator, GmshDecorator, GmshOptionsDecorator
 from gmsh_scripts.factory import FACTORY as FACTORY
 from gmsh_scripts.factory import FactoryKeyError, FactoryValueError
@@ -48,13 +49,11 @@ def init_walk(obj, prev_obj=None, prev_indices=None, prev_keys=None):
                 prev_keys.append(k)
             elif isinstance(v, str) and v.startswith('/'):
                 p = Path(v[1:]).resolve()
-                if p.exists() and p.suffix == '.json':
-                    with open(p) as f:
-                        v = json.load(f)['data']
-                    prev_keys.append(k)
-                    init_walk(v, obj, prev_indices, prev_keys)
-                    prev_keys.append(k)
-                    v['path'] = str(p)
+                v = load(p)['data']
+                prev_keys.append(k)
+                init_walk(v, obj, prev_indices, prev_keys)
+                prev_keys.append(k)
+                v['path'] = str(p)
             try:
                 obj[k] = FACTORY(v)
             except FactoryValueError:
@@ -88,16 +87,14 @@ def init_walk(obj, prev_obj=None, prev_indices=None, prev_keys=None):
                 prev_indices.append(cur_index)
             elif isinstance(x, str) and x.startswith('/'):
                 p = Path(x[1:]).resolve()
-                if p.exists() and p.suffix == '.json':
-                    with open(p) as f:
-                        x = json.load(f)['data']
-                    prev_indices.append(cur_index)
-                    prev_key = None if len(prev_keys) == 0 else prev_keys[-1]
-                    init_walk(x, prev_obj, prev_indices, prev_keys)
-                    if prev_key is not None:
-                        prev_keys.append(prev_key)
-                    prev_indices.append(cur_index)
-                    x['path'] = str(p)
+                x = load(p)['data']
+                prev_indices.append(cur_index)
+                prev_key = None if len(prev_keys) == 0 else prev_keys[-1]
+                init_walk(x, prev_obj, prev_indices, prev_keys)
+                if prev_key is not None:
+                    prev_keys.append(prev_key)
+                prev_indices.append(cur_index)
+                x['path'] = str(p)
             try:
                 obj[i] = FACTORY(x)
             except FactoryValueError:
@@ -144,8 +141,7 @@ def parse_arguments():
     # Check input path
     p = Path(cmd_args['input_path'])
     # Update args from input file metadata
-    with open(p) as f:
-        data = json.load(f)
+    data = load(p)
     args = data.get('metadata', {}).get('run', {})
     args['data'] = data.get('data', {})
     args.update(cmd_args)

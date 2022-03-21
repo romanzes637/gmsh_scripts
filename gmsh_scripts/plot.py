@@ -1,11 +1,11 @@
 import argparse
 from pathlib import Path
-import json
 
 from pyvis.network import Network
 
 from gmsh_scripts.factory import FACTORY as FACTORY
 from gmsh_scripts.run import init_walk
+from gmsh_scripts.load import load
 
 
 def plot_action(a, output=None, height='600px', width='600px', title="",
@@ -77,13 +77,7 @@ def main():
     parser.add_argument('--no_hierarchy', help='non hierarchical layout', action='store_true')
     args = vars(parser.parse_known_args()[0])  # arguments dictionary
     p = Path(args['input'])
-    with open(p) as f:
-        if p.suffix == '.json':
-            d = json.load(f)
-        elif p.suffix in ['yml', 'yaml']:
-            pass
-        else:
-            raise ValueError(f"Wrong file format {p.suffix}!")
+    d = load(p)
     d.setdefault('metadata', {})
     d.setdefault('data', {})
     top_kwargs = d['data']
