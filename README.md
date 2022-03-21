@@ -41,7 +41,7 @@ python -m gmsh_scripts matrix.json
 ```shell
 pip install -r requirements/prod.txt
 ```
-4. Create or [download](matrix.json) input file
+4. Create or [download](https://downgit.github.io/#/home?url=https://github.com/romanzes637/gmsh_scripts/blob/master/examples/matrix/matrix.json) input file
 5. Create mesh
 ```shell
 python gmsh_scripts/run.py matrix.json
@@ -50,7 +50,7 @@ python gmsh_scripts/run.py matrix.json
 ### Result
 ![readme](/images/matrix.png)
 
-## Complex mesh from [examples](/images/matrix.png)
+## Complex [mesh](https://downgit.github.io/#/home?url=https://github.com/romanzes637/gmsh_scripts/tree/master/examples/experiment/sweden) from examples
 ### Create mesh
 ```shell
 python -m gmsh_scripts all_heater_plug.json
@@ -61,6 +61,8 @@ python -m gmsh_scripts all_heater_plug.json
 python -m gmsh_scripts all_heater_plug.json --plot
 ```
 ![readme](/images/sweden_experiment_tree.png)
+
+## [Examples](https://downgit.github.io/#/home?url=https://github.com/romanzes637/gmsh_scripts/tree/master/examples)
 
 ## [Examples album](https://photos.app.goo.gl/KngvSr6ttbyIdFEX2)
 
