@@ -1,0 +1,24 @@
+{
+  "metadata": {
+    "run": {
+      "factory": "occ",
+      "log_level": "DEBUG",
+      "log_path": null,
+      "options": {
+        "Mesh.Algorithm": 6,
+        "Mesh.Algorithm3D": 1,
+        "Mesh.MeshSizeFactor": 1.0,
+        "Mesh.MeshSizeMin": 0.1,
+        "Mesh.MeshSizeMax": 10,
+        "Mesh.MeshSizeExtendFromBoundary": 1,
+        "Mesh.MeshSizeFromCurvature": 8
+      }
+    }
+  },
+  "data": {
+    "class": "block.Block",
+    "do_register": 0,
+    "children": ["/filling.json", "/cast_iron.json"],
+    "children_transforms": [[[0, 0, 0.235]], []]
+  }
+}

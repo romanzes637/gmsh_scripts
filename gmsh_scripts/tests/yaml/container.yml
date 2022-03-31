@@ -1,0 +1,37 @@
+# Mesh.Algorithm
+# 2D mesh algorithm (1: MeshAdapt, 2: Automatic, 3: Initial mesh only,
+# 5: Delaunay, 6: Frontal-Delaunay, 7: BAMG, 8: Frontal-Delaunay for Quads,
+# 9: Packing of Parallelograms)
+# Default value: 6
+# Mesh.Algorithm3D
+# 3D mesh algorithm (1: Delaunay, 3: Initial mesh only, 4: Frontal, 7: MMG3D,
+# 9: R_tree, 10: HXT)
+# Default value: 1
+# Mesh.MeshSizeFromCurvature
+# Automatically compute mesh element sizes from curvature, using the value as
+# the target number of elements per 2 * Pi radians
+# Mesh.MeshSizeExtendFromBoundary
+# Extend computation of mesh element sizes from the boundaries into the interior
+# (for 3D Delaunay, use 1: longest or 2: shortest surface edge length)
+# Default value: 1
+# Mesh.MeshSizeFactor Factor applied to all mesh element sizes. Default value: 1
+# Mesh.MeshSizeMin Minimum mesh element size. Default value: 0
+# Mesh.MeshSizeMax Maximum mesh element size. Default value: 1e+22
+metadata:
+  run:
+    factory: occ
+    log_level: DEBUG
+    log_path: ~
+    options:
+      Mesh.Algorithm: 6
+      Mesh.Algorithm3D: 1
+      Mesh.MeshSizeFactor: 1.0
+      Mesh.MeshSizeMin: 0.1
+      Mesh.MeshSizeMax: 10
+      Mesh.MeshSizeExtendFromBoundary: 1
+      Mesh.MeshSizeFromCurvature: 8
+data:
+  class: block.Block
+  do_register: 0
+  children: [ /filling.yml, /cast_iron.yml ]
+  children_transforms: [ [ [ 0, 0, 0.235 ] ], [ ] ]
