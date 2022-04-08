@@ -79,6 +79,10 @@ class Block:
         do_unregister (bool): unregister Block from the registry
         do_register_children (bool): invoke register for children
         do_unregister_children (bool): invoke unregister for children
+            0 - not unregister
+            1 - unregister in any case if you are owner
+            2 - decide to unregister by all owners
+            3 - decide to unregister by all members
         transforms (list of dict, list of list, list of Transform): points and curves points transforms (Translation, Rotation, Coordinate Change, etc)
         do_quadrate (list of dict, bool): transform triangles to quadrangles for surfaces and tetrahedra to hexahedra for volumes
         structure (list of dict, list of list, list of Transform): make structured mesh instead of unstructured by some rule
@@ -656,16 +660,23 @@ class Block:
                 all_old_blocks = [v2b[x] for x in all_old_tags]
                 all_levels = [x.boolean_level for x in all_old_blocks]
                 max_level = max(all_levels)
-                n_max_levels = all_levels.count(max_level)
-                if n_max_levels == 1 and self.boolean_level == max_level:  # Owner
-                    if self.do_unregister_boolean in [1, 2]:
+                # n_max_levels = all_levels.count(max_level)
+                if self.boolean_level == max_level:  # Owner
+                    if self.do_unregister_boolean == 1:
                         pre_unregister_volume(Volume(tag=new_tag))
-                elif self.boolean_level == max_level:  # Owners
-                    owners_unregister_boolean = [
-                        x.do_unregister_boolean in [1, 3] for x in all_old_blocks
-                        if x.boolean_level == max_level]
-                    if all(owners_unregister_boolean):
-                        pre_unregister_volume(Volume(tag=new_tag))
+                    elif self.do_unregister_boolean == 2:  # If all owners
+                        owners_unregister_boolean = [x.do_unregister_boolean in [1, 2]
+                                                     for x in all_old_blocks
+                                                     if x.boolean_level == max_level]
+                        if all(owners_unregister_boolean):  # If all members
+                            pre_unregister_volume(Volume(tag=new_tag))
+                    elif self.do_unregister_boolean == 3:
+                        all_unregister_boolean = [x.do_unregister_boolean in [1, 2, 3]
+                                                  for x in all_old_blocks]
+                        if all(all_unregister_boolean):
+                            pre_unregister_volume(Volume(tag=new_tag))
+                    else:
+                        raise ValueError(self.do_unregister_boolean)
 
     def unregister(self):
         unregister_volumes()

@@ -1,0 +1,42 @@
+# To add new cylinders:
+# 1. Add /cylinder.yml to children
+# 2. Add transformations for new child at children_transforms, e.g.
+# [ [ 1, 2, 3 ], [0, 0, 1, 42] ], where
+# [ 1, 2, 3 ] - translate child on 1 by X, 2 by Y and 3 by Z axis,
+# NOTE! Origin of cylinder - it's bottom surface
+# [0, 0, 1, 42] - rotate child around Z axis (0, 0, 1) by 42 degrees counterclockwise
+# To increase mesh quality use Mesh.MeshSizeFactor at first!
+
+metadata:
+  run:
+    factory: occ
+    log_level: DEBUG
+    options:
+      # Try also 1-10 or 2-1 combinations of 2D-3D algorithms to increase mesh quality
+      Mesh.Algorithm: 6
+      Mesh.Algorithm3D: 1
+      Mesh.MeshSizeFactor: 1.0  # decrease to increase mesh quality
+      Mesh.MeshSizeMin: 0.01  # increase if mesh generation fails
+      Mesh.MeshSizeMax: 0.1  # decrease to increase mesh quality
+      Mesh.MeshSizeFromPoints: 0  # If 1 - use size from Y value of matrix or layer fields (X;Y <-- this one), 0 - not used
+      Mesh.MeshSizeExtendFromBoundary: 0  # 1 - size from largest edge of geometry, 2 - from shortest, 0 - not used
+      Mesh.MeshSizeFromCurvature: 25  # increase if mesh generation fails
+data:
+  class: block.Matrix
+  matrix: [ [ -1;0.01, 1;0.01 ],[ -1;0.01, 1;0.01 ],[ -1;0.01, 1;0.01 ] ]
+  children: [ /cylinder.yml,
+              /cylinder.yml,
+              /cylinder.yml,
+              /cylinder.yml,
+              /cylinder.yml,
+              /cylinder.yml ]
+  children_transforms: [
+    [ [ 0, 0, -0.5 ] ],  # internal
+    [ [ 0, 0, 0.75 ] ],  # transverse (cross) section
+    [ [ 0, 1, -0.5 ] ],  # longitudinal section
+    [ [ 0, 1, 0.75 ] ], # transverse & longitudinal section
+    [ [ 1, 1, 0.75 ] ],  # triple section
+    [ [ 0, 0, -3 ] ]  # external (for testing, it won't create)
+  ]
+  items_zone: [ Cube ]
+  items_boolean_level_map: -1
