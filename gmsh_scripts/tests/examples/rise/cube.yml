@@ -5,7 +5,7 @@
 # [ 1, 2, 3 ] - translate child on 1 by X, 2 by Y and 3 by Z axis,
 # NOTE! Origin of cylinder - it's bottom surface
 # [0, 0, 1, 42] - rotate child around Z axis (0, 0, 1) by 42 degrees counterclockwise
-# To increase mesh quality use Mesh.MeshSizeFactor at first!
+# To increase mesh quality decrease Mesh.MeshSizeFactor first!
 
 metadata:
   run:
@@ -18,9 +18,14 @@ metadata:
       Mesh.MeshSizeFactor: 1.0  # decrease to increase mesh quality
       Mesh.MeshSizeMin: 0.01  # increase if mesh generation fails
       Mesh.MeshSizeMax: 0.1  # decrease to increase mesh quality
+      Mesh.MeshSizeFromCurvature: 20  # increase if mesh generation fails Automatically compute mesh element sizes from curvature, using the value as the target number of elements per 2 * Pi radians
       Mesh.MeshSizeFromPoints: 0  # If 1 - use size from Y value of matrix or layer fields (X;Y <-- this one), 0 - not used
-      Mesh.MeshSizeExtendFromBoundary: 0  # 1 - size from largest edge of geometry, 2 - from shortest, 0 - not used
-      Mesh.MeshSizeFromCurvature: 25  # increase if mesh generation fails
+      Mesh.MeshSizeFromParametricPoints: 0  # If 1 - use size from Y value of matrix or layer fields (X;Y <-- this one), 0 - not used
+      Mesh.MeshSizeExtendFromBoundary: 0  # Extend computation of mesh element sizes from the boundaries into the interior (0: never; 1: for surfaces and volumes; 2: for surfaces and volumes, but use smallest surface element edge length instead of longest length in 3D Delaunay; -2: only for surfaces; -3: only for volumes)
+      Mesh.MeshSizeFromCurvatureIsotropic: 0  # increase if mesh generation fails
+      Mesh.MinimumLineNodes: 2  # increase to increase mesh quality
+      Mesh.MinimumCircleNodes: 7  # increase to increase mesh quality
+      Mesh.MinimumCurveNodes: 3  # increase to increase mesh quality
 data:
   class: block.Matrix
   matrix: [ [ -1;0.01, 1;0.01 ],[ -1;0.01, 1;0.01 ],[ -1;0.01, 1;0.01 ] ]

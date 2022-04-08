@@ -1,6 +1,5 @@
 import subprocess
 import sys
-from pathlib import Path
 
 import pytest
 
@@ -15,7 +14,8 @@ def test_cube(run):
     assert run == 0
 
 
-def test_generate_random_cube():
+def test_generate_random_cube(request, monkeypatch):
+    monkeypatch.chdir(request.fspath.dirname)
     result = subprocess.run([sys.executable, 'random_cube.py'])
     assert result.returncode == 0
 
