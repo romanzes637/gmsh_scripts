@@ -1,0 +1,32 @@
+{
+  "metadata": {
+    "run": {
+      "factory": "occ",
+      "log_level": "DEBUG",
+      "options": {
+        "Mesh.Algorithm": 6,
+        "Mesh.Algorithm3D": 1,
+        "Mesh.MeshSizeFactor": 5,
+        "Mesh.MeshSizeMin": 0,
+        "Mesh.MeshSizeMax": 1e22,
+        "Mesh.MeshSizeExtendFromBoundary": 1,
+        "Mesh.MeshSizeFromCurvature": 100
+      }
+    }
+  },
+  "data": {
+    "class": "block.Matrix",
+    "matrix": [
+      ["i", "0;5", "3;5", "297:101;5"],
+      ["0;5", "1.5;5"],
+      ["0;5", "4.5;5"]],
+    "items_zone": ["Bentonite"],
+    "items_boolean_level_map": -3,
+    "items_do_register_map": 1,
+    "items_children": [["/container.json"], []],
+    "items_children_map": [
+      [1, 0, 1]
+    ],
+    "items_children_transforms": [[[[0, 0, -1.75]]]]
+  }
+}

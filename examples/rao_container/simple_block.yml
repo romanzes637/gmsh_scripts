@@ -1,0 +1,30 @@
+metadata:
+  run:
+    factory: occ
+    log_level: DEBUG
+    options:
+      # Try also 1-10 or 2-1 combinations of 2D-3D algorithms to increase mesh quality
+      Mesh.Algorithm: 6
+      Mesh.Algorithm3D: 1
+      Mesh.MeshSizeFactor: 10.0  # decrease to increase mesh quality
+      Mesh.MeshSizeMin: 0.01  # increase if mesh generation fails
+      Mesh.MeshSizeMax: 0.1  # decrease to increase mesh quality
+      Mesh.MeshSizeFromCurvature: 20  # increase if mesh generation fails Automatically compute mesh element sizes from curvature, using the value as the target number of elements per 2 * Pi radians
+      Mesh.MeshSizeFromPoints: 0  # If 1 - use size from Y value of matrix or layer fields (X;Y <-- this one), 0 - not used
+      Mesh.MeshSizeFromParametricPoints: 0  # If 1 - use size from Y value of matrix or layer fields (X;Y <-- this one), 0 - not used
+      Mesh.MeshSizeExtendFromBoundary: 0  # Extend computation of mesh element sizes from the boundaries into the interior (0: never; 1: for surfaces and volumes; 2: for surfaces and volumes, but use smallest surface element edge length instead of longest length in 3D Delaunay; -2: only for surfaces; -3: only for volumes)
+      Mesh.MeshSizeFromCurvatureIsotropic: 0  # increase if mesh generation fails
+      Mesh.MinimumLineNodes: 2  # increase to increase mesh quality
+      Mesh.MinimumCircleNodes: 3  # increase to increase mesh quality
+      Mesh.MinimumCurveNodes: 3  # increase to increase mesh quality
+data:
+  class: block.Matrix
+  matrix: [ [ 0, "10:4" ],
+            [ 0, "3:3" ],
+            [ 0, 4.5 ] ]
+  #children: [ /pallet.yml ]
+  #children_transforms: [
+  #[[0, 3, 0]]
+  #]
+  items_children: [[/cylinder.yml], []]
+  items_children_map: [[0, 0, 1]]

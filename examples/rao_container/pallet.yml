@@ -1,0 +1,4 @@
+data:
+  class: block.Matrix
+  matrix: [ [ 0, 300 ],[ 0, 0.5 ],[ 0, 4.5 ] ]
+  items_zone: [ Pallets ]

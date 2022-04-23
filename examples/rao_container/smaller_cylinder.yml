@@ -1,0 +1,5 @@
+data:
+  class: block.Layer
+  layer: [ [ 0.3], [ 3.6] ]
+  layer_curves: [ [ circle_arc ], [ line ] ]
+  items_zone: [ RAO ]

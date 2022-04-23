@@ -1,0 +1,11 @@
+{
+  "data": {
+    "class": "block.Matrix",
+    "matrix": [
+      ["0;.5", "300;.5"],
+      ["0;.5", "0.5;.5"],
+      ["0;.5", "4.5;.5"]],
+    "items_zone": ["Pallet"],
+    "items_boolean_level_map": -1
+  }
+}
