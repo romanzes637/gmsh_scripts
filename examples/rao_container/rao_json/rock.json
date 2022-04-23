@@ -1,0 +1,30 @@
+{
+  "metadata": {
+    "run": {
+      "factory": "occ",
+      "log_level": "DEBUG",
+      "options": {
+        "Mesh.Algorithm": 6,
+        "Mesh.Algorithm3D": 1,
+        "Mesh.MeshSizeFactor": 5,
+        "Mesh.MeshSizeMin": 0,
+        "Mesh.MeshSizeMax": 1e22,
+        "Mesh.MeshSizeExtendFromBoundary": 1,
+        "Mesh.MeshSizeFromCurvature": 100
+      }
+    }
+  },
+  "data": {
+    "class": "block.Matrix",
+    "matrix": [["0;.9", "320;.9"],["0;.9", "23.5;.9"],["0;.9", "24.5;.9"]],
+    "children": [
+      "/tranch.json"
+    ],
+    "items_zone": ["Rock"],
+    "items_boolean_level_map": -3,
+    "items_do_register_map": 1,
+    "children_transforms": [
+      [[10, 10, 10]]
+    ]
+  }
+}

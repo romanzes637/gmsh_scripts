@@ -1,0 +1,9 @@
+data:
+  class: block.Layer
+  layer: [ [ 0.35], [ 3.7] ]
+  layer_curves: [ [ circle_arc ], [ line ] ]
+  children: [ /smaller_cylinder.yml]
+  children_transforms: [
+  [[0, 0, 0.05]]
+  ]
+  items_zone: [ Cast_Iron ]
