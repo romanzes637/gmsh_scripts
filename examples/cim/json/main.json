@@ -1,0 +1,42 @@
+{
+ "metadata": {
+    "run": {
+      "factory": "occ",
+      "log_level": "DEBUG",
+      "strategy": {
+        "class": "strategy.Base",
+        "zone_function": {
+          "class": "zone.DirectionByNormal",
+          "dims_interfaces": [2]
+        }
+      },
+      "options": {
+        "Mesh.Algorithm": 6,
+        "Mesh.Algorithm3D": 1,
+        "Mesh.MeshSizeFactor": 5,
+        "Mesh.MeshSizeMin": 0,
+        "Mesh.MeshSizeMax": 1e22,
+        "Mesh.MeshSizeFromPoints": 1,
+        "Mesh.MeshSizeFromParametricPoints": 0,
+        "Mesh.MeshSizeExtendFromBoundary": 1,
+        "Mesh.MeshSizeFromCurvature": 12,
+        "Mesh.MeshSizeFromCurvatureIsotropic": 0,
+        "Mesh.MinimumLineNodes": 2,
+        "Mesh.MinimumCircleNodes": 3,
+        "Mesh.MinimumCurveNodes": 3
+      }
+    }
+  },
+  "data": {
+    "class": "block.Block",
+    "do_register": 0,
+    "children": [
+      "/env_1.json",
+      "/env_2.json",
+      "/rw_1.json",
+      "/rw_2.json",
+      "/ebs_1.json",
+      "/ebs_2.json"
+    ]
+  }
+}

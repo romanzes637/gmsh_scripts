@@ -1,0 +1,10 @@
+{
+  "data": {
+    "class": "block.Layer",
+    "layer": [[0.5], [1]],
+    "layer_curves": [["circle_arc"], ["line"]],
+    "items_zone": ["RW_1"],
+    "items_boolean_level_map": 2,
+    "transforms": [[-2, 0, -0.5]]
+  }
+}

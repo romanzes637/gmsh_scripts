@@ -1,0 +1,9 @@
+{
+  "data": {
+    "class": "block.Matrix",
+    "matrix": [[-4, 0, 4], [-2, 0, 2], [-1, 0, 1]],
+    "items_zone": ["ENV_1"],
+    "items_boolean_level_map": 0,
+    "transforms": [[0, 0, 1]]
+  }
+}

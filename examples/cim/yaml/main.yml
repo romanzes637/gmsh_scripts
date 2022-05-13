@@ -1,0 +1,29 @@
+metadata:
+  run:
+    factory: occ
+    log_level: DEBUG
+    options:
+      Mesh.Algorithm: 6
+      Mesh.Algorithm3D: 1
+      Mesh.MeshSizeFactor: 1
+      Mesh.MeshSizeMin: 0
+      Mesh.MeshSizeMax: 100
+      Mesh.MeshSizeFromPoints: 1
+      Mesh.MeshSizeFromParametricPoints: 0
+      Mesh.MeshSizeExtendFromBoundary: 1
+      Mesh.MeshSizeFromCurvature: 12
+      Mesh.MeshSizeFromCurvatureIsotropic: 0
+      Mesh.MinimumLineNodes: 2
+      Mesh.MinimumCircleNodes: 3
+      Mesh.MinimumCurveNodes: 3
+data:
+  class: block.Block
+  do_register: 0
+  children: [
+    /env_1.yml,
+    /env_2.yml,
+    /rw_1.yml,
+    /rw_2.yml,
+    /ebs_1.yml,
+    /ebs_2.yml
+  ]
