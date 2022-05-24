@@ -2,7 +2,8 @@ import numpy as np
 
 from gmsh_scripts.support.support import volumes_surfaces_to_volumes_groups_surfaces
 from gmsh_scripts.transform.transform import str2obj as tr_str2obj
-from gmsh_scripts.transform.transform import BlockToCartesian, CartesianToCartesianByBlock
+from gmsh_scripts.transform.transform import BlockToCartesian, \
+    CartesianToCartesianByBlock
 from gmsh_scripts.transform.transform import reduce_transforms
 from gmsh_scripts.registry import register_point, register_curve, register_curve_loop, \
     register_surface, register_surface_loop, register_volume, \
@@ -11,12 +12,12 @@ from gmsh_scripts.registry import register_point, register_curve, register_curve
     register_volume2block, get_boolean_old2news, get_boolean_new2olds, \
     get_volume2block, pre_unregister_volume
 from gmsh_scripts.coordinate_system.coordinate_system import Block as BlockCS
-from gmsh_scripts.entity.point import Point
-from gmsh_scripts.entity.curve import Curve
-from gmsh_scripts.entity.curve_loop import CurveLoop
-from gmsh_scripts.entity.surface import Surface
-from gmsh_scripts.entity.surface_loop import SurfaceLoop
-from gmsh_scripts.entity.volume import Volume
+from gmsh_scripts.entity import Point
+from gmsh_scripts.entity import Curve
+from gmsh_scripts.entity import CurveLoop
+from gmsh_scripts.entity import Surface
+from gmsh_scripts.entity import SurfaceLoop
+from gmsh_scripts.entity import Volume
 from gmsh_scripts.structure.structure import Structure
 from gmsh_scripts.quadrate.quadrate import Quadrate
 

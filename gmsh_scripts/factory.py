@@ -50,6 +50,8 @@ class Factory:
         str2objs.append({f'block.{k}': v for k, v in str2obj.items()})
         from gmsh_scripts.block.matrix import str2obj
         str2objs.append({f'block.{k}': v for k, v in str2obj.items()})
+        from gmsh_scripts.block.polyhedron import str2obj
+        str2objs.append({f'block.{k}': v for k, v in str2obj.items()})
         from gmsh_scripts.entity.point import str2obj
         str2objs.append({f'point.{k}': v for k, v in str2obj.items()})
         from gmsh_scripts.quadrate.quadrate import str2obj
