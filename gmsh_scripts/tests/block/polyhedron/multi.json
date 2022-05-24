@@ -1,0 +1,19 @@
+{
+  "metadata": {
+    "run": {
+      "factory": "occ",
+      "log_level": "DEBUG",
+      "log_path": null
+    }
+  },
+  "data": {
+    "class": "block.Block",
+    "do_register": false,
+    "children": [
+      "/cube.json",
+      "/tetrahedron.json",
+      "/dodecahedron.json"],
+    "children_boolean_level": [0, 2, 1],
+    "children_transforms": [[], [[-1, -1, -1]], []]
+  }
+}
