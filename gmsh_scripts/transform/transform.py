@@ -99,9 +99,6 @@ class Rotate(Transform):
         return p
 
 
-# TODO Dilate, Reflect
-
-
 class CartesianToCartesian(Transform):
     """Convert coordinates of the Point from Cartesian to Cartesian system.
 
@@ -553,6 +550,37 @@ class AnyAsSome(Transform):
         return p
 
 
+class TransformationMatrix(Transform):
+    """Affine transformation matrix
+
+    Matrix could describe translation, rotation, reflection and dilation
+
+    See Also:
+        https://en.wikipedia.org/wiki/Affine_transformation#Representation
+
+    Args:
+        matrix (list or list of list or np.ndarray): transformation matrix
+    """
+
+    def __init__(self, matrix, **kwargs):
+        super().__init__(**kwargs)
+        if isinstance(matrix, list):
+            if isinstance(matrix[0], list):
+                self.matrix = np.array(matrix)
+            else:
+                r = int(np.sqrt(len(matrix)))
+                self.matrix = np.array(matrix).reshape((r, r))
+        elif isinstance(matrix, np.ndarray):
+            self.matrix = matrix
+        else:
+            raise ValueError(matrix)
+
+    def __call__(self, p):
+        p = super().__call__(p)
+        p.coordinates = np.dot(self.matrix, list(p.coordinates) + [1])[:-1]
+        return p
+
+
 str2obj = {
     Transform.__name__: Transform,
     Translate.__name__: Translate,
@@ -590,5 +618,6 @@ str2obj = {
     LayerToCartesian.__name__: LayerToCartesian,
     AnyAsSome.__name__: AnyAsSome,
     CartesianToCartesianByBlock.__name__: CartesianToCartesianByBlock,
-    QuarterLayerToCartesian.__name__: QuarterLayerToCartesian
+    QuarterLayerToCartesian.__name__: QuarterLayerToCartesian,
+    TransformationMatrix.__name__: TransformationMatrix
 }

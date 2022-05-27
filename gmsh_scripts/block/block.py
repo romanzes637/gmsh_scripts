@@ -277,20 +277,25 @@ class Block:
                     if isinstance(t, str):
                         name, kwargs = t, {}
                     elif isinstance(t, list):
-                        if len(t) == 3:
-                            name, kwargs = 'translate', {'delta': t}
-                        elif len(t) == 4:
-                            name = 'rotate'
-                            kwargs = {'origin': [0, 0, 0],
-                                      'direction': t[:3],
-                                      'angle': t[3]}
-                        elif len(t) == 7:
-                            name = 'rotate'
-                            kwargs = {'origin': t[:3],
-                                      'direction': t[3:6],
-                                      'angle': t[6]}
-                        else:
-                            raise ValueError(t)
+                        if isinstance(t[0], list):  # List of lists
+                            name = 'TransformationMatrix'
+                            kwargs = {'matrix': t}
+                        else:  # List of numbers
+                            if len(t) == 3:
+                                name, kwargs = 'translate', {'delta': t}
+                            elif len(t) == 4:
+                                name = 'rotate'
+                                kwargs = {'origin': [0, 0, 0],
+                                          'direction': t[:3],
+                                          'angle': t[3]}
+                            elif len(t) == 7:
+                                name = 'rotate'
+                                kwargs = {'origin': t[:3],
+                                          'direction': t[3:6],
+                                          'angle': t[6]}
+                            else:
+                                name = 'TransformationMatrix'
+                                kwargs = {'matrix': t}
                     elif isinstance(t, dict):
                         name = t.pop('name')
                         kwargs = t
