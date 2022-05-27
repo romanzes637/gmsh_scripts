@@ -7,6 +7,12 @@ from gmsh_scripts.entity import CurveLoop
 from gmsh_scripts.entity import Surface
 from gmsh_scripts.entity import SurfaceLoop
 from gmsh_scripts.entity import Volume
+from gmsh_scripts.registry import register_point, register_curve, register_curve_loop, \
+    register_surface, register_surface_loop, register_volume, \
+    register_curve_structure, register_surface_structure, \
+    register_surface_quadrate, register_volume_structure, unregister_volumes, \
+    register_volume2block, get_boolean_old2news, get_boolean_new2olds, \
+    get_volume2block, pre_unregister_volume
 
 
 class Polyhedron(Block):
@@ -55,27 +61,32 @@ class Polyhedron(Block):
         curves = {}  # {(start point, end_point): index}
         surfaces_curves, surfaces_curves_signs = [], []
         for g in polygons:  # polygon is a surfaces in terms of gmsh
-            cs, ss = [], []  # curves, signs
-            ps, n = deque(g), len(g)  # polygon points and  number of points
-            for _ in range(n):  # move around
-                c1, c2 = (ps[0], ps[1]), (ps[1], ps[0])  # forward and reverse
-                if c1 in curves:
-                    c, s = curves[c1], 1
-                elif c2 in curves:
-                    c, s = curves[c2], -1
-                else:
-                    c, s = curves.setdefault(c1, len(curves)), 1
-                cs.append(c)
-                ss.append(s)
-                ps.rotate(-1)
-            surfaces_curves.append(cs)
-            surfaces_curves_signs.append(ss)
+            loops = g if isinstance(g[0], list) else [g]
+            css, sss = [], []
+            for loop in loops:
+                cs, ss = [], []  # curves, signs
+                ps, n = deque(loop), len(loop)  # polygon points and  number of points
+                for _ in range(n):  # move around
+                    c1, c2 = (ps[0], ps[1]), (ps[1], ps[0])  # forward and reverse
+                    if c1 in curves:
+                        c, s = curves[c1], 1
+                    elif c2 in curves:
+                        c, s = curves[c2], -1
+                    else:
+                        c, s = curves.setdefault(c1, len(curves)), 1
+                    cs.append(c)
+                    ss.append(s)
+                    ps.rotate(-1)
+                css.append(cs)
+                sss.append(ss)
+            surfaces_curves.append(css)
+            surfaces_curves_signs.append(sss)
         curves_points = list(curves)
         surfaces_curves = surfaces_curves
         surfaces_curves_signs = surfaces_curves_signs
         curves = [Curve(name='line') for _ in curves_points]
-        curves_loops = [CurveLoop() for _ in surfaces_curves]
-        surfaces = [Surface(name='fill') for _ in curves_loops]
+        curves_loops = [[CurveLoop() for _ in loops] for loops in surfaces_curves]
+        surfaces = [Surface(name='plane') for _ in surfaces_curves]
         surfaces_loops = [SurfaceLoop()]
         volumes = [Volume()]
         curves_structures = [None for _ in curves]
@@ -106,6 +117,19 @@ class Polyhedron(Block):
     @staticmethod
     def parse_do_quadrate(do_quadrate):
         pass
+
+    def register_curves_loops(self):
+        for i, loops in enumerate(self.surfaces_curves):
+            for j, loop in enumerate(loops):
+                signs = self.surfaces_curves_signs[i][j]
+                self.curves_loops[i][j].curves = [self.curves[x] for x in loop]
+                self.curves_loops[i][j].curves_signs = signs
+                self.curves_loops[i][j] = register_curve_loop(self.curves_loops[i][j])
+
+    def register_surfaces(self):
+        for i, s in enumerate(self.surfaces):
+            self.surfaces[i].curves_loops = self.curves_loops[i]
+            self.surfaces[i] = register_surface(self.surfaces[i])
 
 
 str2obj = {

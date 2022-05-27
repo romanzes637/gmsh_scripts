@@ -301,7 +301,7 @@ add_surface = {
         **surface['kwargs']
     ),
     ('occ', 'plane'): lambda surface: gmsh.model.occ.addPlaneSurface(
-        wireTags=[[x.tag for x in surface['curves_loops']][0]],
+        wireTags=[x.tag for x in surface['curves_loops']],
         **surface['kwargs']
     )
 }

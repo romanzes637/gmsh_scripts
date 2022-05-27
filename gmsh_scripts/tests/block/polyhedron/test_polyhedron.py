@@ -34,3 +34,8 @@ def test_icosahedron(run):
 @pytest.mark.parametrize("run", ["multi.json"], indirect=True)
 def test_multi(run):
     assert run == 0
+
+
+@pytest.mark.parametrize("run", ["elbow.json"], indirect=True)
+def test_elbow(run):
+    assert run == 0
