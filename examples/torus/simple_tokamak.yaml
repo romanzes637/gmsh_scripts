@@ -1,0 +1,23 @@
+metadata:
+  run:
+    log_path: null
+    factory: geo
+    strategy: strategy.NoBoolean
+data:
+  class: block.Matrix
+  matrix: [
+    [ 1;1;2, 2;1;2, 3;1;2 ],
+    [ 0;1;2, 360:8;1;2 ],
+    [ 0;1;2, 360:16;1;2 ],
+    [ v;s, 5 ],
+    [ v;s, 0.8 ],
+    [ v;s, 1.2 ],
+    {
+      class: coordinate_system.Tokamak
+    }
+  ]
+  items_transforms: [[{class: transform.TokamakToCartesian}]]
+  items_zone: [
+    [ V, [ S1, S2, S3, S4, S5, S6 ] ]
+  ]
+  items_do_quadrate_map: 1
