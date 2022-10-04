@@ -1,0 +1,17 @@
+{
+  "data": {
+    "class": "block.Layer",
+    "layer": [
+      ["3.250;1"],
+      ["30:3;10"]],
+    "layer_curves": [
+      ["circle_arc"],
+      ["line"]],
+    "items_zone": ["EBS"],
+    "items_boolean_level_map": 1,
+    "transforms": [[0, 0, -15], [0, 1, 0, 90], [0, 0, 2.050]],
+    "items_do_register_map": 1,
+    "items_children": [["/container.json"]],
+    "items_children_transforms": [[[[-0.700, -0.200, -2.750]]]]
+  }
+}

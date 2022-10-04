@@ -1,0 +1,6 @@
+data:
+  class: block.Block
+  points: [ 1800, 1800, 400, 75 ]
+  zone: Rock
+  boolean_level: 0
+  transforms: [ [ 0, 0, -200 ] ]

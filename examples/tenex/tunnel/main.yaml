@@ -1,0 +1,18 @@
+metadata:
+  run:
+    factory: occ
+    log_level: DEBUG
+    options:
+      Mesh.Algorithm: 6
+      Mesh.Algorithm3D: 1
+      Mesh.MeshSizeFactor: 5
+      Mesh.MeshSizeMin: 0.1
+      Mesh.MeshSizeMax: 1000
+      Mesh.MeshSizeFromPoints: 1
+      Mesh.MeshSizeExtendFromBoundary: 1
+      Mesh.MeshSizeFromCurvature: 42
+data:
+  class: block.Block
+  do_register: 0
+  children: [ /rock.yaml, /hill.yaml, /tunnel.json ]
+  children_transforms: [ [ ], [ ], [ ] ]

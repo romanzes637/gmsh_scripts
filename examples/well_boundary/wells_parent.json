@@ -1,0 +1,40 @@
+{
+  "metadata": {
+    "run": {
+      "factory": "occ",
+      "log_level": "DEBUG",
+	  "log_path": null,
+      "options": {
+        "Mesh.Algorithm": 6,
+        "Mesh.Algorithm3D": 1,
+        "Mesh.MeshSizeFactor": 1,
+        "Mesh.MeshSizeMin": 0.00001,
+        "Mesh.MeshSizeMax": 1e22,
+        "Mesh.MeshSizeFromPoints": 1,
+        "Mesh.MeshSizeExtendFromBoundary": 1,
+        "Mesh.MeshSizeFromCurvature": 30
+      },
+      "strategy": {
+        "class": "strategy.Base",
+        "zone_function": {
+          "class": "zone.Mesh",
+          "dims": [2, 3]
+        }}
+    }
+  },
+  "data": {
+    "class": "block.Matrix",
+    "matrix": [
+      ["2700;1;1", "3400:2;1;1"],
+      ["100;1;1", "1200:2;1;1"],
+      ["-1800;1;1", "100:2;1;1"]],
+	"items_do_structure_map": 1,
+    "items_do_register_map": 0,
+	"items_do_unregister_map": 0,
+    "items_do_unregister_boolean_map": 0,
+    "items_boolean_level_map": 0,
+    "items_do_quadrate_map": 0,
+	"children": ["/main_well.json"],
+	"items_zone": ["O"]
+  }
+}
