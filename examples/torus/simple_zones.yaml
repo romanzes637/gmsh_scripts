@@ -1,0 +1,49 @@
+metadata:
+  run:
+    factory: geo
+    strategy: strategy.NoBoolean
+data:
+  class: block.Layer
+  layer: [
+    [0.025;1;4, 0.1;1;4, 0.25;1;8:0:0.8],
+    [0.25:16;1;4, 0.5:16;1;4, 0.75:16;1;4, 1.0:16;1;4],
+    {
+      class: coordinate_system.Path,
+      curves: [
+        [circle_arc, [[1.0, 0, 0], [0, 0, 0], [0, 1.0, 0]]],
+        [circle_arc, [[0, 1.0, 0], [0, 0, 0], [-1.0, 0, 0]]],
+        [circle_arc, [[-1.0, 0, 0], [0, 0, 0], [0, -1.0, 0]]],
+        [circle_arc, [[0, -1.0, 0], [0, 0, 0], [1.0, 0, 0]]]
+      ],
+      orientations: [
+        [[0, 0, 1], [1, 0, 0], [0, 1, 0]],
+        [[0, 0, 1], [0, 1, 0], [-1, 0, 0]],
+        [[0, 0, 1], [-1, 0, 0], [0, -1, 0]],
+        [[0, 0, 1], [0, -1, 0], [1, 0, 0]],
+        [[0, 0, 1], [1, 0, 0], [0, 1, 0]]
+      ],
+      do_normalize: true
+    }
+    ]
+  layer_curves: [
+    [line, circle_arc, circle_arc],
+    [line, line, line, line]
+  ]
+  items_zone: [
+    [A, [SA, SA, SA, SA, SA, SA]],
+    [B, [SB, SB, SB, SB, SB, SB]],
+    [C, [SC, SC, SC, SC, SC, SC]]
+  ]
+  items_zone_map: [
+    [0, 1, 2],
+    [0, 1, 2],
+    [0, 1, 2],
+    [0, 1, 2]
+  ]
+  items_do_register_map: [
+    [1, 1, 1],
+    [1, 1, 1],
+    [1, 1, 1],
+    [1, 1, 1]
+  ]
+  items_do_quadrate_map: 1
