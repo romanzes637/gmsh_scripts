@@ -79,10 +79,10 @@ python -m gmsh_scripts all_heater_plug.json --plot
 [Butov R.A., Drobyishevsky N.I., Moiseenko E.V., Tokarev Yu. N. Mesh generation for radioactive waste management tasks. Radioactive Waste, 2021, no. 1 (14), pp. 87—95. DOI: 10.25283/2587-9707-2021-1-87-95. (In Russian)](http://eng.radwaste-journal.ru/docs/journals/27/mesh_generation_for_radioactive_waste_management_tasks.pdf)
 
 ## Contacts
-Roman Butov
+Roman Pashkovsky
 
 https://github.com/romanzes637
 
-romanbutov637@gmail.com
+romapasky@gmail.com
 
 Made in [Nuclear Safety Institute of the Russian Academy of Sciences](http://en.ibrae.ac.ru/) (IBRAE RAN)
