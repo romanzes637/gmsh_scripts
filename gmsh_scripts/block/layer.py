@@ -13,6 +13,7 @@ class Layer(Matrix):
             # Layer
             self, layer=None, layer_curves=None, layer_types=None,
             items_do_register_map=None, items_do_register_children_map=None,
+            items_do_register_mask=None,
             items_do_unregister_map=None,
             items_do_unregister_children_map=None,
             items_do_unregister_boolean_map=None,
@@ -75,6 +76,8 @@ class Layer(Matrix):
                                          for x in g2l_b2b_g2g]
         items_do_register_map = Layer.parse_layers_block_map(
             items_do_register_map, 1, g2l_b2b_g2g, (bool, int))
+        items_do_register_mask = Layer.parse_layers_block_mask(
+            items_do_register_mask, 1, g2l_b2b_g2g, (bool, int))
         items_do_register_children_map = Layer.parse_layers_block_map(
             items_do_register_children_map, 1, g2l_b2b_g2g, (bool, int))
         items_do_unregister_map = Layer.parse_layers_block_map(
@@ -83,8 +86,10 @@ class Layer(Matrix):
             items_do_unregister_children_map, 0, g2l_b2b_g2g, (bool, int))
         items_do_unregister_boolean_map = Layer.parse_layers_block_map(
             items_do_unregister_boolean_map, 0, g2l_b2b_g2g, (bool, int))
-        items_do_register_map = [x * y for x, y in zip(
-            items_default_do_register_map, items_do_register_map)]
+        items_do_register_map = [x*y*z for x, y, z in zip(
+            items_default_do_register_map,
+            items_do_register_map,
+            items_do_register_mask)]
         items_do_register_children_map = [x * y for x, y in zip(
             items_default_do_register_map, items_do_register_children_map)]
         # Structure and Quadrate
@@ -210,6 +215,39 @@ class Layer(Matrix):
             return m
         else:  # Something wrong
             raise ValueError(m)
+
+    @staticmethod
+    def parse_layers_block_mask(m, default, new2old, item_types=()):
+        # Default value for all items if map is None
+        if m is None:
+            n = [default for _ in new2old]
+            return n
+        m = list(flatten(m)) if isinstance(m, list) else m
+        # Old list to new list
+        old2new = {}
+        for new, old in enumerate(new2old):
+            if old is not None:
+                old2new.setdefault(old[0], []).append(new)
+        # Check on single item of type in item_types
+        for t in item_types:
+            if isinstance(t, list) and isinstance(m, list):  # list of ...
+                if all(isinstance(ti, mi) for ti in t for mi in m):
+                    max_old = max(x[0] for x in new2old if x is not None)
+                    m = [m for _ in range(max_old + 1)]
+                    break
+            elif isinstance(m, t):  # non list types
+                max_old = max(x[0] for x in new2old if x is not None)
+                m = [m for _ in range(max_old + 1)]
+                break
+        n = [default for _ in new2old]
+        for mi, mm in enumerate(m):
+            nis = old2new[mi]
+            masks = [int(x) for x in list(f'{mm:04b}')]  # NY, NX, X, Y
+            # print(mm, nis, masks)
+            if len(nis) == len(masks):
+                for ni, mask in zip(nis, masks):
+                    n[ni] = mask
+        return n
 
     @staticmethod
     def get_layers_curves(parsed_layers_curves,
