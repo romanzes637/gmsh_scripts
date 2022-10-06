@@ -333,8 +333,8 @@ class Layer(Matrix):
                             for p in c_ps:
                                 ky, dx, dz = p
                                 cy = cy0 + ky * (cy1 - cy0)
-                                c6_ps.append([cx + dx, cy, pz + dz])
-                                c7_ps.append([cx + dx, cy, z + dz])
+                                c6_ps.append([cx - dx, cy, pz + dz])
+                                c7_ps.append([cx - dx, cy, z + dz])
                             c6, c7 = [cn] + [c6_ps], [cn] + [c7_ps]
                     elif lt == 3:  # NY layer
                         cy = -ccs
@@ -349,8 +349,8 @@ class Layer(Matrix):
                             for p in c_ps:
                                 kx, dy, dz = p
                                 cx = cx0 + kx * (cx1 - cx0)
-                                c3_ps.append([cx, cy + dy, z + dz])
-                                c4_ps.append([cx, cy + dy, pz + dz])
+                                c3_ps.append([cx, cy - dy, z + dz])
+                                c4_ps.append([cx, cy - dy, pz + dz])
                             c3, c4 = [cn] + [c3_ps], [cn] + [c4_ps]
                     else:
                         raise ValueError(lt)
@@ -462,8 +462,8 @@ class Layer(Matrix):
                         for p in c_ps:
                             ky, dx, dz = p
                             cy = cy0 + ky * (cy1 - cy0)
-                            c2_ps.append([cx + dx, cy, pz + dz])
-                            c3_ps.append([cx + dx, cy, z + dz])
+                            c2_ps.append([cx - dx, cy, pz + dz])
+                            c3_ps.append([cx - dx, cy, z + dz])
                         c2, c3 = [cn] + [c2_ps], [cn] + [c3_ps]
                     if pn == 'line':
                         c1, c4 = pc, pc
@@ -474,8 +474,8 @@ class Layer(Matrix):
                         for p in pc_ps:
                             ky, dx, dz = p
                             py = py0 + ky * (py1 - py0)
-                            c1_ps.append([px + dx, py, pz + dz])
-                            c4_ps.append([px + dx, py, z + dz])
+                            c1_ps.append([px - dx, py, pz + dz])
+                            c4_ps.append([px - dx, py, z + dz])
                         c1, c4 = [pn] + [c1_ps], [pn] + [c4_ps]
                     cs = [['line'], ['line'], ['line'], ['line'],
                           c1, c2, c3, c4,
@@ -495,8 +495,8 @@ class Layer(Matrix):
                         for p in c_ps:
                             kx, dy, dz = p
                             cx = cx0 + kx * (cx1 - cx0)
-                            c3_ps.append([cx, cy + dy, z + dz])
-                            c4_ps.append([cx, cy + dy, pz + dz])
+                            c3_ps.append([cx, cy - dy, z + dz])
+                            c4_ps.append([cx, cy - dy, pz + dz])
                         c3, c4 = [cn] + [c3_ps], [cn] + [c4_ps]
                     if pn == 'line':
                         c1, c2 = pc, pc
@@ -507,8 +507,8 @@ class Layer(Matrix):
                         for p in pc_ps:
                             kx, dy, dz = p
                             px = px0 + kx * (px1 - px0)
-                            c1_ps.append([px, py + dy, pz + dz])
-                            c2_ps.append([px, py + dy, z + dz])
+                            c1_ps.append([px, py - dy, pz + dz])
+                            c2_ps.append([px, py - dy, z + dz])
                         c1, c2 = [pn] + [c1_ps], [pn] + [c2_ps]
                     cs = [c1, c2, c3, c4,
                           ['line'], ['line'], ['line'], ['line'],
