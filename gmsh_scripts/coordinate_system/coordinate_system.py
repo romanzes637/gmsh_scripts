@@ -141,9 +141,12 @@ class Path(CoordinateSystem):
     """
     def __init__(self, origin=np.zeros(3), curves=None, orientations=None,
                  transforms=None, weights=None, local_weights=None,
-                 do_normalize=False, **kwargs):
+                 do_normalize=False, normalize_kind=1, normalize_local_kind=1,
+                 **kwargs):
         super().__init__(dim=3, origin=origin, **kwargs)
         self.do_normalize = do_normalize
+        self.normalize_kind = normalize_kind
+        self.normalize_local_kind = normalize_local_kind
         curves = [] if curves is None else curves
         transforms = [[] for _ in curves] if transforms is None else transforms
         self.weights = [1 for _ in curves] if weights is None else weights
@@ -188,10 +191,38 @@ class Path(CoordinateSystem):
                 pass
             else:
                 raise ValueError(o)
-        if self.do_normalize:  # TODO Do normalization? Do +1 0
-            for i, o in enumerate(orientations):
-                for j, v in enumerate(o):
-                    v.coordinates = v.coordinates / np.linalg.norm(v.coordinates)
+        if self.do_normalize:
+            if self.normalize_kind == 0:  # skip
+                pass
+            elif self.normalize_kind == 1:  # self
+                for i, o in enumerate(orientations):
+                    for j, v in enumerate(o):
+                        norm = np.linalg.norm(v.coordinates)
+                        v.coordinates = v.coordinates / norm
+            elif self.normalize_kind == 2:  # first
+                first_norms = [np.linalg.norm(x.coordinates) for x in orientations[0]]
+                for i, o in enumerate(orientations):
+                    for j, v in enumerate(o):
+                        norm = np.linalg.norm(v.coordinates)
+                        v.coordinates = v.coordinates / norm * first_norms[j]
+            elif self.normalize_kind == 3:  # last
+                last_norms = [np.linalg.norm(x.coordinates) for x in orientations[-1]]
+                for i, o in enumerate(orientations):
+                    for j, v in enumerate(o):
+                        norm = np.linalg.norm(v.coordinates)
+                        v.coordinates = v.coordinates / norm * last_norms[j]
+            elif self.normalize_kind == 4:  # first-last
+                first_norms = [np.linalg.norm(x.coordinates) for x in orientations[0]]
+                last_norms = [np.linalg.norm(x.coordinates) for x in orientations[-1]]
+                for i, o in enumerate(orientations):
+                    k = i / (len(orientations) - 1)
+                    for j, v in enumerate(o):
+                        norm = np.linalg.norm(v.coordinates)
+                        norms = [k*y + (1 - k) * x
+                                 for x, y in zip(first_norms, last_norms)]
+                        v.coordinates = v.coordinates / norm * norms[j]
+            else:
+                raise NotImplementedError(self.normalize_kind)
         return orientations
 
     def register(self):
@@ -272,6 +303,27 @@ class Path(CoordinateSystem):
                 ori0 = np.array([x.coordinates for x in self.orientations[i]])
                 ori1 = np.array([x.coordinates for x in self.orientations[i + 1]])
                 ori = lu_rel * ori1 + (1 - lu_rel) * ori0
+                if self.do_normalize:
+                    if self.normalize_local_kind == 0:  # skip
+                        pass
+                    elif self.normalize_local_kind == 1:  # self
+                        norm = np.linalg.norm(ori, axis=1, keepdims=True)
+                        ori /= norm
+                    elif self.normalize_local_kind == 2:  # first
+                        norm0 = np.linalg.norm(ori0, axis=1, keepdims=True)
+                        norm = np.linalg.norm(ori, axis=1, keepdims=True)
+                        ori = ori / norm * norm0
+                    elif self.normalize_local_kind == 3:  # last
+                        norm1 = np.linalg.norm(ori1, axis=1, keepdims=True)
+                        norm = np.linalg.norm(ori, axis=1, keepdims=True)
+                        ori = ori / norm * norm1
+                    elif self.normalize_local_kind == 4:  # first-last
+                        norm0 = np.linalg.norm(ori0, axis=1, keepdims=True)
+                        norm1 = np.linalg.norm(ori1, axis=1, keepdims=True)
+                        norm = np.linalg.norm(ori, axis=1, keepdims=True)
+                        ori = ori / norm * (lu_rel * norm1 + (1 - lu_rel) * norm0)
+                    else:
+                        raise NotImplementedError(self.normalize_local_kind)
                 break
         return v, dv, ori, lu_rel
 
@@ -306,10 +358,7 @@ class Path(CoordinateSystem):
             a = a * der_part
             rot = Rotate(origin=[0, 0, 0], direction=d, angle=a)
             ps = [rot(x) for x in ps]
-        if self.do_normalize:
-            vs = [x.coordinates / np.linalg.norm(x.coordinates) for x in ps]
-        else:
-            vs = [x.coordinates for x in ps]
+        vs = [x.coordinates for x in ps]
         cs = Affine(origin=v, vs=vs)
         return cs
 
