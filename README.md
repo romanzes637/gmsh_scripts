@@ -1,4 +1,4 @@
-![readme](/images/readme.jpg)
+<img alt="Readme" src="/images/readme.jpg" width="800" height="800">
 
 # gmsh_scripts
 3D structured/unstructured/tetrahedral/hexahedral multi-block mesh generator 
@@ -48,21 +48,38 @@ python gmsh_scripts/run.py matrix.json
 ```
 
 ### Result
-![readme](/images/matrix.png)
+<img alt="Matrix" src="/images/matrix.png" width="200" height="200">
 
 ## Complex [mesh](https://downgit.github.io/#/home?url=https://github.com/romanzes637/gmsh_scripts/tree/master/examples/experiment/sweden) from examples
 ### Create mesh
 ```shell
 python -m gmsh_scripts all_heater_plug.json
 ```
-![readme](/images/sweden_experiment.png)
+<img alt="Experiment" src="/images/sweden_experiment.png" width="400" height="400">
+
 ### Plot tree
 ```shell
 python -m gmsh_scripts all_heater_plug.json --plot
 ```
-![readme](/images/sweden_experiment_tree.png)
+<img alt="Experiment tree" src="/images/sweden_experiment_tree.png" width="400" height="400">
 
 ## [Examples](https://downgit.github.io/#/home?url=https://github.com/romanzes637/gmsh_scripts/tree/master/examples)
+
+<a href="https://github.com/romanzes637/gmsh_scripts/blob/master/examples/cylinder/simple.json">
+<img alt="Multilayerd Cylinder" src="/images/simple_cylinder.png" width="200" height="200">
+</a>
+<a href="https://github.com/romanzes637/gmsh_scripts/blob/master/examples/torus/simple.yaml">
+<img alt="Simple Torus" src="/images/simple_torus.png" width="200" height="200">
+</a>
+<a href="https://github.com/romanzes637/gmsh_scripts/blob/master/examples/torus/simple_tokamak.yaml">
+<img alt="Simple Tokamak" src="/images/simple_tokamak.png" width="200" height="200">
+</a>
+<a href="https://github.com/romanzes637/gmsh_scripts/blob/master/examples/torus/simple_stellarator.yaml">
+<img alt="Simple Stellarator" src="/images/simple_stellarator.png" width="200" height="200">
+</a>
+<a href="https://github.com/romanzes637/gmsh_scripts/blob/master/examples/well_boundary/wells_parent.json">
+<img alt="Wells" src="https://github.com/romanzes637/gmsh_scripts/blob/master/images/wells_parent.png" width="200" height="200">
+</a>
 
 ## [Examples album](https://photos.app.goo.gl/KngvSr6ttbyIdFEX2)
 
