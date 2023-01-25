@@ -1,0 +1,22 @@
+metadata:
+  run:
+    factory: geo
+    strategy:
+      class: strategy.NoBoolean
+data:
+  class: block.Block
+  do_register: 0
+  children: [
+    /bottom.yaml,
+    /top_1.yaml,
+    /top_2.yaml,
+    /top_3.yaml
+  ]
+  children_transforms: [
+    [ ],
+    [ [ 0, 0, 0.250 ] ],
+    [ [ 0.250, 0, 0.250 ] ],
+    [ [ 0.470, 0, 0.250 ] ]
+  ]
+  children_items_do_quadrate_map: [ 1, 1, 1, 1, 1 ]  # Set 0 for tetrahedral mesh
+  children_items_do_structure_map: [ 1, 1, 1, 1, 1 ]  # Set 0 for unstructured mesh

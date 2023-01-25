@@ -1,0 +1,5 @@
+data:
+  class: block.Matrix
+  # COORDINATE;MESH_SIZE;NUMBER_OF_POINTS
+  matrix: [ [ 0;0.1, 0.250;0.1;8 ], [ 0;0.1, 1;0.1;8 ], [ 0;0.1, 0.250;0.1;8 ] ]
+  items_zone: [ [ Volume, [ NX, X, NY, Y, NZ, Z ] ] ]

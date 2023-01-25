@@ -80,6 +80,12 @@ python -m gmsh_scripts all_heater_plug.json --plot
 <a href="https://github.com/romanzes637/gmsh_scripts/blob/master/examples/well_boundary/wells_parent.json">
 <img alt="Wells" src="https://github.com/romanzes637/gmsh_scripts/blob/master/images/wells_parent.png" width="200" height="200">
 </a>
+<a href="https://github.com/romanzes637/gmsh_scripts/tree/master/examples/matrix/cross_section_1">
+<img alt="Cross section 1" src="https://github.com/romanzes637/gmsh_scripts/blob/master/images/cross_section_1.png" width="200" height="200">
+</a>
+<a href="https://github.com/romanzes637/gmsh_scripts/tree/master/examples/matrix/cross_section_2">
+<img alt="Cross section 2" src="https://github.com/romanzes637/gmsh_scripts/blob/master/images/cross_section_2.png" width="200" height="200">
+</a>
 
 ## [Examples album](https://photos.app.goo.gl/KngvSr6ttbyIdFEX2)
 
