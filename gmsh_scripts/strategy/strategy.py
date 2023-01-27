@@ -18,6 +18,7 @@ from gmsh_scripts.refine.refine import NoRefine
 
 
 class Strategy:
+    """Abstract strategy"""
     def __init__(self, factory=None, model_name=None, output_path=None,
                  output_formats=None):
         factory = 'geo' if factory is None else factory
@@ -39,10 +40,7 @@ class Strategy:
 
 
 class Base(Strategy):
-    """
-
-    """
-
+    """Default strategy"""
     def __init__(
             self,
             factory=None,
@@ -115,6 +113,7 @@ class Base(Strategy):
 
 
 class Fast(Strategy):
+    """Generates geometry only (.geo_unrolled file)"""
     def __init__(self, factory=None, model_name=None, output_path=None,
                  output_formats=None):
         super().__init__(factory, model_name, output_path, output_formats)
@@ -154,10 +153,7 @@ class Fast(Strategy):
 
 
 class NoBoolean(Strategy):
-    """
-
-    """
-
+    """Doesn't use boolean operations"""
     def __init__(
             self,
             factory=None,

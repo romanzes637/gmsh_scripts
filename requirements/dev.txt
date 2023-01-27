@@ -1,4 +1,8 @@
 -r common.txt
 build
+Sphinx
+sphinx-intl
+sphinx-autoapi
+sphinx-rtd-theme
 twine
 pytest==7.1.1

@@ -1,0 +1,564 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, romanzes637
+# This file is distributed under the same license as the gmsh_scripts
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmsh_scripts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-27 20:44+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:2
+msgid ":py:mod:`gmsh_scripts.support.support`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:8
+msgid "Module Contents"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:11
+msgid "Classes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:21:<autosummary>:1
+msgid ""
+":py:obj:`LoggingDecorator "
+"<gmsh_scripts.support.support.LoggingDecorator>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:41
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:21:<autosummary>:1
+msgid "Decorator for logger initialization"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:21:<autosummary>:1
+msgid ":py:obj:`GmshDecorator <gmsh_scripts.support.support.GmshDecorator>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:59
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:21:<autosummary>:1
+msgid "Decorator fot gmsh initialization"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:21:<autosummary>:1
+msgid ""
+":py:obj:`GmshOptionsDecorator "
+"<gmsh_scripts.support.support.GmshOptionsDecorator>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:68
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:21:<autosummary>:1
+msgid "Decorator for setting gmsh options"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:21:<autosummary>:1
+msgid ":py:obj:`DataTree <gmsh_scripts.support.support.DataTree>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:21:<autosummary>:1
+msgid "Volumes data tree"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:23
+msgid "Functions"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:38:<autosummary>:1
+msgid ""
+":py:obj:`flatten <gmsh_scripts.support.support.flatten>`\\ "
+"\\(iterable\\[\\, types\\]\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:219
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:38:<autosummary>:1
+msgid "Flatten iterable through types"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:38:<autosummary>:1
+msgid ""
+":py:obj:`plot_quality <gmsh_scripts.support.support.plot_quality>`\\ "
+"\\(\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:38:<autosummary>:1
+msgid ""
+":py:obj:`plot_statistics "
+"<gmsh_scripts.support.support.plot_statistics>`\\ \\(\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:38:<autosummary>:1
+msgid ":py:obj:`timeit <gmsh_scripts.support.support.timeit>`\\ \\(f\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:38:<autosummary>:1
+msgid ""
+":py:obj:`beta_function <gmsh_scripts.support.support.beta_function>`\\ "
+"\\(xs\\, a\\, b\\[\\, n\\]\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:285
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:38:<autosummary>:1
+msgid "Beta function"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:38:<autosummary>:1
+msgid ""
+":py:obj:`beta_pdf <gmsh_scripts.support.support.beta_pdf>`\\ \\(xs\\, "
+"a\\, b\\[\\, n\\]\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:304
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:38:<autosummary>:1
+msgid "Beta probability density function"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:38:<autosummary>:1
+msgid ""
+":py:obj:`beta_cdf <gmsh_scripts.support.support.beta_cdf>`\\ \\(xs\\, "
+"a\\, b\\[\\, n\\]\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:323
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:38:<autosummary>:1
+msgid "Beta cumulative distribution function"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:38:<autosummary>:1
+msgid ""
+":py:obj:`check_on_file <gmsh_scripts.support.support.check_on_file>`\\ "
+"\\(path\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:343
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:38:<autosummary>:1
+msgid "Check path on the file"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:38:<autosummary>:1
+msgid ""
+":py:obj:`volumes_surfaces_to_volumes_groups_surfaces "
+"<gmsh_scripts.support.support.volumes_surfaces_to_volumes_groups_surfaces>`\\"
+" \\(...\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:38:<autosummary>:1
+msgid "For Environment object. For each distinct inner volume in Environment"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst
+msgid "Parameters"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:43
+msgid "path to log file"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:45
+msgid "mode of log file"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:47
+msgid ""
+"format of messages See https://docs.python.org/3/library/logging.html"
+"#logrecord-attributes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:50
+msgid "format of the date"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:52
+msgid ""
+"CRITICAL = 50, FATAL = CRITICAL, ERROR = 40, WARNING = 30, WARN = "
+"WARNING, INFO = 20, DEBUG = 10, NOTSET = 0"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:61
+msgid "Initialize"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:62
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:71
+msgid "Call function"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:63
+msgid "Finalize"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:70
+msgid "Set options"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:74
+msgid "Options:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:74
+msgid "https://gmsh.info/doc/texinfo/gmsh.html#Options"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:163
+msgid "Unstructured mesh:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:77
+msgid ""
+"Gmsh provides a choice between several 2D and 3D unstructured algorithms."
+" Each algorithm has its own advantages and disadvantages."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:80
+msgid ""
+"For all 2D unstructured algorithms a Delaunay mesh that contains all the "
+"points of the 1D mesh is initially constructed using a divide-and-conquer"
+" algorithm5. Missing edges are recovered using edge swaps6. After this "
+"initial step several algorithms can be applied to generate the final "
+"mesh:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:86
+msgid ""
+"The “MeshAdapt” algorithm7 is based on local mesh modifications. This "
+"technique makes use of edge swaps, splits, and collapses: long edges are "
+"split, short edges are collapsed, and edges are swapped if a better "
+"geometrical configuration is obtained. The “Delaunay” algorithm is "
+"inspired by the work of the GAMMA team at INRIA8. New points are inserted"
+" sequentially at the circumcenter of the element that has the largest "
+"adimensional circumradius. The mesh is then reconnected using an "
+"anisotropic Delaunay criterion. The “Frontal-Delaunay” algorithm is "
+"inspired by the work of S. Rebay9. Other experimental algorithms with "
+"specific features are also available. In particular, “Frontal-Delaunay "
+"for Quads”10 is a variant of the “Frontal-Delaunay” algorithm aiming at "
+"generating right-angle triangles suitable for recombination; and “BAMG”11"
+" allows to generate anisotropic triangulations. For very complex curved "
+"surfaces the “MeshAdapt” algorithm is the most robust. When high element "
+"quality is important, the “Frontal-Delaunay” algorithm should be tried. "
+"For very large meshes of plane surfaces the “Delaunay” algorithm is the "
+"fastest; it usually also handles complex mesh size fields better than the"
+" “Frontal-Delaunay”. When the “Delaunay” or “Frontal-Delaunay” algorithms"
+" fail, “MeshAdapt” is automatically triggered. The “Automatic” algorithm "
+"uses “Delaunay” for plane surfaces and “MeshAdapt” for all other "
+"surfaces."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:108
+msgid "Several 3D unstructured algorithms are also available:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:110
+msgid ""
+"The “Delaunay” algorithm is split into three separate steps. First, an "
+"initial mesh of the union of all the volumes in the model is performed, "
+"without inserting points in the volume. The surface mesh is then "
+"recovered using H. Si’s boundary recovery algorithm Tetgen/BR. Then a "
+"three-dimensional version of the 2D Delaunay algorithm described above is"
+" applied to insert points in the volume to respect the mesh size "
+"constraints. The “Frontal” algorithm uses J. Schoeberl’s Netgen algorithm"
+" 12. The “HXT” algorithm13 is a new efficient and parallel "
+"reimplementaton of the Delaunay algorithm. Other experimental algorithms "
+"with specific features are also available. In particular, “MMG3D”14 "
+"allows to generate anisotropic tetrahedralizations. The “Delaunay” "
+"algorithm is currently the most robust and is the only one that supports "
+"the automatic generation of hybrid meshes with pyramids. Embedded model "
+"entities and the Field mechanism to specify element sizes (see Specifying"
+" mesh element sizes) are currently only supported by the “Delaunay” and "
+"“HXT” algorithms."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:128
+msgid ""
+"If your version of Gmsh is compiled with OpenMP support (see Compiling "
+"the source code), most of the meshing steps can be performed in parallel:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:131
+msgid ""
+"1D and 2D meshing is parallelized using a coarse-grained approach, i.e. "
+"curves (resp. surfaces) are each meshed sequentially, but several curves "
+"(resp. surfaces) can be meshed at the same time. 3D meshing using HXT is "
+"parallelized using a fine-grained approach, i.e. the actual meshing "
+"procedure for a single volume is done is parallel. The number of threads "
+"can be controlled with the -nt flag on the command line (see Command-line"
+" options), or with the General.NumThreads, Mesh.MaxNumThreads1D, "
+"Mesh.MaxNumThreads2D and Mesh.MaxNumThreads3D options (see General "
+"options list and Mesh options list). To determine the size of mesh "
+"elements, Gmsh locally computes the minimum of"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:142
+msgid "the size of the model bounding box;"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:143
+msgid ""
+"if `Mesh.MeshSizeFromPoints' is set, the mesh size specified at "
+"geometrical points;"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:145
+msgid ""
+"if `Mesh.MeshSizeFromCurvature' is positive, the mesh size based on "
+"curvature (the value specifying the number of elements per 2 * pi rad);"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:147
+msgid "the background mesh size field;"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:148
+msgid "any per-entity mesh size constraint."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:150
+msgid ""
+"This value is then constrained in the interval [`Mesh.MeshSizeMin', "
+"`Mesh.MeshSizeMax'] and multiplied by `Mesh.MeshSizeFactor'.  In "
+"addition, boundary mesh sizes (on curves or surfaces) are interpolated "
+"inside the enclosed entity (surface or volume, respectively) if the "
+"option `Mesh.MeshSizeExtendFromBoundary' is set (which is the case by "
+"default)."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:156
+msgid ""
+"When the element size is fully specified by a background mesh size field "
+"(as it is in this example), it is thus often desirable to set"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:159
+msgid ""
+"Mesh.MeshSizeExtendFromBoundary = 0; Mesh.MeshSizeFromPoints = 0; "
+"Mesh.MeshSizeFromCurvature = 0;"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:163
+msgid "This will prevent over-refinement due to small mesh sizes on the boundary."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:213
+msgid "Quadrate:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:166
+msgid ""
+"To generate quadrangles instead of triangles, we can simply add "
+"gmsh.model.mesh.setRecombine(2, pl) If we'd had several surfaces, we "
+"could have used the global option \"Mesh.RecombineAll\":"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:171
+msgid "gmsh.option.setNumber(\"Mesh.RecombineAll\", 1)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:173
+msgid ""
+"The default recombination algorithm is called \"Blossom\": it uses a "
+"minimum cost perfect matching algorithm to generate fully quadrilateral "
+"meshes from triangulations. More details about the algorithm can be found"
+" in the following paper: J.-F. Remacle, J. Lambrechts, B. Seny, E. "
+"Marchandise, A. Johnen and C. Geuzaine, \"Blossom-Quad: a non-uniform "
+"quadrilateral mesh generator using a minimum cost perfect matching "
+"algorithm\", International Journal for Numerical Methods in Engineering "
+"89, pp. 1102-1119, 2012."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:181
+msgid ""
+"For even better 2D (planar) quadrilateral meshes, you can try the "
+"experimental \"Frontal-Delaunay for quads\" meshing algorithm, which is a"
+" triangulation algorithm that enables to create right triangles almost "
+"everywhere: J.-F. Remacle, F. Henrotte, T. Carrier-Baudouin, E. Bechet, "
+"E. Marchandise, C. Geuzaine and T. Mouton. A frontal Delaunay quad mesh "
+"generator using the L^inf norm. International Journal for Numerical "
+"Methods in Engineering, 94, pp. 494-512, 2013. Uncomment the following "
+"line to try the Frontal-Delaunay algorithms for quads:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:190
+msgid "gmsh.option.setNumber(\"Mesh.Algorithm\", 8)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:192
+msgid ""
+"The default recombination algorithm might leave some triangles in the "
+"mesh, if recombining all the triangles leads to badly shaped quads. In "
+"such cases, to generate full-quad meshes, you can either subdivide the "
+"resulting hybrid mesh (with `Mesh.SubdivisionAlgorithm' set to 1), or use"
+" the full-quad recombination algorithm, which will automatically perform "
+"a coarser mesh followed by recombination, smoothing and subdivision. "
+"Uncomment the following line to try the full-quad algorithm:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:200
+msgid "gmsh.option.setNumber(\"Mesh.RecombinationAlgorithm\", 2) # or 3"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:202
+msgid "You can also set the subdivision step alone, with"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:204
+msgid "gmsh.option.setNumber(\"Mesh.SubdivisionAlgorithm\", 1)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:206
+msgid "gmsh.model.mesh.generate(2)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:208
+msgid ""
+"Note that you could also apply the recombination algorithm and/or the "
+"subdivision step explicitly after meshing, as follows:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:211
+msgid ""
+"gmsh.model.mesh.generate(2) gmsh.model.mesh.recombine() "
+"gmsh.option.setNumber(\"Mesh.SubdivisionAlgorithm\", 1) "
+"gmsh.model.mesh.refine()"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:221
+msgid "some iterable"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:222
+msgid "types to recurse"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst
+msgid "Returns"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:224
+msgid "elements"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst
+msgid "Return type"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:230
+msgid ""
+"Volumes data tree # TODO add surfaces loops :param vs_dt: Volumes dim-"
+"tags :type vs_dt: list of tuple"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:237
+msgid "Volumes dim-tags"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst
+msgid "type"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:239
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:245
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:251
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:257
+msgid "list of tuple"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:243
+msgid "Surfaces dim-tags of volumes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:249
+msgid "Curves dim-tags of surfaces of volumes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:255
+msgid "Points dim-tags of curves of surfaces of volumes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:261
+msgid "Points dim-tags to coordinates"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:263
+msgid "dict"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:287
+msgid "https://en.wikipedia.org/wiki/Beta_function#Incomplete_beta_function"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:289
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:308
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:328
+msgid "argument(s)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:291
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:310
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:330
+msgid "alpha"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:293
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:312
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:332
+msgid "beta"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:295
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:314
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:334
+msgid "number of integration steps"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:298
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:317
+msgid "value"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:306
+msgid "https://en.wikipedia.org/wiki/Beta_distribution#Probability_density_function"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:325
+msgid ""
+"https://en.wikipedia.org/wiki/Beta_distribution#Cumulative_distribution_function"
+" https://en.wikipedia.org/wiki/Beta_function#Incomplete_beta_function"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:337
+msgid "value [0, 1]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:345
+msgid ""
+"In the order: 1. If file at absolute path 2. Else if file at relative to "
+"current working directory path 3. Else if file at relative to running "
+"script directory path 4. Else if file at relative to real running script "
+"directory path (with eliminating all symbolics links) 0. Else no file"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:353
+msgid "path to check"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:356
+msgid "result, expanded path to file or None"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/support/support/index.rst:362
+msgid ""
+"For Environment object. For each distinct inner volume in Environment "
+"should exist the surface loop. If inner volumes touch each other they "
+"unite to volume group and have common surface loop. :param "
+"volumes_surfaces: [[v1_s1, ..., v1_si], ..., [vj_s1, ..., vj_si]] "
+":return: volumes_groups_surfaces [[vg1_s1, ..., vg1_si], ...]"
+msgstr ""
+

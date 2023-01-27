@@ -12,21 +12,19 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
-sys.path.insert(0, os.path.abspath(os.path.join('..', '..', '..')))
 
-print(sys.path)
 import sphinx_rtd_theme
 
+sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
 
 # -- Project information -----------------------------------------------------
 
 project = 'gmsh_scripts'
-copyright = '2020, romanzes637'
+copyright = '2023, romanzes637'
 author = 'romanzes637'
 
 # The full version, including alpha/beta/rc tags
-release = '2020.1'
+release = '0.3.3'
 
 
 # -- General configuration ---------------------------------------------------
@@ -35,9 +33,21 @@ release = '2020.1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-'sphinx.ext.autodoc',
+'sphinx.ext.autodoc',  # Core library for html generation from docstrings
+'sphinx.ext.autosummary',   # Create neat summary tables
+'autoapi.extension',
 'sphinx.ext.napoleon',
-'sphinx_rtd_theme'
+'sphinx_rtd_theme',
+'rst2pdf.pdfbuilder'
+]
+
+# PDF
+# pdf_documents = [('index', u'rst2pdf', u'Sample rst2pdf doc', u'Your Name'),]
+# pdf_stylesheets = ['twocolumn']
+
+# LATEX
+latex_documents = [
+ ('index', 'index.tex', u'gmsh scripts', u'', 'manual'),
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -60,4 +70,36 @@ html_theme = 'sphinx_rtd_theme'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+# html_static_path = ['_static']
+
+# AutoApi
+autoapi_type = 'python'
+autoapi_dirs = ['../../gmsh_scripts']
+autoapi_generate_api_docs = True
+autoapi_ignore = ['*migrations*', '*test*']
+autoapi_options = [
+    "members",
+    "undoc-members",
+    "show-inheritance",
+    "show-module-summary",
+    "imported-members",
+]
+
+# Internationalization
+locale_dirs = ['../locale/']   # path is example but recommended
+gettext_compact = False     # optional
+# language = 'ru'
+
+# Autodoc
+# autosummary_generate = True
+#
+# autodoc_default_options = {
+#     'members': True,
+#     # The ones below should be optional but work nicely together with
+#     # example_package/autodoctest/doc/source/_templates/autosummary/class.rst
+#     # and other defaults in sphinx-autodoc.
+#     'show-inheritance': True,
+#     'inherited-members': True,
+#     'no-special-members': True,
+# }
+

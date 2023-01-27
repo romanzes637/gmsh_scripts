@@ -1,0 +1,91 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, romanzes637
+# This file is distributed under the same license as the gmsh_scripts
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmsh_scripts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-27 20:44+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:2
+msgid ":py:mod:`gmsh_scripts.block.layer`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:8
+msgid "Module Contents"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:11
+msgid "Classes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:19:<autosummary>:1
+msgid ":py:obj:`Layer <gmsh_scripts.block.layer.Layer>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:32
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:19:<autosummary>:1
+msgid "Matrix"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:21
+msgid "Attributes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:27:<autosummary>:1
+msgid ":py:obj:`str2obj <gmsh_scripts.block.layer.str2obj>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:30
+msgid "Bases: :py:obj:`gmsh_scripts.block.matrix.Matrix`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:34
+msgid "Args:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:51
+msgid "Parse layers curves"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst
+msgid "Parameters"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:53
+msgid "curves of layers"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:55
+msgid ""
+"local index of a block of the matrix to local index of a block of the "
+"parsed layer"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:58
+msgid "layers"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst
+msgid "Returns"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:61
+msgid "curves (list) curves map of the matrix (list)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst
+msgid "Return type"
+msgstr ""
+
