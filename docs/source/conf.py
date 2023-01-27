@@ -37,8 +37,7 @@ extensions = [
 'sphinx.ext.autosummary',   # Create neat summary tables
 'autoapi.extension',
 'sphinx.ext.napoleon',
-'sphinx_rtd_theme',
-'rst2pdf.pdfbuilder'
+'sphinx_rtd_theme'
 ]
 
 # PDF
