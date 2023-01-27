@@ -4,6 +4,10 @@
 3D structured/unstructured/tetrahedral/hexahedral multi-block mesh generator 
 with boolean operations based on [gmsh](https://gmsh.info/)
 
+## Documentation
+* [English](https://gmsh-scripts.readthedocs.io/en/latest/)
+* [Russian](https://gmsh-scripts.readthedocs.io/ru/latest/)
+
 ## Installation
 ### Pip
 1. [Download](https://www.python.org/downloads/) and install Python
@@ -63,7 +67,7 @@ python -m gmsh_scripts all_heater_plug.json --plot
 ```
 <img alt="Experiment tree" src="/images/sweden_experiment_tree.png" width="400" height="400">
 
-## [Examples](https://downgit.github.io/#/home?url=https://github.com/romanzes637/gmsh_scripts/tree/master/examples)
+## [Examples](https://downgit.github.io/#/home?url=https://github.com/romanzes637/gmsh_scripts/tree/master/examples) Click them!
 
 <a href="https://github.com/romanzes637/gmsh_scripts/blob/master/examples/cylinder/simple.json">
 <img alt="Multilayerd Cylinder" src="/images/simple_cylinder.png" width="200" height="200">
@@ -88,8 +92,6 @@ python -m gmsh_scripts all_heater_plug.json --plot
 </a>
 
 ## [Examples album](https://photos.app.goo.gl/KngvSr6ttbyIdFEX2)
-
-## [User manual (In Russian)](https://docs.google.com/document/d/166MPpgo0n661rmQZg7IS_MhNxlCueseOpwgqPBXQ8hI/edit?usp=sharing)
 
 ## [Video tutorials (In Russian)](https://youtube.com/playlist?list=PLNPHDKBRjaZmMzjxtoZVzeWSHZB-x9ayi)
 

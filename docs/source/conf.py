@@ -73,9 +73,9 @@ html_theme = 'sphinx_rtd_theme'
 
 # AutoApi
 autoapi_type = 'python'
-autoapi_dirs = ['../../gmsh_scripts']
+autoapi_dirs = ['../../src']
 autoapi_generate_api_docs = True
-# autoapi_ignore = ['*migrations*', '*test*']
+# autoapi_ignore = ['*migrations*', '*test*']  # Bug at readthedocs
 autoapi_options = [
     "members",
     "undoc-members",
