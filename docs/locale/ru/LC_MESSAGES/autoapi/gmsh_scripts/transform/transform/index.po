@@ -1,0 +1,435 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, romanzes637
+# This file is distributed under the same license as the gmsh_scripts
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmsh_scripts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-27 20:44+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:2
+msgid ":py:mod:`gmsh_scripts.transform.transform`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:8
+msgid "Module Contents"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:11
+msgid "Classes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid ":py:obj:`Transform <gmsh_scripts.transform.transform.Transform>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:67
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:241
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:259
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid "General transformation of Point coordinates."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid ":py:obj:`Translate <gmsh_scripts.transform.transform.Translate>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:81
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid "Translate coordinates of the Point by the displacement"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid ":py:obj:`Rotate <gmsh_scripts.transform.transform.Rotate>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid "TODO only for 3D coordinate systems"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid ""
+":py:obj:`CartesianToCartesian "
+"<gmsh_scripts.transform.transform.CartesianToCartesian>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:104
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid "Convert coordinates of the Point from Cartesian to Cartesian system."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid ""
+":py:obj:`CylindricalToCartesian "
+"<gmsh_scripts.transform.transform.CylindricalToCartesian>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:113
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid "Convert coordinates of the Point from Cylindrical to Cartesian system."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid ""
+":py:obj:`SphericalToCartesian "
+"<gmsh_scripts.transform.transform.SphericalToCartesian>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:125
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid "Convert coordinates of the Point from Spherical to Cartesian system."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid ""
+":py:obj:`ToroidalToCartesian "
+"<gmsh_scripts.transform.transform.ToroidalToCartesian>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:138
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid "Convert coordinates of the Point from Toroidal to Cartesian system."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid ""
+":py:obj:`TokamakToCartesian "
+"<gmsh_scripts.transform.transform.TokamakToCartesian>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:155
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid "Convert coordinates of the Point from Tokamak to Cartesian system."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid ""
+":py:obj:`BlockToCartesian "
+"<gmsh_scripts.transform.transform.BlockToCartesian>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:176
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid "Convert coordinates of the Point from Block to Cartesian system."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid ""
+":py:obj:`CartesianToCartesianByBlock "
+"<gmsh_scripts.transform.transform.CartesianToCartesianByBlock>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:190
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid ""
+"Convert coordinates of the Point from Cartesian to Cartesian system by "
+"Block coordinates."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid ""
+":py:obj:`AffineToAffine "
+"<gmsh_scripts.transform.transform.AffineToAffine>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:206
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid "Convert coordinates of the Point from Affine to Affine system."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid ""
+":py:obj:`AffineToCartesian "
+"<gmsh_scripts.transform.transform.AffineToCartesian>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:218
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid "Convert coordinates of the Point from Affine to Cartesian system."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid ""
+":py:obj:`PathToCartesian "
+"<gmsh_scripts.transform.transform.PathToCartesian>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:227
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid "Convert coordinates of the Point from Path to Cartesian system."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid ""
+":py:obj:`LayerToCartesian "
+"<gmsh_scripts.transform.transform.LayerToCartesian>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid ""
+":py:obj:`QuarterLayerToCartesian "
+"<gmsh_scripts.transform.transform.QuarterLayerToCartesian>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid ":py:obj:`AnyAsSome <gmsh_scripts.transform.transform.AnyAsSome>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:277
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid ""
+"Treat any coordinate system as some coordinate system without coordinates"
+" transformation"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid ""
+":py:obj:`TransformationMatrix "
+"<gmsh_scripts.transform.transform.TransformationMatrix>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:287
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:34:<autosummary>:1
+msgid "Affine transformation matrix"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:36
+msgid "Functions"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:43:<autosummary>:1
+msgid ""
+":py:obj:`reduce_transforms "
+"<gmsh_scripts.transform.transform.reduce_transforms>`\\ \\(transforms\\, "
+"point\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:54
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:43:<autosummary>:1
+msgid "Apply transformations on the point."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:45
+msgid "Attributes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:51:<autosummary>:1
+msgid ":py:obj:`str2obj <gmsh_scripts.transform.transform.str2obj>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst
+msgid "Parameters"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:56
+msgid "Transformations"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:58
+msgid "Point"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst
+msgid "Returns"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:61
+msgid "Transformed point."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst
+msgid "Return type"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:69
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:243
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:261
+msgid "CoordinateSystem from"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:71
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:245
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:263
+msgid "CoordinateSystem to"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:73
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:247
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:265
+msgid "CoordinateSystem self"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:79
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:89
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:102
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:111
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:123
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:136
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:153
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:174
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:188
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:204
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:216
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:225
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:239
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:257
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:275
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:285
+msgid "Bases: :py:obj:`Transform`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:83
+msgid "displacement"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:91
+msgid ""
+"TODO only for 3D coordinate systems :param origin: origin of rotation "
+":type origin: list or np.ndarray :param direction: rotation axis :type "
+"direction: list or np.ndarray :param angle: counterclockwise angle of "
+"rotation in radians [0, 2*pi) :type angle: float"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:106
+msgid "For compatibility."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:115
+msgid ""
+"[r, phi, z] -> [x, y, z] r - radius [0, inf), phi - azimuthal angle [0, "
+"2*pi) (counterclockwise from X to Y), z - height"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:127
+msgid "[r, phi, theta] -> [x, y, z]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:129
+msgid "r - radius [0, inf)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:130
+msgid "phi - azimuthal angle [0, 2*pi) (counterclockwise from X to Y)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:131
+msgid "theta - polar angle [0, pi] [from top to bottom, i.e XY-plane is pi/2]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:140
+msgid "[r, phi, theta, r2] -> [x, y, z]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:142
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:159
+msgid "r - inner radius (r < r2)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:144
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:161
+msgid "phi - inner angle [0, 2*pi)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:146
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:163
+msgid "theta - outer angle [0, 2*pi)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:148
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:165
+msgid "r2 - outer radius"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:157
+msgid "[r, phi, theta, r2, kxy, kz] -> [x, y, z]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:167
+msgid "kxy - inner radius XY scale coefficient in positive outer radius direction"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:169
+msgid "kz - inner radius Z scale coefficient"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:178
+msgid "[xi, eta, zeta] -> [x, y, z]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:180
+msgid "xi, eta, zeta - local block coordinates"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:182
+msgid "Block Coordinate System"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:192
+msgid "[x, y, z] -> [x, y, z] + [dx, dy, dz]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:194
+msgid "[dx, dy, dz] = [xi, eta, zeta] - block_coordinates in Cartesian system"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:196
+msgid "Block object"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:198
+msgid "xi, eta, zeta  - block local coordinates"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:208
+msgid "[x0, y0, z0] -> [x1, y1, z1]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:210
+msgid "Affine coordinate system"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:220
+msgid "[x0, y0, z0] -> [x, y, z]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:229
+msgid "[x, y, u] -> [x, y, z]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:231
+msgid "u - relative path coordinate [0, 1], where 0 - start of the path, 1 - end."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:233
+msgid ""
+"x, y - Cartesian coordinates [-inf, inf] on the normal plane to direction"
+" of the path derivative at the point with relative path coordinate u."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:279
+msgid "some coordinate system"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:289
+msgid "Matrix could describe translation, rotation, reflection and dilation"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:291
+msgid "https://en.wikipedia.org/wiki/Affine_transformation#Representation"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/transform/transform/index.rst:293
+msgid "transformation matrix"
+msgstr ""
+

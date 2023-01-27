@@ -1,0 +1,41 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, romanzes637
+# This file is distributed under the same license as the gmsh_scripts
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmsh_scripts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-27 20:44+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/tutorial_section_1.rst:2
+msgid "Cross section 1"
+msgstr ""
+
+#: ../../source/tutorial_section_1.rst:4
+msgid "Let's consider a cross section."
+msgstr ""
+
+#: ../../source/tutorial_section_1.rst:9
+msgid ""
+"We can use Matrix to create this type of geometry. First we need to "
+"decompose geometry into blocks and then modify each of them according to "
+"the dimensions."
+msgstr ""
+
+#: ../../source/tutorial_section_1.rst:12
+msgid ""
+"Axis X is directed to the right, Y - to the depth and Z - upward. Cross "
+"section is symmetric along Y axis."
+msgstr ""
+

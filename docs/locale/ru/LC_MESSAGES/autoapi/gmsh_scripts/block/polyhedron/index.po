@@ -1,0 +1,291 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, romanzes637
+# This file is distributed under the same license as the gmsh_scripts
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmsh_scripts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-27 20:44+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:2
+msgid ":py:mod:`gmsh_scripts.block.polyhedron`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:8
+msgid "Module Contents"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:11
+msgid "Classes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:19:<autosummary>:1
+msgid ":py:obj:`Polyhedron <gmsh_scripts.block.polyhedron.Polyhedron>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:32
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:19:<autosummary>:1
+msgid "Basic building block of the mesh"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:21
+msgid "Attributes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:27:<autosummary>:1
+msgid ":py:obj:`str2obj <gmsh_scripts.block.polyhedron.str2obj>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:30
+msgid "Bases: :py:obj:`gmsh_scripts.block.Block`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:34
+msgid "Block is a cuboid with 8 points, 12 curves, 6 surfaces and 1 volume."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:36
+msgid "**Axes**"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:37
+msgid "Y"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:38
+msgid "Z X"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:39
+msgid "NX, NY and NZ are negative X, Y and Z directions"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:41
+msgid "**Points**"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:42
+msgid "NZ:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:43
+msgid "P1 P0"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:44
+msgid "P2 P3"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:45
+msgid "Z:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:46
+msgid "P5 P4"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:47
+msgid "P6 P7"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:49
+msgid "**Curves**"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:50
+msgid "X direction curves from P0 by right-hand rule:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:51
+msgid "C0: P1 -> P0"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:52
+msgid "C1: P5 -> P4"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:53
+msgid "C2: P6 -> P7"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:54
+msgid "C3: P2 -> P3"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:55
+msgid "Y direction curves from P0 by right-hand rule:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:56
+msgid "C4: P3 -> P0"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:57
+msgid "C5: P2 -> P1"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:58
+msgid "C6: P6 -> P5"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:59
+msgid "C7: P7 -> P4"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:60
+msgid "Z direction curves from P0 by right-hand rule:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:61
+msgid "C8:  P0 -> P4"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:62
+msgid "C9:  P1 -> P5"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:63
+msgid "C10: P2 -> P6"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:64
+msgid "C11: P3 -> P7"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:66
+msgid "**Surfaces**"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:67
+msgid "NX surface"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:68
+msgid "S0: C5  -> C9  -> -C6 -> -C10"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:69
+msgid "X surface"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:70
+msgid "S1: -C4 -> C11 -> C7  -> -C8"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:71
+msgid "NY surface"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:72
+msgid "S2: -C3 -> C10 -> C2  -> -C11"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:73
+msgid "Y surface"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:74
+msgid "S3: C0  -> C8  -> -C1 -> -C9"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:75
+msgid "NZ surface"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:76
+msgid "S4: -C0 -> -C5 ->  C3 -> C4"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:77
+msgid "Z surface"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:78
+msgid "S5: C1  -> -C7 -> -C2 -> C6"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst
+msgid "Parameters"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:80
+msgid "8 corner points of the block"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:82
+msgid "12 edge curves of the block"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:84
+msgid "6 boundary surfaces of the block"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:86
+msgid "volumes of the block (1 by now, TODO several volumes)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:88
+msgid "register Block in the registry"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:90
+msgid "unregister Block from the registry"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:92
+msgid "invoke register for children"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:94
+msgid ""
+"invoke unregister for children 0 - not unregister 1 - unregister in any "
+"case if you are owner 2 - decide to unregister by all owners 3 - decide "
+"to unregister by all members"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:100
+msgid ""
+"points and curves points transforms (Translation, Rotation, Coordinate "
+"Change, etc)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:102
+msgid ""
+"transform triangles to quadrangles for surfaces and tetrahedra to "
+"hexahedra for volumes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:104
+msgid "make structured mesh instead of unstructured by some rule"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:106
+msgid "parent of the Block"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:108
+msgid "children of the Block"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:110
+msgid "transforms for children Blocks"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:112
+msgid ""
+"Block boolean level, if the Block level > another Block level, then "
+"intersected volume joins to the Block, if levels are equal third Block is"
+" created, if None - don't do boolean"
+msgstr ""
+

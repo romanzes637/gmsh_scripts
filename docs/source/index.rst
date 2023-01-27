@@ -3,14 +3,17 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to gmsh_scripts's documentation!
+Welcome to gmsh scripts documentation!
 ========================================
 
+3D structured/unstructured tetrahedral/hexahedral multi-block mesh generator
+with boolean operations based on `gmsh <https://gmsh.info/>`_
+
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
    :caption: Contents:
 
-   modules
+   tutorials
 
 Indices and tables
 ==================

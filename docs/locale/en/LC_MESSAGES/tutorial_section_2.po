@@ -1,0 +1,653 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, romanzes637
+# This file is distributed under the same license as the gmsh_scripts
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmsh_scripts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-27 20:44+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/tutorial_section_2.rst:2
+msgid "Cross section 2"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:4
+msgid "Let's consider a cross section (See `examples/matrix/cross_section_2`_)"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:12
+msgid "Cross section"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:14
+msgid ""
+"We can use :py:class:`~gmsh_scripts.block.matrix.Matrix` class to create "
+"this type of geometry. First we need to decompose geometry into blocks "
+"and then modify each of them according to the dimensions."
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:19
+msgid "Decomposition"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:20
+msgid ""
+"Geometry could be decomposed into 4 blocks: ``BOTTOM``, ``TOP1``, "
+"``TOP2`` and ``TOP3``, where ``TOP3`` part is required for a small "
+"surface with :math:`F`, :math:`u_v` boundary condition at the end of the "
+"upper part of the geometry. Without the boundary condition, 3 blocks "
+"would be enough. Each of these blocks will be described by "
+":py:class:`~gmsh_scripts.block.matrix.Matrix` class."
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:30
+msgid "Decomposition of geometry"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:33
+msgid "Geometry"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:34
+msgid ""
+"Let's define that X-axis is directed to the right, Y - in the depth and Z"
+" - upward, i.e cross section is symmetric along Y-axis."
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:37
+msgid "First we should create a separate file for each of the blocks:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:39
+#: ../../source/tutorial_section_2.rst:561
+#: ../../source/tutorial_section_2.rst:868
+msgid "``top_1.yaml``"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:48
+#: ../../source/tutorial_section_2.rst:570
+#: ../../source/tutorial_section_2.rst:878
+msgid "``top_2.yaml``"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:57
+#: ../../source/tutorial_section_2.rst:579
+#: ../../source/tutorial_section_2.rst:888
+msgid "``top_3.yaml``"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:66
+#: ../../source/tutorial_section_2.rst:588
+#: ../../source/tutorial_section_2.rst:898
+msgid "``bottom.yaml``"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:75
+msgid ""
+"Each of the files consists of one high level field ``data`` whose has 2 "
+"fields: 1. ``class`` - name of the class of the block 2. ``matrix`` - "
+"lists of point coordinates by axes"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:79
+msgid ""
+"For example Matrix has 2 points by X-axis with coordinates ``0`` and "
+"``0.250``."
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:81
+msgid ""
+"Matrix also has 2 points by Y-axis with ``0`` and ``1`` coordinates and 2"
+" points by Z-axis with ``0`` and ``0.250``. Thus Matrix is a box with "
+"dimensions: ``0.250``, ``1`` and ``0.250`` by X, Y and Z axis "
+"respectively and origin at point ``(0, 0, 0)``."
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:85
+msgid ""
+"We could generate geometry of ``bottom.yaml`` into "
+"``bottom.geo_unrolled`` file:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:96
+msgid "Geometry of the the ``BOTTOM`` block"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:98
+msgid "Now we should create main file ``main.yaml`` with all blocks:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:119
+msgid "File also has one high level field ``data`` with 4 sub-fields:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:121
+msgid "``class`` - name of the class of the block"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:122
+msgid ""
+"``do_register`` - create this block? (set 0 because we don't need this "
+"block itself, i.e. it's only a container for other blocks)"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:123
+msgid ""
+"``children`` - references to other block files (should start with ``/`` "
+"character)"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:124
+msgid "``children_transforms`` - transforms of other blocks"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:126
+msgid ""
+"Field ``children_transforms`` is a list of "
+":py:class:`~gmsh_scripts.transform.transform.Transform` for each "
+"``children``. In this tutorial we only need simple "
+":py:class:`~gmsh_scripts.transform.transform.Translate` that are given by"
+" 3 numbers - offset along X, Y ans Z axes respectively."
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:132
+msgid "For example:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:134
+msgid "Child ``bottom.yaml`` has no transforms"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:135
+msgid ""
+"Child ``top_1.yaml`` has one "
+":py:class:`~gmsh_scripts.transform.transform.Translate` ``[ 0, 0, 0.250 "
+"]`` with offset 0.250 by Z-axis and no offsets by X and Y (we just need "
+"to elevate to the ``bottom.yaml``)"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:136
+msgid ""
+"Child ``top_2.yaml`` has one "
+":py:class:`~gmsh_scripts.transform.transform.Translate` ``[ 0.250, 0, "
+"0.250 ]``"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:137
+msgid ""
+"Child ``top_3.yaml`` has one "
+":py:class:`~gmsh_scripts.transform.transform.Translate` ``[ 0.470, 0, "
+"0.250 ]``"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:139
+msgid "Let's generate geometry with all blocks into ``main.geo_unrolled``:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:149
+msgid "Geometry with all blocks"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:152
+#: ../../source/tutorial_section_2.rst:944
+msgid "Mesh"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:154
+msgid ""
+"To generate mesh we should add ``metadata`` field to the ``main.yaml`` "
+"file:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:180
+msgid "File ``metadata`` has ``run`` sub-field with fields:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:182
+msgid ""
+"``factory`` - Which kernel of gmsh to use for mesh generation? Currently,"
+" gmsh has two `kernels <https://gmsh.info/doc/texinfo/gmsh.html#Overview-"
+"of-Gmsh>`_: ``geo`` and ``occ``. We use ``geo`` because it's faster"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:183
+msgid ""
+"``strategy`` - :py:class:`~gmsh_scripts.strategy.strategy.Strategy` of "
+"mesh generation"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:184
+msgid ""
+"``strategy.class`` - Class of the strategy. We use "
+":py:class:`~gmsh_scripts.strategy.strategy.NoBoolean` because we don't "
+"need boolean operations"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:187
+msgid ""
+"If we need boolean operations we MUST use ``occ`` factory with default "
+"strategy (just don't set it in the ``metadata``)"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:190
+msgid ""
+"Now mesh generator will return mesh into ``main.msh2`` file (it also "
+"returns ``main.geo_unrolled`` as before). Generator creates unstructured "
+"tetrahedral mesh by default."
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:202
+msgid "Default mesh"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:205
+msgid "Unstructured Tetrahedral"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:207
+msgid "We can customize unstructured mesh with parameters in input files."
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:209
+msgid ""
+"First type of parameters aka ``point parameters`` is set in ``matrix`` "
+"field (e.g. ``bottom.yaml``):"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:219
+msgid ""
+"As one can see, for each point a new parameter have been added with ``;``"
+" separator, e.g. ``0;0.01`` for first point by X-axis or ``0.250;0.1`` "
+"for second point by Z-axis. Parameters ``0.01`` or ``0.1`` are "
+"approximate sizes of the mesh near the corresponding points."
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:224
+msgid ""
+"In this example, mesh is finer near the ``(0, 0, 0)`` point with size "
+"``0.01`` and coarser near the ``(0.250, 1, 0.250)`` point with size "
+"``0.1``."
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:227
+msgid "Let's add ``metadata`` field to ``bottom.yaml`` and generate mesh:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:249
+msgid "Unstructured tetrahedral mesh of the ``BOTTOM`` block"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:251
+msgid "One could fix mesh size along one of the axis (e.g. Y with ``0.01``):"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:269
+msgid ""
+"Unstructured tetrahedral mesh with fixed size along Y-axis of the "
+"``BOTTOM`` block"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:271
+msgid ""
+"To generate all blocks, one needs to specify point parameters at all "
+"blocks and run generator:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:282
+msgid ""
+"Unstructured tetrahedral mesh with fixed size along Y-axis at ``BOTTOM`` "
+"block"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:284
+msgid ""
+"Second type of parameters aka ``global parameters`` is set in "
+"``metadata.run.options`` field (e.g. ``bottom.yaml``):"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:304
+msgid ""
+"Here are 4 options (many other options available, see `gmsh documentation"
+" <https://gmsh.info/doc/texinfo/gmsh.html#Mesh-options>`_): 1. "
+"``Mesh.MeshSizeFactor`` - factor applied to all mesh element sizes 2. "
+"``Mesh.MeshSizeMin`` - minimum mesh element size 3. ``Mesh.MeshSizeMax`` "
+"- maximum mesh element size 4. ``Mesh.MeshSizeFromPoints`` - compute mesh"
+" element sizes from values given at geometry points (e.g. in ``matrix`` "
+"field)"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:310
+msgid ""
+"In this example ``Mesh.MeshSizeFactor`` is set to ``0.5`` that generate "
+"mesh that is twice as fine."
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:316
+msgid "Unstructured tetrahedral mesh with ``Mesh.MeshSizeFactor = 0.5``"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:318
+msgid ""
+"One could disable ``Mesh.MeshSizeFromPoints`` (set to ``0``) to create "
+"uniform mesh whose size is controlled only by ``global parameters``."
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:342
+msgid "Unstructured tetrahedral mesh with ``Mesh.MeshSizeFromPoints = 0``"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:344
+msgid ""
+"Then we could use to control mesh size, e.g with ``Mesh.MeshSizeMax`` = "
+"``0.1``:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:367
+msgid "Unstructured mesh with ``Mesh.MeshSizeMax = 0.1``"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:369
+msgid ""
+"To generate all blocks, one needs to specify ``global parameters`` in "
+"``main.yaml``:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:409
+msgid "Unstructured tetrahedral mesh controlled by ``global parameters``"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:412
+msgid "Unstructured Hexahedral"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:415
+msgid ""
+"Generation of hexahedral unstructured mesh is `experimental "
+"<https://gitlab.onelab.info/gmsh/gmsh/-/issues/1791>`_ so not always "
+"creates a quality mesh, it depends on the complexity of the geometry."
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:419
+msgid ""
+"Unstructured hexahedral parameters are set in ``metadata.run.options`` "
+"field and have ``Recombine`` in their names (see `gmsh options "
+"<https://gmsh.info/doc/texinfo/gmsh.html#Mesh-options>`_)"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:423
+msgid ""
+"To generate unstructured hexahedral mesh parameter "
+"```Mesh.SubdivisionAlgorithm`` should be set greater than ``1`` (see "
+"`tutorial 11 of gmsh <https://gmsh.info/doc/texinfo/gmsh.html#t11>`_ for "
+"more information)"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:454
+msgid "Unstructured hexahedral mesh of ``bottom.yaml``"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:456
+msgid ""
+"To generate unstructured hexahedral mesh of all blocks add parameters to "
+"``metadata`` of ``main.yaml``:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:497
+msgid "Unstructured hexahedral mesh"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:500
+msgid "Structured Tetrahedral"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:502
+msgid ""
+"To create structured tetrahedral mesh one should add third parameter to "
+"the points at ``matrix`` field with ``;`` separator, e.g. in "
+"``bottom.yaml``:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:518
+msgid ""
+"Third argument should be set only for second point and specifies number "
+"of nodes along corresponding direction. E.g. ``4`` nodes by X-axis, ``8``"
+" nodes by Y and ``16`` by Z."
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:529
+msgid "Structured tetrahedral mesh of the ``BOTTOM`` block"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:531
+msgid ""
+"One could disable structured mesh generation by setting "
+"``items_do_structure_map`` to ``0`` (``1`` by default) in the ``data`` "
+"field:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:552
+msgid ""
+"Unstructured tetrahedral mesh of the ``BOTTOM`` block with "
+"``items_do_structure_map`` = ``0``"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:554
+msgid ""
+"To create structured tetrahedral mesh with all blocks one should set "
+"third parameter in each of the blocks and run ``main.yaml``"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:558
+msgid ""
+"Number of nodes MUST be consistent between adjacent blocks, e.g. all "
+"``TOP`` blocks should have the same number of nodes by Y and Z axis"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:605
+msgid "Structured tetrahedral mesh"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:607
+msgid ""
+"To disable generation of structured mesh for all blocks at once one "
+"should set ``children_items_do_structure_map`` = ``[0, ..., number of "
+"children]`` at parent block, e.g. for ``main.yaml``:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:640
+msgid ""
+"Structured tetrahedral mesh with disabled "
+"``children_items_do_structure_map``"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:643
+msgid "Structured Hexahedral"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:645
+msgid ""
+"For creating structured hexahedral mesh one could do the same steps as "
+"for `Structured Tetrahedral`_ but with ``items_do_quadrate_map`` = ``1`` "
+"(``0`` by default) in the ``data`` field:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:671
+msgid "Structured hexahedral mesh of the ``BOTTOM`` block"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:673
+msgid ""
+"One could change positions of nodes along axes using one of the two "
+"methods:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:675
+msgid ""
+"``progression`` - increase/decrease space between nodes from start point "
+"to end point"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:676
+msgid "``bump`` - increase/decrease space between node from center to points"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:678
+msgid ""
+"To use ``progression`` we should specify 2 additional sub-parameters to "
+"the third parameter separated by ``:``:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:681
+msgid "The first one is ``0`` (which choose ``progression`` type)"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:682
+msgid ""
+"The second is a coefficient of the ``progression`` - if coefficient > 1 "
+"space will be increasing from first point to second else decreasing"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:684
+msgid "For example, ``progression`` sub-parameters ``0:1.5`` for Y-axis:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:704
+msgid "Structured hexahedral mesh with ``progression`` = `1.5`"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:706
+msgid "For example, ``progression`` sub-parameters ``0:0.75`` for Y-axis:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:726
+msgid "Structured hexahedral mesh with ``progression`` = `0.75`"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:728
+msgid ""
+"To use ``bump`` we should specify 2 additional sub-parameters to the "
+"third parameter separated by ``:``:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:731
+msgid "The first one is ``1`` (which choose ``bump`` type)"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:732
+msgid ""
+"The second is a coefficient of the ``bump`` - if coefficient > 1 space "
+"will be increasing from the center else decreasing"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:734
+msgid "For example, ``bump`` sub-parameters ``1:2.0`` for Y-axis:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:754
+msgid "Structured hexahedral mesh with ``bump`` = `2.0`"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:756
+msgid "For example, ``bump`` sub-parameters ``1:0.5`` for Y-axis:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:776
+msgid "Structured hexahedral mesh with ``bump`` = `0.5`"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:778
+msgid ""
+"To generate structured hexahedral mesh of all blocks one could set "
+"``items_do_quadrate_map`` = ``0`` at each of the blocks or set "
+"``children_items_do_quadrate_map`` = ``[0, ..., number of children]`` at "
+"parent block, e.g. for ``main.yaml``:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:816
+msgid "Structured hexahedral mesh"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:819
+msgid "Zones"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:821
+msgid ""
+"If we want to add names to entities of the mesh (e.g. volumes of "
+"surfaces) we should set additional field ``items_zones`` in the ``data`` "
+"field"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:824
+msgid ""
+"For example, we can add ``[ [ Volume, [ NX, X, NY, Y, NZ, Z ] ] ]`` in "
+"the``bottom.yaml``, where:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:827
+msgid "``Volume`` - volume name"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:828
+msgid "``[ NX, X, NY, Y, NZ, Z ]`` - surfaces names:"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:830
+msgid "``NX`` - surface pointing in the opposite direction of X-axis"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:831
+msgid "``X`` - surface pointing in the direction of X-axis"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:832
+msgid "``NY`` - surface pointing in the opposite direction of Y-axis"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:833
+msgid "``Y`` - surface pointing in the direction of Y-axis"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:834
+msgid "``NZ`` - surface pointing in the opposite direction of Z-axis"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:835
+msgid "``Z`` - surface pointing in the direction of Z-axis"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:856
+msgid "Structured hexahedral with zones"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:859
+msgid "Result"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:861
+msgid ""
+"Let's add all of the fields described above to input files accordingly "
+"with the geometry."
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:865
+msgid ""
+"We should define different zone names of bottom surfaces of ``TOP2`` and "
+"``TOP3``, e.g. ``Top2NZ`` and ``Top3NZ`` respectively"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:908
+msgid "``main.yaml``"
+msgstr ""
+

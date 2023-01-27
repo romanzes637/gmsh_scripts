@@ -1,0 +1,113 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, romanzes637
+# This file is distributed under the same license as the gmsh_scripts
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmsh_scripts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-27 20:44+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:2
+msgid ":py:mod:`gmsh_scripts.optimize.optimize`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:8
+msgid "Module Contents"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:11
+msgid "Classes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:22:<autosummary>:1
+msgid ":py:obj:`Optimize <gmsh_scripts.optimize.optimize.Optimize>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:34
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:43
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:22:<autosummary>:1
+msgid "Abstract"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:22:<autosummary>:1
+msgid ":py:obj:`NoOptimize <gmsh_scripts.optimize.optimize.NoOptimize>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:22:<autosummary>:1
+msgid ":py:obj:`OptimizeOne <gmsh_scripts.optimize.optimize.OptimizeOne>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:52
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:22:<autosummary>:1
+msgid "Optimize once"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:22:<autosummary>:1
+msgid ":py:obj:`OptimizeMany <gmsh_scripts.optimize.optimize.OptimizeMany>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:75
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:22:<autosummary>:1
+msgid "Optimize several times"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:24
+msgid "Attributes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:31:<autosummary>:1
+msgid ":py:obj:`str2obj <gmsh_scripts.optimize.optimize.str2obj>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:31:<autosummary>:1
+msgid ":py:obj:`n <gmsh_scripts.optimize.optimize.n>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:41
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:50
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:73
+msgid "Bases: :py:obj:`Optimize`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst
+msgid "Parameters"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:54
+msgid ""
+"Optimization method: \"\" for default tetrahedral mesh optimizer "
+"\"Netgen\" for Netgen optimizer, \"HighOrder\" for direct high-order mesh"
+" optimizer, \"HighOrderElastic\" for high-order elastic smoother, "
+"\"HighOrderFastCurving\" for fast curving algorithm, \"Laplace2D\" for "
+"Laplace smoothing, \"Relocate2D\" and \"Relocate3D\" for node relocation"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:63
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:79
+msgid "Apply to discrete entities"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:65
+msgid "Number of iterations"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:67
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:81
+msgid "Optimize tetrahedra with quality below threshold"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/optimize/optimize/index.rst:77
+msgid "[[opt1, n_iter1], [opt2, n_iter2], ...]"
+msgstr ""
+
