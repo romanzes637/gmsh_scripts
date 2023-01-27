@@ -83,6 +83,7 @@ autoapi_options = [
     "show-module-summary",
     "imported-members",
 ]
+autoapi_file_patterns = ['*.py', '*.pyi']
 
 # Internationalization
 locale_dirs = ['../locale/']   # path is example but recommended
