@@ -20,7 +20,7 @@ msgstr ""
 
 #: ../../source/index.rst:12
 msgid "Contents:"
-msgstr ""
+msgstr "Оглавление:"
 
 #: ../../source/index.rst:7
 msgid "Welcome to gmsh scripts documentation!"
@@ -31,10 +31,12 @@ msgid ""
 "3D structured/unstructured tetrahedral/hexahedral multi-block mesh "
 "generator with boolean operations based on `gmsh <https://gmsh.info/>`_"
 msgstr ""
+"3D структурированный/неструктурированный тетрэдральный/гексаэдральный мультиблочный "
+"генератор сеток с булевыми операциями основаный на `gmsh <https://gmsh.info/>`_"
 
 #: ../../source/index.rst:19
 msgid "Indices and tables"
-msgstr ""
+msgstr "Индексы и таблицы"
 
 #: ../../source/index.rst:21
 msgid ":ref:`genindex`"

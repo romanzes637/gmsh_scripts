@@ -858,9 +858,6 @@ in the``bottom.yaml``, where:
 Result
 ------
 
-Let's add all of the fields described above to input files accordingly
-with the geometry
-
 .. note::
    We should define different zone names of bottom surfaces of ``TOP2`` and ``TOP3``,
    e.g. ``Top2NZ`` and ``Top3NZ`` respectively

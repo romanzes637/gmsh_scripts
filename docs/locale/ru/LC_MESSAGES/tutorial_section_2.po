@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmsh_scripts \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-27 20:44+0000\n"
+"POT-Creation-Date: 2023-01-28 00:01+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,7 +24,9 @@ msgstr "Поперечное сечение 2"
 
 #: ../../source/tutorial_section_2.rst:4
 msgid "Let's consider a cross section (See `examples/matrix/cross_section_2`_)"
-msgstr "Давайте рассмотрим поперечное сечение (смотрите `examples/matrix/cross_section_2`_)"
+msgstr ""
+"Давайте рассмотрим поперечное сечение (смотрите "
+"`examples/matrix/cross_section_2`_)"
 
 #: ../../source/tutorial_section_2.rst:12
 msgid "Cross section"
@@ -37,12 +39,13 @@ msgid ""
 "and then modify each of them according to the dimensions."
 msgstr ""
 "Для создания этого типа геометрии мы будем использовать класс "
-":py:class:`~gmsh_scripts.block.matrix.Matrix`. Первым делом нам нужно деомпозировать "
-"геометрию на блоки и затем модифицировать каждый из них в соответствии с размерами."
+":py:class:`~gmsh_scripts.block.matrix.Matrix`. Первым делом нам нужно "
+"деомпозировать геометрию на блоки и затем модифицировать каждый из них в "
+"соответствии с размерами."
 
 #: ../../source/tutorial_section_2.rst:19
 msgid "Decomposition"
-msgstr ""
+msgstr "Декомпозиция"
 
 #: ../../source/tutorial_section_2.rst:20
 msgid ""
@@ -53,46 +56,53 @@ msgid ""
 "would be enough. Each of these blocks will be described by "
 ":py:class:`~gmsh_scripts.block.matrix.Matrix` class."
 msgstr ""
+"Геометрию можно разбить на 4 блока: ``BOTTOM``, ``TOP1``, ``TOP2`` и "
+"``TOP3``, где часть ``TOP3`` требуется для небольшой поверхности с "
+"граничным условием :math:`F`, :math:`u_v` на конце верхней части. Без "
+"граничного условия, трех блоков было бы достаточно. Каждый из этих блоков"
+" будет описан классом:py:class:`~gmsh_scripts.block.matrix.Matrix`."
 
 #: ../../source/tutorial_section_2.rst:30
 msgid "Decomposition of geometry"
-msgstr ""
+msgstr "Декомпозиция геометрии"
 
 #: ../../source/tutorial_section_2.rst:33
 msgid "Geometry"
-msgstr ""
+msgstr "Геометрия"
 
 #: ../../source/tutorial_section_2.rst:34
 msgid ""
 "Let's define that X-axis is directed to the right, Y - in the depth and Z"
 " - upward, i.e cross section is symmetric along Y-axis."
 msgstr ""
+"Определим, что ось X направлена вправо, Y - в глубину, а Z - вверх, т.е. "
+"поперечное сечение симметрично относительно оси Y."
 
 #: ../../source/tutorial_section_2.rst:37
 msgid "First we should create a separate file for each of the blocks:"
-msgstr ""
+msgstr "Сначала мы должны создать отдельный файл для каждого из блоков:"
 
 #: ../../source/tutorial_section_2.rst:39
 #: ../../source/tutorial_section_2.rst:561
-#: ../../source/tutorial_section_2.rst:868
+#: ../../source/tutorial_section_2.rst:865
 msgid "``top_1.yaml``"
 msgstr ""
 
 #: ../../source/tutorial_section_2.rst:48
 #: ../../source/tutorial_section_2.rst:570
-#: ../../source/tutorial_section_2.rst:878
+#: ../../source/tutorial_section_2.rst:875
 msgid "``top_2.yaml``"
 msgstr ""
 
 #: ../../source/tutorial_section_2.rst:57
 #: ../../source/tutorial_section_2.rst:579
-#: ../../source/tutorial_section_2.rst:888
+#: ../../source/tutorial_section_2.rst:885
 msgid "``top_3.yaml``"
 msgstr ""
 
 #: ../../source/tutorial_section_2.rst:66
 #: ../../source/tutorial_section_2.rst:588
-#: ../../source/tutorial_section_2.rst:898
+#: ../../source/tutorial_section_2.rst:895
 msgid "``bottom.yaml``"
 msgstr ""
 
@@ -102,12 +112,15 @@ msgid ""
 "fields: 1. ``class`` - name of the class of the block 2. ``matrix`` - "
 "lists of point coordinates by axes"
 msgstr ""
+"Каждый из файлов состоит из одного поля высокого уровня ``data``, которое"
+" имеет 2 поля: 1. ``class`` - название класса блока 2. ``matrix`` - "
+"списки координат точек по осям"
 
 #: ../../source/tutorial_section_2.rst:79
 msgid ""
 "For example Matrix has 2 points by X-axis with coordinates ``0`` and "
 "``0.250``."
-msgstr ""
+msgstr "Например, Matrix имеет 2 точки по оси X с координатами ``0`` и ``0.250``."
 
 #: ../../source/tutorial_section_2.rst:81
 msgid ""
@@ -116,44 +129,55 @@ msgid ""
 "dimensions: ``0.250``, ``1`` and ``0.250`` by X, Y and Z axis "
 "respectively and origin at point ``(0, 0, 0)``."
 msgstr ""
+"Матрица также имеет 2 точки по оси Y с координатами ``0`` и ``1`` и 2 по "
+"оси Z с ``0`` и ``0,250``. Таким образом, Матрица представляет собой с "
+"параллелограмм с размерами: ``0,250``, ``1`` и ``0,250`` по осям X, Y и Z"
+" соответственно и начало в точке ``(0, 0, 0)``\""
 
 #: ../../source/tutorial_section_2.rst:85
 msgid ""
 "We could generate geometry of ``bottom.yaml`` into "
 "``bottom.geo_unrolled`` file:"
 msgstr ""
+"Мы можем сгенерировать геометрию ``bottom.yaml`` в файле "
+"``bottom.geo_unrolled``:"
 
 #: ../../source/tutorial_section_2.rst:96
 msgid "Geometry of the the ``BOTTOM`` block"
-msgstr ""
+msgstr "Геометрия блока ``BOTTOM``"
 
 #: ../../source/tutorial_section_2.rst:98
 msgid "Now we should create main file ``main.yaml`` with all blocks:"
-msgstr ""
+msgstr "Теперь нам нужно создать основной файл ``main.yaml`` со всеми блоками:"
 
 #: ../../source/tutorial_section_2.rst:119
 msgid "File also has one high level field ``data`` with 4 sub-fields:"
-msgstr ""
+msgstr "Файл также имеет одно поле высокого уровня «data» с 4 подполями:"
 
 #: ../../source/tutorial_section_2.rst:121
 msgid "``class`` - name of the class of the block"
-msgstr ""
+msgstr "``class`` - имя класса блока"
 
 #: ../../source/tutorial_section_2.rst:122
 msgid ""
 "``do_register`` - create this block? (set 0 because we don't need this "
 "block itself, i.e. it's only a container for other blocks)"
 msgstr ""
+"``do_register`` - Нужно ли создавать блок? (установлено 0, потому что нам"
+" не нужно создавать сам блок, т.е. это только контейнер для других "
+"блоков)"
 
 #: ../../source/tutorial_section_2.rst:123
 msgid ""
 "``children`` - references to other block files (should start with ``/`` "
 "character)"
 msgstr ""
+"``children`` - ссылки на другие блочные файлы (должны начинаться с "
+"символа ``/`` "
 
 #: ../../source/tutorial_section_2.rst:124
 msgid "``children_transforms`` - transforms of other blocks"
-msgstr ""
+msgstr "``children_transforms`` - трансформации блоков"
 
 #: ../../source/tutorial_section_2.rst:126
 msgid ""
@@ -163,14 +187,19 @@ msgid ""
 ":py:class:`~gmsh_scripts.transform.transform.Translate` that are given by"
 " 3 numbers - offset along X, Y ans Z axes respectively."
 msgstr ""
+"Поле ``children_transforms`` представляет собой список "
+":py:class:`~gmsh_scripts.transform.transform.Transform` для каждого "
+"``children``. В этом примере нам нужны только простые "
+":py:class:`~gmsh_scripts.transform.transform.Translate`, описываемые 3 "
+"числами - смещение по осям X, Y и Z соответственно."
 
 #: ../../source/tutorial_section_2.rst:132
 msgid "For example:"
-msgstr ""
+msgstr "Например:"
 
 #: ../../source/tutorial_section_2.rst:134
 msgid "Child ``bottom.yaml`` has no transforms"
-msgstr ""
+msgstr "Дочерний элемент ``bottom.yaml`` не имеет трансформаций"
 
 #: ../../source/tutorial_section_2.rst:135
 msgid ""
@@ -179,6 +208,10 @@ msgid ""
 "]`` with offset 0.250 by Z-axis and no offsets by X and Y (we just need "
 "to elevate to the ``bottom.yaml``)"
 msgstr ""
+"Дочерний элемент ``top_1.yaml`` имеет одну "
+":py:class:`~gmsh_scripts.transform.transform.Translate` ``[ 0, 0, 0,250 "
+"]`` со смещением 0,250 по оси Z и без смещений по X и Y (нам просто нужно"
+" поднять его на ``bottom.yaml``)"
 
 #: ../../source/tutorial_section_2.rst:136
 msgid ""
@@ -186,6 +219,9 @@ msgid ""
 ":py:class:`~gmsh_scripts.transform.transform.Translate` ``[ 0.250, 0, "
 "0.250 ]``"
 msgstr ""
+"Дочерний элемент ``top_2.yaml`` имеет одну "
+":py:class:`~gmsh_scripts.transform.transform.Translate` ``[ 0.250, 0, "
+"0,250 ]``"
 
 #: ../../source/tutorial_section_2.rst:137
 msgid ""
@@ -193,25 +229,30 @@ msgid ""
 ":py:class:`~gmsh_scripts.transform.transform.Translate` ``[ 0.470, 0, "
 "0.250 ]``"
 msgstr ""
+"Дочерний элемент ``top_3.yaml`` имеет одну "
+":py:class:`~gmsh_scripts.transform.transform.Translate` ``[ 0.470, 0, "
+"0,250 ]``"
 
 #: ../../source/tutorial_section_2.rst:139
 msgid "Let's generate geometry with all blocks into ``main.geo_unrolled``:"
-msgstr ""
+msgstr "Сгенерируем геометрию со всеми блоками в ``main.geo_unrolled``:"
 
 #: ../../source/tutorial_section_2.rst:149
 msgid "Geometry with all blocks"
-msgstr ""
+msgstr "Геометрия со всеми блоками"
 
 #: ../../source/tutorial_section_2.rst:152
-#: ../../source/tutorial_section_2.rst:944
+#: ../../source/tutorial_section_2.rst:941
 msgid "Mesh"
-msgstr ""
+msgstr "Сетка"
 
 #: ../../source/tutorial_section_2.rst:154
 msgid ""
 "To generate mesh we should add ``metadata`` field to the ``main.yaml`` "
 "file:"
 msgstr ""
+"Чтобы сгенерировать сетку, мы должны добавить поле ``metadata`` в "
+"``main.yaml`` файл:"
 
 #: ../../source/tutorial_section_2.rst:180
 msgid "File ``metadata`` has ``run`` sub-field with fields:"
@@ -223,12 +264,18 @@ msgid ""
 " gmsh has two `kernels <https://gmsh.info/doc/texinfo/gmsh.html#Overview-"
 "of-Gmsh>`_: ``geo`` and ``occ``. We use ``geo`` because it's faster"
 msgstr ""
+"``factory`` - Какое ядро gmsh использовать для генерации сетки? В "
+"настоящее время,gmsh имеет два ядра "
+"<https://gmsh.info/doc/texinfo/gmsh.html#Overview-of-Gmsh>`_: ``geo`` и "
+"``occ``. Мы используем ``geo``, потому что он быстрее"
 
 #: ../../source/tutorial_section_2.rst:183
 msgid ""
 "``strategy`` - :py:class:`~gmsh_scripts.strategy.strategy.Strategy` of "
 "mesh generation"
 msgstr ""
+"``strategy`` - :py:class:`~gmsh_scripts.strategy.strategy.Strategy` "
+"генерация сетки"
 
 #: ../../source/tutorial_section_2.rst:184
 msgid ""
@@ -236,12 +283,17 @@ msgid ""
 ":py:class:`~gmsh_scripts.strategy.strategy.NoBoolean` because we don't "
 "need boolean operations"
 msgstr ""
+"``strategy.class`` - Класс стратегии. Используем "
+":py:class:`~gmsh_scripts.strategy.strategy.NoBoolean`, потому что нам не "
+"нужны булевы операции"
 
 #: ../../source/tutorial_section_2.rst:187
 msgid ""
 "If we need boolean operations we MUST use ``occ`` factory with default "
 "strategy (just don't set it in the ``metadata``)"
 msgstr ""
+"Если нам нужны булевы операции, мы ДОЛЖНЫ использовать фабрику ``occ`` со"
+" стратегией по умолчанию (просто не устанавливайте ее в ``metadata``)"
 
 #: ../../source/tutorial_section_2.rst:190
 msgid ""
@@ -249,24 +301,31 @@ msgid ""
 "returns ``main.geo_unrolled`` as before). Generator creates unstructured "
 "tetrahedral mesh by default."
 msgstr ""
+"Теперь генератор сетки будет возвращать сетку в файл ``main.msh2`` (он "
+"также возвращает ``main.geo_unrolled`` как и раньше). Генератор создает "
+"неструктурированную тетраэдральную сетку по умолчанию. "
 
 #: ../../source/tutorial_section_2.rst:202
 msgid "Default mesh"
-msgstr ""
+msgstr "Сетка по умолчанию"
 
 #: ../../source/tutorial_section_2.rst:205
 msgid "Unstructured Tetrahedral"
-msgstr ""
+msgstr "Неструктурированная Тетраэдральная"
 
 #: ../../source/tutorial_section_2.rst:207
 msgid "We can customize unstructured mesh with parameters in input files."
 msgstr ""
+"Мы можем настроить неструктурированную сетку параметрами во входных "
+"файлах."
 
 #: ../../source/tutorial_section_2.rst:209
 msgid ""
-"First type of parameters aka ``point parameters`` is set in ``matrix`` "
+"First type of parameters aka ``points parameters`` is set in ``matrix`` "
 "field (e.g. ``bottom.yaml``):"
 msgstr ""
+"Первый тип параметров ``points parameters``, задается в ``matrix`` поле "
+"(например, ``bottom.yaml``):"
 
 #: ../../source/tutorial_section_2.rst:219
 msgid ""
@@ -275,6 +334,10 @@ msgid ""
 "for second point by Z-axis. Parameters ``0.01`` or ``0.1`` are "
 "approximate sizes of the mesh near the corresponding points."
 msgstr ""
+"Как видно, для каждой точки добавлен новый параметр с разделителем ``;``,"
+" например ``0;0.01`` для первой точки по оси X или ``0.250;0.1`` для "
+"второй точки по оси Z. Параметры ``0.01`` или ``0.1`` равны "
+"приблизительным размеры сетки вблизи соответствующих точек"
 
 #: ../../source/tutorial_section_2.rst:224
 msgid ""
@@ -282,42 +345,54 @@ msgid ""
 "``0.01`` and coarser near the ``(0.250, 1, 0.250)`` point with size "
 "``0.1``."
 msgstr ""
+"В этом примере сетка более мелкая вблизи точки ``(0, 0, 0)`` с размером "
+"``0,01`` и грубее возле точки ``(0,250, 1, 0,250)`` с размером ``0,1``."
 
 #: ../../source/tutorial_section_2.rst:227
 msgid "Let's add ``metadata`` field to ``bottom.yaml`` and generate mesh:"
-msgstr ""
+msgstr "Давайте добавим поле ``metadata`` в ``bottom.yaml`` и создадим сетку:"
 
 #: ../../source/tutorial_section_2.rst:249
 msgid "Unstructured tetrahedral mesh of the ``BOTTOM`` block"
-msgstr ""
+msgstr "Неструктурированная тетраэдральная сетка блока ``BOTTOM``"
 
 #: ../../source/tutorial_section_2.rst:251
 msgid "One could fix mesh size along one of the axis (e.g. Y with ``0.01``):"
 msgstr ""
+"Можно зафиксировать размер сетки вдоль одной из осей (например, Y с "
+"«0,01»):"
 
 #: ../../source/tutorial_section_2.rst:269
 msgid ""
 "Unstructured tetrahedral mesh with fixed size along Y-axis of the "
 "``BOTTOM`` block"
 msgstr ""
+"Неструктурированная тетраэдральная сетка с фиксированным размером по оси "
+"Y блока ``BOTTOM``"
 
 #: ../../source/tutorial_section_2.rst:271
 msgid ""
-"To generate all blocks, one needs to specify point parameters at all "
+"To generate all blocks, one needs to specify points parameters at all "
 "blocks and run generator:"
 msgstr ""
+"Чтобы сгенерировать все блоки, нужно указать ``points parameters`` для "
+"всех блоков и запускает генератор:"
 
 #: ../../source/tutorial_section_2.rst:282
 msgid ""
 "Unstructured tetrahedral mesh with fixed size along Y-axis at ``BOTTOM`` "
 "block"
 msgstr ""
+"Неструктурированная тетраэдральная сетка с фиксированным размером вдоль "
+"оси Y в ``BOTTOM`` блоке"
 
 #: ../../source/tutorial_section_2.rst:284
 msgid ""
 "Second type of parameters aka ``global parameters`` is set in "
 "``metadata.run.options`` field (e.g. ``bottom.yaml``):"
 msgstr ""
+"Второй тип параметров ``global parameters``, задается в поле "
+"``metadata.run.options`` (например, ``bottom.yaml``):"
 
 #: ../../source/tutorial_section_2.rst:304
 msgid ""
@@ -329,50 +404,67 @@ msgid ""
 " element sizes from values given at geometry points (e.g. in ``matrix`` "
 "field)"
 msgstr ""
+" `документацию по gmsh <https://gmsh.info/doc/texinfo/gmsh.html#Mesh-"
+"options>`_): 1. ``Mesh.MeshSizeFactor`` - коэффициент, применяемый ко "
+"всем размерам элемента сетки 2. ``Mesh.MeshSizeMin`` - минимальный размер"
+" элемента сетки 3. ``Mesh.MeshSizeMax`` - максимальный размер элемента "
+"сетки 4. ``Mesh.MeshSizeFromPoints`` - взять  размеры элементов из "
+"значений, заданных в точках геометрии (например, в ``matrix`` поле)"
 
 #: ../../source/tutorial_section_2.rst:310
 msgid ""
 "In this example ``Mesh.MeshSizeFactor`` is set to ``0.5`` that generate "
 "mesh that is twice as fine."
 msgstr ""
+"В этом примере для ``Mesh.MeshSizeFactor`` установлено значение ``0,5``, "
+"что создает сетку, которая в два раза мельче»"
 
 #: ../../source/tutorial_section_2.rst:316
 msgid "Unstructured tetrahedral mesh with ``Mesh.MeshSizeFactor = 0.5``"
-msgstr ""
+msgstr "Неструктурированная тетраэдральная сетка с ``Mesh.MeshSizeFactor = 0.5``"
 
 #: ../../source/tutorial_section_2.rst:318
 msgid ""
 "One could disable ``Mesh.MeshSizeFromPoints`` (set to ``0``) to create "
 "uniform mesh whose size is controlled only by ``global parameters``."
 msgstr ""
+"Можно отключить ``Mesh.MeshSizeFromPoints`` (установить значение ``0``), "
+"чтобы создать равномерную сетку, размер которой контролируется только "
+"``global parameters``."
 
 #: ../../source/tutorial_section_2.rst:342
 msgid "Unstructured tetrahedral mesh with ``Mesh.MeshSizeFromPoints = 0``"
-msgstr ""
+msgstr "Неструктурированная тетраэдральная сетка с ``Mesh.MeshSizeFromPoints = 0``"
 
 #: ../../source/tutorial_section_2.rst:344
 msgid ""
 "Then we could use to control mesh size, e.g with ``Mesh.MeshSizeMax`` = "
 "``0.1``:"
 msgstr ""
+"Тогда мы могли бы использовать ``global parameters`` для управления "
+"размером сетки, например, с помощью ``Mesh.MeshSizeMax`` = ``0,1``:"
 
 #: ../../source/tutorial_section_2.rst:367
 msgid "Unstructured mesh with ``Mesh.MeshSizeMax = 0.1``"
-msgstr ""
+msgstr "Неструктурированная сетка с ``Mesh.MeshSizeMax = 0.1``"
 
 #: ../../source/tutorial_section_2.rst:369
 msgid ""
 "To generate all blocks, one needs to specify ``global parameters`` in "
 "``main.yaml``:"
 msgstr ""
+"Для генерации всех блоков необходимо указать ``global parameters`` в "
+"``main.yaml``:"
 
 #: ../../source/tutorial_section_2.rst:409
 msgid "Unstructured tetrahedral mesh controlled by ``global parameters``"
 msgstr ""
+"Неструктурированная тетраэдральная сетка, управляемая ``global "
+"parameters``"
 
 #: ../../source/tutorial_section_2.rst:412
 msgid "Unstructured Hexahedral"
-msgstr ""
+msgstr "Неструктурированная Гексаэдральная"
 
 #: ../../source/tutorial_section_2.rst:415
 msgid ""
@@ -380,6 +472,10 @@ msgid ""
 "<https://gitlab.onelab.info/gmsh/gmsh/-/issues/1791>`_ so not always "
 "creates a quality mesh, it depends on the complexity of the geometry."
 msgstr ""
+"Генерация гексаэдральной неструктурированной сетки является ` "
+"экспериментальной <https://gitlab.onelab.info/gmsh/gmsh/-/issues/1791>`_ "
+"так что не всегда создает качественную сетку, это зависит от сложности "
+"геометрии."
 
 #: ../../source/tutorial_section_2.rst:419
 msgid ""
@@ -387,6 +483,10 @@ msgid ""
 "field and have ``Recombine`` in their names (see `gmsh options "
 "<https://gmsh.info/doc/texinfo/gmsh.html#Mesh-options>`_)"
 msgstr ""
+"Параметры для неструктурированные гексадральной сетки задаются в "
+"``metadata.run.options`` и должны иметь ``Recombine`` в своих названиях "
+"(см. `опции gmsh <https://gmsh.info/doc/texinfo/gmsh.html#Mesh-"
+"options>`_)"
 
 #: ../../source/tutorial_section_2.rst:423
 msgid ""
@@ -395,24 +495,30 @@ msgid ""
 "`tutorial 11 of gmsh <https://gmsh.info/doc/texinfo/gmsh.html#t11>`_ for "
 "more information)"
 msgstr ""
+"Для создания неструктурированной гексаэдральной сетки, параметр "
+"```Mesh.SubdivisionAlgorithm`` должен быть больше, чем ``1`` (см. `пример"
+" 11 по gmsh <https://gmsh.info/doc/texinfo/gmsh.html#t11>`_ для "
+"дополнительной информации)"
 
 #: ../../source/tutorial_section_2.rst:454
 msgid "Unstructured hexahedral mesh of ``bottom.yaml``"
-msgstr ""
+msgstr "Неструктурированная гексаэдральная сетка ``bottom.yaml``"
 
 #: ../../source/tutorial_section_2.rst:456
 msgid ""
 "To generate unstructured hexahedral mesh of all blocks add parameters to "
 "``metadata`` of ``main.yaml``:"
 msgstr ""
+"Для создания неструктурированной гексаэдральной сетки из всех блоков "
+"добавьтпараметры в ``metadata`` ``main.yaml``:"
 
 #: ../../source/tutorial_section_2.rst:497
 msgid "Unstructured hexahedral mesh"
-msgstr ""
+msgstr "Неструктурированная гексаэдральная сетка"
 
 #: ../../source/tutorial_section_2.rst:500
 msgid "Structured Tetrahedral"
-msgstr ""
+msgstr "Структурированная тетраэдральная"
 
 #: ../../source/tutorial_section_2.rst:502
 msgid ""
@@ -420,6 +526,9 @@ msgid ""
 "the points at ``matrix`` field with ``;`` separator, e.g. in "
 "``bottom.yaml``:"
 msgstr ""
+"Для создания структурированной тетраэдральной сетки необходимо добавить "
+"третий параметр к точки в поле ``matrix`` с разделителем ``;``, например,"
+" в ``bottom.yaml``:"
 
 #: ../../source/tutorial_section_2.rst:518
 msgid ""
@@ -427,10 +536,13 @@ msgid ""
 "of nodes along corresponding direction. E.g. ``4`` nodes by X-axis, ``8``"
 " nodes by Y and ``16`` by Z."
 msgstr ""
+"Третий аргумент должен быть установлен только для второй точки и "
+"указывает число узлов вдоль соответствующего направления. Например, ``4``"
+" узлов по оси X, ``8``узлы по Y и ``16`` по Z."
 
 #: ../../source/tutorial_section_2.rst:529
 msgid "Structured tetrahedral mesh of the ``BOTTOM`` block"
-msgstr ""
+msgstr "Структурированная тетраэдральная сетка блока ``BOTTOM``"
 
 #: ../../source/tutorial_section_2.rst:531
 msgid ""
@@ -438,28 +550,35 @@ msgid ""
 "``items_do_structure_map`` to ``0`` (``1`` by default) in the ``data`` "
 "field:"
 msgstr ""
+"Можно отключить генерацию структурированной сетки, установив "
+"``items_do_structure_map`` в ``0`` (``1`` по умолчанию) в ``data`` поле:"
 
 #: ../../source/tutorial_section_2.rst:552
 msgid ""
 "Unstructured tetrahedral mesh of the ``BOTTOM`` block with "
 "``items_do_structure_map`` = ``0``"
 msgstr ""
+"Неструктурированная тетраэдральная сетка блока ``BOTTOM`` с "
+"``items_do_structure_map`` = ``0``"
 
 #: ../../source/tutorial_section_2.rst:554
 msgid ""
 "To create structured tetrahedral mesh with all blocks one should set "
 "third parameter in each of the blocks and run ``main.yaml``"
 msgstr ""
+"Для создания структурированной тетраэдральной сетки со всеми блоками "
+"необходимо установить третий параметр в каждом из блоков и запустить "
+"``main.yaml``"
 
 #: ../../source/tutorial_section_2.rst:558
 msgid ""
 "Number of nodes MUST be consistent between adjacent blocks, e.g. all "
 "``TOP`` blocks should have the same number of nodes by Y and Z axis"
-msgstr ""
+msgstr "``TOP`` блоки должны иметь одинаковое количество узлов по оси Y и Z"
 
 #: ../../source/tutorial_section_2.rst:605
 msgid "Structured tetrahedral mesh"
-msgstr ""
+msgstr "Структурированная тетраэдральная сетка"
 
 #: ../../source/tutorial_section_2.rst:607
 msgid ""
@@ -467,16 +586,21 @@ msgid ""
 "should set ``children_items_do_structure_map`` = ``[0, ..., number of "
 "children]`` at parent block, e.g. for ``main.yaml``:"
 msgstr ""
+"Отключить генерацию структурированной сетки сразу для всех блоков "
+"можноустановив ``children_items_do_structure_map`` = ``[0, ..., "
+"количество дети]`` в родительском блоке, например, для ``main.yaml``:"
 
 #: ../../source/tutorial_section_2.rst:640
 msgid ""
 "Structured tetrahedral mesh with disabled "
 "``children_items_do_structure_map``"
 msgstr ""
+"Структурированная тетраэдральная сетка с "
+"отключенными``children_items_do_structure_map``"
 
 #: ../../source/tutorial_section_2.rst:643
 msgid "Structured Hexahedral"
-msgstr ""
+msgstr "Структурированная гексаэдральная"
 
 #: ../../source/tutorial_section_2.rst:645
 msgid ""
@@ -484,90 +608,103 @@ msgid ""
 "for `Structured Tetrahedral`_ but with ``items_do_quadrate_map`` = ``1`` "
 "(``0`` by default) in the ``data`` field:"
 msgstr ""
+"Для создания структурированной гексаэдральной сетки можно выполнить те же"
+" шаги, что и для `Структурированная тетраэдральная`_, но с "
+"``items_do_quadrate_map`` = ``1``(``0`` по умолчанию) в поле ``data``:"
 
 #: ../../source/tutorial_section_2.rst:671
 msgid "Structured hexahedral mesh of the ``BOTTOM`` block"
-msgstr ""
+msgstr "Структурированная гексаэдральная сетка блока ``BOTTOM``"
 
 #: ../../source/tutorial_section_2.rst:673
 msgid ""
 "One could change positions of nodes along axes using one of the two "
 "methods:"
-msgstr ""
+msgstr "Можно изменить положение узлов вдоль осей, используя один из двух методов:"
 
 #: ../../source/tutorial_section_2.rst:675
 msgid ""
 "``progression`` - increase/decrease space between nodes from start point "
 "to end point"
 msgstr ""
+"``progression`` - увеличение/уменьшение расстояния между узлами от "
+"начальной точкидо конечной точки"
 
 #: ../../source/tutorial_section_2.rst:676
 msgid "``bump`` - increase/decrease space between node from center to points"
-msgstr ""
+msgstr "``bump`` - увеличить/уменьшить расстояние между узлами от центра до точек"
 
 #: ../../source/tutorial_section_2.rst:678
 msgid ""
 "To use ``progression`` we should specify 2 additional sub-parameters to "
 "the third parameter separated by ``:``:"
 msgstr ""
+"Чтобы использовать ``progression``, мы должны указать 2 дополнительных "
+"подпараметра для третий параметр, разделенный ``:``:"
 
 #: ../../source/tutorial_section_2.rst:681
 msgid "The first one is ``0`` (which choose ``progression`` type)"
-msgstr ""
+msgstr "Первый - ``0`` (который выбирает тип ``progression``)"
 
 #: ../../source/tutorial_section_2.rst:682
 msgid ""
 "The second is a coefficient of the ``progression`` - if coefficient > 1 "
 "space will be increasing from first point to second else decreasing"
 msgstr ""
+"Второй - это коэффициент ``progression`` - если коэффициент > 1расстояние"
+" будет увеличиваться от первой точки ко второй, иначе уменьшаться"
 
 #: ../../source/tutorial_section_2.rst:684
 msgid "For example, ``progression`` sub-parameters ``0:1.5`` for Y-axis:"
-msgstr ""
+msgstr "Например, подпараметры ``progression`` ``0:1.5`` для оси Y:"
 
 #: ../../source/tutorial_section_2.rst:704
 msgid "Structured hexahedral mesh with ``progression`` = `1.5`"
-msgstr ""
+msgstr "Структурированная гексаэдральная сетка с ``progression`` = `1.5`"
 
 #: ../../source/tutorial_section_2.rst:706
 msgid "For example, ``progression`` sub-parameters ``0:0.75`` for Y-axis:"
-msgstr ""
+msgstr "Например, подпараметры ``progression`` ``0:0.75`` для оси Y:"
 
 #: ../../source/tutorial_section_2.rst:726
 msgid "Structured hexahedral mesh with ``progression`` = `0.75`"
-msgstr ""
+msgstr "Структурированная гексаэдральная сетка с ``progression`` = `0.75`"
 
 #: ../../source/tutorial_section_2.rst:728
 msgid ""
 "To use ``bump`` we should specify 2 additional sub-parameters to the "
 "third parameter separated by ``:``:"
 msgstr ""
+"Чтобы использовать ``bump``, мы должны указать 2 дополнительных "
+"подпараметра в третий параметр, разделенный ``:``:"
 
 #: ../../source/tutorial_section_2.rst:731
 msgid "The first one is ``1`` (which choose ``bump`` type)"
-msgstr ""
+msgstr "Первый - ``1`` (который выбирает тип ``bump``)"
 
 #: ../../source/tutorial_section_2.rst:732
 msgid ""
 "The second is a coefficient of the ``bump`` - if coefficient > 1 space "
 "will be increasing from the center else decreasing"
 msgstr ""
+"Вторым является коэффициент ``bump`` - если коэффициент > 1 расстояние "
+"будет увеличиваться от центра, иначе уменьшаться"
 
 #: ../../source/tutorial_section_2.rst:734
 msgid "For example, ``bump`` sub-parameters ``1:2.0`` for Y-axis:"
-msgstr ""
+msgstr "Например, подпараметры ``bump`` ``1:2.0`` для оси Y:"
 
 #: ../../source/tutorial_section_2.rst:754
 msgid "Structured hexahedral mesh with ``bump`` = `2.0`"
-msgstr ""
+msgstr "Структурированная гексаэдральная сетка с ``bump`` = `2.0`"
 
 #: ../../source/tutorial_section_2.rst:756
 msgid "For example, ``bump`` sub-parameters ``1:0.5`` for Y-axis:"
-msgstr ""
+msgstr "Например, подпараметры ``bump`` ``1:0.5`` для оси Y:"
 
 #: ../../source/tutorial_section_2.rst:776
 msgid "Structured hexahedral mesh with ``bump`` = `0.5`"
-msgstr ""
+msgstr "Структурированная гексаэдральная сетка с ``bump`` = `0.5`"
 
 #: ../../source/tutorial_section_2.rst:778
 msgid ""
@@ -576,14 +713,18 @@ msgid ""
 "``children_items_do_quadrate_map`` = ``[0, ..., number of children]`` at "
 "parent block, e.g. for ``main.yaml``:"
 msgstr ""
+"Для создания структурированной гексаэдральной сетки всех блоков можно "
+"установить ``items_do_quadrate_map`` = ``0`` в каждом из блоков или "
+"установить ``children_items_do_quadrate_map`` = ``[0, ..., количество "
+"детей]`` в родительском блоке, например, для ``main.yaml``:"
 
 #: ../../source/tutorial_section_2.rst:816
 msgid "Structured hexahedral mesh"
-msgstr ""
+msgstr "Структурированная гексаэдральная сетка"
 
 #: ../../source/tutorial_section_2.rst:819
 msgid "Zones"
-msgstr ""
+msgstr "Зоны"
 
 #: ../../source/tutorial_section_2.rst:821
 msgid ""
@@ -591,66 +732,73 @@ msgid ""
 "surfaces) we should set additional field ``items_zones`` in the ``data`` "
 "field"
 msgstr ""
+"Если мы хотим добавить имена объектам сетки (например, объемам или "
+"поверхностям) мы должны установить дополнительное поле ``items_zones`` в "
+"поле ``data``"
 
 #: ../../source/tutorial_section_2.rst:824
 msgid ""
 "For example, we can add ``[ [ Volume, [ NX, X, NY, Y, NZ, Z ] ] ]`` in "
 "the``bottom.yaml``, where:"
 msgstr ""
+"Например, мы можем добавить ``[ [ Volume, [ NX, X, NY, Y, NZ, Z ] ] ]`` в"
+" файл ``bottom.yaml``, где:"
 
 #: ../../source/tutorial_section_2.rst:827
 msgid "``Volume`` - volume name"
-msgstr ""
+msgstr "``Volume`` - имя объема"
 
 #: ../../source/tutorial_section_2.rst:828
 msgid "``[ NX, X, NY, Y, NZ, Z ]`` - surfaces names:"
-msgstr ""
+msgstr "``[ NX, X, NY, Y, NZ, Z ]`` - имена поверхностей:"
 
 #: ../../source/tutorial_section_2.rst:830
 msgid "``NX`` - surface pointing in the opposite direction of X-axis"
-msgstr ""
+msgstr "``NX`` - поверхность, направленная в направлении, противоположном оси X"
 
 #: ../../source/tutorial_section_2.rst:831
 msgid "``X`` - surface pointing in the direction of X-axis"
-msgstr ""
+msgstr "``X`` - поверхность, направленная в направлении оси X"
 
 #: ../../source/tutorial_section_2.rst:832
 msgid "``NY`` - surface pointing in the opposite direction of Y-axis"
-msgstr ""
+msgstr "``NY`` - поверхность, направленная в направлении, противоположном оси Y"
 
 #: ../../source/tutorial_section_2.rst:833
 msgid "``Y`` - surface pointing in the direction of Y-axis"
-msgstr ""
+msgstr "``Y`` - поверхность, направленная в направлении оси Y"
 
 #: ../../source/tutorial_section_2.rst:834
 msgid "``NZ`` - surface pointing in the opposite direction of Z-axis"
-msgstr ""
+msgstr "``NZ`` - поверхность, направленная в направлении, противоположном оси Z"
 
 #: ../../source/tutorial_section_2.rst:835
 msgid "``Z`` - surface pointing in the direction of Z-axis"
-msgstr ""
+msgstr "``Z`` - поверхность, направленная в направлении оси Z"
 
 #: ../../source/tutorial_section_2.rst:856
 msgid "Structured hexahedral with zones"
-msgstr ""
+msgstr "Структурированная гексаэдральная сетка с зонами"
 
 #: ../../source/tutorial_section_2.rst:859
 msgid "Result"
-msgstr ""
+msgstr "Результат"
 
-#: ../../source/tutorial_section_2.rst:861
-msgid ""
-"Let's add all of the fields described above to input files accordingly "
-"with the geometry."
-msgstr ""
-
-#: ../../source/tutorial_section_2.rst:865
+#: ../../source/tutorial_section_2.rst:862
 msgid ""
 "We should define different zone names of bottom surfaces of ``TOP2`` and "
 "``TOP3``, e.g. ``Top2NZ`` and ``Top3NZ`` respectively"
 msgstr ""
+"Мы должны назначить разные имена для нижних зон поверхностей ``TOP2`` и "
+"``TOP3``, например, ``Top2NZ`` и ``Top3NZ`` соответственно"
 
-#: ../../source/tutorial_section_2.rst:908
+#: ../../source/tutorial_section_2.rst:905
 msgid "``main.yaml``"
 msgstr ""
+
+#~ msgid ""
+#~ "Let's add all of the fields "
+#~ "described above to input files "
+#~ "accordingly with the geometry."
+#~ msgstr ""
 
