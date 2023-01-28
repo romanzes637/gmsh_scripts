@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmsh_scripts \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-27 20:44+0000\n"
+"POT-Creation-Date: 2023-01-28 00:01+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,11 +34,6 @@ msgstr ""
 msgid ":py:obj:`Layer <gmsh_scripts.block.layer.Layer>`\\"
 msgstr ""
 
-#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:32
-#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:19:<autosummary>:1
-msgid "Matrix"
-msgstr ""
-
 #: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:21
 msgid "Attributes"
 msgstr ""
@@ -51,11 +46,7 @@ msgstr ""
 msgid "Bases: :py:obj:`gmsh_scripts.block.matrix.Matrix`"
 msgstr ""
 
-#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:34
-msgid "Args:"
-msgstr ""
-
-#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:51
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:47
 msgid "Parse layers curves"
 msgstr ""
 
@@ -63,17 +54,17 @@ msgstr ""
 msgid "Parameters"
 msgstr ""
 
-#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:53
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:49
 msgid "curves of layers"
 msgstr ""
 
-#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:55
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:51
 msgid ""
 "local index of a block of the matrix to local index of a block of the "
 "parsed layer"
 msgstr ""
 
-#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:58
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:54
 msgid "layers"
 msgstr ""
 
@@ -81,11 +72,17 @@ msgstr ""
 msgid "Returns"
 msgstr ""
 
-#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:61
+#: ../../source/autoapi/gmsh_scripts/block/layer/index.rst:57
 msgid "curves (list) curves map of the matrix (list)"
 msgstr ""
 
 #: ../../source/autoapi/gmsh_scripts/block/layer/index.rst
 msgid "Return type"
 msgstr ""
+
+#~ msgid "Matrix"
+#~ msgstr ""
+
+#~ msgid "Args:"
+#~ msgstr ""
 

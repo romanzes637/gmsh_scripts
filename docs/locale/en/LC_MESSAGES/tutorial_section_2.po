@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmsh_scripts \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-27 20:44+0000\n"
+"POT-Creation-Date: 2023-01-28 00:01+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -71,25 +71,25 @@ msgstr ""
 
 #: ../../source/tutorial_section_2.rst:39
 #: ../../source/tutorial_section_2.rst:561
-#: ../../source/tutorial_section_2.rst:868
+#: ../../source/tutorial_section_2.rst:865
 msgid "``top_1.yaml``"
 msgstr ""
 
 #: ../../source/tutorial_section_2.rst:48
 #: ../../source/tutorial_section_2.rst:570
-#: ../../source/tutorial_section_2.rst:878
+#: ../../source/tutorial_section_2.rst:875
 msgid "``top_2.yaml``"
 msgstr ""
 
 #: ../../source/tutorial_section_2.rst:57
 #: ../../source/tutorial_section_2.rst:579
-#: ../../source/tutorial_section_2.rst:888
+#: ../../source/tutorial_section_2.rst:885
 msgid "``top_3.yaml``"
 msgstr ""
 
 #: ../../source/tutorial_section_2.rst:66
 #: ../../source/tutorial_section_2.rst:588
-#: ../../source/tutorial_section_2.rst:898
+#: ../../source/tutorial_section_2.rst:895
 msgid "``bottom.yaml``"
 msgstr ""
 
@@ -200,7 +200,7 @@ msgid "Geometry with all blocks"
 msgstr ""
 
 #: ../../source/tutorial_section_2.rst:152
-#: ../../source/tutorial_section_2.rst:944
+#: ../../source/tutorial_section_2.rst:941
 msgid "Mesh"
 msgstr ""
 
@@ -635,19 +635,19 @@ msgstr ""
 msgid "Result"
 msgstr ""
 
-#: ../../source/tutorial_section_2.rst:861
-msgid ""
-"Let's add all of the fields described above to input files accordingly "
-"with the geometry."
-msgstr ""
-
-#: ../../source/tutorial_section_2.rst:865
+#: ../../source/tutorial_section_2.rst:862
 msgid ""
 "We should define different zone names of bottom surfaces of ``TOP2`` and "
 "``TOP3``, e.g. ``Top2NZ`` and ``Top3NZ`` respectively"
 msgstr ""
 
-#: ../../source/tutorial_section_2.rst:908
+#: ../../source/tutorial_section_2.rst:905
 msgid "``main.yaml``"
 msgstr ""
+
+#~ msgid ""
+#~ "Let's add all of the fields "
+#~ "described above to input files "
+#~ "accordingly with the geometry."
+#~ msgstr ""
 
