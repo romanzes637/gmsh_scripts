@@ -1,0 +1,189 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, romanzes637
+# This file is distributed under the same license as the gmsh_scripts
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmsh_scripts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-27 20:44+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:2
+msgid ":py:mod:`gmsh_scripts.entity`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:8
+msgid "Submodules"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:22
+msgid "Package Contents"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:25
+msgid "Classes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:38:<autosummary>:1
+msgid ":py:obj:`Point <gmsh_scripts.entity.Point>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:38:<autosummary>:1
+msgid "Point"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:38:<autosummary>:1
+msgid ":py:obj:`Curve <gmsh_scripts.entity.Curve>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:143
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:38:<autosummary>:1
+msgid "Curve"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:38:<autosummary>:1
+msgid ":py:obj:`CurveLoop <gmsh_scripts.entity.CurveLoop>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:38:<autosummary>:1
+msgid ":py:obj:`Surface <gmsh_scripts.entity.Surface>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:38:<autosummary>:1
+msgid ":py:obj:`SurfaceLoop <gmsh_scripts.entity.SurfaceLoop>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:38:<autosummary>:1
+msgid ":py:obj:`Volume <gmsh_scripts.entity.Volume>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:41
+msgid ""
+"Point :param tag: unique id :type tag: int or None :param zone: zone "
+":type zone: str or None :param coordinate_system: coordinate system :type"
+" coordinate_system: str or dict or CoordinateSystem or None :param "
+"coordinates: coordinates values :type coordinates: list of float or "
+"np.ndarray or None"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:53
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:145
+msgid "unique id"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst
+msgid "type"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:55
+msgid "int or None"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:59
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:150
+msgid "zone"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:61
+msgid "str or None"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:65
+msgid "coordinate system"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:67
+msgid "CoordinateSystem"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:71
+msgid "coordinates values"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:73
+msgid "np.ndarray"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:77
+msgid "other keyword arguments (e.g. meshSize)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:79
+msgid "dict or None"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:92
+msgid ""
+"Parse list Patterns: 1. [coordinates] 2. [coordinates, meshSize] 3. "
+"[coordinates, coordinate_system] 4. [coordinates, zone] 5. [coordinates, "
+"meshSize, coordinate_system] 5. [coordinates, coordinate_system, zone] 5."
+" [coordinates, meshSize, zone] 5. [coordinates, meshSize, "
+"coordinate_system, zone]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst
+msgid "Parameters"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst
+msgid "Return type"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:112
+msgid ""
+"Parse list of raw points Patterns 1. [[], [], [], ...] 2. [[], [], [], "
+"..., meshSize] 3. [[], [], [], ..., coordinate_system] 4. [[], [], [], "
+"..., zone] 5. [[], [], [], ..., meshSize, coordinate_system] 6. [[], [], "
+"[], ..., coordinate_system, zone] 7. [[], [], [], ..., meshSize, zone] 8."
+" [[], [], [], ..., meshSize, coordinate_system, zone] 9. [{}, {}, {}, "
+"...] 10. [{}, {}, {}, ..., meshSize] 11. [{}, {}, {}, ..., "
+"coordinate_system] 12. [{}, {}, {}, ..., zone] 13. [{}, {}, {}, ..., "
+"meshSize, coordinate_system] 14. [{}, {}, {}, ..., coordinate_system, "
+"zone] 15. [{}, {}, {}, ..., meshSize, zone] 16. [{}, {}, {}, ..., "
+"meshSize, coordinate_system, zone]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:131
+msgid "raw points"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:133
+msgid "do degrees to radians conversion"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst
+msgid "Returns"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:136
+msgid "points objects"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:147
+msgid ""
+"type of the curve: line, polyline, circle_arc, ellipse_arc, spline, "
+"bspline, bezier"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:152
+msgid "curve points"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:154
+msgid "curve structure"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/entity/index.rst:156
+msgid "other keyword arguments"
+msgstr ""
+

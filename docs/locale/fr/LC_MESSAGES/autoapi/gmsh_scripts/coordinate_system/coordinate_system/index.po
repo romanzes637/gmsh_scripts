@@ -1,0 +1,372 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, romanzes637
+# This file is distributed under the same license as the gmsh_scripts
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmsh_scripts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-27 20:44+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:2
+msgid ":py:mod:`gmsh_scripts.coordinate_system.coordinate_system`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:8
+msgid "Module Contents"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:11
+msgid "Classes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid ""
+":py:obj:`CoordinateSystem "
+"<gmsh_scripts.coordinate_system.coordinate_system.CoordinateSystem>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:41
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:100
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:112
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid "Abstract"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid ""
+":py:obj:`Affine "
+"<gmsh_scripts.coordinate_system.coordinate_system.Affine>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:53
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:65
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid "Affine coordinate system"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid ""
+":py:obj:`Cartesian "
+"<gmsh_scripts.coordinate_system.coordinate_system.Cartesian>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid ""
+":py:obj:`Cylindrical "
+"<gmsh_scripts.coordinate_system.coordinate_system.Cylindrical>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:77
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid "Cylindrical coordinate system"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid ""
+":py:obj:`Spherical "
+"<gmsh_scripts.coordinate_system.coordinate_system.Spherical>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:88
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid "Spherical coordinate system"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid ""
+":py:obj:`Toroidal "
+"<gmsh_scripts.coordinate_system.coordinate_system.Toroidal>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid ""
+":py:obj:`Tokamak "
+"<gmsh_scripts.coordinate_system.coordinate_system.Tokamak>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid ""
+":py:obj:`Hexahedral "
+"<gmsh_scripts.coordinate_system.coordinate_system.Hexahedral>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:124
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid "Natural Hexahedral Coordinate System"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid ":py:obj:`Block <gmsh_scripts.coordinate_system.coordinate_system.Block>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:142
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid "Block Coordinate System"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid ":py:obj:`Path <gmsh_scripts.coordinate_system.coordinate_system.Path>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:160
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid "Path coordinate system"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid ":py:obj:`Layer <gmsh_scripts.coordinate_system.coordinate_system.Layer>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:202
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid "Different layers by X, Y and Z axis"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid ""
+":py:obj:`QuarterLayer "
+"<gmsh_scripts.coordinate_system.coordinate_system.QuarterLayer>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:234
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:30:<autosummary>:1
+msgid "Quarter of Layer by +X and +Y directions"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:32
+msgid "Attributes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:38:<autosummary>:1
+msgid ""
+":py:obj:`str2obj "
+"<gmsh_scripts.coordinate_system.coordinate_system.str2obj>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst
+msgid "Parameters"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:43
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:102
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:114
+msgid "Dimension"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:45
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:55
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:67
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:104
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:116
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:134
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:152
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:166
+msgid "Origin"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:51
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:75
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:86
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:98
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:110
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:122
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:140
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:158
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:200
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:232
+msgid "Bases: :py:obj:`CoordinateSystem`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:57
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:69
+msgid "Basis vectors"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:63
+msgid "Bases: :py:obj:`Affine`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:79
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:90
+msgid "r - radius [0, inf)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:80
+msgid "phi - azimuthal angle or longitude [0, 2pi) (counterclockwise from X to Y)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:81
+msgid "z - height"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:91
+msgid "phi - azimuthal angle [0, 2pi) (counterclockwise from X to Y)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:92
+msgid "theta - polar (zenith) angle or colatitude = pi/2 - latitude [0, pi]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:93
+msgid "(from Z to -Z, i.e XY-plane is pi/2)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:126
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:144
+msgid "xi [-1, 1]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:127
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:145
+msgid "eta [-1, 1]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:128
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:146
+msgid "zeta [-1, 1]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:130
+msgid "points coordinates of hexahedron"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:132
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:150
+msgid "order of points"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:148
+msgid "points coordinates of the block"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:162
+msgid "xi - X, transverse, right axis, axis of pitch rotation (-inf, inf)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:163
+msgid "eta - Y, vertical, down axis, axis of yaw rotation (-inf, inf)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:164
+msgid "zeta - Z, longitudinal, front axis, axis of roll rotation [0, 1]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:168
+msgid "Curves"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:170
+msgid "Orientation in curves points (number of curves + 1)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:172
+msgid "Curves points transforms"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:174
+msgid "Curves weights in global path coordinate system"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:176
+msgid "Curves weights in local curve coordinate system"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:204
+msgid ""
+"[[c_x_1, c_x_2,  ..., c_x_NX], [c_y_1,  c_y_2,  ..., c_y_NY], [c_nx_1, "
+"c_nx_2, ..., c_nx_NNX], [c_ny_1, c_ny_2, ..., c_ny_NNY]], [c_z_1,  c_z_2,"
+"  ..., c_z_NZ]], [c_nz_1, c_nz_2, ..., c_nz_NNZ]], where N - number of "
+"layers, c (float): coordinate (0, inf)."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:212
+msgid ""
+"[[name_x_1, name_x_2,  ..., name_x_NX], [name_y_1,  name_y_2,  ..., "
+"name_y_NY], [name_nx_1, name_nx_2, ..., name_nx_NNX], [name_ny_1, "
+"name_ny_2, ..., name_ny_NNY]], [name_z_1,  name_z_2,  ..., name_z_NZ]], "
+"[name_nz_1, name_nz_2, ..., name_nz_NNZ]], where N - number of layers, "
+"name - curve name (see py:class:`curve.Curve` class)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:221
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:251
+msgid ""
+"[[type_x_1, type_x_2,  ..., type_x_NX],  [type_y_1,  type_y_2,  ..., "
+"type_y_NY],  [type_z_1,  type_z_2,  ..., type_z_NZ]],  [type_nz_1, "
+"type_nz_2, ..., type_nz_NNZ]], where type (str): 'in' - inscribed, 'out' "
+"- circumscribed."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:224
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:254
+msgid "[[type_x_1, type_x_2,  ..., type_x_NX],"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:223
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:253
+msgid ""
+"[type_y_1,  type_y_2,  ..., type_y_NY], [type_z_1,  type_z_2,  ..., "
+"type_z_NZ]], [type_nz_1, type_nz_2, ..., type_nz_NNZ]],"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:226
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:256
+msgid "where type (str): 'in' - inscribed, 'out' - circumscribed."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:236
+msgid ""
+"[[c_x_1, c_x_2,  ..., c_x_NX],  [c_y_1,  c_y_2,  ..., c_y_NY],  [c_z_1,  "
+"c_z_2,  ..., c_z_NZ]],  [c_nz_1, c_nz_2, ..., c_nz_NNZ]], where N - "
+"number of layers, c (float): coordinate (0, inf)."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:239
+msgid "[[c_x_1, c_x_2,  ..., c_x_NX],"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:238
+msgid ""
+"[c_y_1,  c_y_2,  ..., c_y_NY], [c_z_1,  c_z_2,  ..., c_z_NZ]], [c_nz_1, "
+"c_nz_2, ..., c_nz_NNZ]],"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:241
+msgid "where N - number of layers, c (float): coordinate (0, inf)."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:243
+msgid ""
+"[[name_x_1, name_x_2,  ..., name_x_NX],  [name_y_1,  name_y_2,  ..., "
+"name_y_NY],  [name_z_1,  name_z_2,  ..., name_z_NZ]],  [name_nz_1, "
+"name_nz_2, ..., name_nz_NNZ]], where N - number of layers, name - curve "
+"name (see py:class:`curve.Curve` class)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:246
+msgid "[[name_x_1, name_x_2,  ..., name_x_NX],"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:245
+msgid ""
+"[name_y_1,  name_y_2,  ..., name_y_NY], [name_z_1,  name_z_2,  ..., "
+"name_z_NZ]], [name_nz_1, name_nz_2, ..., name_nz_NNZ]],"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/coordinate_system/coordinate_system/index.rst:248
+msgid ""
+"where N - number of layers, name - curve name (see py:class:`curve.Curve`"
+" class)"
+msgstr ""
+

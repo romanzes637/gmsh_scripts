@@ -1,0 +1,48 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, romanzes637
+# This file is distributed under the same license as the gmsh_scripts
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmsh_scripts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-28 00:01+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:2
+msgid ":py:mod:`gmsh_scripts.block.polyhedron`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:8
+msgid "Module Contents"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:11
+msgid "Classes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:19:<autosummary>:1
+msgid ":py:obj:`Polyhedron <gmsh_scripts.block.polyhedron.Polyhedron>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:21
+msgid "Attributes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:27:<autosummary>:1
+msgid ":py:obj:`str2obj <gmsh_scripts.block.polyhedron.str2obj>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/polyhedron/index.rst:30
+msgid "Bases: :py:obj:`gmsh_scripts.block.Block`"
+msgstr ""
+

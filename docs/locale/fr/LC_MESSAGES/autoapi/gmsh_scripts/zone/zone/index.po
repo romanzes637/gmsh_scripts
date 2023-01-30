@@ -1,0 +1,146 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, romanzes637
+# This file is distributed under the same license as the gmsh_scripts
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmsh_scripts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-27 20:44+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:2
+msgid ":py:mod:`gmsh_scripts.zone.zone`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:8
+msgid "Module Contents"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:11
+msgid "Classes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:23:<autosummary>:1
+msgid ":py:obj:`Zone <gmsh_scripts.zone.zone.Zone>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:23:<autosummary>:1
+msgid ":py:obj:`Block <gmsh_scripts.zone.zone.Block>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:42
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:54
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:23:<autosummary>:1
+msgid "Name from zone field of entity"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:23:<autosummary>:1
+msgid ":py:obj:`NoZone <gmsh_scripts.zone.zone.NoZone>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:23:<autosummary>:1
+msgid ":py:obj:`DirectionByNormal <gmsh_scripts.zone.zone.DirectionByNormal>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:63
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:23:<autosummary>:1
+msgid "Construct zones from boolean map and Block's zones"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:23:<autosummary>:1
+msgid ":py:obj:`Mesh <gmsh_scripts.zone.zone.Mesh>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:91
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:23:<autosummary>:1
+msgid "Construct zones from mesh instead of Block's zones"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:25
+msgid "Attributes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:31:<autosummary>:1
+msgid ":py:obj:`str2obj <gmsh_scripts.zone.zone.str2obj>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:40
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:52
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:61
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:89
+msgid "Bases: :py:obj:`Zone`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst
+msgid "Parameters"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:65
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:93
+msgid "Which dims to zones"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:67
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:95
+msgid "Which dims to interfaces zones"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:69
+msgid ""
+"Which interfaces should be joined together, Variants:     1. [[volumes "
+"zones], [volumes zones], ...]     2. [[[volumes zones], [entities "
+"zones]], ...] If the zone set with * symbol then join all zones which "
+"includes the zone else only zones that fully match the zone."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:69
+msgid "Which interfaces should be joined together, Variants:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:71
+msgid "[[volumes zones], [volumes zones], ...]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:72
+msgid "[[[volumes zones], [entities zones]], ...]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:73
+msgid ""
+"If the zone set with * symbol then join all zones which includes the zone"
+" else only zones that fully match the zone."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:76
+msgid "separator in volume, surface, curve and point"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:78
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:102
+msgid "separator between volume, surface, curve and point"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:80
+msgid "separator between interfaces"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:97
+msgid ""
+"Join interfaces zones 'all' - join all in alphabetical order 'first' - "
+"get first only in alphabetical order None - don't join"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/zone/zone/index.rst:104
+msgid "separator used in join_interfaces"
+msgstr ""
+

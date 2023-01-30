@@ -1,0 +1,52 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, romanzes637
+# This file is distributed under the same license as the gmsh_scripts
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmsh_scripts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-27 20:44+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/index.rst:12
+msgid "Contents:"
+msgstr "Contenu"
+
+#: ../../source/index.rst:7
+msgid "Welcome to gmsh scripts documentation!"
+msgstr "Bienvenue dans la documentation des gmsh scripts!"
+
+#: ../../source/index.rst:9
+msgid ""
+"3D structured/unstructured tetrahedral/hexahedral multi-block mesh "
+"generator with boolean operations based on `gmsh <https://gmsh.info/>`_"
+msgstr ""
+"Générateur de maillage multi-blocs tétraédrique/hexaédrique structuré/non structuré "
+"3D avec opérations booléennes basées sur `gmsh <https://gmsh.info/>`_"
+
+#: ../../source/index.rst:19
+msgid "Indices and tables"
+msgstr "Index et tableaux"
+
+#: ../../source/index.rst:21
+msgid ":ref:`genindex`"
+msgstr ""
+
+#: ../../source/index.rst:22
+msgid ":ref:`modindex`"
+msgstr ""
+
+#: ../../source/index.rst:23
+msgid ":ref:`search`"
+msgstr ""
+

@@ -1,0 +1,153 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, romanzes637
+# This file is distributed under the same license as the gmsh_scripts
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmsh_scripts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-27 20:44+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:2
+msgid ":py:mod:`gmsh_scripts.structure.structure`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:8
+msgid ""
+"# see "
+"https://gitlab.onelab.info/gmsh/gmsh/blob/gmsh_4_8_4/tutorial/python/x2.py"
+" # Set this to True to build a fully hex mesh: #transfinite = True "
+"transfinite = False transfiniteAuto = False"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:21
+msgid "if transfinite:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:15
+msgid "NN = 30 for c in gmsh.model.getEntities(1):"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:17
+msgid "gmsh.model.mesh.setTransfiniteCurve(c[1], NN)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:20
+msgid "for s in gmsh.model.getEntities(2):"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:19
+msgid ""
+"gmsh.model.mesh.setTransfiniteSurface(s[1]) "
+"gmsh.model.mesh.setRecombine(s[0], s[1]) "
+"gmsh.model.mesh.setSmoothing(s[0], s[1], 100)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:22
+msgid "gmsh.model.mesh.setTransfiniteVolume(v1)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:27
+msgid "elif transfiniteAuto:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:24
+msgid ""
+"gmsh.option.setNumber('Mesh.MeshSizeMin', 0.5) "
+"gmsh.option.setNumber('Mesh.MeshSizeMax', 0.5) # "
+"setTransfiniteAutomatic() uses the sizing constraints to set the number #"
+" of points gmsh.model.mesh.setTransfiniteAutomatic()"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:31
+msgid "else:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:30
+msgid ""
+"gmsh.option.setNumber('Mesh.MeshSizeMin', 0.05) "
+"gmsh.option.setNumber('Mesh.MeshSizeMax', 0.05)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:33
+msgid "def setTransfiniteAutomatic(dimTags=[], cornerAngle=2.35, recombine=True):"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:35
+msgid ""
+"Set transfinite meshing constraints on the model entities in `dimTag'. "
+"Transfinite meshing constraints are added to the curves of the "
+"quadrangular surfaces and to the faces of 6-sided volumes. Quadragular "
+"faces with a corner angle superior to `cornerAngle' (in radians) are "
+"ignored. The number of points is automatically determined from the sizing"
+" constraints. If `dimTag' is empty, the constraints are applied to all "
+"entities in the model. If `recombine' is true, the recombine flag is "
+"automatically set on the transfinite surfaces."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:47
+msgid "Module Contents"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:50
+msgid "Classes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:61:<autosummary>:1
+msgid ":py:obj:`Structure <gmsh_scripts.structure.structure.Structure>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:61:<autosummary>:1
+msgid ":py:obj:`NoStructure <gmsh_scripts.structure.structure.NoStructure>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:61:<autosummary>:1
+msgid ":py:obj:`StructureAuto <gmsh_scripts.structure.structure.StructureAuto>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:61:<autosummary>
+msgid "param corner_angle"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:61:<autosummary>:1
+msgid "Quadrangular faces with a corner angle superior"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:61:<autosummary>:1
+msgid ""
+":py:obj:`StructureBlock "
+"<gmsh_scripts.structure.structure.StructureBlock>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:63
+msgid "Attributes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:69:<autosummary>:1
+msgid ":py:obj:`str2obj <gmsh_scripts.structure.structure.str2obj>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst
+msgid "Parameters"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:78
+msgid ""
+"Quadrangular faces with a corner angle superior to corner_angle (in "
+"degree) are ignored"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/structure/structure/index.rst:81
+msgid "Quadrate surfaces"
+msgstr ""
+

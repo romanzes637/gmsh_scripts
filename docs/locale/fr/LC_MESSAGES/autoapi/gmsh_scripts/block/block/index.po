@@ -1,0 +1,456 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, romanzes637
+# This file is distributed under the same license as the gmsh_scripts
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmsh_scripts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-27 20:44+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:2
+msgid ":py:mod:`gmsh_scripts.block.block`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:8
+msgid "Module Contents"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:11
+msgid "Classes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:19:<autosummary>:1
+msgid ":py:obj:`Block <gmsh_scripts.block.block.Block>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:30
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:19:<autosummary>:1
+msgid "Basic building block of the mesh"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:21
+msgid "Attributes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:27:<autosummary>:1
+msgid ":py:obj:`str2obj <gmsh_scripts.block.block.str2obj>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:32
+msgid "Block is a cuboid with 8 points, 12 curves, 6 surfaces and 1 volume."
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:34
+msgid "**Axes**"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:35
+msgid "Y"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:36
+msgid "Z X"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:37
+msgid "NX, NY and NZ are negative X, Y and Z directions"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:39
+msgid "**Points**"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:40
+msgid "NZ:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:41
+msgid "P1 P0"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:42
+msgid "P2 P3"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:43
+msgid "Z:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:44
+msgid "P5 P4"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:45
+msgid "P6 P7"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:47
+msgid "**Curves**"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:48
+msgid "X direction curves from P0 by right-hand rule:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:49
+msgid "C0: P1 -> P0"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:50
+msgid "C1: P5 -> P4"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:51
+msgid "C2: P6 -> P7"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:52
+msgid "C3: P2 -> P3"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:53
+msgid "Y direction curves from P0 by right-hand rule:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:54
+msgid "C4: P3 -> P0"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:55
+msgid "C5: P2 -> P1"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:56
+msgid "C6: P6 -> P5"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:57
+msgid "C7: P7 -> P4"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:58
+msgid "Z direction curves from P0 by right-hand rule:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:59
+msgid "C8:  P0 -> P4"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:60
+msgid "C9:  P1 -> P5"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:61
+msgid "C10: P2 -> P6"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:62
+msgid "C11: P3 -> P7"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:64
+msgid "**Surfaces**"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:65
+msgid "NX surface"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:66
+msgid "S0: C5  -> C9  -> -C6 -> -C10"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:67
+msgid "X surface"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:68
+msgid "S1: -C4 -> C11 -> C7  -> -C8"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:69
+msgid "NY surface"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:70
+msgid "S2: -C3 -> C10 -> C2  -> -C11"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:71
+msgid "Y surface"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:72
+msgid "S3: C0  -> C8  -> -C1 -> -C9"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:73
+msgid "NZ surface"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:74
+msgid "S4: -C0 -> -C5 ->  C3 -> C4"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:75
+msgid "Z surface"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:76
+msgid "S5: C1  -> -C7 -> -C2 -> C6"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst
+msgid "Parameters"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:78
+msgid "8 corner points of the block"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:80
+msgid "12 edge curves of the block"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:82
+msgid "6 boundary surfaces of the block"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:84
+msgid "volumes of the block (1 by now, TODO several volumes)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:86
+msgid "register Block in the registry"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:88
+msgid "unregister Block from the registry"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:90
+msgid "invoke register for children"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:92
+msgid ""
+"invoke unregister for children 0 - not unregister 1 - unregister in any "
+"case if you are owner 2 - decide to unregister by all owners 3 - decide "
+"to unregister by all members"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:98
+msgid ""
+"points and curves points transforms (Translation, Rotation, Coordinate "
+"Change, etc)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:100
+msgid ""
+"transform triangles to quadrangles for surfaces and tetrahedra to "
+"hexahedra for volumes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:102
+msgid "make structured mesh instead of unstructured by some rule"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:104
+msgid "parent of the Block"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:106
+msgid "children of the Block"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:108
+msgid "transforms for children Blocks"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:110
+msgid ""
+"Block boolean level, if the Block level > another Block level, then "
+"intersected volume joins to the Block, if levels are equal third Block is"
+" created, if None - don't do boolean"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:163
+msgid "Parse structure type"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:165
+msgid ""
+"# "
+"https://gitlab.onelab.info/gmsh/gmsh/-/blob/master/Mesh/meshGRegionTransfinite.cpp"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:167
+msgid "Transfinite surface meshes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:173
+msgid "s4 +-----c3-----+ s3"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst
+msgid "|"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:173
+msgid "c4            c2"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:175
+msgid "s1 +-----c1-----+ s2"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:177
+msgid ""
+"f(u,v) = (1-u) c4(v) + u c2(v) + (1-v) c1(u) + v c3(u) - [ (1-u)(1-v) s1 "
+"+ u(1-v) s2 + uv s3 + (1-u)v s4 ]"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:180
+msgid "Transfinite volume meshes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:182
+msgid "a0   s0 s1  f0  s0 s1 s5 s4              s6"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:183
+msgid "s7        s6      a1   s1 s2  f1  s1 s2 s6 s5              *"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:184
+msgid ""
+"*-------*       a2   s3 s2  f2  s3 s2 s6 s7             /|              "
+"|\\s4    |\\      a3   s0 s3  f3  s0 s3 s7 s4            / |"
+"               | *-------* s5  a4   s4 s5  f4  s0 s1 s2 s3      s7/s4/  "
+"|s2              | |   s2| |     a5   s5 s6  f5  s4 s5 s6 s7          "
+"*---*---* s5"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:186
+msgid "s3 *-|-----* |     a6   s7 s6                           |  / \\  |"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:186
+msgid "\\|      \\|     a7   s4 s7                           | /   \\ |"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:187
+msgid "*-------*     a8   s0 s4                           |/     \\|"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:191
+msgid "v w  s0       s1    a9   s1 s5                           *-------*"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:191
+msgid "\\|                 a10  s2 s6                  v w    s3/s0     s1"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:191
+msgid "*--u              a11  s3 s7                   \\|"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:191
+msgid "*--u"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:213
+msgid "TODO How to create other types? (RLL, LRL, LLR, RRR)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:194
+msgid ""
+"Tried to rotate volume_points = [0, 1, 2, 3, 4, 5, 6, 7]  # LLL "
+"volume_points = [1, 2, 3, 0, 5, 6, 7, 4]  # LRR volume_points = [2, 3, 0,"
+" 1, 6, 7, 4, 5]  # RRL volume_points = [3, 0, 1, 2, 7, 4, 5, 6]  # RLR "
+"Tried to swap top and bottom volume_points = [4, 5, 6, 7, 0, 1, 2, 3]  # "
+"RRL volume_points = [5, 6, 7, 4, 1, 2, 3, 0]  # RLR volume_points = [6, "
+"7, 4, 5, 2, 3, 0, 1]  # LLL volume_points = [7, 4, 5, 6, 3, 0, 1, 2]  # "
+"LRR Tried to reverse volume_points = [3, 2, 1, 0, 7, 6, 5, 4]  # RLR "
+"volume_points = [0, 3, 2, 1, 4, 7, 6, 5]  # LLL volume_points = [1, 0, 3,"
+" 2, 5, 4, 7, 6]  # LRR volume_points = [2, 1, 0, 3, 6, 5, 4, 7]  # RRL "
+"Tried to swap top and bottom with reverse after volume_points = [7, 6, 5,"
+" 4, 3, 2, 1, 0]  # LRR volume_points = [4, 7, 6, 5, 0, 3, 2, 1]  # RRL "
+"volume_points = [5, 4, 7, 6, 1, 0, 3, 2]  # RLR volume_points = [6, 5, 4,"
+" 7, 2, 1, 0, 3]  # LLL"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:215
+msgid ""
+"LLL, LRR, LRR or RRL, L/R - Left/Right triangles arrangement of X (NX), Y"
+" (NY), Z (NZ) surfaces respectively, e.g. LRR - Left arrangement for X "
+"and NX surfaces, Right for Y and NY, Right for Z and NZ"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst
+msgid "Returns"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:221
+msgid ""
+"tuple of:     surfaces_arrangement (list of str): surfaces arrangement:"
+"         Left or Right (AlternateLeft and AlternateRight         are "
+"incompatible with structured meshes)     surfaces_points (list of list of"
+" int): surfaces points tags         (s1, s2, s3, s4)     volume_points "
+"(list of int): volume points tags         (s0, s1, s2, s3, s4, s5, s6, "
+"s7)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:229
+msgid "tuple of:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:225
+msgid "surfaces_arrangement (list of str): surfaces arrangement:"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:225
+msgid ""
+"Left or Right (AlternateLeft and AlternateRight are incompatible with "
+"structured meshes)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:227
+msgid "surfaces_points (list of list of int): surfaces points tags"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:228
+msgid "(s1, s2, s3, s4)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:229
+msgid "volume_points (list of int): volume points tags"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:230
+msgid "(s0, s1, s2, s3, s4, s5, s6, s7)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst
+msgid "Return type"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:278
+msgid "Tree of blocks"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/block/block/index.rst:280
+msgid "children of blocks"
+msgstr ""
+
