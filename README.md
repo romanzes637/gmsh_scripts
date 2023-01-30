@@ -6,7 +6,8 @@ with boolean operations based on [gmsh](https://gmsh.info/)
 
 ## Documentation
 * [English](https://gmsh-scripts.readthedocs.io/en/latest/)
-* [Russian](https://gmsh-scripts.readthedocs.io/ru/latest/)
+* [Français](https://gmsh-scripts.readthedocs.io/fr/latest/)
+* [Русский](https://gmsh-scripts.readthedocs.io/ru/latest/)
 
 ## Installation
 ### Pip

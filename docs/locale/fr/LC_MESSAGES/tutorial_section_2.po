@@ -1,0 +1,693 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, romanzes637
+# This file is distributed under the same license as the gmsh_scripts
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmsh_scripts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-28 00:01+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/tutorial_section_2.rst:2
+msgid "Cross section 2"
+msgstr "Section transversale 2"
+
+#: ../../source/tutorial_section_2.rst:4
+msgid "Let's consider a cross section (See `examples/matrix/cross_section_2`_)"
+msgstr "Let's consider a cross section (See `examples/matrix/cross_section_2`_)"
+
+#: ../../source/tutorial_section_2.rst:12
+msgid "Cross section"
+msgstr "Section transversale"
+
+#: ../../source/tutorial_section_2.rst:14
+msgid ""
+"We can use :py:class:`~gmsh_scripts.block.matrix.Matrix` class to create "
+"this type of geometry. First we need to decompose geometry into blocks "
+"and then modify each of them according to the dimensions."
+msgstr ""
+"Nous pouvons utiliser la classe :py:class:`~gmsh_scripts.block.matrix.Matrix` pour "
+"créer ce type de géométrie. Nous devons d'abord décomposer la géométrie en blocs, "
+"puis modifier chacun d'eux en fonction des dimensions."
+
+#: ../../source/tutorial_section_2.rst:19
+msgid "Decomposition"
+msgstr "Décomposition"
+
+#: ../../source/tutorial_section_2.rst:20
+msgid ""
+"Geometry could be decomposed into 4 blocks: ``BOTTOM``, ``TOP1``, "
+"``TOP2`` and ``TOP3``, where ``TOP3`` part is required for a small "
+"surface with :math:`F`, :math:`u_v` boundary condition at the end of the "
+"upper part of the geometry. Without the boundary condition, 3 blocks "
+"would be enough. Each of these blocks will be described by "
+":py:class:`~gmsh_scripts.block.matrix.Matrix` class."
+msgstr ""
+"La géométrie peut être décomposée en 4 blocs: ``BOTTOM``, ``TOP1``, ``TOP2`` et "
+""``TOP3``, où la partie ``TOP3`` est requise pour une petite surface avec :math:`F`, "
+":math:`u_v` condition aux limites à la fin de la partie supérieure de la géométrie. "
+"Sans la condition aux limites, 3 blocs suffiraient. Chacun de ces blocs sera décrit "
+"par la classe :py:class:`~gmsh_scripts.block.matrix.Matrix`."
+
+#: ../../source/tutorial_section_2.rst:30
+msgid "Decomposition of geometry"
+msgstr "Décomposition de la géométrie"
+
+#: ../../source/tutorial_section_2.rst:33
+msgid "Geometry"
+msgstr "Géométrie"
+
+#: ../../source/tutorial_section_2.rst:34
+msgid ""
+"Let's define that X-axis is directed to the right, Y - in the depth and Z"
+" - upward, i.e cross section is symmetric along Y-axis."
+msgstr ""
+"Définissons que l'axe X est dirigé vers la droite, Y - dans la profondeur et Z - vers "
+" le haut, c'est-à-dire que la section transversale est symétrique le long de l'axe Y."
+
+#: ../../source/tutorial_section_2.rst:37
+msgid "First we should create a separate file for each of the blocks:"
+msgstr "Nous devons d'abord créer un fichier séparé pour chacun des blocs:"
+
+#: ../../source/tutorial_section_2.rst:39
+#: ../../source/tutorial_section_2.rst:561
+#: ../../source/tutorial_section_2.rst:865
+msgid "``top_1.yaml``"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:48
+#: ../../source/tutorial_section_2.rst:570
+#: ../../source/tutorial_section_2.rst:875
+msgid "``top_2.yaml``"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:57
+#: ../../source/tutorial_section_2.rst:579
+#: ../../source/tutorial_section_2.rst:885
+msgid "``top_3.yaml``"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:66
+#: ../../source/tutorial_section_2.rst:588
+#: ../../source/tutorial_section_2.rst:895
+msgid "``bottom.yaml``"
+msgstr ""
+
+#: ../../source/tutorial_section_2.rst:75
+msgid ""
+"Each of the files consists of one high level field ``data`` whose has 2 "
+"fields: 1. ``class`` - name of the class of the block 2. ``matrix`` - "
+"lists of point coordinates by axes"
+msgstr ""
+"Chacun des fichiers est constitué d'un champ de haut niveau ``data`` dont 2 champs: "
+"1. ``class`` - nom de la classe du bloc 2. ``matrix`` - listes de coordonnées de "
+"points par axes"
+
+#: ../../source/tutorial_section_2.rst:79
+msgid ""
+"For example Matrix has 2 points by X-axis with coordinates ``0`` and "
+"``0.250``."
+msgstr ""
+"Par exemple Matrix a 2 points par axe X avec les coordonnées ``0`` et ``0.250``."
+
+#: ../../source/tutorial_section_2.rst:81
+msgid ""
+"Matrix also has 2 points by Y-axis with ``0`` and ``1`` coordinates and 2"
+" points by Z-axis with ``0`` and ``0.250``. Thus Matrix is a box with "
+"dimensions: ``0.250``, ``1`` and ``0.250`` by X, Y and Z axis "
+"respectively and origin at point ``(0, 0, 0)``."
+msgstr ""
+"La matrice a également 2 points par axe Y avec les coordonnées ``0`` et ``1`` et 2 "
+"points par axe Z avec ``0`` et ``0.250``. Ainsi Matrix est une boîte de dimensions : "
+"``0.250``, ``1`` et ``0.250`` par les axes X, Y et Z respectivement et l'origine au "
+"point ``(0, 0, 0)``."
+
+#: ../../source/tutorial_section_2.rst:85
+msgid ""
+"We could generate geometry of ``bottom.yaml`` into "
+"``bottom.geo_unrolled`` file:"
+msgstr "Nous pourrions générer la géométrie de ``bottom.yaml`` dans le fichier "
+"``bottom.geo_unrolled``:"
+
+#: ../../source/tutorial_section_2.rst:96
+msgid "Geometry of the the ``BOTTOM`` block"
+msgstr "Géométrie du bloc ``BOTTOM``"
+
+#: ../../source/tutorial_section_2.rst:98
+msgid "Now we should create main file ``main.yaml`` with all blocks:"
+msgstr "Nous devons maintenant créer le fichier principal ``main.yaml`` avec tous "
+"les blocs:"
+
+#: ../../source/tutorial_section_2.rst:119
+msgid "File also has one high level field ``data`` with 4 sub-fields:"
+msgstr "Le fichier a également un champ de haut niveau ``data`` avec 4 sous-champs:"
+
+#: ../../source/tutorial_section_2.rst:121
+msgid "``class`` - name of the class of the block"
+msgstr "``class`` - nom de la classe du bloc"
+
+#: ../../source/tutorial_section_2.rst:122
+msgid ""
+"``do_register`` - create this block? (set 0 because we don't need this "
+"block itself, i.e. it's only a container for other blocks)"
+msgstr ""
+"``do_register`` - créer ce bloc? (mettez 0 car nous n'en avons pas besoin"
+"bloquer lui-même, c'est-à-dire que ce n'est qu'un conteneur pour d'autres blocs)"
+
+#: ../../source/tutorial_section_2.rst:123
+msgid ""
+"``children`` - references to other block files (should start with ``/`` "
+"character)"
+msgstr ""
+"``children`` - références à d'autres fichiers de blocs (doit commencer par le "
+caractère ``/``)"
+
+#: ../../source/tutorial_section_2.rst:124
+msgid "``children_transforms`` - transforms of other blocks"
+msgstr "``children_transforms`` - transformations d'autres blocs"
+
+#: ../../source/tutorial_section_2.rst:126
+msgid ""
+"Field ``children_transforms`` is a list of "
+":py:class:`~gmsh_scripts.transform.transform.Transform` for each "
+"``children``. In this tutorial we only need simple "
+":py:class:`~gmsh_scripts.transform.transform.Translate` that are given by"
+" 3 numbers - offset along X, Y ans Z axes respectively."
+msgstr ""
+"Le champ ``children_transforms`` est une liste de "
+":py:class:`~gmsh_scripts.transform.transform.Transform` pour chaque "
+"``enfants``. Dans ce tutoriel, nous n'avons besoin que de "
+":py:class:`~gmsh_scripts.transform.transform.Translate` qui sont donnés par"
+" 3 nombres - décalés le long des axes X, Y et Z respectivement."
+
+#: ../../source/tutorial_section_2.rst:132
+msgid "For example:"
+msgstr "Par example:"
+
+#: ../../source/tutorial_section_2.rst:134
+msgid "Child ``bottom.yaml`` has no transforms"
+msgstr "L'enfant ``bottom.yaml`` n'a pas de transformations"
+
+#: ../../source/tutorial_section_2.rst:135
+msgid ""
+"Child ``top_1.yaml`` has one "
+":py:class:`~gmsh_scripts.transform.transform.Translate` ``[ 0, 0, 0.250 "
+"]`` with offset 0.250 by Z-axis and no offsets by X and Y (we just need "
+"to elevate to the ``bottom.yaml``)"
+msgstr ""
+"L'enfant ``top_1.yaml`` en a un "
+":py:class:`~gmsh_scripts.transform.transform.Translate` ``[ 0, 0, 0.250 ]`` "
+"avec un décalage de 0.250 par l'axe Z et aucun décalage par X et Y (nous avons juste "
+"besoin de pour élever au ``bottom.yaml``)"
+
+#: ../../source/tutorial_section_2.rst:136
+msgid ""
+"Child ``top_2.yaml`` has one "
+":py:class:`~gmsh_scripts.transform.transform.Translate` ``[ 0.250, 0, "
+"0.250 ]``"
+msgstr ""
+"L'enfant ``top_2.yaml`` en a un "
+":py:class:`~gmsh_scripts.transform.transform.Translate` ``[ 0.250, 0, "
+"0.250 ]``"
+
+#: ../../source/tutorial_section_2.rst:137
+msgid ""
+"Child ``top_3.yaml`` has one "
+":py:class:`~gmsh_scripts.transform.transform.Translate` ``[ 0.470, 0, "
+"0.250 ]``"
+msgstr ""
+"L'enfant ``top_3.yaml`` en a un "
+":py:class:`~gmsh_scripts.transform.transform.Translate` ``[ 0.470, 0, "
+"0.250 ]``"
+
+#: ../../source/tutorial_section_2.rst:139
+msgid "Let's generate geometry with all blocks into ``main.geo_unrolled``: "
+msgstr "Générons la géométrie avec tous les blocs dans ``main.geo_unrolled``: "
+
+#: ../../source/tutorial_section_2.rst:149
+msgid "Geometry with all blocks"
+msgstr "Géométrie avec tous les blocs "
+
+#: ../../source/tutorial_section_2.rst:152
+#: ../../source/tutorial_section_2.rst:941
+msgid "Mesh"
+msgstr "Maille"
+
+#: ../../source/tutorial_section_2.rst:154
+msgid ""
+"To generate mesh we should add ``metadata`` field to the ``main.yaml`` "
+"file:"
+msgstr ""
+"Pour générer un maillage, nous devons ajouter le champ ``metadata`` au fichier "
+"``main.yaml``:"
+
+#: ../../source/tutorial_section_2.rst:180
+msgid "File ``metadata`` has ``run`` sub-field with fields:"
+msgstr "Le fichier ``metadata`` a un sous-champ ``run`` avec des champs:"
+
+#: ../../source/tutorial_section_2.rst:182
+msgid ""
+"``factory`` - Which kernel of gmsh to use for mesh generation? Currently,"
+" gmsh has two `kernels <https://gmsh.info/doc/texinfo/gmsh.html#Overview-"
+"of-Gmsh>`_: ``geo`` and ``occ``. We use ``geo`` because it's faster"
+msgstr ""
+"``factory`` - Quel noyau de gmsh utiliser pour la génération de maillage? "
+"Actuellement, gmsh a deux "
+`noyaux <https://gmsh.info/doc/texinfo/gmsh.html#Overview-of-Gmsh>`_: "
+"``geo`` et ``occ``. Nous utilisons ``geo`` parce que c'est plus rapide"
+
+#: ../../source/tutorial_section_2.rst:183
+msgid ""
+"``strategy`` - :py:class:`~gmsh_scripts.strategy.strategy.Strategy` of "
+"mesh generation"
+msgstr ""
+"``strategy`` - :py:class:`~gmsh_scripts.strategy.strategy.Strategy` de génération de maillage"
+
+#: ../../source/tutorial_section_2.rst:184
+msgid ""
+"``strategy.class`` - Class of the strategy. We use "
+":py:class:`~gmsh_scripts.strategy.strategy.NoBoolean` because we don't "
+"need boolean operations"
+msgstr "``strategy.class`` - Classe de la stratégie. Nous utilisons :py:class:`~gmsh_scripts.strategy.strategy.NoBoolean` car nous n'avons pas besoin d'opérations booléennes"
+
+#: ../../source/tutorial_section_2.rst:187
+msgid ""
+"If we need boolean operations we MUST use ``occ`` factory with default "
+"strategy (just don't set it in the ``metadata``)"
+msgstr "Si nous avons besoin d'opérations booléennes, nous DEVONS utiliser la fabrique ``occ`` avec la stratégie par défaut (ne la définissez pas dans les ``metadata``)"
+
+#: ../../source/tutorial_section_2.rst:190
+msgid ""
+"Now mesh generator will return mesh into ``main.msh2`` file (it also "
+"returns ``main.geo_unrolled`` as before). Generator creates unstructured "
+"tetrahedral mesh by default."
+msgstr "Maintenant, le générateur de maillage renverra le maillage dans le fichier ``main.msh2`` (il renvoie également ``main.geo_unrolled`` comme auparavant). Le générateur crée un maillage tétraédrique non structuré par défaut."
+
+#: ../../source/tutorial_section_2.rst:202
+msgid "Default mesh"
+msgstr "Maillage par défaut"
+
+#: ../../source/tutorial_section_2.rst:205
+msgid "Unstructured Tetrahedral"
+msgstr "Tétraédrique non structuré"
+
+#: ../../source/tutorial_section_2.rst:207
+msgid "We can customize unstructured mesh with parameters in input files."
+msgstr "Nous pouvons personnaliser le maillage non structuré avec des paramètres dans les fichiers d'entrée."
+
+#: ../../source/tutorial_section_2.rst:209
+msgid ""
+"First type of parameters aka ``point parameters`` is set in ``matrix`` "
+"field (e.g. ``bottom.yaml``):"
+msgstr "Le premier type de paramètres alias ``point parameters`` est défini dans le champ ``matrix`` (par exemple, ``bottom.yaml``):"
+
+#: ../../source/tutorial_section_2.rst:219
+msgid ""
+"As one can see, for each point a new parameter have been added with ``;``"
+" separator, e.g. ``0;0.01`` for first point by X-axis or ``0.250;0.1`` "
+"for second point by Z-axis. Parameters ``0.01`` or ``0.1`` are "
+"approximate sizes of the mesh near the corresponding points."
+msgstr "Comme on peut le voir, pour chaque point un nouveau paramètre a été ajouté avec le séparateur ``;``, par ex. ``0;0.01`` pour le premier point par l'axe X ou ``0.250;0.1`` pour le deuxième point par l'axe Z. Les paramètres ``0.01`` ou ``0.1`` sont des tailles approximatives du maillage près des points correspondants."
+
+#: ../../source/tutorial_section_2.rst:224
+msgid ""
+"In this example, mesh is finer near the ``(0, 0, 0)`` point with size "
+"``0.01`` and coarser near the ``(0.250, 1, 0.250)`` point with size "
+"``0.1``."
+msgstr "Dans cet exemple, le maillage est plus fin près du point ``(0, 0, 0)`` avec une taille ``0.01`` et plus grossier près du point ``(0.250, 1, 0.250)`` avec une taille ``0.1``."
+
+#: ../../source/tutorial_section_2.rst:227
+msgid "Let's add ``metadata`` field to ``bottom.yaml`` and generate mesh:"
+msgstr "Ajoutons le champ ``metadata`` à ``bottom.yaml`` et générons le maillage:"
+
+#: ../../source/tutorial_section_2.rst:249
+msgid "Unstructured tetrahedral mesh of the ``BOTTOM`` block"
+msgstr "Maillage tétraédrique non structuré du bloc ``BOTTOM``"
+
+#: ../../source/tutorial_section_2.rst:251
+msgid "One could fix mesh size along one of the axis (e.g. Y with ``0.01``):"
+msgstr "On pourrait fixer la taille du maillage le long d'un des axes (par exemple Y avec ``0.01``):"
+
+#: ../../source/tutorial_section_2.rst:269
+msgid ""
+"Unstructured tetrahedral mesh with fixed size along Y-axis of the "
+"``BOTTOM`` block"
+msgstr "Maillage tétraédrique non structuré de taille fixe le long de l'axe Y du bloc ``BOTTOM``""
+
+#: ../../source/tutorial_section_2.rst:271
+msgid ""
+"To generate all blocks, one needs to specify point parameters at all "
+"blocks and run generator:"
+msgstr "Pour générer tous les blocs, il faut spécifier des paramètres de point à tous les blocs et exécuter le générateur:"
+
+#: ../../source/tutorial_section_2.rst:282
+msgid ""
+"Unstructured tetrahedral mesh with fixed size along Y-axis at ``BOTTOM`` "
+"block"
+msgstr "Maillage tétraédrique non structuré avec une taille fixe le long de l'axe Y au bloc ``BOTTOM``"
+
+#: ../../source/tutorial_section_2.rst:284
+msgid ""
+"Second type of parameters aka ``global parameters`` is set in "
+"``metadata.run.options`` field (e.g. ``bottom.yaml``):"
+msgstr "Le deuxième type de paramètres alias ``global parameters`` est défini dans le champ ``metadata.run.options`` (par exemple, ``bottom.yaml``):"
+
+#: ../../source/tutorial_section_2.rst:304
+msgid ""
+"Here are 4 options (many other options available, see `gmsh documentation"
+" <https://gmsh.info/doc/texinfo/gmsh.html#Mesh-options>`_): 1. "
+"``Mesh.MeshSizeFactor`` - factor applied to all mesh element sizes 2. "
+"``Mesh.MeshSizeMin`` - minimum mesh element size 3. ``Mesh.MeshSizeMax`` "
+"- maximum mesh element size 4. ``Mesh.MeshSizeFromPoints`` - compute mesh"
+" element sizes from values given at geometry points (e.g. in ``matrix`` "
+"field)"
+msgstr "Voici 4 options (de nombreuses autres options disponibles, voir `documentation gmsh <https://gmsh.info/doc/texinfo/gmsh.html#Mesh-options>`_): 1. ``Mesh.MeshSizeFactor`` - facteur appliqué à toutes les tailles d'éléments de maillage 2. ``Mesh.MeshSizeMin`` - taille minimale des éléments de maillage 3. ``Mesh.MeshSizeMax`` - taille maximale des éléments de maillage 4. ``Mesh.MeshSizeFromPoints`` - calcule les tailles des éléments de maillage à partir de valeurs données aux points géométriques (par exemple dans le champ ``matrix``)"
+
+#: ../../source/tutorial_section_2.rst:310
+msgid ""
+"In this example ``Mesh.MeshSizeFactor`` is set to ``0.5`` that generate "
+"mesh that is twice as fine."
+msgstr "Dans cet exemple, ``Mesh.MeshSizeFactor`` est défini sur ``0.5``, ce qui génère un maillage deux fois plus fin."
+
+#: ../../source/tutorial_section_2.rst:316
+msgid "Unstructured tetrahedral mesh with ``Mesh.MeshSizeFactor = 0.5``"
+msgstr "Maillage tétraédrique non structuré avec ``Mesh.MeshSizeFactor = 0.5``"
+
+#: ../../source/tutorial_section_2.rst:318
+msgid ""
+"One could disable ``Mesh.MeshSizeFromPoints`` (set to ``0``) to create "
+"uniform mesh whose size is controlled only by ``global parameters``."
+msgstr "On pourrait désactiver ``Mesh.MeshSizeFromPoints`` (réglé sur ``0``) pour créer un maillage uniforme dont la taille n'est contrôlée que par ``global parameters``."
+
+#: ../../source/tutorial_section_2.rst:342
+msgid "Unstructured tetrahedral mesh with ``Mesh.MeshSizeFromPoints = 0``"
+msgstr "Maillage tétraédrique non structuré avec ``Mesh.MeshSizeFromPoints = 0``"
+
+#: ../../source/tutorial_section_2.rst:344
+msgid ""
+"Then we could use to control mesh size, e.g with ``Mesh.MeshSizeMax`` = "
+"``0.1``:"
+msgstr "Ensuite, nous pourrions utiliser pour contrôler la taille du maillage, par exemple avec ``Mesh.MeshSizeMax`` = ``0.1``:"
+
+#: ../../source/tutorial_section_2.rst:367
+msgid "Unstructured mesh with ``Mesh.MeshSizeMax = 0.1``"
+msgstr "Maillage non structuré avec ``Mesh.MeshSizeMax = 0.1``"
+
+#: ../../source/tutorial_section_2.rst:369
+msgid ""
+"To generate all blocks, one needs to specify ``global parameters`` in "
+"``main.yaml``:"
+msgstr "Pour générer tous les blocs, il faut spécifier des ``global parameters`` dans ``main.yaml`` :"
+
+#: ../../source/tutorial_section_2.rst:409
+msgid "Unstructured tetrahedral mesh controlled by ``global parameters``"
+msgstr "Maillage tétraédrique non structuré contrôlé par ``global parameters``"
+
+#: ../../source/tutorial_section_2.rst:412
+msgid "Unstructured Hexahedral"
+msgstr "Hexaèdre non structuré"
+
+#: ../../source/tutorial_section_2.rst:415
+msgid ""
+"Generation of hexahedral unstructured mesh is `experimental "
+"<https://gitlab.onelab.info/gmsh/gmsh/-/issues/1791>`_ so not always "
+"creates a quality mesh, it depends on the complexity of the geometry."
+msgstr "La génération de maillage hexaédrique non structuré est `expérimentale <https://gitlab.onelab.info/gmsh/gmsh/-/issues/1791>`_ donc ne crée pas toujours un maillage de qualité, cela dépend de la complexité de la géométrie."
+
+#: ../../source/tutorial_section_2.rst:419
+msgid ""
+"Unstructured hexahedral parameters are set in ``metadata.run.options`` "
+"field and have ``Recombine`` in their names (see `gmsh options "
+"<https://gmsh.info/doc/texinfo/gmsh.html#Mesh-options>`_)"
+msgstr "Les paramètres hexaédriques non structurés sont définis dans le champ ``metadata.run.options`` et ont ``Recombine`` dans leurs noms (voir `options gmsh <https://gmsh.info/doc/texinfo/gmsh.html#Mesh- choix>`_)"
+
+#: ../../source/tutorial_section_2.rst:423
+msgid ""
+"To generate unstructured hexahedral mesh parameter "
+"```Mesh.SubdivisionAlgorithm`` should be set greater than ``1`` (see "
+"`tutorial 11 of gmsh <https://gmsh.info/doc/texinfo/gmsh.html#t11>`_ for "
+"more information)"
+msgstr "Pour générer un maillage hexaédrique non structuré, le paramètre ```Mesh.SubdivisionAlgorithm`` doit être supérieur à ``1`` (voir `tutoriel 11 de gmsh <https://gmsh.info/doc/texinfo/gmsh.html#t11>`_ pour plus d'informations)"
+
+#: ../../source/tutorial_section_2.rst:454
+msgid "Unstructured hexahedral mesh of ``bottom.yaml``"
+msgstr "Unstructured hexahedral mesh of ``bottom.yaml``"
+
+#: ../../source/tutorial_section_2.rst:456
+msgid ""
+"To generate unstructured hexahedral mesh of all blocks add parameters to "
+"``metadata`` of ``main.yaml``:"
+msgstr "Pour générer un maillage hexaédrique non structuré de tous les blocs, ajoutez des paramètres aux ``metadata`` de ``main.yaml``:"
+
+#: ../../source/tutorial_section_2.rst:497
+msgid "Unstructured hexahedral mesh"
+msgstr "Maillage hexaédrique non structuré"
+
+#: ../../source/tutorial_section_2.rst:500
+msgid "Structured Tetrahedral"
+msgstr "Tétraédrique Structuré"
+
+#: ../../source/tutorial_section_2.rst:502
+msgid ""
+"To create structured tetrahedral mesh one should add third parameter to "
+"the points at ``matrix`` field with ``;`` separator, e.g. in "
+"``bottom.yaml``:"
+msgstr "Pour créer un maillage tétraédrique structuré, il faut ajouter un troisième paramètre aux points du champ ``matrix`` avec le séparateur ``;``, par ex. dans ``bottom.yaml``:"
+
+#: ../../source/tutorial_section_2.rst:518
+msgid ""
+"Third argument should be set only for second point and specifies number "
+"of nodes along corresponding direction. E.g. ``4`` nodes by X-axis, ``8``"
+" nodes by Y and ``16`` by Z."
+msgstr "Le troisième argument doit être défini uniquement pour le deuxième point et spécifie le nombre de nœuds dans la direction correspondante. Par exemple, ``4`` nœuds par l'axe X, ``8`` nœuds par Y et ``16`` par Z."
+
+#: ../../source/tutorial_section_2.rst:529
+msgid "Structured tetrahedral mesh of the ``BOTTOM`` block"
+msgstr "Maillage tétraédrique structuré du bloc ``BOTTOM``"
+
+#: ../../source/tutorial_section_2.rst:531
+msgid ""
+"One could disable structured mesh generation by setting "
+"``items_do_structure_map`` to ``0`` (``1`` by default) in the ``data`` "
+"field:"
+msgstr "On pourrait désactiver la génération de maillage structuré en mettant ``items_do_structure_map`` à ``0`` (``1`` par défaut) dans le champ ``data``:"
+
+#: ../../source/tutorial_section_2.rst:552
+msgid ""
+"Unstructured tetrahedral mesh of the ``BOTTOM`` block with "
+"``items_do_structure_map`` = ``0``"
+msgstr "Maillage tétraédrique non structuré du bloc ``BOTTOM`` avec ``items_do_structure_map`` = ``0``"
+
+#: ../../source/tutorial_section_2.rst:554
+msgid ""
+"To create structured tetrahedral mesh with all blocks one should set "
+"third parameter in each of the blocks and run ``main.yaml``"
+msgstr "Pour créer un maillage tétraédrique structuré avec tous les blocs, il faut définir le troisième paramètre dans chacun des blocs et exécuter ``main.yaml``"
+
+#: ../../source/tutorial_section_2.rst:558
+msgid ""
+"Number of nodes MUST be consistent between adjacent blocks, e.g. all "
+"``TOP`` blocks should have the same number of nodes by Y and Z axis"
+msgstr "Le nombre de nœuds DOIT être cohérent entre les blocs adjacents, par exemple, tous les blocs ``TOP`` doivent avoir le même nombre de nœuds par axe Y et Z"
+
+#: ../../source/tutorial_section_2.rst:605
+msgid "Structured tetrahedral mesh"
+msgstr "Maillage tétraédrique structuré"
+
+#: ../../source/tutorial_section_2.rst:607
+msgid ""
+"To disable generation of structured mesh for all blocks at once one "
+"should set ``children_items_do_structure_map`` = ``[0, ..., number of "
+"children]`` at parent block, e.g. for ``main.yaml``:"
+msgstr "Pour désactiver la génération de maillage structuré pour tous les blocs à la fois, il faut définir ``children_items_do_structure_map`` = ``[0, ..., nombre d'enfants]`` au niveau du bloc parent, par exemple pour ``main.yaml``:"
+
+#: ../../source/tutorial_section_2.rst:640
+msgid ""
+"Structured tetrahedral mesh with disabled "
+"``children_items_do_structure_map``"
+msgstr "Maillage tétraédrique structuré avec ``children_items_do_structure_map`` désactivé"
+
+#: ../../source/tutorial_section_2.rst:643
+msgid "Structured Hexahedral"
+msgstr "Hexaèdre structuré"
+
+#: ../../source/tutorial_section_2.rst:645
+msgid ""
+"For creating structured hexahedral mesh one could do the same steps as "
+"for `Structured Tetrahedral`_ but with ``items_do_quadrate_map`` = ``1`` "
+"(``0`` by default) in the ``data`` field:"
+msgstr "Pour créer un maillage hexaédrique structuré, on peut suivre les mêmes étapes que pour `Tétraédrique Structuré`_ mais avec ``items_do_quadrate_map`` = ``1`` (``0`` par défaut) dans le champ ``data``:"
+
+#: ../../source/tutorial_section_2.rst:671
+msgid "Structured hexahedral mesh of the ``BOTTOM`` block"
+msgstr "Maillage hexaédrique structuré du bloc ``BOTTOM``"
+
+#: ../../source/tutorial_section_2.rst:673
+msgid ""
+"One could change positions of nodes along axes using one of the two "
+"methods:"
+msgstr "On pourrait changer les positions des nœuds le long des axes en utilisant l'une des deux méthodes:"
+
+#: ../../source/tutorial_section_2.rst:675
+msgid ""
+"``progression`` - increase/decrease space between nodes from start point "
+"to end point"
+msgstr "``progression`` - augmenter/diminuer l'espace entre les nœuds du point de départ au point final"
+
+#: ../../source/tutorial_section_2.rst:676
+msgid "``bump`` - increase/decrease space between node from center to points"
+msgstr "``bump`` - augmenter/diminuer l'espace entre les nœuds du centre aux points"
+
+#: ../../source/tutorial_section_2.rst:678
+msgid ""
+"To use ``progression`` we should specify 2 additional sub-parameters to "
+"the third parameter separated by ``:``:"
+msgstr "Pour utiliser ``progression``, nous devons spécifier 2 sous-paramètres supplémentaires au troisième paramètre séparés par ``:``:"
+
+#: ../../source/tutorial_section_2.rst:681
+msgid "The first one is ``0`` (which choose ``progression`` type)"
+msgstr "Le premier est ``0`` (qui choisit le type ``progression``)"
+
+#: ../../source/tutorial_section_2.rst:682
+msgid ""
+"The second is a coefficient of the ``progression`` - if coefficient > 1 "
+"space will be increasing from first point to second else decreasing"
+msgstr "Le second est un coefficient de la ``progression`` - si le coefficient > 1 l'espace augmentera du premier point au second, sinon il diminuera"
+
+#: ../../source/tutorial_section_2.rst:684
+msgid "For example, ``progression`` sub-parameters ``0:1.5`` for Y-axis:"
+msgstr "Par exemple, les sous-paramètres ``progression`` ``0:1.5`` pour l'axe Y:"
+
+#: ../../source/tutorial_section_2.rst:704
+msgid "Structured hexahedral mesh with ``progression`` = `1.5`"
+msgstr "Maillage hexaédrique structuré avec ``progression`` = `1.5`"
+
+#: ../../source/tutorial_section_2.rst:706
+msgid "For example, ``progression`` sub-parameters ``0:0.75`` for Y-axis:"
+msgstr "Par exemple, les sous-paramètres ``progression`` ``0:0.75`` pour l'axe Y:"
+
+#: ../../source/tutorial_section_2.rst:726
+msgid "Structured hexahedral mesh with ``progression`` = `0.75`"
+msgstr "Maillage hexaédrique structuré avec ``progression`` = `0.75`"
+
+#: ../../source/tutorial_section_2.rst:728
+msgid ""
+"To use ``bump`` we should specify 2 additional sub-parameters to the "
+"third parameter separated by ``:``:"
+msgstr "Pour utiliser ``bump``, nous devons spécifier 2 sous-paramètres supplémentaires au troisième paramètre séparés par ``:``:"
+
+#: ../../source/tutorial_section_2.rst:731
+msgid "The first one is ``1`` (which choose ``bump`` type)"
+msgstr "Le premier est ``1`` (qui choisit le type ``bump``)"
+
+#: ../../source/tutorial_section_2.rst:732
+msgid ""
+"The second is a coefficient of the ``bump`` - if coefficient > 1 space "
+"will be increasing from the center else decreasing"
+msgstr "Le second est un coefficient de la ``bump`` - si le coefficient > 1, l'espace augmentera à partir du centre, sinon il diminuera"
+
+#: ../../source/tutorial_section_2.rst:734
+msgid "For example, ``bump`` sub-parameters ``1:2.0`` for Y-axis:"
+msgstr "Par exemple, les sous-paramètres ``bump`` ``1:2.0`` pour l'axe Y:"
+
+#: ../../source/tutorial_section_2.rst:754
+msgid "Structured hexahedral mesh with ``bump`` = `2.0`"
+msgstr "Maillage hexaédrique structuré avec ``bump`` = `2.0`"
+
+#: ../../source/tutorial_section_2.rst:756
+msgid "For example, ``bump`` sub-parameters ``1:0.5`` for Y-axis:"
+msgstr "Par exemple, les sous-paramètres ``bump`` ``1:0.5`` pour l'axe Y:"
+
+#: ../../source/tutorial_section_2.rst:776
+msgid "Structured hexahedral mesh with ``bump`` = `0.5`"
+msgstr "Maillage hexaédrique structuré avec ``bump`` = `0.5`"
+
+#: ../../source/tutorial_section_2.rst:778
+msgid ""
+"To generate structured hexahedral mesh of all blocks one could set "
+"``items_do_quadrate_map`` = ``0`` at each of the blocks or set "
+"``children_items_do_quadrate_map`` = ``[0, ..., number of children]`` at "
+"parent block, e.g. for ``main.yaml``:"
+msgstr "Pour générer un maillage hexaédrique structuré de tous les blocs, on peut définir ``items_do_quadrate_map`` = ``0`` à chacun des blocs ou définir ``children_items_do_quadrate_map`` = ``[0, ..., nombre d'enfants]`` au bloc parent, par ex. pour ``main.yaml``:"
+
+#: ../../source/tutorial_section_2.rst:816
+msgid "Structured hexahedral mesh"
+msgstr "Maillage hexaédrique structuré"
+
+#: ../../source/tutorial_section_2.rst:819
+msgid "Zones"
+msgstr "Zones"
+
+#: ../../source/tutorial_section_2.rst:821
+msgid ""
+"If we want to add names to entities of the mesh (e.g. volumes of "
+"surfaces) we should set additional field ``items_zones`` in the ``data`` "
+"field"
+msgstr "Si nous voulons ajouter des noms aux entités du maillage (par exemple, des volumes de surfaces), nous devons définir un champ supplémentaire ``items_zones`` dans le champ ``data``"
+
+#: ../../source/tutorial_section_2.rst:824
+msgid ""
+"For example, we can add ``[ [ Volume, [ NX, X, NY, Y, NZ, Z ] ] ]`` in "
+"the``bottom.yaml``, where:"
+msgstr "Par exemple, nous pouvons ajouter ``[ [ Volume, [ NX, X, NY, Y, NZ, Z ] ] ]`` dans le ``bottom.yaml``, où:"
+
+#: ../../source/tutorial_section_2.rst:827
+msgid "``Volume`` - volume name"
+msgstr "``Volume`` - nom du volume"
+
+#: ../../source/tutorial_section_2.rst:828
+msgid "``[ NX, X, NY, Y, NZ, Z ]`` - surfaces names:"
+msgstr "``[ NX, X, NY, Y, NZ, Z ]`` - noms des surfaces:"
+
+#: ../../source/tutorial_section_2.rst:830
+msgid "``NX`` - surface pointing in the opposite direction of X-axis"
+msgstr "``NX`` - surface pointant dans la direction opposée à l'axe X"
+
+#: ../../source/tutorial_section_2.rst:831
+msgid "``X`` - surface pointing in the direction of X-axis"
+msgstr "``X`` - surface pointant dans la direction de l'axe X"
+
+#: ../../source/tutorial_section_2.rst:832
+msgid "``NY`` - surface pointing in the opposite direction of Y-axis"
+msgstr "``NY`` - surface pointant dans la direction opposée à l'axe Y"
+
+#: ../../source/tutorial_section_2.rst:833
+msgid "``Y`` - surface pointing in the direction of Y-axis"
+msgstr "``Y`` - surface pointant dans la direction de l'axe Y"
+
+#: ../../source/tutorial_section_2.rst:834
+msgid "``NZ`` - surface pointing in the opposite direction of Z-axis"
+msgstr "``NZ`` - surface pointant dans la direction opposée à l'axe Z"
+
+#: ../../source/tutorial_section_2.rst:835
+msgid "``Z`` - surface pointing in the direction of Z-axis"
+msgstr "``Z`` - surface pointant dans la direction de l'axe Z"
+
+#: ../../source/tutorial_section_2.rst:856
+msgid "Structured hexahedral with zones"
+msgstr "Hexaèdre structuré avec zones"
+
+#: ../../source/tutorial_section_2.rst:859
+msgid "Result"
+msgstr "Résultat"
+
+#: ../../source/tutorial_section_2.rst:862
+msgid ""
+"We should define different zone names of bottom surfaces of ``TOP2`` and "
+"``TOP3``, e.g. ``Top2NZ`` and ``Top3NZ`` respectively"
+msgstr "Nous devrions définir différents noms de zone des surfaces inférieures de ``TOP2`` et ``TOP3``, par ex. ``Top2NZ`` et ``Top3NZ`` respectivement"
+
+#: ../../source/tutorial_section_2.rst:905
+msgid "``main.yaml``"
+msgstr ""
+

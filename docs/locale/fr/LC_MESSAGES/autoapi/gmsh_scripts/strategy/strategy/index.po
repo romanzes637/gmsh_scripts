@@ -1,0 +1,82 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, romanzes637
+# This file is distributed under the same license as the gmsh_scripts
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmsh_scripts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-27 20:44+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:2
+msgid ":py:mod:`gmsh_scripts.strategy.strategy`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:8
+msgid "Module Contents"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:11
+msgid "Classes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:22:<autosummary>:1
+msgid ":py:obj:`Strategy <gmsh_scripts.strategy.strategy.Strategy>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:33
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:22:<autosummary>:1
+msgid "Abstract strategy"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:22:<autosummary>:1
+msgid ":py:obj:`Base <gmsh_scripts.strategy.strategy.Base>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:40
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:22:<autosummary>:1
+msgid "Default strategy"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:22:<autosummary>:1
+msgid ":py:obj:`Fast <gmsh_scripts.strategy.strategy.Fast>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:47
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:22:<autosummary>:1
+msgid "Generates geometry only (.geo_unrolled file)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:22:<autosummary>:1
+msgid ":py:obj:`NoBoolean <gmsh_scripts.strategy.strategy.NoBoolean>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:54
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:22:<autosummary>:1
+msgid "Doesn't use boolean operations"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:24
+msgid "Attributes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:30:<autosummary>:1
+msgid ":py:obj:`str2obj <gmsh_scripts.strategy.strategy.str2obj>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:38
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:45
+#: ../../source/autoapi/gmsh_scripts/strategy/strategy/index.rst:52
+msgid "Bases: :py:obj:`Strategy`"
+msgstr ""
+

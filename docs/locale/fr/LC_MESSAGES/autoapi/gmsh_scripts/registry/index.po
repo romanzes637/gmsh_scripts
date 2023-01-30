@@ -1,0 +1,435 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, romanzes637
+# This file is distributed under the same license as the gmsh_scripts
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmsh_scripts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-27 20:44+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:2
+msgid ":py:mod:`gmsh_scripts.registry`"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:8
+msgid "Module Contents"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:12
+msgid "Functions"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`reset <gmsh_scripts.registry.reset>`\\ \\(\\[factory\\, "
+"point\\_tol\\]\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`correct_kwargs <gmsh_scripts.registry.correct_kwargs>`\\ "
+"\\(entity\\, name\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`register_point <gmsh_scripts.registry.register_point>`\\ "
+"\\(point\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`register_curve <gmsh_scripts.registry.register_curve>`\\ "
+"\\(curve\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`register_curve_loop "
+"<gmsh_scripts.registry.register_curve_loop>`\\ \\(curve\\_loop\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`register_surface <gmsh_scripts.registry.register_surface>`\\ "
+"\\(surface\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`register_surface_loop "
+"<gmsh_scripts.registry.register_surface_loop>`\\ \\(surface\\_loop\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`register_volume <gmsh_scripts.registry.register_volume>`\\ "
+"\\(volume\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`register_quadrate_surface "
+"<gmsh_scripts.registry.register_quadrate_surface>`\\ \\(surface\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`register_structure_curve "
+"<gmsh_scripts.registry.register_structure_curve>`\\ \\(curve\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`register_structure_surface "
+"<gmsh_scripts.registry.register_structure_surface>`\\ \\(surface\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`register_structure_volume "
+"<gmsh_scripts.registry.register_structure_volume>`\\ \\(volume\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`pre_unregister_volume "
+"<gmsh_scripts.registry.pre_unregister_volume>`\\ \\(volume\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`unregister_volumes <gmsh_scripts.registry.unregister_volumes>`\\"
+" \\(\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`get_unregistered_volumes "
+"<gmsh_scripts.registry.get_unregistered_volumes>`\\ \\(\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`register_curve_structure "
+"<gmsh_scripts.registry.register_curve_structure>`\\ \\(points\\, "
+"structure\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`register_surface_structure "
+"<gmsh_scripts.registry.register_surface_structure>`\\ \\(points\\, "
+"structure\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`register_volume_structure "
+"<gmsh_scripts.registry.register_volume_structure>`\\ \\(tag\\, "
+"structure\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`register_surface_quadrate "
+"<gmsh_scripts.registry.register_surface_quadrate>`\\ \\(points\\, "
+"quadrate\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`get_curve_structure "
+"<gmsh_scripts.registry.get_curve_structure>`\\ \\(points\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`get_surface_structure "
+"<gmsh_scripts.registry.get_surface_structure>`\\ \\(points\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`get_volume_structure "
+"<gmsh_scripts.registry.get_volume_structure>`\\ \\(tag\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`get_surface_quadrate "
+"<gmsh_scripts.registry.get_surface_quadrate>`\\ \\(points\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`register_boolean_new2olds "
+"<gmsh_scripts.registry.register_boolean_new2olds>`\\ \\(m\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`register_boolean_old2news "
+"<gmsh_scripts.registry.register_boolean_old2news>`\\ \\(m\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`get_boolean_new2olds "
+"<gmsh_scripts.registry.get_boolean_new2olds>`\\ \\(\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`get_boolean_old2news "
+"<gmsh_scripts.registry.get_boolean_old2news>`\\ \\(\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`register_volume2block "
+"<gmsh_scripts.registry.register_volume2block>`\\ \\(volume\\_tag\\, "
+"block\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ""
+":py:obj:`get_volume2block <gmsh_scripts.registry.get_volume2block>`\\ "
+"\\(\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:48:<autosummary>:1
+msgid ":py:obj:`synchronize <gmsh_scripts.registry.synchronize>`\\ \\(\\)"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:50
+msgid "Attributes"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`FACTORY <gmsh_scripts.registry.FACTORY>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`POINT_TOL <gmsh_scripts.registry.POINT_TOL>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`POINTS <gmsh_scripts.registry.POINTS>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`CURVES <gmsh_scripts.registry.CURVES>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`CURVES_LOOPS <gmsh_scripts.registry.CURVES_LOOPS>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`SURFACES <gmsh_scripts.registry.SURFACES>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`SURFACES_LOOPS <gmsh_scripts.registry.SURFACES_LOOPS>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`VOLUMES <gmsh_scripts.registry.VOLUMES>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`POINT_TAG <gmsh_scripts.registry.POINT_TAG>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`CURVE_TAG <gmsh_scripts.registry.CURVE_TAG>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`CURVE_LOOP_TAG <gmsh_scripts.registry.CURVE_LOOP_TAG>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`SURFACE_TAG <gmsh_scripts.registry.SURFACE_TAG>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`SURFACE_LOOP_TAG <gmsh_scripts.registry.SURFACE_LOOP_TAG>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`VOLUME_TAG <gmsh_scripts.registry.VOLUME_TAG>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`QUADRATED_SURFACES <gmsh_scripts.registry.QUADRATED_SURFACES>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`STRUCTURED_CURVES <gmsh_scripts.registry.STRUCTURED_CURVES>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ""
+":py:obj:`STRUCTURED_SURFACES "
+"<gmsh_scripts.registry.STRUCTURED_SURFACES>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`STRUCTURED_VOLUMES <gmsh_scripts.registry.STRUCTURED_VOLUMES>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`CURVE_STRUCTURE <gmsh_scripts.registry.CURVE_STRUCTURE>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`SURFACE_STRUCTURE <gmsh_scripts.registry.SURFACE_STRUCTURE>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`VOLUME_STRUCTURE <gmsh_scripts.registry.VOLUME_STRUCTURE>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`SURFACE_QUADRATE <gmsh_scripts.registry.SURFACE_QUADRATE>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`BOOLEAN_NEW2OLDS <gmsh_scripts.registry.BOOLEAN_NEW2OLDS>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`BOOLEAN_OLD2NEWS <gmsh_scripts.registry.BOOLEAN_OLD2NEWS>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`VOLUME2BLOCK <gmsh_scripts.registry.VOLUME2BLOCK>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`USE_REGISTRY_TAG <gmsh_scripts.registry.USE_REGISTRY_TAG>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ""
+":py:obj:`UNREGISTERED_VOLUMES "
+"<gmsh_scripts.registry.UNREGISTERED_VOLUMES>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`POINT_KWARGS <gmsh_scripts.registry.POINT_KWARGS>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`CURVE_KWARGS <gmsh_scripts.registry.CURVE_KWARGS>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`CURVE_LOOP_KWARGS <gmsh_scripts.registry.CURVE_LOOP_KWARGS>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`SURFACE_KWARGS <gmsh_scripts.registry.SURFACE_KWARGS>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ""
+":py:obj:`SURFACE_LOOP_KWARGS "
+"<gmsh_scripts.registry.SURFACE_LOOP_KWARGS>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`VOLUME_KWARGS <gmsh_scripts.registry.VOLUME_KWARGS>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`RECOMBINE_KWARGS <gmsh_scripts.registry.RECOMBINE_KWARGS>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ""
+":py:obj:`TRANSFINITE_CURVE_KWARGS "
+"<gmsh_scripts.registry.TRANSFINITE_CURVE_KWARGS>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ""
+":py:obj:`TRANSFINITE_CURVE_TYPES "
+"<gmsh_scripts.registry.TRANSFINITE_CURVE_TYPES>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ""
+":py:obj:`TRANSFINITE_SURFACE_KWARGS "
+"<gmsh_scripts.registry.TRANSFINITE_SURFACE_KWARGS>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ""
+":py:obj:`TRANSFINITE_VOLUME_KWARGS "
+"<gmsh_scripts.registry.TRANSFINITE_VOLUME_KWARGS>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`name2kwargs <gmsh_scripts.registry.name2kwargs>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`add_point <gmsh_scripts.registry.add_point>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`add_curve <gmsh_scripts.registry.add_curve>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`add_curve_loop <gmsh_scripts.registry.add_curve_loop>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`add_surface <gmsh_scripts.registry.add_surface>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`add_surface_loop <gmsh_scripts.registry.add_surface_loop>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`add_volume <gmsh_scripts.registry.add_volume>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ":py:obj:`add_quadrate <gmsh_scripts.registry.add_quadrate>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ""
+":py:obj:`add_structure_curve "
+"<gmsh_scripts.registry.add_structure_curve>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ""
+":py:obj:`add_structure_surface "
+"<gmsh_scripts.registry.add_structure_surface>`\\"
+msgstr ""
+
+#: ../../source/autoapi/gmsh_scripts/registry/index.rst:104:<autosummary>:1
+msgid ""
+":py:obj:`add_structure_volume "
+"<gmsh_scripts.registry.add_structure_volume>`\\"
+msgstr ""
+

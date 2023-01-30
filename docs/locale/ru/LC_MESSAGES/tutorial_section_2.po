@@ -320,8 +320,9 @@ msgstr ""
 "файлах."
 
 #: ../../source/tutorial_section_2.rst:209
+#, fuzzy
 msgid ""
-"First type of parameters aka ``points parameters`` is set in ``matrix`` "
+"First type of parameters aka ``point parameters`` is set in ``matrix`` "
 "field (e.g. ``bottom.yaml``):"
 msgstr ""
 "Первый тип параметров ``points parameters``, задается в ``matrix`` поле "
@@ -371,8 +372,9 @@ msgstr ""
 "Y блока ``BOTTOM``"
 
 #: ../../source/tutorial_section_2.rst:271
+#, fuzzy
 msgid ""
-"To generate all blocks, one needs to specify points parameters at all "
+"To generate all blocks, one needs to specify point parameters at all "
 "blocks and run generator:"
 msgstr ""
 "Чтобы сгенерировать все блоки, нужно указать ``points parameters`` для "
