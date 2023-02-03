@@ -1,0 +1,12 @@
+metadata:
+  run:
+    factory: geo
+    strategy:
+      class: strategy.NoBoolean
+data:
+  class: block.Matrix
+  matrix: [ [ 0;;2, 1;;2, 2;;2, 3;;2 ],
+            [ 0;;2, 1;;2, 2;;2, 3;;2 ],
+            [ 0;;2, 1;;2, 2;;2, 3;;2 ] ]
+  items_do_structure_map: 1
+  items_do_quadrate_map: 1

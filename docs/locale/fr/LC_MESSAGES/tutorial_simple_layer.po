@@ -1,0 +1,216 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, romanzes637
+# This file is distributed under the same license as the gmsh_scripts
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmsh_scripts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-02-03 17:35+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/tutorial_simple_layer.rst:2
+msgid "Simple Layer"
+msgstr "Simple Layer"
+
+#: ../../source/tutorial_simple_layer.rst:5
+msgid "Concept"
+msgstr "Concept"
+
+#: ../../source/tutorial_simple_layer.rst:7
+msgid ""
+"Class :py:class:`~gmsh_scripts.block.layer.Layer` is a successor of class"
+" :py:class:`~gmsh_scripts.block.matrix.Matrix`, which is a collection of "
+":py:class:`~gmsh_scripts.block.block.Block` in a structure of 3D regular "
+"grid."
+msgstr "La classe :py:class:`~gmsh_scripts.block.layer.Layer` est un successeur de la classe :py:class:`~gmsh_scripts.block.matrix.Matrix`, qui est une collection de :py:class:`~gmsh_scripts.block.block.Block` dans une structure de grille régulière 3D."
+
+#: ../../source/tutorial_simple_layer.rst:11
+msgid ""
+"Class :py:class:`~gmsh_scripts.block.layer.Layer` removes "
+":py:class:`~gmsh_scripts.block.block.Block` from "
+":py:class:`~gmsh_scripts.block.matrix.Matrix` that do not have 0 "
+"coordinate by X or Y axes and applies transformations to remaining blocks"
+" :py:class:`~gmsh_scripts.block.block.Block` that are connect their "
+"sides."
+msgstr "La classe :py:class:`~gmsh_scripts.block.layer.Layer` supprime :py:class:`~gmsh_scripts.block.block.Block` de :py:class:`~gmsh_scripts.block.matrix.Matrix` qui ne pas avoir la coordonnée 0 par les axes X ou Y et applique les transformations aux blocs restants :py:class:`~gmsh_scripts.block.block.Block` qui sont connectés par leurs côtés."
+
+#: ../../source/tutorial_simple_layer.rst:21
+msgid "Matrix"
+msgstr "Matrix"
+
+#: ../../source/tutorial_simple_layer.rst:27
+msgid "Filtered Matrix"
+msgstr "Matrix filtrée"
+
+#: ../../source/tutorial_simple_layer.rst:33
+msgid "Layer"
+msgstr "Layer"
+
+#: ../../source/tutorial_simple_layer.rst:35
+msgid ""
+"We can change type of surfaces by X and Y axes to curved ones. Number of "
+"nodes by circumferential direction is determined by last number "
+"``0.5;;8`` at first radial ``layer``:"
+msgstr "Nous pouvons changer le type de surfaces par les axes X et Y en courbes. Le nombre de nœuds par direction circonférentielle est déterminé par le dernier nombre ``0.5;;8`` à la première ``couche`` radiale:"
+
+#: ../../source/tutorial_simple_layer.rst:60
+msgid "Curved Layer"
+msgstr "Layer incurvé"
+
+#: ../../source/tutorial_simple_layer.rst:62
+msgid ""
+"One can also change number of nodes by radial/height layer changing last "
+"number of subfields of first/second ``layer``:"
+msgstr "On peut également modifier le nombre de nœuds par couche radiale/hauteur en modifiant le dernier nombre de sous-champs de la première/seconde ``layer``:"
+
+#: ../../source/tutorial_simple_layer.rst:86
+msgid "Layer with different number of nodes by radial/height layers"
+msgstr "Layer avec un nombre différent de nœuds par couches radiales/hauteur"
+
+#: ../../source/tutorial_simple_layer.rst:89
+msgid "Number of layers"
+msgstr "Nombre de layers"
+
+#: ../../source/tutorial_simple_layer.rst:91
+msgid ""
+"One can add radial layers by appending additional items in the first "
+"``layer`` subfield:"
+msgstr "On peut ajouter des couches radiales en ajoutant des éléments supplémentaires dans le premier sous-champ ``layer``:"
+
+#: ../../source/tutorial_simple_layer.rst:115
+msgid "Multi Layer"
+msgstr "Multi Layer"
+
+#: ../../source/tutorial_simple_layer.rst:118
+msgid ""
+"One can add height layers by appending additional items in the second "
+"``layer`` subfield:"
+msgstr "On peut ajouter des couches de hauteur en ajoutant des éléments supplémentaires dans le deuxième sous-champ ``layer``:"
+
+#: ../../source/tutorial_simple_layer.rst:142
+msgid "Multi Height Layer"
+msgstr "Layer multi-hauteur"
+
+#: ../../source/tutorial_simple_layer.rst:145
+msgid "Zones"
+msgstr "Zones"
+
+#: ../../source/tutorial_simple_layer.rst:147
+msgid ""
+"To specify zones one needs add ``items_zones`` and ``items_zones_map`` "
+"fields. Where ``items_zones`` is a list of pairs of volume and six "
+"surfaces names, e.g. ``[ Volume, [ NX, X, NY, Y, NZ, Z ] ]``:"
+msgstr "Pour spécifier des zones, il faut ajouter les champs ``items_zones`` et ``items_zones_map``. Où ``items_zones`` est une liste de paires de noms de volume et de six surfaces, par ex. ``[ Volume, [ NX, X, NY, Y, NZ, Z ] ]``:"
+
+#: ../../source/tutorial_simple_layer.rst:151
+msgid "``Volume`` - volume name"
+msgstr "``Volume`` - nom du volume"
+
+#: ../../source/tutorial_simple_layer.rst:152
+msgid "``[ NX, X, NY, Y, NZ, Z ]`` - surfaces names:"
+msgstr "``[ NX, X, NY, Y, NZ, Z ]`` - noms des surfaces:"
+
+#: ../../source/tutorial_simple_layer.rst:154
+msgid "``NX`` - surface pointing in the opposite direction of X-axis"
+msgstr "``NX`` - surface pointant dans la direction opposée à l'axe X"
+
+#: ../../source/tutorial_simple_layer.rst:155
+msgid "``X`` - surface pointing in the direction of X-axis"
+msgstr "``X`` - surface pointant dans la direction de l'axe X"
+
+#: ../../source/tutorial_simple_layer.rst:156
+msgid "``NY`` - surface pointing in the opposite direction of Y-axis"
+msgstr "``NY`` - surface pointant dans la direction opposée à l'axe Y"
+
+#: ../../source/tutorial_simple_layer.rst:157
+msgid "``Y`` - surface pointing in the direction of Y-axis"
+msgstr "``Y`` - surface pointant dans la direction de l'axe Y"
+
+#: ../../source/tutorial_simple_layer.rst:158
+msgid "``NZ`` - surface pointing in the opposite direction of Z-axis"
+msgstr "``NZ`` - surface pointant dans la direction opposée à l'axe Z"
+
+#: ../../source/tutorial_simple_layer.rst:159
+msgid "``Z`` - surface pointing in the direction of Z-axis"
+msgstr "``Z`` - surface pointant dans la direction de l'axe Z"
+
+#: ../../source/tutorial_simple_layer.rst:161
+msgid ""
+"``items_zones_map`` (and all fields that ends with ``_map``) is an "
+"addressing array between items (Blocks in Layer) and corresponding index "
+"in some list with properties (e.g. ``items_zones``) and has shape "
+"``number-of-height`` by ``number-of-radial`` layers."
+msgstr "``items_zones_map`` (et tous les champs qui se terminent par ``_map``) est un tableau d'adressage entre les éléments (blocs dans la couche) et l'index correspondant dans une liste avec des propriétés (par exemple, ``items_zones``) et a la forme `` nombre-de-hauteur`` par ``nombre-de-couches radiales``."
+
+#: ../../source/tutorial_simple_layer.rst:165
+msgid ""
+"If one want to assign zone names with index ``1`` from ``items_zones`` "
+"(``[ B, [ NX_B, X_B, NY_B, Y_B, NZ_B, Z_B ] ]``) to 3th height layer and "
+"5th radial layer one can set ``1`` to ``items_zones_map`` at ``[3, 5]`` "
+"location."
+msgstr "Si l'on veut attribuer des noms de zone avec l'indice ``1`` de ``items_zones`` (``[ B, [ NX_B, X_B, NY_B, Y_B, NZ_B, Z_B ] ]``) à la 3ème couche de hauteur et à la 5ème radiale la première couche peut définir ``1`` sur ``items_zones_map`` à l'emplacement ``[3, 5]``."
+
+#: ../../source/tutorial_simple_layer.rst:169
+msgid "In this example we set:"
+msgstr "Dans cet exemple, nous définissons:"
+
+#: ../../source/tutorial_simple_layer.rst:171
+msgid ""
+"``0`` index of ``items_zones`` to middle (3th) height layer by all radial"
+" layers except last (5th);"
+msgstr "``0`` index de ``items_zones`` à la couche de hauteur moyenne (3ème) par toutes les couches radiales sauf la dernière (5ème);"
+
+#: ../../source/tutorial_simple_layer.rst:172
+msgid ""
+"``1`` index of ``items_zones`` to 2nd and 4th height layer by all radial "
+"layers and also last (5th) radial layer in the middle (3th) height layer;"
+msgstr "``1`` index de ``items_zones`` aux 2e et 4e couches de hauteur par toutes les couches radiales et également la dernière (5e) couche radiale dans la couche de hauteur moyenne (3e);"
+
+#: ../../source/tutorial_simple_layer.rst:173
+msgid ""
+"``2`` index of ``items_zones`` to bottom (1st) and top (5th) height layer"
+" by all radial layers."
+msgstr "Indice de ``2`` de ``items_zones`` à la couche de hauteur inférieure (1ère) et supérieure (5e) par toutes les couches radiales."
+
+#: ../../source/tutorial_simple_layer.rst:208
+msgid ""
+"Section by X and Y axes of Layer with zones: red - ``0``, green - ``1``, "
+"blue - ``2``"
+msgstr "Coupe par axes X et Y du Calque avec zones : rouge - ``0``, vert - ``1``, bleu - ``2``"
+
+#: ../../source/tutorial_simple_layer.rst:214
+msgid ""
+"Section by X, Y and Z axes of Layer with zones: red - ``0``, green - "
+"``1``, blue - ``2``"
+msgstr "Coupe par axes X, Y et Z du Calque avec zones : rouge - ``0``, vert - ``1``, bleu - ``2``"
+
+#~ msgid ""
+#~ "Class :py:class:`~gmsh_scripts.block.matrix.Layer` is "
+#~ "a successor of class "
+#~ ":py:class:`~gmsh_scripts.block.matrix.Matrix`, which is"
+#~ " a collection of "
+#~ ":py:class:`~gmsh_scripts.block.matrix.Block` in a "
+#~ "structure of 3D regular grid."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Class :py:class:`~gmsh_scripts.block.matrix.Layer` removes"
+#~ " :py:class:`~gmsh_scripts.block.matrix.Block` from "
+#~ ":py:class:`~gmsh_scripts.block.matrix.Matrix` that do "
+#~ "not have 0 coordinate by X or "
+#~ "Y axes and applies transformations to"
+#~ " these blocks "
+#~ ":py:class:`~gmsh_scripts.block.matrix.Block` that are "
+#~ "connect their sides."
+#~ msgstr ""
+

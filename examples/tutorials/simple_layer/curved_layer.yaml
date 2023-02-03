@@ -1,0 +1,13 @@
+metadata:
+  run:
+    factory: geo
+    strategy:
+      class: strategy.NoBoolean
+data:
+  class: block.Layer
+  layer: [ [ 0.5;;8, 1.5;;2 ],
+           [ 1;;2, 2;;2, 3;;2 ] ]
+  "layer_curves": [ [ line, circle_arc ],
+                    [ line, line, line ] ]
+  items_do_structure_map: 1
+  items_do_quadrate_map: 1
