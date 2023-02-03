@@ -1,0 +1,25 @@
+metadata:
+  run:
+    factory: geo
+    strategy:
+      class: strategy.NoBoolean
+data:
+  class: block.Layer
+  layer: [ [ 0.5;;8, 1.5;;2, 2.5;;2, 4;;2, 5;;2 ],
+           [ 1;;2, 2;;2, 3;;2, 6;;2, 10;;2 ] ]
+  "layer_curves": [ [ line, circle_arc, line, circle_arc, line ],
+                    [ line, line, line, line, line ] ]
+  items_do_structure_map: 1
+  items_do_quadrate_map: 1
+  items_zone: [
+    [ red, [ NX, X, NY, Y, NZ, Z ] ],
+    [ green, [ NX, X, NY, Y, NZ, Z ] ],
+    [ blue, [ NX, X, NY, Y, NZ, Z ] ]
+  ]
+  items_zone_map: [
+    [ 2, 2, 2, 2, 2],
+    [ 1, 1, 1, 1, 1],
+    [ 0, 0, 0, 0, 1],
+    [ 1, 1, 1, 1, 1],
+    [ 2, 2, 2, 2, 2]
+  ]
