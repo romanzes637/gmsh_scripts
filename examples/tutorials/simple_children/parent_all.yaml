@@ -1,0 +1,43 @@
+metadata:
+  run:
+    factory: occ
+#    strategy:
+#      class: strategy.NoBoolean
+    options:
+      Mesh.MeshSizeFactor: 1.0
+      Mesh.MeshSizeMin: 0.1
+      Mesh.MeshSizeMax: 0.3
+      Mesh.MeshSizeExtendFromBoundary: 2
+      Mesh.MeshSizeFromCurvature: 12
+data:
+  class: block.Matrix
+  matrix: [ [ 0;;2, 1;;2, 2;;2, 5:4;;2 ],
+            [ 0;;2, 1;;2 ],
+            [ 0;;2, 1;;2 ] ]
+  items_zone: [ PARENT ]
+  children: [
+    /child_1.yaml,
+    /child_2.yaml
+  ]
+  children_transforms: [
+    [ [ 0, -1, 0 ] ],
+    [ [ 0, 2, 0 ] ]
+  ]
+  items_children: [
+    [ /child_1.yaml ],
+    [ /child_2.yaml ],
+    [ /child_1.yaml, /child_2.yaml ],
+  ]
+  items_children_map: [
+    0, 1, 2
+  ]
+  items_children_transforms: [
+    [ [ ] ],
+    [ [ [ 0, 0, 0.1 ] ], [ [ 0, 0, -0.3 ] ] ],
+  ]
+  items_children_transforms_map: [
+    0, 0, 1
+  ]
+  items_do_structure_map: 0
+  items_do_quadrate_map: 0
+  items_do_register_map: 1
