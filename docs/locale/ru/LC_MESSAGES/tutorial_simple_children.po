@@ -1,0 +1,399 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, romanzes637
+# This file is distributed under the same license as the gmsh_scripts
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmsh_scripts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-02-10 17:50+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.11.0\n"
+
+#: ../../source/tutorial_simple_children.rst:2
+msgid "Simple Children"
+msgstr "Простой Children"
+
+#: ../../source/tutorial_simple_children.rst:5
+msgid "Concept"
+msgstr "Концепция"
+
+#: ../../source/tutorial_simple_children.rst:7
+msgid ""
+"Each successor of class :py:class:`~gmsh_scripts.block.block.Block` can "
+"have children blocks. Each class with ``items`` (currently "
+":py:class:`~gmsh_scripts.block.matrix.Matrix` and "
+":py:class:`~gmsh_scripts.block.layer.Layer`) can have children for each "
+"``item``."
+msgstr ""
+"Каждый преемник класса :py:class:`~gmsh_scripts.block.block.Block` может "
+"иметь дочерние блоки. Каждый класс с ``items`` (в настоящее время "
+":py:class:`~gmsh_scripts.block.matrix.Matrix` и "
+":py:class:`~gmsh_scripts.block.layer.Layer`) может иметь дочерние "
+"элементы для каждого ``item``."
+
+#: ../../source/tutorial_simple_children.rst:12
+msgid "Every child is a gmsh_scripts file in JSON or YAML format."
+msgstr ""
+"Каждый дочерний элемент представляет собой файл gmsh_scripts в формате "
+"JSON или YAML."
+
+#: ../../source/tutorial_simple_children.rst:14
+msgid ""
+"Children are specified in ``data.children`` field. One could set "
+"``transforms`` for children at ``data.children_transforms`` field."
+msgstr ""
+"Дочерние элементы указываются в поле ``data.children``. Можно установить "
+"«преобразования» для детей в поле «data.children_transforms»."
+
+#: ../../source/tutorial_simple_children.rst:17
+msgid ""
+"Items children are specified in ``data.items_children`` One should set "
+"``data.items_children_transforms`` and "
+"``data.items_children_transforms_map`` to apply transformations to them."
+msgstr ""
+"Дочерние элементы указаны в ``data.items_children``. Необходимо "
+"установить ``data.items_children_transforms`` и "
+"``data.items_children_transforms_map``, чтобы применить к ним "
+"преобразования."
+
+#: ../../source/tutorial_simple_children.rst:22
+msgid "Children"
+msgstr "Дочерние элементы"
+
+#: ../../source/tutorial_simple_children.rst:24
+msgid ""
+"Let's create two children and one parent. Children are instances of class"
+" :py:class:`~gmsh_scripts.block.layer.Layer`, i.e. they are cylinders "
+"with different radius. Parent is an instance of class "
+":py:class:`~gmsh_scripts.block.block.Block` and has 3 ``items`` arranged "
+"along X-axis."
+msgstr ""
+"Создадим два дочерних элемента и одного родителя. Дети являются "
+"экземплярами класса :py:class:`~gmsh_scripts.block.layer.Layer`, т.е. "
+"представляют собой цилиндры с разным радиусом. Parent является "
+"экземпляром класса :py:class:`~gmsh_scripts.block.block.Block` и имеет 3 "
+"элемента, расположенных по оси X."
+
+#: ../../source/tutorial_simple_children.rst:29
+msgid "We create them structured and quadrated for convenience."
+msgstr "Мы создаем их структурированными и гексагональными для удобства."
+
+#: ../../source/tutorial_simple_children.rst:31
+#: ../../source/tutorial_simple_children.rst:59
+msgid "Child 1"
+msgstr "Дочерний элемент 1"
+
+#: ../../source/tutorial_simple_children.rst:61
+#: ../../source/tutorial_simple_children.rst:89
+msgid "Child 2"
+msgstr "Дочерний элемент 2"
+
+#: ../../source/tutorial_simple_children.rst:91
+#: ../../source/tutorial_simple_children.rst:118
+msgid "Parent"
+msgstr "Родитель"
+
+#: ../../source/tutorial_simple_children.rst:120
+msgid ""
+"One can add children to parent specifying ``data.children`` with list of "
+"file names of children started with ``/`` character."
+msgstr ""
+"Можно добавить детей к родителю, указав ``data.children`` со списком имен"
+" файлов детей, начинающихся с символа ``/``."
+
+#: ../../source/tutorial_simple_children.rst:148
+msgid "Parent with ``children`` without ``children_transforms``"
+msgstr ""
+"Можно добавить дочерние элементы к родителю, указав ``data.children`` со "
+"списком имен файлов дочерних элементов, начинающихся с символа ``/``."
+
+#: ../../source/tutorial_simple_children.rst:151
+msgid ""
+"As one can see, children are placed in their origin ``(0, 0, 0)``. To "
+"move them to another location use ``data.children_transforms`` field that"
+" contains ``transforms`` for each children according with their position "
+"in ``data.children`` field."
+msgstr ""
+"Как видите, дочерние элементы помещаются в начало координат ``(0, 0, "
+"0)``. Чтобы переместить их в другое место, используйте поле "
+"``data.children_transforms``, которое содержит ``transforms`` для каждого"
+" ребенка в соответствии с их позицией в поле ``data.children``."
+
+#: ../../source/tutorial_simple_children.rst:155
+msgid ""
+"In this example, we move first child by -1 and second child by 2 along "
+"Y-axis."
+msgstr ""
+"В этом примере мы перемещаем первого потомка на -1, а второго потомка на "
+"2 по оси Y."
+
+#: ../../source/tutorial_simple_children.rst:186
+msgid "Parent with ``children`` with ``children_transforms``"
+msgstr "Родитель с ``children`` с ``children_transforms``"
+
+#: ../../source/tutorial_simple_children.rst:189
+msgid "Items Children"
+msgstr ""
+
+#: ../../source/tutorial_simple_children.rst:191
+msgid ""
+"Adding items children is a little trickier: first we need specify "
+"children for each item, then apply transformations to each child of each "
+"item."
+msgstr ""
+"Добавление дочерних элементов немного сложнее: сначала нам нужно указать "
+"дочерние элементы для каждого элемента, а затем применить преобразования "
+"к каждому дочернему элементу каждого элемента."
+
+#: ../../source/tutorial_simple_children.rst:194
+msgid ""
+"Working with ``items`` consists of 2 steps: creating ``main field`` with "
+"options and then creating ``addressing field``, that ends with ``_map`` "
+"suffix with exception of fields with ``do_`` prefix, they don't need "
+"``main field``. Each value in ``addressing field`` is an index in ``main "
+"field`` and position of value indicates to which ``item`` of "
+":py:class:`~gmsh_scripts.block.matrix.Matrix` or "
+":py:class:`~gmsh_scripts.block.layer.Layer` should be assigned option "
+"from ``main_field``."
+msgstr ""
+"Работа с ``элементами`` состоит из 2-х шагов: создание ``main field`` с "
+"параметрами, а затем создание ``addressing field``, заканчивающегося "
+"суффиксом ``_map``, за исключением полей с ``do_`` префикс, им не нужно "
+"``main field``. Каждое значение в ``поле адресации`` является индексом в "
+"``addressing field``, а позиция значения указывает, к какому ``item`` "
+":py:class:`~gmsh_scripts.block.matrix.Matrix` или :py "
+":class:`~gmsh_scripts.block.layer.Layer` должна быть назначена опция из "
+"``main_field``."
+
+#: ../../source/tutorial_simple_children.rst:202
+msgid ""
+"In this example, parent has 3 items, so addressing fields will have "
+"length of 3. First we need to define main field for children "
+"``items_children`` then addressing field ``items_children_map``."
+msgstr ""
+"В этом примере у родителя есть 3 элемента, поэтому поля адресации будут "
+"иметь длину 3. Сначала нам нужно определить основное поле для дочерних "
+"элементов ``items_children``, а затем поле адресации "
+"``items_children_map``"
+
+#: ../../source/tutorial_simple_children.rst:206
+msgid ""
+"``items_children`` consists of 3 options, first and second assign one "
+"child to an item and third - two:"
+msgstr ""
+"``items_children`` состоит из 3 опций, первая и вторая присваивают "
+"элементу одного дочернего элемента, а третья - двух:"
+
+#: ../../source/tutorial_simple_children.rst:209
+msgid "``/child_1.yaml``,"
+msgstr ""
+
+#: ../../source/tutorial_simple_children.rst:210
+msgid "``/child_2.yaml``,"
+msgstr ""
+
+#: ../../source/tutorial_simple_children.rst:211
+msgid "``/child_1.yaml`` and ``/child_2.yaml``."
+msgstr "``/child_1.yaml`` и ``/child_2.yaml``."
+
+#: ../../source/tutorial_simple_children.rst:213
+msgid ""
+"``items_children_map`` assigns first option from ``items_children`` to "
+"first item, second option from ``items_children`` to second item, and "
+"third to third: ``[0, 1, 2]``."
+msgstr ""
+"``items_children_map`` присваивает первый параметр из ``items_children`` "
+"первому элементу, второй вариант из ``items_children`` второму элементу и"
+" третий вариант третьему: ``[0, 1, 2]``."
+
+#: ../../source/tutorial_simple_children.rst:216
+msgid ""
+"Similarly fields ``items_children_transforms`` and "
+"``items_children_transforms_map`` are set."
+msgstr ""
+"Аналогично задаются поля ``items_children_transforms`` и "
+"``items_children_transforms_map``."
+
+#: ../../source/tutorial_simple_children.rst:219
+msgid ""
+"``items_children_transforms`` consists of 2 options, first assign no "
+"transforms to one child and third one transform to two children:"
+msgstr ""
+"``items_children_transforms`` состоит из 2 опций, первая не назначает "
+"преобразования одному дочернему элементу, а третья – одно преобразование "
+"двум дочерним элементам:"
+
+#: ../../source/tutorial_simple_children.rst:222
+msgid "``[ [ ] ]``,"
+msgstr ""
+
+#: ../../source/tutorial_simple_children.rst:223
+msgid "``[ [ [ 0, 0, 0.1 ] ], [ [ 0, 0, -0.3 ] ] ]``."
+msgstr ""
+
+#: ../../source/tutorial_simple_children.rst:225
+msgid ""
+"``items_children_transforms_map`` assigns first option from "
+"``items_children`` to first and second items and second option to third: "
+"``[0, 0, 1]``."
+msgstr ""
+"``items_children_transforms_map`` присваивает первую опцию из "
+"``items_children`` первому и второму элементам, а вторую опцию – "
+"третьему: ``[0, 0, 1]``."
+
+#: ../../source/tutorial_simple_children.rst:228
+msgid ""
+"It's convenient to create only geometry instead of mesh while working "
+"with children and their transformations."
+msgstr ""
+"Удобно создавать только геометрию вместо сетки при работе с дочерними "
+"элементами и их трансформациями."
+
+#: ../../source/tutorial_simple_children.rst:269
+msgid "Parent with ``items_children`` in ``geo_unrolled`` output format"
+msgstr "Родитель с ``items_children`` в выходном формате ``geo_unrolled``"
+
+#: ../../source/tutorial_simple_children.rst:271
+msgid "After that we could add strategy to create the mesh."
+msgstr "После этого мы можем добавить стратегию для создания сетки."
+
+#: ../../source/tutorial_simple_children.rst:309
+msgid "Parent with ``items_children``"
+msgstr "Родитель с ``items_children``"
+
+#: ../../source/tutorial_simple_children.rst:311
+msgid ""
+"We could supress generation of items (not their children) by setting "
+"``items_do_register_map`` to 0."
+msgstr ""
+"Мы могли бы подавить создание элементов (не их потомков), установив для "
+"``items_do_register_map`` значение 0."
+
+#: ../../source/tutorial_simple_children.rst:351
+msgid "Parent with ``items_children`` without ``items``"
+msgstr "Родитель с ``items_children`` без ``items``"
+
+#: ../../source/tutorial_simple_children.rst:353
+msgid ""
+"We could also create many copies of children inside an item adding "
+"additional parameter after coordinate with ``:`` separator, e.g. ``5:4`` "
+"divides last item into 3 parts (with 4 nodes) and creates children inside"
+" each part."
+msgstr ""
+"Мы также могли бы создать много копий дочерних элементов внутри элемента,"
+" добавив дополнительный параметр после координаты с разделителем ``:``, "
+"например ``5:4`` делит последний элемент на 3 части (с 4 узлами) и "
+"создает дочерние элементы внутри каждой части."
+
+#: ../../source/tutorial_simple_children.rst:394
+msgid "Parent with ``items_children`` with extended third item"
+msgstr "Родитель с ``items_children`` с расширенным третьим элементом"
+
+#: ../../source/tutorial_simple_children.rst:397
+msgid "All together"
+msgstr "Все месте"
+
+#: ../../source/tutorial_simple_children.rst:399
+msgid ""
+"One could combine ``children`` and ``items_children``, e.g. to add "
+"arbitrarily and regularly located children."
+msgstr ""
+"Можно комбинировать ``children`` и ``items_children``, например. "
+"добавлять произвольно и регулярно расположенные дочерние элементы."
+
+#: ../../source/tutorial_simple_children.rst:451
+msgid "Parent with ``children`` and ``items_children``"
+msgstr "Родитель с ``children`` и ``items_children``"
+
+#: ../../source/tutorial_simple_children.rst:454
+msgid "Mesh"
+msgstr "Сетка"
+
+#: ../../source/tutorial_simple_children.rst:456
+msgid ""
+"To create mesh we need boolean operations that are available in ``occ`` "
+"factory."
+msgstr "Для создания сетки нам нужны логические операции, доступные в фабрике occ."
+
+#: ../../source/tutorial_simple_children.rst:459
+msgid ""
+"It's recommended to disable ``items_do_structure_map`` and "
+"``items_do_quadrate_map`` fields, i.e. to create unstructured tetrahedral"
+" mesh while using boolean operations to achieve better stability of mesh "
+"generation."
+msgstr ""
+"Рекомендуется отключать поля ``items_do_structure_map`` и "
+"``items_do_quadrate_map``, т.е. создавать неструктурированную "
+"тетраэдральную сетку при использовании логических операций для достижения"
+" большей стабильности генерации сетки."
+
+#: ../../source/tutorial_simple_children.rst:536
+msgid "Mesh generated with ``occ`` ``factory``"
+msgstr "Сетка, созданная с помощью ``occ`` ``factory``"
+
+#: ../../source/tutorial_simple_children.rst:538
+msgid "One could customize mesh quality using ``run.options`` fields, e.g:"
+msgstr "Можно настроить качество сетки, используя поля ``run.options``, например:"
+
+#: ../../source/tutorial_simple_children.rst:540
+msgid "``Mesh.MeshSizeFactor`` - factor applied to all mesh element sizes,"
+msgstr ""
+"``Mesh.MeshSizeFactor`` - коэффициент, применяемый ко всем размерам "
+"элементов сетки,"
+
+#: ../../source/tutorial_simple_children.rst:541
+msgid "``Mesh.MeshSizeMin`` - minimum mesh element size,"
+msgstr "``Mesh.MeshSizeMin`` - минимальный размер элемента сетки,"
+
+#: ../../source/tutorial_simple_children.rst:542
+msgid "``Mesh.MeshSizeMax`` - maximum mesh element size,"
+msgstr "``Mesh.MeshSizeMax`` - максимальный размер элемента сетки,"
+
+#: ../../source/tutorial_simple_children.rst:543
+msgid ""
+"``Mesh.MeshSizeExtendFromBoundary`` - extend computation of mesh element "
+"sizes from the boundaries into the interior (``0``: never; ``1``: for "
+"surfaces and volumes; ``2``: for surfaces and volumes, but use smallest "
+"surface element edge length instead of longest length in 3D Delaunay; "
+"``-2``: only for surfaces; ``-3``: only for volumes),"
+msgstr ""
+"``Mesh.MeshSizeExtendFromBoundary`` - расширение вычисления размеров "
+"элементов сетки от границ во внутреннюю часть (``0``: никогда; ``1``: для"
+" поверхностей и объемов; ``2``: для поверхностей и объемов. , но "
+"использовать наименьшую длину ребра элемента поверхности вместо "
+"наибольшей длины в 3D Делоне; ``-2``: только для поверхностей; ``-3``: "
+"только для объемов),"
+
+#: ../../source/tutorial_simple_children.rst:544
+msgid ""
+"``Mesh.MeshSizeFromCurvature`` - automatically compute mesh element sizes"
+" from curvature, using the value as the target number of elements per 2 *"
+" Pi radians."
+msgstr ""
+"``Mesh.MeshSizeFromCurvature`` - автоматически вычисляет размеры "
+"элементов сетки по кривизне, используя значение в качестве целевого "
+"количества элементов на 2 * Pi радиан."
+
+#: ../../source/tutorial_simple_children.rst:547
+msgid ""
+"See `documentation <https://gmsh.info/doc/texinfo/gmsh.html#Mesh-"
+"options>`_ of gmsh for more information about options and their "
+"description."
+msgstr ""
+"См. `документацию <https://gmsh.info/doc/texinfo/gmsh.html#Mesh-"
+"options>`_ gmsh для получения дополнительной информации об опциях и их "
+"описании."
+
+#: ../../source/tutorial_simple_children.rst:599
+msgid "Mesh configured with ``metadata.run.options``"
+msgstr "Сетка настроена с помощью ``metadata.run.options``"
+
