@@ -1,0 +1,27 @@
+metadata:
+  run:
+    factory: geo
+data:
+  class: block.Matrix
+  matrix: [
+      [0,3],
+      [0,3],
+      [0,1,2,3]
+    ]
+  #items_children: [
+  #"/test_children2.yaml", []
+  #]
+  items_children: [
+    [ /test_children2.yaml ],
+    [ ]
+  ]
+  items_children_map: [
+      1, 0, 1
+  ]
+  items_children_transforms: [
+    [ [ ] ],
+    [ [ [ -0.5, -0.5, -0.5 ] ] ]
+  ]
+  items_children_transforms_map: [
+    0, 1, 0
+  ]

@@ -1,0 +1,35 @@
+{
+  "metadata": {
+    "run": {
+      "factory": "occ",
+      "strategy": "strategy.NoBoolean"
+    }
+  },
+  "data": {
+    "class": "block.Layer",
+    "layer": [
+      ["5;1","10;1","20;1"],
+      ["5;1","20;1","35;1","40;1"]
+    ],
+    "layer_curves": [
+      ["circle_arc","line","line"],
+      ["line","line","line","line"]
+    ],
+    "items_zone": ["", "Environment", "RAO", "EDZ", "Concrete", "Bentonite", "Plug", "Tunnel"],
+    "items_zone_map": [
+      [1,1,1],
+      [2,4,1],
+      [2,4,1],
+      [1,1,1]
+    ],
+    "items_do_unregister_map": [
+      [0,0,0],
+      [0,0,0],
+      [0,0,0],
+      [0,0,0]
+    ],
+
+    "items_do_quadrate_map": 1,
+    "items_do_structure_map": 1
+  }
+}

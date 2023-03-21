@@ -1,0 +1,34 @@
+data:
+  class: block.Matrix
+  items_boolean_level_map: 0
+  items_children:
+  - - /R_P_T.yaml
+  - []
+  items_children_transforms:
+  - - - - -3.6
+        - -2.8
+        - 18.795
+  items_do_quadrate_map: 1
+  items_do_structure_map: 1
+  items_zone:
+  - ''
+  - ENV
+  items_zone_map:
+  - - 1
+    - 1
+    - 1
+  matrix:
+  - - 0;2.0
+    - 50.0;2.0
+  - - 0;2.0
+    - 50.0;2.0
+  - - 0;2.0
+    - 72.2;2.0
+metadata:
+  options:
+    Mesh.MeshSizeFactor: 1.0
+    Mesh.MeshSizeFromPoints: 1
+    Mesh.MeshSizeMax: 0.3
+    Mesh.MeshSizeMin: 0.1
+  run:
+    factory: occ

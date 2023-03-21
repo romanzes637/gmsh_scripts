@@ -1,0 +1,25 @@
+metadata:
+  run:
+    factory: occ
+data:
+  class: "block.Matrix"
+  matrix: [
+    [ "0","28.5","171:6", "199.5" ],
+    [ "0","34" ],
+    [ "0","53" ]]
+  items_zone: ["", "EDZ"]
+  items_zone_map: [
+                    [1,1,1]
+  ]
+  #items_do_unregister_map: [
+  #[0,0],
+  #[1,1]]
+  items_children: [ [ "/R_edz.yaml" ], ["/R_edz_left.yaml"], ["/R_edz_right.yaml"] ]
+  items_children_map: [
+                        [1,0,2]
+  ]
+  items_children_transforms: [[[[-14.25,-17,-26.5],[0,0,0],[0,0,0]]]]
+  items_do_quadrate_map: 1
+  items_do_structure_map: 1
+  items_boolean_level_map: 2
+

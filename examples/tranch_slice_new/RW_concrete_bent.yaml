@@ -1,0 +1,75 @@
+data:
+  class: block.Layer
+  items_boolean_level_map: 5
+  items_do_quadrate_map: 1
+  items_do_structure_map: 1
+  items_do_unregister_map:
+  - - 0
+    - 0
+    - 0
+    - 0
+  - - 0
+    - 0
+    - 0
+    - 0
+  - - 0
+    - 0
+    - 0
+    - 0
+  - - 0
+    - 0
+    - 0
+    - 0
+  - - 0
+    - 0
+    - 0
+    - 0
+  items_zone:
+  - Empty
+  - Bentonite
+  - Concrete
+  - RW
+  items_zone_map:
+  - - 1
+    - 1
+    - 1
+    - 1
+  - - 1
+    - 1
+    - 1
+    - 1
+  - - 3
+    - 3
+    - 2
+    - 1
+  - - 2
+    - 2
+    - 2
+    - 1
+  - - 1
+    - 1
+    - 1
+    - 1
+  layer:
+  - - 0.125;1.0
+    - 0.35;1.0
+    - 0.9;1.0
+    - 1.4;1.0
+  - - 0.5;1.0
+    - 0.6;1.0
+    - 3.96;1.0
+    - 4.5;1.0
+    - 5;1.0
+  layer_curves:
+  - - line
+    - circle_arc
+    - line
+    - line
+  - - line
+    - line
+    - line
+    - line
+    - line
+metadata:
+  run:
+    factory: occ

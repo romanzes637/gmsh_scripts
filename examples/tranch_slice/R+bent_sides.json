@@ -1,0 +1,26 @@
+{
+  "metadata": {
+    "run": {
+      "factory": "occ"
+    }
+  },
+  "data": {
+    "class": "block.Matrix",
+    "matrix":[
+      ["0","1","29", "30"],
+      ["0","28"],
+      ["0","50"]],
+    "items_children": [["/RW+concrete+bent.json"], []],
+    "items_children_map": [
+      [1, 0, 1]
+    ],
+    "items_children_transforms": [[[[0, 0, -25]]]],
+    "items_zone": ["Bentonite"],
+    "items_do_unregister_map": [
+      [0, 1, 0]
+    ],
+    "items_do_quadrate_map": 1,
+    "items_do_structure_map": 1,
+    "items_boolean_level_map": 3
+  }
+}
