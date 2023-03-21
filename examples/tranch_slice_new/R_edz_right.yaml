@@ -1,0 +1,28 @@
+data:
+  class: block.Matrix
+  items_boolean_level_map: 3
+  items_children:
+  - - /R_edz.yaml
+  - []
+  items_children_map:
+  - - 0
+    - 1
+  items_children_transforms:
+  - - - - -1.7999999999999998
+        - -1.7
+        - -2.65
+  items_do_quadrate_map: 1
+  items_do_structure_map: 1
+  items_zone:
+  - EDZ
+  matrix:
+  - - 0;1.0
+    - 3.5999999999999996;1.0
+    - 3.8999999999999995;1.0
+  - - 0;1.0
+    - 3.4;1.0
+  - - 0;1.0
+    - 5.3;1.0
+metadata:
+  run:
+    factory: occ

@@ -1,0 +1,45 @@
+data:
+  class: block.Matrix
+  items_boolean_level_map: 2
+  items_children:
+  - - /T_edz.yaml
+  - - /T_edz_left.yaml
+  - - /T_edz_right.yaml
+  items_children_map:
+  - - 1
+    - 0
+    - 2
+  items_children_transforms:
+  - - - - -1.95
+        - -3.225
+        - -3.555
+  - - - - -3.0000000000000004
+        - -3.225
+        - -3.555
+  items_children_transforms_map:
+  - - 0
+    - 1
+    - 0
+  items_do_quadrate_map: 1
+  items_do_register_map: 0
+  items_do_structure_map: 1
+  items_zone:
+  - ''
+  - Plug
+  - EDZ_Tunn
+  items_zone_map:
+  - - 2
+    - 2
+    - 2
+  matrix:
+  - - 0;1.0
+    - 3.9;1.0
+    - 9.9;1.0
+    - 13.8;1.0
+  - - 0;1.0
+    - 6.45;1.0
+  - - 0;1.0
+    - 7.11;1.0
+metadata:
+  run:
+    factory: occ

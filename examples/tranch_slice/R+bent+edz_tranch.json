@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "run": {
+      "factory": "occ"
+    }
+  },
+  "data": {
+    "class": "block.Matrix",
+    "matrix":[
+      ["0","3","33","153:5","156"],
+      ["0","34"],
+      ["0","53"]],
+    "items_zone": ["EDZ"],
+    "items_children": [["/R+edz.json"], []],
+    "items_children_map": [
+      [1,0,0,1]
+    ],
+    "items_children_transforms": [[[[-15, -17, -26.5]]]],
+    "items_boolean_level_map": 1
+  }
+}

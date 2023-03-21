@@ -1,0 +1,22 @@
+metadata:
+  run:
+    factory: occ
+data:
+  class: "block.Matrix"
+  matrix: [
+    [ "0","380" ],
+    [ "0","234" ],
+    [ "0","253" ]]
+  items_zone: ["", "ENV"]
+  items_zone_map: [
+                    [1]
+  ]
+  items_children: [ [ "/R_P_T.yaml" ], [ ] ]
+  items_children_map: [
+                        [0]
+  ]
+  items_children_transforms: [[[[-90,-25,0]]]]
+  items_do_quadrate_map: 1
+  items_do_structure_map: 1
+  items_boolean_level_map: 2
+
