@@ -1,0 +1,44 @@
+data:
+  class: block.Matrix
+  items_boolean_level_map: 2
+  items_children:
+  - - /R_edz.yaml
+  - - /R_edz_left.yaml
+  - - /R_edz_right.yaml
+  items_children_map:
+  - - 1
+    - 0
+    - 2
+  items_children_transforms:
+  - - - - -2.05
+        - -1.3
+        - -2.65
+  - - - - -2.1999999999999997
+        - -1.3
+        - -2.65
+  items_children_transforms_map:
+  - - 1
+    - 0
+    - 1
+  items_do_quadrate_map: 1
+  items_do_register_map: 0
+  items_do_structure_map: 1
+  items_zone:
+  - ''
+  - Bent
+  items_zone_map:
+  - - 1
+    - 1
+    - 1
+  matrix:
+  - - 0;1.0
+    - 4.3999999999999995;1.0
+    - 12.599999999999998:3;1.0
+    - 16.999999999999996;1.0
+  - - 0;1.0
+    - 2.6;1.0
+  - - 0;1.0
+    - 5.3;1.0
+metadata:
+  run:
+    factory: occ
