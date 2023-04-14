@@ -244,9 +244,11 @@ class Layer(Matrix):
             nis = old2new[mi]
             masks = [int(x) for x in list(f'{mm:04b}')]  # NY, NX, X, Y
             # print(mm, nis, masks)
-            if len(nis) == len(masks):
+            if len(nis) == len(masks):  # layers
                 for ni, mask in zip(nis, masks):
                     n[ni] = mask
+            elif len(nis) == 1:  # center
+                n[nis[0]] = masks[0]
         return n
 
     @staticmethod
