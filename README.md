@@ -91,6 +91,9 @@ python -m gmsh_scripts all_heater_plug.json --plot
 <a href="https://github.com/romanzes637/gmsh_scripts/tree/master/examples/matrix/cross_section_2">
 <img alt="Cross section 2" src="https://github.com/romanzes637/gmsh_scripts/blob/master/images/cross_section_2.png" width="200" height="200">
 </a>
+<a href="https://github.com/romanzes637/gmsh_scripts/tree/master/examples/cylinder/core.yaml">
+<img alt="Cross section 2" src="https://github.com/romanzes637/gmsh_scripts/blob/master/images/core.png" width="200" height="200">
+</a>
 
 ## [Examples album](https://photos.app.goo.gl/KngvSr6ttbyIdFEX2)
 
