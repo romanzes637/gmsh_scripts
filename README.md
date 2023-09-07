@@ -64,6 +64,9 @@ python -m gmsh_scripts all_heater_plug.json
 
 ### Plot tree
 ```shell
+pin install gmsh_scripts[viz]
+```
+```shell
 python -m gmsh_scripts all_heater_plug.json --plot
 ```
 <img alt="Experiment tree" src="/images/sweden_experiment_tree.png" width="400" height="400">
