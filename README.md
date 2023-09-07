@@ -16,7 +16,7 @@ with boolean operations based on [gmsh](https://gmsh.info/)
 ```shell
 pip install gmsh-scripts
 ```
-4. Create or [download](https://github.com/romanzes637/gmsh_scripts/blob/master/examples/matrix/matrix.json) input file
+3. Create or [download](https://github.com/romanzes637/gmsh_scripts/blob/master/examples/matrix/matrix.json) input file
 ```json
 {
   "metadata": {
