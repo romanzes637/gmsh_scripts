@@ -50,12 +50,12 @@ class Point:
     @staticmethod
     def parse_coordinates(coordinates, coordinate_system):
         if coordinates is None:
-            coordinates = np.zeros(coordinate_system.dim, dtype=np.float)
+            coordinates = np.zeros(coordinate_system.dim, dtype=float)
         elif isinstance(coordinates, np.ndarray):
-            if coordinates.dtype != np.float:
+            if coordinates.dtype != float:
                 coordinates = coordinates.astype(np.float)
         elif isinstance(coordinates, list):
-            coordinates = np.array(coordinates, dtype=np.float)
+            coordinates = np.array(coordinates, dtype=float)
         else:
             raise ValueError(coordinates)
         return coordinates
