@@ -53,7 +53,7 @@ class Point:
             coordinates = np.zeros(coordinate_system.dim, dtype=float)
         elif isinstance(coordinates, np.ndarray):
             if coordinates.dtype != float:
-                coordinates = coordinates.astype(np.float)
+                coordinates = coordinates.astype(float)
         elif isinstance(coordinates, list):
             coordinates = np.array(coordinates, dtype=float)
         else:
