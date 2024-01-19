@@ -431,7 +431,10 @@ class QuarterLayer(CoordinateSystem):
     def __init__(self, origin=np.zeros(3), layers=None, layers_curves=None,
                  layers_types=None, **kwargs):
         super().__init__(dim=3, origin=origin, **kwargs)
-        self.layers = [x for x in layers] if layers is not None else [[] for _ in range(4)]
+        self.layers = [x for x in layers] if layers is not None else [[] for _ in range(6)]
+        self.layers[2] = [-x for x in self.layers[2]]  # NX
+        self.layers[3] = [-x for x in self.layers[3]]  # NY
+        self.layers[5] = [-x for x in self.layers[5]]  # NZ
         self.layers_curves = layers_curves
         self.layers_types = layers_types
 

@@ -217,7 +217,7 @@ class Layer(Matrix):
             raise ValueError(m)
 
     @staticmethod
-    def parse_layers_block_mask(m, default, new2old, item_types=()):
+    def parse_layers_block_mask(m, default, new2old, item_types=(), center_mask=None):
         # Default value for all items if map is None
         if m is None:
             n = [default for _ in new2old]
@@ -242,6 +242,8 @@ class Layer(Matrix):
         n = [default for _ in new2old]
         for mi, mm in enumerate(m):
             nis = old2new[mi]
+            if len(nis) == 1 and center_mask is not None:  # center
+                mm = center_mask
             masks = [int(x) for x in list(f'{mm:04b}')]  # NY, NX, X, Y
             # print(mm, nis, masks)
             if len(nis) == len(masks):  # layers
