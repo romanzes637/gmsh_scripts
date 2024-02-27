@@ -95,10 +95,13 @@ python -m gmsh_scripts all_heater_plug.json --plot
 <img alt="Cross section 2" src="https://github.com/romanzes637/gmsh_scripts/blob/master/images/cross_section_2.png" width="200" height="200">
 </a>
 <a href="https://github.com/romanzes637/gmsh_scripts/tree/master/examples/cylinder/core.yaml">
-<img alt="Cross section 2" src="https://github.com/romanzes637/gmsh_scripts/blob/master/images/core.png" width="200" height="200">
+<img alt="Core" src="https://github.com/romanzes637/gmsh_scripts/blob/master/images/core.png" width="200" height="200">
 </a>
 <a href="https://github.com/romanzes637/gmsh_scripts/tree/master/examples/quarter_layer/simple.yaml">
-<img alt="Cross section 2" src="https://github.com/romanzes637/gmsh_scripts/blob/master/images/simple_quarter_layer.png" width="200" height="200">
+<img alt="Quarter layer" src="https://github.com/romanzes637/gmsh_scripts/blob/master/images/simple_quarter_layer.png" width="200" height="200">
+</a>
+<a href="https://github.com/romanzes637/gmsh_scripts/tree/master/examples/quarter_layer_with_holes/main.yaml">
+<img alt="Quarter layer with holes" src="https://github.com/romanzes637/gmsh_scripts/blob/master/images/quarter_layer_with_holes.png" width="200" height="200">
 </a>
 
 ## [Examples album](https://photos.app.goo.gl/KngvSr6ttbyIdFEX2)

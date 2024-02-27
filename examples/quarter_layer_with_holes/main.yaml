@@ -1,0 +1,61 @@
+metadata: 
+  run:
+      factory: "geo"
+      strategy: "strategy.NoBoolean"
+      log_level: "DEBUG"
+      log_path: ~
+data:
+  class: "block.QuarterLayer"
+  layer: [
+    ["0.4;1;8", "2.45;1;4", "5.5;1;7", "5.925;1;4", "7.40;1;4", "7.835;1;6:0:1.2", "9.835;1;6:0:1.2"
+    ],
+    ["i",
+      "0.435;1;4", "2.27;1;8", "0.37;1;5", "3.425;1;7", "0.8;1;3", "1.0;1;5"
+    ]
+  ]
+  layer_curves: [
+    ["line", "circle_arc", "circle_arc", "circle_arc", "circle_arc", "circle_arc", "line"],
+    ["line", "line", "line", "line", "line", "line"]
+  ]
+  items_zone: [
+    # FULL
+#    ["Plumbum", ["NX", "X", "NY", "Y", "NZ", "Z"]],
+#    ["Steel", ["arc", "arc", "arc", "arc", "NZ", "Z"]],
+#    ["Steel", ["Hole", "Hole", "Hole", "Hole", "NZ", "Z"]],
+#    ["Steel", ["NX", "X", "NY", "Y", "NZ", "HoleNZ"]],
+#    ["Steel", ["Hole2", "Hole2", "Hole2", "Hole2", "HoleZ", "Z"]],
+    # QUARTER
+    ["Plumbum", ["NX", "arc", "NY", "arc", "NZ", "Z"]],
+    ["Steel", ["NX", "arc", "NY", "arc", "NZ", "Z"]],
+    ["Steel", ["Hole", "Hole", "Hole", "Hole", "NZ", "Z"]],
+    ["Steel", ["NX", "arc", "NY", "arc", "NZ", "HoleNZ"]],
+    ["Steel", ["Hole", "X", "NY", "Y", "NZ", "Z"]],
+    ["Steel", ["NX", "X", "Hole", "Y", "NZ", "Z"]],
+    ["Steel", [ "Hole2", "X", "NY", "Y", "HoleZ", "Z" ] ],
+    ["Steel", [ "NX", "X", "Hole2", "Y", "HoleZ", "Z" ] ],
+  ]
+  items_zone_map: [
+    # FULL
+#    [1, 1, 1, 1, 1, 1, 1],
+#    [0, 0, 0, 0, 0, 1, 1],
+#    [3, 3, 3, 1, 0, 1, 1],
+#    [2, 2, 2, 2, 0, 1, 1],
+#    [2, 2, 2, 2, 1, 1, 1],
+#    [2, 2, 4, 1, 1, 1, 1]
+    # QUARTER
+    [1, 1, 1, 1, 1, 1, 1],
+    [0, 0, 0, 0, 0, 1, 1],
+    [3, 3, 3, 1, 0, 1, 1],
+    [2, 2, 2, "4,4,5,5", 0, 1, 1],  # NX, X, NY, Y
+    [2, 2, 2, "4,4,5,5", 1, 1, 1],  # NX, X, NY, Y
+    [2, 2, "6,6,7,7", 1, 1, 1, 1]   # NX, X, NY, Y
+  ]
+  items_do_register_map: [
+      [1, 1, 1, 1, 1, 1, 0],
+      [1, 1, 1, 1, 1, 1, 0],
+      [1, 1, 1, 1, 1, 1, 0],
+      [0, 0, 0, 1, 1, 1, 0],
+      [0, 0, 0, 1, 1, 1, 0],
+      [0, 0, 1, 1, 1, 1, 0]
+    ]
+  items_do_quadrate_map: 1
