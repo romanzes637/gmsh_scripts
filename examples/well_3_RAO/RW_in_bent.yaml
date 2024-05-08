@@ -1,0 +1,28 @@
+data:
+  class: block.Layer
+  items_boolean_level_map: 1
+  items_zone:
+  - RAO
+  - bentonite
+  items_zone_map:
+  - - 1
+    - 1
+  - - 0
+    - 1
+  - - 1
+    - 1
+  layer:
+  - - 0.35;0.3
+    - 0.85;0.3
+  - - 0.5;0.3
+    - 3.86;0.3
+    - 4.36;0.3
+  layer_curves:
+  - - circle_arc
+    - circle_arc
+  - - circle_arc
+    - circle_arc
+    - circle_arc
+metadata:
+  run:
+    factory: occ

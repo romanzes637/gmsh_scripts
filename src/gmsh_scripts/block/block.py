@@ -681,6 +681,8 @@ class Block:
                                                   for x in all_old_blocks]
                         if all(all_unregister_boolean):
                             pre_unregister_volume(Volume(tag=new_tag))
+                    elif self.do_unregister_boolean == -1:  # Skip
+                        pass
                     else:
                         raise ValueError(self.do_unregister_boolean)
 

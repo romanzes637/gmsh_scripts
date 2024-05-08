@@ -359,7 +359,7 @@ if __name__ == "__main__":
     and the length in R_edz.yaml, R_edz_left.yaml, R_edz_right, R_edz_trunch.yaml.yaml,
     T_edz_trunch.yaml, T_edz.yaml, T_edz_left.yaml, T_edz_right.yaml, Plug_tranch.yaml'''
     #sys.argv[0] is a script name
-    # To call python ./build_tranch.py with parameters:
+    # To call python ./build_result.py with parameters:
     #1 N_of_rao
     #2 concrete_X
     #3 bentonite_X
@@ -370,7 +370,7 @@ if __name__ == "__main__":
     #8 env_Z_botoom
     #9 env_Z_top
     #10 env_quality
-    #python. / build_tranch.py N_of_rao concrete_X bentonite_X buff_size rao_quality env_X env_Y env_Z_botoom env_Z_top env_quality
+    #python. / build_result.py N_of_rao concrete_X bentonite_X buff_size rao_quality env_X env_Y env_Z_botoom env_Z_top env_quality
     n_of_rao = int(sys.argv[1])
     concrete_X = float(sys.argv[2])
     bentonite_X = float(sys.argv[3])
