@@ -209,6 +209,7 @@ def resizing_tranches(n_RAO: int, block_length: float, quality: float) -> float:
                                            str(";") + str(quality)
     t_edz_tranch["data"]["matrix"][1][0] = str(0) + str(";") + str(quality)
     t_edz_tranch["data"]["matrix"][1][1] = str(5.6) + str(";") + str(quality)
+
     t_edz_tranch["data"]["matrix"][2][0] = str(0) + str(";") + str(quality)
     t_edz_tranch["data"]["matrix"][2][1] = str(6.3) + str(";") + str(quality)
     t_edz_tranch["data"]["items_children_transforms"][1][0][0][0] = 0 - middle / 2
@@ -316,8 +317,8 @@ if __name__ == "__main__":
     and the length in R_edz.yaml, R_edz_left.yaml, R_edz_right, R_edz_trunch.yaml.yaml,
     T_edz_trunch.yaml, T_edz.yaml, T_edz_left.yaml, T_edz_right.yaml, Plug_tranch.yaml'''
     #sys.argv[0] is a script name
-    #To call python ./build_tranch.py N_of_rao buff_size rao_quality env_X env_Y env_Z_botoom env_Z_top env_quality
-    # To call python ./build_tranch.py N_of_rao buff_size rao_quality env_X env_Y env_Z env_quality
+    #To call python ./build_result.py N_of_rao buff_size rao_quality env_X env_Y env_Z_botoom env_Z_top env_quality
+    # To call python ./build_result.py N_of_rao buff_size rao_quality env_X env_Y env_Z env_quality
     n_of_rao = int(sys.argv[1])
     buff_size = float(sys.argv[2])
     quality_rao = float(sys.argv[3])

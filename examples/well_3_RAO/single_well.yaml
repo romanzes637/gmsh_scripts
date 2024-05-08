@@ -1,0 +1,11 @@
+metadata:
+  run:
+    factory: occ
+data:
+  class: block.Block
+  do_register: 0
+  children: ['/RW_in_bent.yaml',
+             '/RW_in_bent.yaml',
+            '/RW_in_bent.yaml']
+  children_transforms: [
+    [ ], [ [ 0, 0, -4.36 ] ], [ [ 0, 0, -8.72 ] ] ]

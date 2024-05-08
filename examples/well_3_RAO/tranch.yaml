@@ -1,0 +1,37 @@
+data:
+  class: block.Matrix
+  items_boolean_level_map: 0
+  items_children:
+  - - /single_well.yaml
+  - []
+  items_children_map:
+  - - 0
+    - 0
+  items_children_transforms:
+  - - - - 0
+        - 0
+        - -36.169999999999995
+  items_zone:
+  - ''
+  - ENV
+  items_zone_map:
+  - 1
+  - 1
+  matrix:
+  - - 0;3.0
+    - 5.7;3.0
+    - 22.8:4;3.0
+  - - 0;3.0
+    - 24.7;3.0
+  - - 0;3.0
+    - 143.08;3.0
+metadata:
+  options:
+    Mesh.MeshSizeExtendFromBoundary: 2
+    Mesh.MeshSizeFactor: 1.0
+    Mesh.MeshSizeFromCurvature: 16
+    Mesh.MeshSizeFromPoints: 0
+    Mesh.MeshSizeMax: 0.2
+    Mesh.MeshSizeMin: 0.1
+  run:
+    factory: occ
