@@ -1,0 +1,20 @@
+data:
+  children:
+  - /RW.yaml
+  children_transforms:
+  - - - 0
+      - 0
+      - 0
+  class: block.Layer
+  items_boolean_level_map: 2
+  items_zone:
+  - Bentonite
+  layer:
+  - - 0.575;0.1
+  - - 5;0.1
+  layer_curves:
+  - - circle_arc
+  - - line
+metadata:
+  run:
+    factory: occ
