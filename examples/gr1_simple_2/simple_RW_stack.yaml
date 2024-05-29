@@ -1,0 +1,15 @@
+data:
+  class: block.Matrix
+  items_boolean_level_map: 3
+  items_zone:
+  - RW
+  matrix:
+  - - 0;0.1
+    - 1.015;0.1
+  - - 0;0.1
+    - 0.1375;0.1
+  - - 0;0.1
+    - 5;0.1
+metadata:
+  run:
+    factory: occ

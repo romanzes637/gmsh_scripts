@@ -1,0 +1,40 @@
+data:
+  children:
+  - /bent_box_low.yaml
+  - /simple_RW.yaml
+  - /simple_RW.yaml
+  - /simple_RW_stack.yaml
+  - /simple_RW_main.yaml
+  - /bent_box_up.yaml
+  children_transforms:
+  - - - -0.1225
+      - -0.6
+      - 0
+  - - - -0.35
+      - -0.45
+      - 0
+  - - - 0.18
+      - -0.45
+      - 0
+  - - - -0.5075
+      - -0.32
+      - 0
+  - - - -0.5925
+      - -0.25
+      - 0
+  - - - -0.5075
+      - 0.325
+      - 0
+  class: block.Layer
+  items_boolean_level_map: 1
+  items_zone:
+  - EDZ
+  layer:
+  - - 0.71;0.1
+  - - 5;0.1
+  layer_curves:
+  - - circle_arc
+  - - line
+metadata:
+  run:
+    factory: occ
