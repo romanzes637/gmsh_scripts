@@ -193,75 +193,28 @@ class Layer(Matrix):
                 new_layers.append(new_layer_items)
         return new_layers
 
-    # @staticmethod
-    # def parse_layers_block_map(m, default, new2old, item_types=()):
-    #     # Default value for all items if map is None
-    #     if m is None:
-    #         m = [default for _ in new2old]
-    #         return m
-    #     m = list(flatten(m)) if isinstance(m, list) else m
-    #     # Check on single item of type in item_types
-    #     for t in item_types:
-    #         if isinstance(t, list) and isinstance(m, list):  # list of ...
-    #             if all(isinstance(ti, mi) for ti in t for mi in m):
-    #                 m = [m for _ in new2old]
-    #                 return m
-    #         elif isinstance(m, t):  # non list types
-    #             m = [m for _ in new2old]
-    #             return m
-    #     # Old list to new list
-    #     if isinstance(m, list):
-    #         m = [m[x[0]] if x is not None else default for x in new2old]
-    #         return m
-    #     else:  # Something wrong
-    #         raise ValueError(m)
-
     @staticmethod
-    def parse_layers_block_map(m, default, new2old, item_types=(), center_mask=None):
+    def parse_layers_block_map(m, default, new2old, item_types=()):
         # Default value for all items if map is None
         if m is None:
-            n = [default for _ in new2old]
-            return n
+            m = [default for _ in new2old]
+            return m
         m = list(flatten(m)) if isinstance(m, list) else m
-        # Old list to new list
-        old2new = {}
-        for new, old in enumerate(new2old):
-            if old is not None:
-                old2new.setdefault(old[0], []).append(new)
         # Check on single item of type in item_types
         for t in item_types:
             if isinstance(t, list) and isinstance(m, list):  # list of ...
                 if all(isinstance(ti, mi) for ti in t for mi in m):
-                    max_old = max(x[0] for x in new2old if x is not None)
-                    m = [m for _ in range(max_old + 1)]
-                    break
+                    m = [m for _ in new2old]
+                    return m
             elif isinstance(m, t):  # non list types
-                max_old = max(x[0] for x in new2old if x is not None)
-                m = [m for _ in range(max_old + 1)]
-                break
-        n = [default for _ in new2old]
-        for mi, mm in enumerate(m):
-            nis = old2new[mi]
-            if len(nis) == 1 and center_mask is not None:  # center
-                mm = center_mask
-            if isinstance(mm, str):
-                if float in item_types:
-                    mm = [float(x) for x in mm.split(',')]
-                elif int in item_types:
-                    mm = [int(x) for x in mm.split(',')]
-                elif bool in item_types:
-                    mm = [bool(x) for x in mm.split(',')]
-                else:
-                    mm = [x for x in mm.split(',')]
-            else:
-                mm = [mm for _ in range(4)]
-            masks = [mm[2], mm[0], mm[1], mm[3]]  # NX, X, NY, Y -> NY, NX, X, Y
-            if len(nis) == len(masks):  # layers
-                for ni, mask in zip(nis, masks):
-                    n[ni] = mask
-            elif len(nis) == 1:  # center
-                n[nis[0]] = masks[0]
-        return n
+                m = [m for _ in new2old]
+                return m
+        # Old list to new list
+        if isinstance(m, list):
+            m = [m[x[0]] if x is not None else default for x in new2old]
+            return m
+        else:  # Something wrong
+            raise ValueError(m)
 
     @staticmethod
     def parse_layers_block_mask(m, default, new2old, item_types=(), center_mask=None):
