@@ -37,20 +37,36 @@ class LoggingDecorator:
 
     def __call__(self, f=None):
         def wrapper(*args, **kwargs):
-            fmt = self.fmt.replace('%(hostname)s', socket.gethostname())
-            fmt = fmt.replace('%(ip)s',
-                              socket.gethostbyname(socket.gethostname()))
-            fmt = fmt.replace('%(user)s', getpass.getuser())
-            fmt = fmt.replace('%(tz)s', time.strftime('%z'))
+            try:
+                hostname = socket.gethostname()
+            except Exception:
+                hostname = 'hostname'
+            try:
+                ip = socket.gethostbyname(hostname)
+            except Exception:
+                ip = '127.0.0.1'
+            try:
+                user = getpass.getuser()
+            except Exception:
+                user = 'user'
+            try:
+                tz = time.strftime('%z')
+            except Exception:
+                tz = ''
+
+            fmt = self.fmt.replace('%(hostname)s', hostname)
+            fmt = fmt.replace('%(ip)s', ip)
+            fmt = fmt.replace('%(user)s', user)
+            fmt = fmt.replace('%(tz)s', tz)
             filename = self.filename if self.filename is None else Path(self.filename).resolve()
             logging.basicConfig(filename=filename,
                                 filemode=self.filemode,
                                 format=fmt, datefmt=self.datefmt,
                                 level=self.level)
             logging.info('Logging initialized')
-            logging.info(f'hostname: {socket.getfqdn()}')
-            logging.info(f'ip: {socket.gethostbyname(socket.getfqdn())}')
-            logging.info(f'user: {getpass.getuser()}')
+            logging.info(f'hostname: {hostname}')
+            logging.info(f'ip: {ip}')
+            logging.info(f'user: {user}')
             logging.info(f'pid: {os.getpid()}')
             logging.info(f'python: {sys.executable}')
             logging.info(f'script: {__file__}')
