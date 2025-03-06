@@ -1,0 +1,58 @@
+data:
+  class: block.Matrix
+  items_do_quadrate_map: 1
+  items_do_structure_map: 1
+  items_zone: [
+    ["RW", ["NX1", "X1", "NY1", "Y1", "NZ1", "Z1"]],
+    ["Sand", ["NX1", "X1", "NY1", "Y1", "NZ1", "Z1"]],
+    ["Concrete_0", ["NX", "X", "NY", "Y", "NZ", "Z"]],
+    ["Concrete_0", ["NX1", "X", "NY", "Y", "NZ1", "Z"]],
+    ["Concrete_0", ["NX", "X1", "NY", "Y", "NZ", "Z1"]],
+    ["Concrete_0", ["NX", "X", "NY1", "Y", "NZ", "Z"]],
+    ["Concrete_0", ["NX", "X", "NY", "Y1", "NZ", "Z"]],
+    ["Concrete_0", ["NX2", "X2", "NY2", "Y2", "NZ2", "Z2"]],
+  ]
+  items_zone_map: [
+    # Z0
+    [
+       [1, 2, 0],
+       [2, 0, 0],
+       [0, 0, 0],
+    ],
+    # Z1
+    [
+       [2, 0, 0],
+       [0, 0, 0],
+       [0, 0, 0],
+    ],
+    [
+       [0, 0, 0],
+       [0, 0, 0],
+       [0, 0, 0],
+    ],
+    [
+       [0, 0, 0],
+       [0, 0, 0],
+       [0, 0, 0],
+    ]
+  ]
+  matrix:
+  - - '0'
+    - 1.0;4.0;10
+    - 10.5;4.0;20
+    - 11.5;4.0;10
+  - - '0'
+    - 1.0;4.0;20
+    - 21.0;4.0;40
+    - 22;4.0;10
+  - - '0'
+    - 1.0;4.0;20
+    - 3.6;4.0;10
+    - 8.0;4.0;20
+    - 9;4.0;10
+metadata:
+  run:
+    factory: geo
+    log_path: null
+    strategy:
+      class: strategy.NoBoolean
