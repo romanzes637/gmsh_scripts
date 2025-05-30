@@ -2,5 +2,40 @@
 requires = ["setuptools>=42"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "gmsh-scripts"
+version = "0.4.6"
+dependencies = [
+  "gmsh",
+  "numpy",
+  "pyyaml",
+]
+requires-python = ">=3.6"
+authors = [
+  {name = "Roman Pashkovsky", email = "romapasky@gmail.com"},
+  {name = " Vladimir Lefèvre "},
+]
+maintainers = [
+  {name = "Roman Pashkovsky", email = "romapasky@gmail.com"}
+]
+description = "Scripts for GMSH mesh generator"
+readme = "README.md"
+license = "GPL-2.0-or-later"
+license-files = ["LICENSE.*"]
+keywords = ["mesh", "gmsh"]
+classifiers = [
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3"
+]
+
+[project.optional-dependencies]
+viz = ["pyvis"]
+
+[project.urls]
+Homepage = "https://github.com/romanzes637/gmsh_scripts"
+Documentation = "https://gmsh-scripts.readthedocs.io/en/latest/"
+
 [tool.pytest.ini_options]
 pythonpath = ["./src"]
+
+
