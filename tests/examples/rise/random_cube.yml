@@ -1,0 +1,72 @@
+data:
+  children:
+  - /cylinder.yml
+  - /cylinder.yml
+  - /cylinder.yml
+  - /cylinder.yml
+  - /cylinder.yml
+  - /cylinder.yml
+  - /cylinder.yml
+  - /cylinder.yml
+  - /cylinder.yml
+  - /cylinder.yml
+  children_transforms:
+  - - - 0.5479120971119267
+      - -0.12224312049589536
+      - 0.2171958398227649
+  - - - 0.3947360581187278
+      - -0.8116453042247009
+      - 0.45124470327351185
+  - - - 0.5222794039807059
+      - 0.5721286105539076
+      - -1.2437727346489083
+  - - - -0.09922812420886573
+      - -0.25840395153483753
+      - 0.3535299776972036
+  - - - 0.2877302401613291
+      - 0.64552322654166
+      - -0.6131716023453377
+  - - - -0.5455225564304462
+      - 0.1091695740316696
+      - -1.3723654877916494
+  - - - 0.6552623439851641
+      - 0.2633287982441297
+      - 0.016175480170747658
+  - - - -0.2909480637402633
+      - 0.9413960487898065
+      - 0.28624224264439535
+  - - - 0.5567669941475237
+      - -0.6107225842960649
+      - -0.5665579925459316
+  - - - -0.9123924684255424
+      - -0.6914210158649043
+      - -0.13390209351509075
+  class: block.Matrix
+  items_boolean_level_map: -1
+  items_zone:
+  - Cube
+  matrix:
+  - - -1;0.01
+    - 1;0.01
+  - - -1;0.01
+    - 1;0.01
+  - - -1;0.01
+    - 1;0.01
+metadata:
+  run:
+    factory: occ
+    log_level: DEBUG
+    options:
+      Mesh.Algorithm: 6
+      Mesh.Algorithm3D: 1
+      Mesh.MeshSizeExtendFromBoundary: 0
+      Mesh.MeshSizeFactor: 1.0
+      Mesh.MeshSizeFromCurvature: 20
+      Mesh.MeshSizeFromCurvatureIsotropic: 0
+      Mesh.MeshSizeFromParametricPoints: 0
+      Mesh.MeshSizeFromPoints: 0
+      Mesh.MeshSizeMax: 0.1
+      Mesh.MeshSizeMin: 0.01
+      Mesh.MinimumCircleNodes: 7
+      Mesh.MinimumCurveNodes: 3
+      Mesh.MinimumLineNodes: 2

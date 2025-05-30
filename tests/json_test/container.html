@@ -1,0 +1,80 @@
+<html>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.css" type="text/css" />
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis-network.min.js"> </script>
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+
+<style type="text/css">
+
+        #mynetwork {
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            border: 1px solid lightgray;
+            position: relative;
+            float: left;
+        }
+
+        
+
+        
+
+        
+</style>
+
+</head>
+
+<body>
+<div id = "mynetwork"></div>
+
+
+<script type="text/javascript">
+
+    // initialize global variables.
+    var edges;
+    var nodes;
+    var network; 
+    var container;
+    var options, data;
+
+    
+    // This method is responsible for drawing the graph, returns the drawn network
+    function drawGraph() {
+        var container = document.getElementById('mynetwork');
+        
+        
+
+        // parsing and collecting nodes and edges from the python
+        nodes = new vis.DataSet([{"font": {"color": "black"}, "group": 0, "id": 0, "label": "V", "shape": "dot", "title": "\n        class: gmsh_scripts.block.block.Block\u003cbr\u003e\n        zone: V\u003cbr\u003e"}, {"font": {"color": "black"}, "group": 0, "id": 1, "label": "V", "shape": "dot", "title": "\n        class: gmsh_scripts.block.layer.Layer\u003cbr\u003e\n        zone: V\u003cbr\u003e"}, {"font": {"color": "black"}, "group": 0, "id": 2, "label": "V", "shape": "dot", "title": "\n        class: gmsh_scripts.block.layer.Layer\u003cbr\u003e\n        zone: V\u003cbr\u003e"}, {"font": {"color": "black"}, "group": 1, "id": 3, "label": "Filling", "shape": "dot", "title": "\n        class: gmsh_scripts.block.block.Block\u003cbr\u003e\n        zone: Filling\u003cbr\u003e"}, {"font": {"color": "black"}, "group": 2, "id": 4, "label": "CastIron", "shape": "dot", "title": "\n        class: gmsh_scripts.block.block.Block\u003cbr\u003e\n        zone: CastIron\u003cbr\u003e"}]);
+        edges = new vis.DataSet([{"arrows": "to", "from": 0, "to": 1}, {"arrows": "to", "from": 0, "to": 2}, {"arrows": "to", "from": 2, "to": 3}, {"arrows": "to", "from": 1, "to": 4}]);
+
+        // adding nodes and edges to the graph
+        data = {nodes: nodes, edges: edges};
+
+        var options = {"layout": {"hierarchical": {"enabled": true, "direction": "LR"}}};
+        
+        
+
+        
+
+        network = new vis.Network(container, data, options);
+	 
+        
+
+
+        
+
+        return network;
+
+    }
+
+    drawGraph();
+
+</script>
+</body>
+</html>

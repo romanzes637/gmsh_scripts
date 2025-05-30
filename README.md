@@ -109,6 +109,12 @@ python -m gmsh_scripts all_heater_plug.json --plot
 <a href="https://github.com/romanzes637/gmsh_scripts/tree/master/examples/block/custom_block.yaml">
 <img alt="Custom Block" src="https://github.com/romanzes637/gmsh_scripts/blob/master/images/custom_block.png" width="200" height="200">
 </a>
+<a href="https://github.com/romanzes637/gmsh_scripts/tree/master/examples/half_layer/simple.yaml">
+<img alt="Half layer" src="https://github.com/romanzes637/gmsh_scripts/blob/master/images/simple_half_layer.png" width="200" height="200">
+</a>
+<a href="https://github.com/romanzes637/gmsh_scripts/tree/master/examples/half_layer_with_holes/main.yaml">
+<img alt="Half layer with holes" src="https://github.com/romanzes637/gmsh_scripts/blob/master/images/half_layer_with_holes.png" width="200" height="200">
+</a>
 
 ## [Examples album](https://photos.app.goo.gl/KngvSr6ttbyIdFEX2)
 

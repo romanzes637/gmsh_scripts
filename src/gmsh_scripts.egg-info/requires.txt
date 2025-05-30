@@ -1,0 +1,6 @@
+gmsh
+numpy
+pyyaml
+
+[viz]
+pyvis

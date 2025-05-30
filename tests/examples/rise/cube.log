@@ -1,0 +1,440 @@
+2024-07-22T08:00:55.312+0100|msi|192.168.8.122|user|19200|INFO|support.py|50|Logging initialized
+2024-07-22T08:00:55.314+0100|msi|192.168.8.122|user|19200|INFO|support.py|51|hostname: Galaxy-A03
+2024-07-22T08:03:43.037+0100|msi|192.168.8.122|user|20077|INFO|support.py|50|Logging initialized
+2024-07-22T08:03:43.039+0100|msi|192.168.8.122|user|20077|INFO|support.py|51|hostname: Galaxy-A03
+2024-07-22T08:04:54.621+0100|msi|192.168.8.122|user|20631|INFO|support.py|50|Logging initialized
+2024-07-22T08:04:54.622+0100|msi|192.168.8.122|user|20631|INFO|support.py|51|hostname: Galaxy-A03
+2024-07-22T08:05:03.812+0100|msi|192.168.8.122|user|20974|INFO|support.py|50|Logging initialized
+2024-07-22T08:05:03.814+0100|msi|192.168.8.122|user|20974|INFO|support.py|51|hostname: Galaxy-A03
+2024-07-22T08:05:58.588+0100|msi|192.168.8.122|user|21522|INFO|support.py|50|Logging initialized
+2024-07-22T08:05:58.590+0100|msi|192.168.8.122|user|21522|INFO|support.py|51|hostname: Galaxy-A03
+2025-05-30T16:47:18.935+0000|msi|192.168.0.84|user|104666|INFO|support.py|66|Logging initialized
+2025-05-30T16:47:18.935+0000|msi|192.168.0.84|user|104666|INFO|support.py|67|hostname: msi
+2025-05-30T16:47:18.936+0000|msi|192.168.0.84|user|104666|INFO|support.py|68|ip: 192.168.0.84
+2025-05-30T16:47:18.936+0000|msi|192.168.0.84|user|104666|INFO|support.py|69|user: user
+2025-05-30T16:47:18.936+0000|msi|192.168.0.84|user|104666|INFO|support.py|70|pid: 104666
+2025-05-30T16:47:18.936+0000|msi|192.168.0.84|user|104666|INFO|support.py|71|python: /home/user/Programs/gmsh_scripts/venv/bin/python
+2025-05-30T16:47:18.936+0000|msi|192.168.0.84|user|104666|INFO|support.py|72|script: /home/user/Programs/gmsh_scripts/src/gmsh_scripts/support/support.py
+2025-05-30T16:47:18.936+0000|msi|192.168.0.84|user|104666|INFO|support.py|73|working directory: /home/user/Programs/gmsh_scripts/tests/examples/rise
+2025-05-30T16:47:18.939+0000|msi|192.168.0.84|user|104666|INFO|support.py|94|Gmsh initialized
+2025-05-30T16:47:18.939+0000|msi|192.168.0.84|user|104666|INFO|support.py|406|Gmsh options
+2025-05-30T16:47:18.939+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|General.Terminal: 0
+2025-05-30T16:47:18.939+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|General.AbortOnError: 0
+2025-05-30T16:47:18.939+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Geometry.OCCParallel: 1
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Geometry.AutoCoherence: 1
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Geometry.OCCAutoFix: 1
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Geometry.OCCDisableStl: 0
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Geometry.OCCBoundsUseStl: 0
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Geometry.OCCBooleanPreserveNumbering: 1
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Geometry.OCCThruSectionsDegree: -1
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Geometry.OCCUnionUnify: 1
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Geometry.OCCUseGenericClosestPoint: 0
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.Algorithm: 6
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.Algorithm3D: 1
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.SubdivisionAlgorithm: 0
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.RecombinationAlgorithm: 1
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.RecombineAll: 0
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.RecombineOptimizeTopology: 5
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.Recombine3DAll: 0
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.Recombine3DLevel: 0
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.Recombine3DConformity: 0
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.RefineSteps: 10
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.Smoothing: 1
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.SmoothNormals: 0
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.SmoothCrossField: 0
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.MeshSizeFactor: 1.0
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.MeshSizeMin: 0.01
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.MeshSizeMax: 0.1
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.MeshSizeFromPoints: 0
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.MeshSizeExtendFromBoundary: 0
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.MeshSizeFromCurvature: 20
+2025-05-30T16:47:18.940+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.MeshSizeFromCurvatureIsotropic: 0
+2025-05-30T16:47:18.941+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.MeshSizeFromParametricPoints: 0
+2025-05-30T16:47:18.941+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.MinimumCircleNodes: 7
+2025-05-30T16:47:18.941+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.MinimumCurveNodes: 3
+2025-05-30T16:47:18.941+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.Optimize: 0
+2025-05-30T16:47:18.941+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.OptimizeThreshold: 0.3
+2025-05-30T16:47:18.941+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.OptimizeNetgen: 0
+2025-05-30T16:47:18.941+0000|msi|192.168.0.84|user|104666|INFO|support.py|409|Mesh.MinimumLineNodes: 2
+2025-05-30T16:47:18.941+0000|msi|192.168.0.84|user|104666|INFO|support.py|410|Gmsh options end
+2025-05-30T16:47:18.941+0000|msi|192.168.0.84|user|104666|INFO|run.py|171|args: {'factory': 'occ', 'log_level': 'DEBUG', 'options': {'Mesh.Algorithm': 6, 'Mesh.Algorithm3D': 1, 'Mesh.MeshSizeFactor': 1.0, 'Mesh.MeshSizeMin': 0.01, 'Mesh.MeshSizeMax': 0.1, 'Mesh.MeshSizeFromCurvature': 20, 'Mesh.MeshSizeFromPoints': 0, 'Mesh.MeshSizeFromParametricPoints': 0, 'Mesh.MeshSizeExtendFromBoundary': 0, 'Mesh.MeshSizeFromCurvatureIsotropic': 0, 'Mesh.MinimumLineNodes': 2, 'Mesh.MinimumCircleNodes': 7, 'Mesh.MinimumCurveNodes': 3}, 'data': {'class': 'block.Matrix', 'matrix': [['-1;0.01', '1;0.01'], ['-1;0.01', '1;0.01'], ['-1;0.01', '1;0.01']], 'children': ['/cylinder.yml', '/cylinder.yml', '/cylinder.yml', '/cylinder.yml', '/cylinder.yml', '/cylinder.yml'], 'children_transforms': [[[0, 0, -0.5]], [[0, 0, 0.75]], [[0, 1, -0.5]], [[0, 1, 0.75]], [[1, 1, 0.75]], [[0, 0, -3]]], 'items_zone': ['Cube'], 'items_boolean_level_map': -1}, 'input_path': 'cube.yml', 'model_name': 'cube', 'output_path': 'cube', 'output_formats': ['geo_unrolled', 'msh2'], 'log_path': 'cube.log', 'strategy': {'class': 'strategy.Base', 'factory': 'occ', 'model_name': 'cube', 'output_path': 'cube', 'output_formats': ['geo_unrolled', 'msh2']}}
+2025-05-30T16:47:18.966+0000|msi|192.168.0.84|user|104666|INFO|strategy.py|32|factory: occ
+2025-05-30T16:47:18.966+0000|msi|192.168.0.84|user|104666|INFO|strategy.py|33|model_name: cube
+2025-05-30T16:47:18.966+0000|msi|192.168.0.84|user|104666|INFO|strategy.py|34|output_path: cube
+2025-05-30T16:47:18.966+0000|msi|192.168.0.84|user|104666|INFO|strategy.py|35|output_formats: ['geo_unrolled', 'msh2']
+2025-05-30T16:47:18.967+0000|msi|192.168.0.84|user|104666|INFO|strategy.py|39|number of blocks: 14
+2025-05-30T16:47:18.973+0000|msi|192.168.0.84|user|104666|INFO|support.py|594|gmsh_scripts.block.block.transform - 0.006s
+2025-05-30T16:47:19.810+0000|msi|192.168.0.84|user|104666|INFO|support.py|594|gmsh_scripts.block.block.register - 0.837s
+2025-05-30T16:47:19.810+0000|msi|192.168.0.84|user|104666|INFO|boolean.py|32|n_volumes: 7
+2025-05-30T16:47:20.729+0000|msi|192.168.0.84|user|104666|INFO|support.py|594|gmsh.fragment - 0.918s
+2025-05-30T16:47:20.729+0000|msi|192.168.0.84|user|104666|INFO|support.py|594|gmsh_scripts.boolean.boolean.BooleanAllBlock - 0.919s
+2025-05-30T16:47:20.810+0000|msi|192.168.0.84|user|104666|INFO|support.py|594|gmsh_scripts.registry.synchronize - 0.080s
+2025-05-30T16:47:20.849+0000|msi|192.168.0.84|user|104666|INFO|support.py|594|gmsh_scripts.structure.structure.StructureBlock - 0.039s
+2025-05-30T16:47:20.849+0000|msi|192.168.0.84|user|104666|INFO|support.py|594|gmsh_scripts.quadrate.quadrate.NoQuadrate - 0.000s
+2025-05-30T16:47:20.849+0000|msi|192.168.0.84|user|104666|INFO|support.py|594|gmsh_scripts.smooth.smooth.NoSmooth - 0.000s
+2025-05-30T16:47:20.849+0000|msi|192.168.0.84|user|104666|INFO|support.py|594|gmsh_scripts.size.size.NoSize - 0.000s
+2025-05-30T16:47:20.849+0000|msi|192.168.0.84|user|104666|INFO|support.py|594|gmsh_scripts.block.block.pre_unregister - 0.000s
+2025-05-30T16:47:20.921+0000|msi|192.168.0.84|user|104666|INFO|support.py|594|gmsh_scripts.zone.zone.DirectionByNormal - 0.071s
+2025-05-30T16:47:20.922+0000|msi|192.168.0.84|user|104666|INFO|support.py|594|gmsh_scripts.block.block.unregister - 0.001s
+2025-05-30T16:47:20.922+0000|msi|192.168.0.84|user|104666|INFO|strategy.py|97|Writing cube-boolean.geo_unrolled
+2025-05-30T16:47:20.927+0000|msi|192.168.0.84|user|104666|INFO|support.py|594|gmsh.write - 0.004s
+2025-05-30T16:47:24.626+0000|msi|192.168.0.84|user|104666|INFO|support.py|594|gmsh.generate - 3.699s
+2025-05-30T16:47:24.626+0000|msi|192.168.0.84|user|104666|INFO|support.py|594|gmsh_scripts.refine.refine.NoRefine - 0.000s
+2025-05-30T16:47:24.817+0000|msi|192.168.0.84|user|104666|INFO|support.py|594|gmsh_scripts.optimize.optimize.OptimizeOne - 0.191s
+2025-05-30T16:47:24.818+0000|msi|192.168.0.84|user|104666|INFO|support.py|554|Mesh statistics
+2025-05-30T16:47:24.827+0000|msi|192.168.0.84|user|104666|INFO|support.py|579|2-node line: 549 
+2025-05-30T16:47:24.827+0000|msi|192.168.0.84|user|104666|INFO|support.py|579|3-node triangle: 7627 
+2025-05-30T16:47:24.832+0000|msi|192.168.0.84|user|104666|INFO|support.py|579|4-node tetrahedron: 40686 
+2025-05-30T16:47:24.859+0000|msi|192.168.0.84|user|104666|INFO|support.py|579|1-node point: 59 
+2025-05-30T16:47:24.859+0000|msi|192.168.0.84|user|104666|INFO|support.py|582|Total: 8138 nodes and 48921 elements
+2025-05-30T16:47:25.119+0000|msi|192.168.0.84|user|104666|INFO|support.py|542|Mesh quality
+2025-05-30T16:47:25.122+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Writing 'cube-boolean.geo_unrolled'...
+2025-05-30T16:47:25.123+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Error: Skipping surface 85 in export
+2025-05-30T16:47:25.123+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Error: Skipping surface 86 in export
+2025-05-30T16:47:25.123+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Error: Skipping surface 88 in export
+2025-05-30T16:47:25.123+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Done writing 'cube-boolean.geo_unrolled'
+2025-05-30T16:47:25.123+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing 1D...
+2025-05-30T16:47:25.123+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 1 (Circle)
+2025-05-30T16:47:25.123+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 1D...
+2025-05-30T16:47:25.123+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 2 (Circle)
+2025-05-30T16:47:25.123+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 3 (Circle)
+2025-05-30T16:47:25.123+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 4 (Circle)
+2025-05-30T16:47:25.123+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 5 (Circle)
+2025-05-30T16:47:25.123+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 6 (Circle)
+2025-05-30T16:47:25.123+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 7 (Circle)
+2025-05-30T16:47:25.123+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 8 (Circle)
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 1D...
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 9 (Line)
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 10 (Line)
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 11 (Line)
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 12 (Line)
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 73 (Circle)
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 74 (Line)
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 75 (BSpline)
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 1D...
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 76 (Line)
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 77 (Circle)
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 78 (Circle)
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 79 (Circle)
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 80 (Line)
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 81 (BSpline)
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 82 (BSpline)
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 1D...
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 83 (BSpline)
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 84 (Line)
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 93 (Circle)
+2025-05-30T16:47:25.124+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 94 (BSpline)
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 95 (Circle)
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 96 (Line)
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 97 (Circle)
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 98 (Circle)
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 1D...
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 99 (BSpline)
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 100 (BSpline)
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 101 (BSpline)
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 102 (Circle)
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 103 (Circle)
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 104 (Line)
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 113 (Circle)
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 1D...
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 114 (BSpline)
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 115 (BSpline)
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 116 (Line)
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 117 (Circle)
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 118 (Circle)
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 119 (BSpline)
+2025-05-30T16:47:25.125+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 120 (Line)
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 1D...
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 121 (BSpline)
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 122 (BSpline)
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 123 (BSpline)
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 124 (Line)
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 136 (Circle)
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 137 (BSpline)
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 138 (BSpline)
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 139 (Line)
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 1D...
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 140 (Circle)
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 141 (BSpline)
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 142 (BSpline)
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 143 (Line)
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 144 (Line)
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 145 (BSpline)
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 146 (Line)
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 1D...
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 147 (BSpline)
+2025-05-30T16:47:25.126+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 160 (Line)
+2025-05-30T16:47:25.127+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 161 (Line)
+2025-05-30T16:47:25.127+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 162 (Line)
+2025-05-30T16:47:25.127+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 163 (Line)
+2025-05-30T16:47:25.127+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 164 (Line)
+2025-05-30T16:47:25.127+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 165 (Line)
+2025-05-30T16:47:25.127+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 1D...
+2025-05-30T16:47:25.127+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 166 (Line)
+2025-05-30T16:47:25.127+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 167 (Line)
+2025-05-30T16:47:25.127+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 168 (Line)
+2025-05-30T16:47:25.127+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 169 (Line)
+2025-05-30T16:47:25.127+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 170 (Line)
+2025-05-30T16:47:25.127+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 171 (Line)
+2025-05-30T16:47:25.127+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing curve 172 (Line)
+2025-05-30T16:47:25.127+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 1D...
+2025-05-30T16:47:25.127+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Done meshing 1D (Wall 1.68923s, CPU 1.68831s)
+2025-05-30T16:47:25.127+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing 2D...
+2025-05-30T16:47:25.127+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 1 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.127+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 2D...
+2025-05-30T16:47:25.127+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 2 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 3 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 4 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 2D...
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 5 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 6 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 37 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 38 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 2D...
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 39 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 40 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 41 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 2D...
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 42 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 48 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 49 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 50 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 2D...
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 51 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 52 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 53 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.128+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 2D...
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 59 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 2D...
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 60 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 61 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 62 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 2D...
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 63 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 64 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 71 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 72 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 2D...
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 73 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 74 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 75 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 2D...
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 76 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 83 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 84 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 85 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 2D...
+2025-05-30T16:47:25.129+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 86 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 87 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing surface 88 (BSpline surface, Frontal-Delaunay)
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 2D...
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Done meshing 2D (Wall 0.385695s, CPU 0.384595s)
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Meshing 3D...
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 3D...
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 3D Meshing 6 volumes with 1 connected component
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Tetrahedrizing 3770 nodes...
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Done tetrahedrizing 3778 nodes (Wall 0.18873s, CPU 0.18851s)
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Reconstructing mesh...
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info:  - Creating surface mesh
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info:  - Identifying boundary edges
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info:  - Recovering boundary
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Done reconstructing mesh (Wall 0.37304s, CPU 0.370465s)
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Found volume 15
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Found volume 1
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Found volume 9
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Found volume 7
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Found volume 11
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Found volume 13
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: It. 0 - 0 nodes created - worst tet radius 5.71088 (nodes removed 0 0)
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: It. 500 - 498 nodes created - worst tet radius 1.87077 (nodes removed 0 2)
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: It. 1000 - 990 nodes created - worst tet radius 1.54117 (nodes removed 0 10)
+2025-05-30T16:47:25.130+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: It. 1500 - 1488 nodes created - worst tet radius 1.37347 (nodes removed 0 12)
+2025-05-30T16:47:25.131+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: It. 2000 - 1987 nodes created - worst tet radius 1.26248 (nodes removed 0 13)
+2025-05-30T16:47:25.131+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: It. 2500 - 2486 nodes created - worst tet radius 1.18321 (nodes removed 0 14)
+2025-05-30T16:47:25.131+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: It. 3000 - 2980 nodes created - worst tet radius 1.12016 (nodes removed 0 20)
+2025-05-30T16:47:25.131+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: It. 3500 - 3480 nodes created - worst tet radius 1.07023 (nodes removed 0 20)
+2025-05-30T16:47:25.131+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: It. 4000 - 3980 nodes created - worst tet radius 1.02675 (nodes removed 0 20)
+2025-05-30T16:47:25.131+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 3D refinement terminated (8126 nodes total):
+2025-05-30T16:47:25.131+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info:  - 1 Delaunay cavities modified for star shapeness
+2025-05-30T16:47:25.131+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info:  - 20 nodes could not be inserted
+2025-05-30T16:47:25.131+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info:  - 41500 tetrahedra created in 0.829849 sec. (50009 tets/s)
+2025-05-30T16:47:25.131+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: Meshing 3D...
+2025-05-30T16:47:25.131+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Done meshing 3D (Wall 1.6101s, CPU 1.58745s)
+2025-05-30T16:47:25.131+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 8138 nodes 49735 elements
+2025-05-30T16:47:25.131+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Optimizing mesh...
+2025-05-30T16:47:25.131+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Optimizing volume 1
+2025-05-30T16:47:25.131+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Optimization starts (volume = 0.19443) with worst = 0.0198261 / average = 0.69724:
+2025-05-30T16:47:25.132+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.00 < quality < 0.10 :        26 elements
+2025-05-30T16:47:25.132+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.10 < quality < 0.20 :        19 elements
+2025-05-30T16:47:25.132+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.20 < quality < 0.30 :        22 elements
+2025-05-30T16:47:25.132+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.30 < quality < 0.40 :        33 elements
+2025-05-30T16:47:25.132+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.40 < quality < 0.50 :        71 elements
+2025-05-30T16:47:25.132+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.50 < quality < 0.60 :       153 elements
+2025-05-30T16:47:25.132+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.60 < quality < 0.70 :       308 elements
+2025-05-30T16:47:25.132+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.70 < quality < 0.80 :       422 elements
+2025-05-30T16:47:25.132+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.80 < quality < 0.90 :       311 elements
+2025-05-30T16:47:25.132+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.90 < quality < 1.00 :       139 elements
+2025-05-30T16:47:25.132+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 66 edge swaps, 2 node relocations (volume = 0.19443): worst = 0.177113 / average = 0.722353 (Wall 0.00491516s, CPU 0.004839s)
+2025-05-30T16:47:25.132+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 68 edge swaps, 2 node relocations (volume = 0.19443): worst = 0.261879 / average = 0.723084 (Wall 0.00566159s, CPU 0.005589s)
+2025-05-30T16:47:25.132+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: No ill-shaped tets in the mesh :-)
+2025-05-30T16:47:25.132+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.00 < quality < 0.10 :         0 elements
+2025-05-30T16:47:25.133+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.10 < quality < 0.20 :         0 elements
+2025-05-30T16:47:25.133+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.20 < quality < 0.30 :         1 elements
+2025-05-30T16:47:25.133+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.30 < quality < 0.40 :        30 elements
+2025-05-30T16:47:25.133+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.40 < quality < 0.50 :        56 elements
+2025-05-30T16:47:25.133+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.50 < quality < 0.60 :       175 elements
+2025-05-30T16:47:25.133+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.60 < quality < 0.70 :       312 elements
+2025-05-30T16:47:25.133+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.70 < quality < 0.80 :       417 elements
+2025-05-30T16:47:25.133+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.80 < quality < 0.90 :       315 elements
+2025-05-30T16:47:25.133+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.90 < quality < 1.00 :       139 elements
+2025-05-30T16:47:25.133+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Optimizing volume 7
+2025-05-30T16:47:25.133+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Optimization starts (volume = 0.0485444) with worst = 0.0335333 / average = 0.706322:
+2025-05-30T16:47:25.133+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.00 < quality < 0.10 :         5 elements
+2025-05-30T16:47:25.133+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.10 < quality < 0.20 :         5 elements
+2025-05-30T16:47:25.133+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.20 < quality < 0.30 :        10 elements
+2025-05-30T16:47:25.134+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.30 < quality < 0.40 :         5 elements
+2025-05-30T16:47:25.134+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.40 < quality < 0.50 :        17 elements
+2025-05-30T16:47:25.134+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.50 < quality < 0.60 :        28 elements
+2025-05-30T16:47:25.134+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.60 < quality < 0.70 :        98 elements
+2025-05-30T16:47:25.134+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.70 < quality < 0.80 :       185 elements
+2025-05-30T16:47:25.134+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.80 < quality < 0.90 :        88 elements
+2025-05-30T16:47:25.134+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.90 < quality < 1.00 :        28 elements
+2025-05-30T16:47:25.134+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 20 edge swaps, 0 node relocations (volume = 0.0485444): worst = 0.316304 / average = 0.734192 (Wall 0.00129001s, CPU 0.001291s)
+2025-05-30T16:47:25.134+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: No ill-shaped tets in the mesh :-)
+2025-05-30T16:47:25.134+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.00 < quality < 0.10 :         0 elements
+2025-05-30T16:47:25.134+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.10 < quality < 0.20 :         0 elements
+2025-05-30T16:47:25.134+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.20 < quality < 0.30 :         0 elements
+2025-05-30T16:47:25.134+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.30 < quality < 0.40 :         5 elements
+2025-05-30T16:47:25.134+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.40 < quality < 0.50 :         9 elements
+2025-05-30T16:47:25.134+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.50 < quality < 0.60 :        32 elements
+2025-05-30T16:47:25.134+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.60 < quality < 0.70 :       105 elements
+2025-05-30T16:47:25.134+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.70 < quality < 0.80 :       181 elements
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.80 < quality < 0.90 :        87 elements
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.90 < quality < 1.00 :        30 elements
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Optimizing volume 9
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Optimization starts (volume = 0.0972536) with worst = 0.0198262 / average = 0.69696:
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.00 < quality < 0.10 :        14 elements
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.10 < quality < 0.20 :        11 elements
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.20 < quality < 0.30 :        14 elements
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.30 < quality < 0.40 :        19 elements
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.40 < quality < 0.50 :        49 elements
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.50 < quality < 0.60 :        93 elements
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.60 < quality < 0.70 :       167 elements
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.70 < quality < 0.80 :       258 elements
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.80 < quality < 0.90 :       158 elements
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.90 < quality < 1.00 :        91 elements
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 39 edge swaps, 0 node relocations (volume = 0.0972536): worst = 0.306521 / average = 0.724359 (Wall 0.00181573s, CPU 0.001816s)
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: No ill-shaped tets in the mesh :-)
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.00 < quality < 0.10 :         0 elements
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.10 < quality < 0.20 :         0 elements
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.20 < quality < 0.30 :         0 elements
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.30 < quality < 0.40 :        16 elements
+2025-05-30T16:47:25.135+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.40 < quality < 0.50 :        43 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.50 < quality < 0.60 :        99 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.60 < quality < 0.70 :       175 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.70 < quality < 0.80 :       252 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.80 < quality < 0.90 :       159 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.90 < quality < 1.00 :        92 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Optimizing volume 11
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Optimization starts (volume = 0.0242991) with worst = 0.0299216 / average = 0.666287:
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.00 < quality < 0.10 :         5 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.10 < quality < 0.20 :         3 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.20 < quality < 0.30 :         4 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.30 < quality < 0.40 :         8 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.40 < quality < 0.50 :        32 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.50 < quality < 0.60 :        38 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.60 < quality < 0.70 :        59 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.70 < quality < 0.80 :        98 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.80 < quality < 0.90 :        29 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.90 < quality < 1.00 :        27 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 11 edge swaps, 0 node relocations (volume = 0.0242991): worst = 0.245067 / average = 0.68542 (Wall 0.000655038s, CPU 0.000656s)
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: No ill-shaped tets in the mesh :-)
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.00 < quality < 0.10 :         0 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.10 < quality < 0.20 :         0 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.20 < quality < 0.30 :         1 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.30 < quality < 0.40 :         6 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.40 < quality < 0.50 :        34 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.50 < quality < 0.60 :        41 elements
+2025-05-30T16:47:25.136+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.60 < quality < 0.70 :        59 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.70 < quality < 0.80 :        97 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.80 < quality < 0.90 :        29 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.90 < quality < 1.00 :        27 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Optimizing volume 13
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Optimization starts (volume = 0.012163) with worst = 0.0299216 / average = 0.674779:
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.00 < quality < 0.10 :         4 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.10 < quality < 0.20 :         0 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.20 < quality < 0.30 :         0 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.30 < quality < 0.40 :        11 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.40 < quality < 0.50 :        13 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.50 < quality < 0.60 :        17 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.60 < quality < 0.70 :        49 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.70 < quality < 0.80 :        64 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.80 < quality < 0.90 :        16 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.90 < quality < 1.00 :        19 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 4 edge swaps, 0 node relocations (volume = 0.012163): worst = 0.323659 / average = 0.687322 (Wall 0.000248379s, CPU 0.000252s)
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: No ill-shaped tets in the mesh :-)
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.00 < quality < 0.10 :         0 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.10 < quality < 0.20 :         0 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.20 < quality < 0.30 :         0 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.30 < quality < 0.40 :        11 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.40 < quality < 0.50 :        10 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.50 < quality < 0.60 :        21 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.60 < quality < 0.70 :        52 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.70 < quality < 0.80 :        60 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.80 < quality < 0.90 :        16 elements
+2025-05-30T16:47:25.137+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.90 < quality < 1.00 :        19 elements
+2025-05-30T16:47:25.138+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Optimizing volume 15
+2025-05-30T16:47:25.138+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Optimization starts (volume = 7.62331) with worst = 0.012229 / average = 0.770361:
+2025-05-30T16:47:25.138+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.00 < quality < 0.10 :        96 elements
+2025-05-30T16:47:25.138+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.10 < quality < 0.20 :       278 elements
+2025-05-30T16:47:25.138+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.20 < quality < 0.30 :       394 elements
+2025-05-30T16:47:25.138+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.30 < quality < 0.40 :       622 elements
+2025-05-30T16:47:25.138+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.40 < quality < 0.50 :      1160 elements
+2025-05-30T16:47:25.138+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.50 < quality < 0.60 :      2097 elements
+2025-05-30T16:47:25.138+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.60 < quality < 0.70 :      4482 elements
+2025-05-30T16:47:25.138+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.70 < quality < 0.80 :      8921 elements
+2025-05-30T16:47:25.138+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.80 < quality < 0.90 :     13470 elements
+2025-05-30T16:47:25.138+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.90 < quality < 1.00 :      6634 elements
+2025-05-30T16:47:25.139+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 757 edge swaps, 14 node relocations (volume = 7.62331): worst = 0.191118 / average = 0.782832 (Wall 0.037785s, CPU 0.037787s)
+2025-05-30T16:47:25.139+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 763 edge swaps, 17 node relocations (volume = 7.62331): worst = 0.191118 / average = 0.78296 (Wall 0.0476028s, CPU 0.047605s)
+2025-05-30T16:47:25.139+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: No ill-shaped tets in the mesh :-)
+2025-05-30T16:47:25.139+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.00 < quality < 0.10 :         0 elements
+2025-05-30T16:47:25.139+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.10 < quality < 0.20 :         1 elements
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.20 < quality < 0.30 :         1 elements
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.30 < quality < 0.40 :       609 elements
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.40 < quality < 0.50 :      1122 elements
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.50 < quality < 0.60 :      2054 elements
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.60 < quality < 0.70 :      4487 elements
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.70 < quality < 0.80 :      9010 elements
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.80 < quality < 0.90 :     13581 elements
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: 0.90 < quality < 1.00 :      6602 elements
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Done optimizing mesh (Wall 0.179448s, CPU 0.173868s)
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Running Plugin(AnalyseMeshQuality)...
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Computing Jacobian for 3D elements...
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Volume 1: checking the Jacobian of 1445 elements
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: done
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Volume 7: checking the Jacobian of 449 elements
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: done
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Volume 9: checking the Jacobian of 836 elements
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: done
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Volume 11: checking the Jacobian of 294 elements
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: done
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Volume 13: checking the Jacobian of 189 elements
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: done
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Volume 15: checking the Jacobian of 37473 elements
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: done
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Done computing Jacobian for 3D elements (Wall 0.0372614s, CPU 0.033987s)
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Computing IGE for 3D elements...
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: done
+2025-05-30T16:47:25.140+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Done computing IGE for 3D elements (Wall 0.0896932s, CPU 0.089692s)
+2025-05-30T16:47:25.141+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Computing ICN for 3D elements...
+2025-05-30T16:47:25.141+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Progress: done
+2025-05-30T16:47:25.141+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Done computing ICN for 3D elements (Wall 0.131486s, CPU 0.131395s)
+2025-05-30T16:47:25.141+0000|msi|192.168.0.84|user|104666|INFO|support.py|548|Info: minJ      = 5.77e-05,  0.00118,  0.00312 (min, avg, max)
+2025-05-30T16:47:25.141+0000|msi|192.168.0.84|user|104666|INFO|support.py|548|Info: minJ/maxJ =        1,        1,        1 (worst, avg, best)
+2025-05-30T16:47:25.141+0000|msi|192.168.0.84|user|104666|INFO|support.py|548|Info: IGE       =    0.213,     0.83,        1 (worst, avg, best)
+2025-05-30T16:47:25.141+0000|msi|192.168.0.84|user|104666|INFO|support.py|548|Info: ICN       =    0.305,    0.816,        1 (worst, avg, best)
+2025-05-30T16:47:25.141+0000|msi|192.168.0.84|user|104666|DEBUG|support.py|550|Info: Done running Plugin(AnalyseMeshQuality)
+2025-05-30T16:47:25.141+0000|msi|192.168.0.84|user|104666|INFO|strategy.py|107|Writing cube.msh2
+2025-05-30T16:47:25.273+0000|msi|192.168.0.84|user|104666|INFO|support.py|594|gmsh.write - 0.132s
+2025-05-30T16:47:25.290+0000|msi|192.168.0.84|user|104666|INFO|support.py|97|Gmsh finalized

@@ -52,6 +52,8 @@ class Factory:
         str2objs.append({f'block.{k}': v for k, v in str2obj.items()})
         from gmsh_scripts.block.quarter_layer import str2obj
         str2objs.append({f'block.{k}': v for k, v in str2obj.items()})
+        from gmsh_scripts.block.half_layer import str2obj
+        str2objs.append({f'block.{k}': v for k, v in str2obj.items()})
         from gmsh_scripts.entity.point import str2obj
         str2objs.append({f'point.{k}': v for k, v in str2obj.items()})
         from gmsh_scripts.quadrate.quadrate import str2obj
