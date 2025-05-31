@@ -194,5 +194,5 @@ cython_debug/
 .cursorindexingignore
 
 *.msh
+*.msh2
 *.geo_unrolled
-*.log

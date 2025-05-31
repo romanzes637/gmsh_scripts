@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gmsh-scripts"
-version = "0.4.6"
+version = "0.4.8"
 dependencies = [
   "gmsh",
   "numpy",
@@ -13,10 +13,11 @@ dependencies = [
 requires-python = ">=3.6"
 authors = [
   {name = "Roman Pashkovsky", email = "romapasky@gmail.com"},
-  {name = " Vladimir Lefèvre "},
+  {name = "Vladimir Lefèvre"},
 ]
 maintainers = [
-  {name = "Roman Pashkovsky", email = "romapasky@gmail.com"}
+  {name = "Roman Pashkovsky", email = "romapasky@gmail.com"},
+  {name = "Vladimir Lefèvre"},
 ]
 description = "Scripts for GMSH mesh generator"
 readme = "README.md"
@@ -37,5 +38,3 @@ Documentation = "https://gmsh-scripts.readthedocs.io/en/latest/"
 
 [tool.pytest.ini_options]
 pythonpath = ["./src"]
-
-

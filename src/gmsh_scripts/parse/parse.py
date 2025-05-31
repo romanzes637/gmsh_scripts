@@ -780,6 +780,329 @@ def parse_layers2grid(layers, sep_i=';', sep_si=':'):
     return new_layers, values, maps
 
 
+def parse_halflayers2grid(layers, sep_i=';', sep_si=':'):
+    """Parse layers
+
+    0. From list of rows (2D ragged array 6xNI), where
+        NI - number of items/blocks by each direction (type item excluded!).
+        First item of Z/NZ rows implicitly set to 0
+        [
+            [0  1  2  3] X
+            [4  5  6]    Y
+            [7  8]       NX
+            [9]          NY
+            [10 11]      Z
+            [12 13]      NZ
+        ] layers
+
+    1. Corrected layers
+
+    2. To layers block map (4D ragged array 4x2xNJxNI), where
+        NJ - number of items/blocks by Z/NZ respectively,
+        NI - number of items/blocks by X/Y/NX/NY respectively
+    [
+        [
+            [
+                [ 0  1  2  3] Z0
+                [ 4  5  6  7] Z1
+                 X0 X1 X2 X3
+            ] Z
+            [
+                [ 8  9 10 11] NZ0
+                [12 13 14 15] NZ1
+                 X0 X1 X2 X3
+            ] NZ
+        ] X
+        [
+            [
+                [16 17 18] Z0
+                [19 20 21] Z1
+                 Y0 Y1 Y2
+            ] Z
+            [
+                [22 23 24] NZ0
+                [25 26 27] NZ1
+                 Y0 Y1 Y2
+            ] NZ
+        ] Y
+        [
+            [
+                [ 28  29] Z0
+                [ 30  31] Z1
+                 NX0 NX1
+            ] Z
+            [
+                [ 32  33] NZ0
+                [ 34  35] NZ1
+                 NX0 NX1
+            ] - NZ
+        ] NX
+        [
+            [
+                [ 36] Z0
+                [ 37] Z1
+                 NY0
+            ] Z
+            [
+                [ 38] NZ0
+                [ 39] NZ1
+                 NY0
+            ] NZ
+        ] NY
+    ] - layers block map
+
+    To grid (3D array, 3xNI), NI - number of items by X/Y/Z respectively
+    [
+        NX + X                    - X, where NX is negated and reversed
+        NY + Y                    - Y, where NY is negated and reversed
+        NZ + [0] + Z              - Z, where NZ is negated and reversed
+    ] - grid
+
+    To block map of the grid (3D array, NZN+ZN x NYN+YN-1 x NXN+XN-1)
+    [
+        [
+            [  0    1    2  3  4] NY0/Y0
+            [  5    6    7  8  9] Y1
+            [ 10   11   12 13 14] Y2
+             NX1 NX0/X0 X1 X2 X3
+        ] NZ1
+        [
+            [ 15   16   17 18 19] NY0/Y0
+            [ 20   21   22 23 24] Y1
+            [ 25   26   27 28 29] Y2
+             NX1 NX0/X0 X1 X2 X3
+        ] NZ0
+        [
+            [ 30   31   32 33 34] NY0/Y0
+            [ 35   36   37 38 39] Y1
+            [ 40   41   42 43 44] Y2
+             NX1 NX0/X0 X1 X2 X3
+        ] Z0
+        [
+            [ 45   46   47 48 49] NY0/Y0
+            [ 50   51   52 53 54] Y1
+            [ 55   56   57 58 59] Y2
+             NX1 NX0/X0 X1 X2 X3
+        ] Z1
+    ] grid block map
+
+    Global indexes of layers block map at grid block map
+    [
+        [
+            [ 35 12/25/34/39 13 14 15] NY0/Y0
+            [ -       26      -  -  -] Y1
+            [ -       27      -  -  -] Y2
+             NX1    NX0/X0   X1 X2 X3
+        ] NZ1
+        [
+            [ 33  8/22/32/38  9 10 11] NY0/Y0
+            [ -       23      -  -  -] Y1
+            [ -       24      -  -  -] Y2
+             NX1    NX0/X0   X1 X2 X3
+        ] NZ0
+        [
+            [ 29  0/16/28/36  1  2  3] NY0/Y0
+            [ -       17      -  -  -] Y1
+            [ -       18      -  -  -] Y2
+             NX1    NX0/X0   X1 X2 X3
+        ] Z0
+        [
+            [31   4/19/30/37  5  6  7] NY0/Y0
+            [ -       20      -  -  -] Y1
+            [ -       21      -  -  -] Y2
+             NX1    NX0/X0   X1 X2 X3
+        ] Z1
+    ] block map of the grid
+
+    Args:
+        layers (list of list): list of rows
+        sep_i (str): items separator
+        sep_si (str): sub-items separator
+
+    Returns:
+        tuple: new_layers, values, maps
+    """
+    new_layers, values, maps = [], [], []
+    # Correct
+    corrected_layers, corrected_maps = correct_layers(layers)
+    new_layers.append(corrected_layers)
+    maps.extend(corrected_maps)
+    # Parse
+    parsed_layers, parsed_values, parsed_maps = parse_layers(corrected_layers)
+    new_layers.append(parsed_layers)
+    values.extend(parsed_values)
+    maps.extend(parsed_maps)
+    parsed_layers_cs = [x[0] for x in parsed_values]
+    parsed_mesh_sizes = [x[1] for x in parsed_values]
+    parsed_structures = [x[2] for x in parsed_values]
+    # Grid
+    # Layers coordinates
+    c_xs = parsed_layers_cs[0]
+    c_ys = parsed_layers_cs[1]
+    c_zs = parsed_layers_cs[4]
+    c_nxs = [-x for x in parsed_layers_cs[2][::-1]]  # reverse and negate
+    c_nys = [-x for x in parsed_layers_cs[3][::-1]]  # reverse and negate
+    c_nzs = [-x for x in parsed_layers_cs[5][::-1]]  # reverse and negate
+    # Layers mesh sizes
+    m_xs = parsed_mesh_sizes[0]
+    m_ys = parsed_mesh_sizes[1]
+    m_zs = parsed_mesh_sizes[4]
+    m_nxs = parsed_mesh_sizes[2][::-1]  # reverse
+    m_nys = parsed_mesh_sizes[3][::-1]  # reverse
+    m_nzs = parsed_mesh_sizes[5][::-1]  # reverse
+    # Layers structures
+    s_xs = parsed_structures[0]
+    s_ys = parsed_structures[1]
+    s_zs = parsed_structures[4]
+    s_nxs = [None] + parsed_structures[2][::-1]  # reverse and move right
+    s_nys = [None] + parsed_structures[3][::-1]  # reverse and move right
+    s_nzs = [None] + parsed_structures[5][::-1]  # reverse and move right
+    # Half Layer Correction
+    s_xs = [[2*y if i == 0 and j == 0 else y for j, y in enumerate(x)] for i, x in enumerate(s_xs)]
+    # Grid coordinates
+    c_xs_g = c_nxs + c_xs  # NX + X
+    c_ys_g = c_nys + c_ys  # NY + Y
+    c_zs_g = c_nzs + [0] + c_zs  # NZ + 0 + Z
+    # Grid mesh sizes
+    m_xs_g = m_nxs + m_xs  # NX + X
+    m_ys_g = m_nys + m_ys  # NY + Y
+    last_m_nz = m_nzs[-1] if len(m_nzs) > 0 else None
+    first_m_z = m_zs[-1] if len(m_zs) > 0 else None
+    if last_m_nz is not None and first_m_z is not None:
+        m_z0_g = 0.5 * (last_m_nz + first_m_z)
+    elif last_m_nz is not None:
+        m_z0_g = last_m_nz
+    elif first_m_z is not None:
+        m_z0_g = first_m_z
+    else:
+        m_z0_g = None
+    m_zs_g = m_nzs + [m_z0_g] + m_zs  # NZ + 0 +  Z
+    # Grid structures TODO inverse bug with curves
+    s_nxs = [x if x is None or len(x) == 1 or x[1] != 0 else [x[0], x[1], 1 / x[2]]
+             for x in s_nxs]
+    s_nys = [x if x is None or len(x) == 1 or x[1] != 0 else [x[0], x[1], 1 / x[2]]
+             for x in s_nys]
+    s_xs_g = s_nxs[:-1] + s_xs  # NX + X
+    s_ys_g = s_nys[:-1] + s_ys  # NY + Y
+    last_s_nz = s_nzs[-1] if len(s_nzs) > 0 else None
+    first_s_z = s_zs[-1] if len(s_zs) > 0 else None
+    if last_s_nz is not None and first_s_z is not None:
+        s_z0_g = first_s_z  # Get from first of Z
+    elif last_s_nz is not None:
+        s_z0_g = last_s_nz
+    elif first_s_z is not None:
+        s_z0_g = first_s_z
+    else:
+        s_z0_g = None
+    s_zs_g = s_nzs[:-1] + [s_z0_g] + s_zs  # NZ + 0 +  Z
+    # Points
+    p_xs_g = [sep_i.join([
+        str(c) if c is not None else '',
+        str(m) if m is not None else '',
+        sep_si.join(str(x) for x in s) if s is not None else ''])
+        for c, m, s in zip(c_xs_g, m_xs_g, s_xs_g)]
+    p_ys_g = [sep_i.join([
+        str(c) if c is not None else '',
+        str(m) if m is not None else '',
+        sep_si.join(str(x) for x in s) if s is not None else ''])
+        for c, m, s in zip(c_ys_g, m_ys_g, s_ys_g)]
+    p_zs_g = [sep_i.join([
+        str(c) if c is not None else '',
+        str(m) if m is not None else '',
+        sep_si.join(str(x) for x in s) if s is not None else ''])
+        for c, m, s in zip(c_zs_g, m_zs_g, s_zs_g)]
+    grid = [p_xs_g, p_ys_g, p_zs_g]
+    new_layers.append(grid)
+    # Map grid block to layers block
+    nbx, nby, nbz = [len(x) - 1 for x in grid]  # number of blocks
+    nx, ny, nnx, nny, nz, nnz = [len(x) for x in parsed_layers_cs]  # lengths of layers
+    gcx, gcy, gcz = nnx - 1, nny - 1, nnz  # grid center block index
+    glis = product(*(range(nbz), range(nby), range(nbx)))  # grid local indices
+    g2l_b2b_l2l, g2l_b2b_g2g = {}, []  # local to local, global to global
+    for ggi, gli in enumerate(glis):  # global, local grid index
+        gzi, gyi, gxi = gli  # grid z, y, x local indices
+        g2l_b2b_l2l[gli] = []
+        g2l_b2b_g2g.append([])
+        if gxi >= gcx and gyi == gcy:  # X layer
+            lxi = gxi - gcx  # Layer X local item index
+            if gzi >= gcz:  # Z layer
+                lzi = gzi - gcz  # Layer Z local item index
+                lli = (0, 0, lzi, lxi)  # Layer local index
+                lgi = nx * lzi + lxi  # Layer global index
+            else:  # NZ layer
+                lzi = gcz - gzi - 1  # Layer NZ local item index
+                lli = (0, 1, lzi, lxi)  # Layer local index
+                lgi = nx * (nz + lzi) + lxi  # Layer global index
+            g2l_b2b_l2l[gli].append(lli)
+            g2l_b2b_g2g[ggi].append(lgi)
+        if gyi >= gcy and gxi == gcx:  # Y layer
+            lyi = gyi - gcy  # Layer Y local item index
+            if gzi >= gcz:  # Z layer
+                lzi = gzi - gcz  # Layer Z local item index
+                lli = (1, 0, lzi, lyi)  # Layer local index
+                lgi = nx * (nz + nnz) + ny * lzi + lyi  # Layer global index
+            else:  # NZ layer
+                lzi = gcz - gzi - 1  # Layer NZ local item index
+                lli = (1, 1, lzi, lyi)  # Layer local index
+                lgi = nx * (nz + nnz) + ny * (nz + lzi) + lyi
+            g2l_b2b_l2l[gli].append(lli)
+            g2l_b2b_g2g[ggi].append(lgi)
+        if gxi <= gcx and gyi == gcy:  # NX layer
+            lnxi = gcx - gxi  # Layer NX local item index
+            if gzi >= gcz:  # Z layer
+                lzi = gzi - gcz  # Layer Z local item index
+                lli = (2, 0, lzi, lnxi)  # Layer local index
+                lgi = (nx + ny) * (nz + nnz) + nnx * lzi + lnxi
+            else:  # NZ layer
+                lzi = gcz - gzi - 1  # Layer NZ local item index
+                lli = (2, 1, lzi, lnxi)  # Layer local index
+                lgi = (nx + ny) * (nz + nnz) + nnx * (nz + lzi) + lnxi
+            g2l_b2b_l2l[gli].append(lli)
+            g2l_b2b_g2g[ggi].append(lgi)
+        if gyi <= gcy and gxi == gcx:  # NY layer
+            lnyi = gcy - gyi  # Layer NY local item index
+            if gzi >= gcz:  # Z
+                lzi = gzi - gcz  # Layer Z local item index
+                lli = (3, 0, lzi, lnyi)  # Layer local index
+                lgi = (nx + ny + nnx) * (nz + nnz) + nny * lzi + lnyi
+            else:  # NZ
+                lzi = gcz - gzi - 1  # Layer NZ local item index
+                lli = (3, 1, lzi, lnyi)  # Layer local index
+                lgi = (nx + ny + nnx) * (nz + nnz) + nny * (nz + lzi) + lnyi
+            g2l_b2b_l2l[gli].append(lli)
+            g2l_b2b_g2g[ggi].append(lgi)
+        if len(g2l_b2b_l2l[gli]) == 0:
+            g2l_b2b_l2l[gli] = None
+        if len(g2l_b2b_g2g[ggi]) == 0:
+            g2l_b2b_g2g[ggi] = None
+    maps.append(g2l_b2b_l2l)
+    maps.append(g2l_b2b_g2g)
+    # Combined maps
+    # Corrected -> Original
+    c_n2o_l2l_l2l, c_n2o_l2l_g2g = maps[0], maps[1]
+    c_n2o_b2b_l2l, c_n2o_b2b_g2g = maps[2], maps[3]
+    # Parsed -> Corrected
+    p_n2o_l2l_l2l, p_n2o_l2l_g2g = maps[4], maps[5]
+    p_n2o_b2b_l2l, p_n2o_b2b_g2g = maps[6], maps[7]
+    # Parsed -> Corrected -> Original
+    n2o_l2l_l2l = {k: c_n2o_l2l_l2l[v] for k, v in p_n2o_l2l_l2l.items()}
+    n2o_l2l_g2g = [c_n2o_l2l_g2g[x] for x in p_n2o_l2l_g2g]
+    n2o_b2b_l2l = {k: c_n2o_b2b_l2l[v] for k, v in p_n2o_b2b_l2l.items()}
+    n2o_b2b_g2g = [c_n2o_b2b_g2g[x] for x in p_n2o_b2b_g2g]
+    maps.append(n2o_l2l_l2l)
+    maps.append(n2o_l2l_g2g)
+    maps.append(n2o_b2b_l2l)
+    maps.append(n2o_b2b_g2g)
+    # Grid -> Parsed -> Corrected -> Original
+    g2o_b2b_l2l = {k: [n2o_b2b_l2l[x] for x in v] if v is not None else None
+                   for k, v in g2l_b2b_l2l.items()}  # Center block from X layer
+    g2o_b2b_g2g = [[n2o_b2b_g2g[y] for y in x] if x is not None else None
+                   for x in g2l_b2b_g2g]  # Center block from X layer
+    maps.append(g2o_b2b_l2l)
+    maps.append(g2o_b2b_g2g)
+    return new_layers, values, maps
+
+
 def correct_layers(layers):
     """Correct layers
 

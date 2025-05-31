@@ -590,6 +590,11 @@ class HalfLayerToCartesian(Transform):
         atol = 10 ** -POINT_TOL
         for j in range(n_layers):
             if j == 0:
+                lx, ly, lnx, lny = (cs.layers[i][j] for i in range(4))
+                if np.isclose(py, ly0, atol=atol) and np.isclose(px, lx, atol=atol):  # I sector X
+                    py = ly - ly0
+                elif np.isclose(px, lnx0, atol=atol) and np.isclose(py, ly, atol=atol):  # II sector Y
+                    py = ly - ly0
                 continue
             lx, ly, lnx, lny = (cs.layers[i][j] for i in range(4))
             n_x, n_y, n_nx, n_ny = (cs.layers_curves[i][j][0] for i in range(4))

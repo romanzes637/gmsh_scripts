@@ -1,13 +1,10 @@
-import numpy as np
-
 from gmsh_scripts.block.layer import Layer
 from gmsh_scripts.block.matrix import Matrix
-from gmsh_scripts.coordinate_system.coordinate_system import Layer as LayerCS
 from gmsh_scripts.coordinate_system.coordinate_system import HalfLayer as HalfLayerCS
 from gmsh_scripts.coordinate_system.coordinate_system import str2obj as cs_str2obj
 from gmsh_scripts.transform.transform import str2obj as tr_str2obj
 from gmsh_scripts.support.support import flatten
-from gmsh_scripts.parse.parse import parse_layers2grid
+from gmsh_scripts.parse.parse import parse_halflayers2grid
 
 
 class HalfLayer(Matrix):
@@ -40,33 +37,6 @@ class HalfLayer(Matrix):
             zone=None, parent=None, children=None, children_transforms=None,
             boolean_level=None, path=None
     ):
-        # super().__init__(layer=layer, layer_curves=layer_curves, layer_types=layer_types,
-        #                  items_do_register_map=items_do_register_map,
-        #                  items_do_register_children_map=items_do_register_children_map,
-        #                  items_do_register_mask=items_do_register_mask,
-        #                  items_do_unregister_map=items_do_unregister_map,
-        #                  items_do_unregister_children_map=items_do_unregister_children_map,
-        #                  items_do_unregister_boolean_map=items_do_unregister_boolean_map,
-        #                  items_do_quadrate_map=items_do_quadrate_map,
-        #                  items_do_structure_map=items_do_structure_map,
-        #                  items_boolean_level_map=items_boolean_level_map,
-        #                  items_zone=items_zone, items_zone_map=items_zone_map,
-        #                  items_transforms=items_transforms, items_transforms_map=items_transforms_map,
-        #                  items_self_transforms=items_self_transforms,
-        #                  items_self_transforms_map=items_self_transforms_map,
-        #                  items_children=items_children, items_children_map=items_children_map,
-        #                  items_children_transforms=items_children_transforms,
-        #                  items_children_transforms_map=items_children_transforms_map,
-        #                  points=points, curves=curves, surfaces=surfaces, volume=volume,
-        #                  do_register=do_register, do_unregister=do_unregister,
-        #                  do_register_children=do_register_children, do_unregister_children=do_unregister_children,
-        #                  do_unregister_boolean=do_unregister_boolean,
-        #                  transforms=transforms,
-        #                  self_transforms=self_transforms,
-        #                  do_quadrate=do_quadrate,
-        #                  do_structure=do_structure, structure=structure, structure_type=structure_type,
-        #                  zone=zone, parent=parent, children=children, children_transforms=children_transforms,
-        #                  boolean_level=boolean_level, path=boolean_level)
         str_layers = [x for x in layer if isinstance(x, str)]
         other_layers = [x for x in layer if not isinstance(x, (int, float, str, list))]
         coordinate_system = str_layers[0] if len(str_layers) > 0 else 'Cartesian'
@@ -76,7 +46,7 @@ class HalfLayer(Matrix):
                 coordinate_system = l
                 break
         list_layers = [x for x in layer if isinstance(x, list)]
-        new_layers, values, maps = parse_layers2grid(list_layers)
+        new_layers, values, maps = parse_halflayers2grid(list_layers)
         parsed_layers, grid = new_layers[1], new_layers[2]
         parsed_layers_cs = [x[0] for x in values]
         n2o_l2l_l2l, n2o_l2l_g2g = maps[10], maps[11]
@@ -90,8 +60,8 @@ class HalfLayer(Matrix):
             for j, c in enumerate(l):
                 parsed_layers_curves[i][j] = [c] if isinstance(c, str) else c
         cs = HalfLayerCS(layers=parsed_layers_cs,
-                            layers_curves=parsed_layers_curves,
-                            layers_types=parsed_layers_types)
+                         layers_curves=parsed_layers_curves,
+                         layers_types=parsed_layers_types)
         grid.append(cs)
         # Curves
         items_curves, items_curves_map = Layer.get_layers_curves(
