@@ -1,0 +1,19 @@
+data:
+  class: block.Matrix
+  items_do_quadrate_map: 1
+  items_do_structure_map: 1
+  items_zone:
+  - - RockB
+    - - NXb
+      - XLb
+      - NY
+      - Y
+      - NZ
+      - Zb
+  matrix:
+  - - -2.925;.1
+    - 2.925;.1;15:0:1.0
+  - - 0;.1
+    - 10.0;.1;7
+  - - -30.0;.1
+    - -7.0;.1;48:0:0.9

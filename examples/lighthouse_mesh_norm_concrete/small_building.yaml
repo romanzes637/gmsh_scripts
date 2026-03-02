@@ -1,0 +1,30 @@
+data:
+  children:
+  - /concrete_1_small.yaml
+  - /concrete_1_small.yaml
+  - /concrete_1_small.yaml
+  - /concrete_1_small.yaml
+  - /concrete_1_small.yaml
+  - /concrete_1_small.yaml
+  children_transforms:
+  - []
+  - - - 11.5
+      - 0
+      - 0
+  - - - 23.0
+      - 0
+      - 0
+  - - - 0
+      - 22.0
+      - 0
+  - - - 11.5
+      - 22.0
+      - 0
+  - - - 23.0
+      - 22.0
+      - 0
+  class: block.Block
+  do_register: 0
+metadata:
+  run:
+    factory: occ

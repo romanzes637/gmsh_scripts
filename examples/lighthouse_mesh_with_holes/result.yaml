@@ -1,0 +1,21 @@
+data:
+  children:
+  - /concrete_up.yaml
+  children_transforms:
+  - - - 86.0
+      - 86.0
+      - 40.0
+  class: block.Matrix
+  boolean_level: 0
+  items_zone:
+  - env_0
+  matrix:
+  - - 0;5.0
+    - 340.0;5.0
+  - - 0;5.0
+    - 340.0;5.0
+  - - 0;5.0
+    - 40.0;5.0
+metadata:
+  run:
+    factory: occ

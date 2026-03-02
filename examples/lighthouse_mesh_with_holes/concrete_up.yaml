@@ -1,0 +1,47 @@
+data:
+  boolean_level: 1
+  children:
+  - /env+buildings.yaml
+  children_transforms:
+  - - - 0
+      - 0
+      - 0
+  class: block.Block
+  points:
+  - - 170.0
+    - 160.0
+    - 0
+    - 3.0
+  - - 0
+    - 160.0
+    - 0
+    - 3.0
+  - - 15.0
+    - 0
+    - 0
+    - 3.0
+  - - 155.0
+    - 0
+    - 0
+    - 3.0
+  - - 150.0
+    - 140.0
+    - 15.0
+    - 3.0
+  - - 20.0
+    - 140.0
+    - 15.0
+    - 3.0
+  - - 35.0
+    - 20.0
+    - 15.0
+    - 3.0
+  - - 135.0
+    - 20.0
+    - 15.0
+    - 3.0
+  zone:
+  - Concrete_1
+metadata:
+  run:
+    factory: occ

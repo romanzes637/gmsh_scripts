@@ -1,0 +1,20 @@
+data:
+  class: block.Matrix
+  items_do_structure_map: 0
+  items_zone:
+  - env_up
+  - env_down
+  items_zone_map:
+  - 1
+  - 0
+  matrix:
+  - - 0;20.0
+    - 400;20.0
+  - - 0;20.0
+    - 200;20.0
+    - 400;20.0
+  - - 0;20.0
+    - 400;20.0
+metadata:
+  run:
+    factory: occ

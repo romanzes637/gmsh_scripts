@@ -1,0 +1,14 @@
+data:
+  class: block.Matrix
+  matrix:
+    - - 0;3.0
+      - 30;3.0
+    - - 0;3.0
+      - 40;3.0
+    - - 0;3.0
+      - 7;3.0
+  zone:
+  - small
+metadata:
+    run:
+      factory: occ

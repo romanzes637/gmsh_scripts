@@ -14,8 +14,8 @@ def resize_trunch(tranch_length: float,
         edz = yaml.full_load(f1)
     with open('bent_box_low.yaml') as f2:
         bent_box_low = yaml.full_load(f2)
-    with open('simple_RW.yaml') as f3:
-        simple_RW = yaml.full_load(f3)
+    # with open('simple_RW.yaml') as f3:
+    #     simple_RW = yaml.full_load(f3)
     # with open('simple_RW_stack.yaml') as f4:
     #     simple_RW_stack = yaml.full_load(f4)
     with open('simple_RW_main.yaml') as f5:
@@ -24,8 +24,8 @@ def resize_trunch(tranch_length: float,
         bent_box_up_2 = yaml.full_load(f6)
     with open('bent_box_up_1.yaml') as f7:
         bent_box_up_1 = yaml.full_load(f7)
-    with open('bent_side.yaml') as f8:
-        bent_side = yaml.full_load(f8)
+    with open('bent_main.yaml') as f8:
+        bent_main = yaml.full_load(f8)
 
     #workaround environment file
     #X
@@ -110,14 +110,14 @@ def resize_trunch(tranch_length: float,
     bent_box_up_1["data"]["matrix"][2][1] = str(tranch_length) + str(";") + str(quality)
 
     # workaround bent_side
-    bent_side["data"]["matrix"][0][0] = str(0) + str(";") + str(quality)
-    bent_side["data"]["matrix"][0][1] = str(0.5) + str(";") + str(quality)
+    bent_main["data"]["matrix"][0][0] = str(0) + str(";") + str(quality)
+    bent_main["data"]["matrix"][0][1] = str(12.85) + str(";") + str(quality)
 
-    bent_side["data"]["matrix"][1][0] = str(0) + str(";") + str(quality)
-    bent_side["data"]["matrix"][1][1] = str(3.5) + str(";") + str(quality)
+    bent_main["data"]["matrix"][1][0] = str(0) + str(";") + str(quality)
+    bent_main["data"]["matrix"][1][1] = str(3.5) + str(";") + str(quality)
 
-    bent_side["data"]["matrix"][2][0] = str(0) + str(";") + str(quality)
-    bent_side["data"]["matrix"][2][1] = str(tranch_length) + str(";") + str(quality)
+    bent_main["data"]["matrix"][2][0] = str(0) + str(";") + str(quality)
+    bent_main["data"]["matrix"][2][1] = str(tranch_length) + str(";") + str(quality)
 
 
     with open('env.yaml', 'w') as outfile:
@@ -126,8 +126,8 @@ def resize_trunch(tranch_length: float,
         yaml.dump(edz, outfile)
     with open('bent_box_low.yaml', 'w') as outfile:
         yaml.dump(bent_box_low, outfile)
-    with open('simple_RW.yaml', 'w') as outfile:
-        yaml.dump(simple_RW, outfile)
+    # with open('simple_RW.yaml', 'w') as outfile:
+    #     yaml.dump(simple_RW, outfile)
     # with open('simple_RW_stack.yaml', 'w') as outfile:
     #     yaml.dump(simple_RW_stack, outfile)
     with open('simple_RW_main.yaml', 'w') as outfile:
@@ -136,8 +136,8 @@ def resize_trunch(tranch_length: float,
         yaml.dump(bent_box_up_2, outfile)
     with open('bent_box_up_1.yaml', 'w') as outfile:
         yaml.dump(bent_box_up_1, outfile)
-    with open('bent_side.yaml', 'w') as outfile:
-        yaml.dump(bent_side, outfile)
+    with open('bent_main.yaml', 'w') as outfile:
+        yaml.dump(bent_main, outfile)
 
 if __name__ == "__main__":
     '''The goal is to rescale the length of resulting mesh. We change ENV in +X -X simultaneously,

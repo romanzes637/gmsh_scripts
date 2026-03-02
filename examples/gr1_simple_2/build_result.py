@@ -55,24 +55,24 @@ def resize_trunch(tranch_length: float,
     bent_box_low["data"]["matrix"][2][1] = str(tranch_length) + str(";") + str(quality)
 
     #workaround simple_RW
-    simple_RW["data"]["matrix"][0][0] = str(0) + str(";") + str(quality)
-    simple_RW["data"]["matrix"][0][1] = str(0.165) + str(";") + str(quality)
-
-    simple_RW["data"]["matrix"][1][0] = str(0) + str(";") + str(quality)
-    simple_RW["data"]["matrix"][1][1] = str(0.1375) + str(";") + str(quality)
-
-    simple_RW["data"]["matrix"][2][0] = str(0) + str(";") + str(quality)
-    simple_RW["data"]["matrix"][2][1] = str(tranch_length) + str(";") + str(quality)
+    # simple_RW["data"]["matrix"][0][0] = str(0) + str(";") + str(quality)
+    # simple_RW["data"]["matrix"][0][1] = str(0.165) + str(";") + str(quality)
+    #
+    # simple_RW["data"]["matrix"][1][0] = str(0) + str(";") + str(quality)
+    # simple_RW["data"]["matrix"][1][1] = str(0.1375) + str(";") + str(quality)
+    #
+    # simple_RW["data"]["matrix"][2][0] = str(0) + str(";") + str(quality)
+    # simple_RW["data"]["matrix"][2][1] = str(tranch_length) + str(";") + str(quality)
 
     #workaround simple_RW_stack
-    simple_RW_stack["data"]["matrix"][0][0] = str(0) + str(";") + str(quality)
-    simple_RW_stack["data"]["matrix"][0][1] = str(1.015) + str(";") + str(quality)
-
-    simple_RW_stack["data"]["matrix"][1][0] = str(0) + str(";") + str(quality)
-    simple_RW_stack["data"]["matrix"][1][1] = str(0.1375) + str(";") + str(quality)
-
-    simple_RW_stack["data"]["matrix"][2][0] = str(0) + str(";") + str(quality)
-    simple_RW_stack["data"]["matrix"][2][1] = str(tranch_length) + str(";") + str(quality)
+    # simple_RW_stack["data"]["matrix"][0][0] = str(0) + str(";") + str(quality)
+    # simple_RW_stack["data"]["matrix"][0][1] = str(1.015) + str(";") + str(quality)
+    #
+    # simple_RW_stack["data"]["matrix"][1][0] = str(0) + str(";") + str(quality)
+    # simple_RW_stack["data"]["matrix"][1][1] = str(0.1375) + str(";") + str(quality)
+    #
+    # simple_RW_stack["data"]["matrix"][2][0] = str(0) + str(";") + str(quality)
+    # simple_RW_stack["data"]["matrix"][2][1] = str(tranch_length) + str(";") + str(quality)
 
     #workaround simple_RW_main
 
@@ -90,7 +90,7 @@ def resize_trunch(tranch_length: float,
     bent_box_up["data"]["matrix"][0][1] = str(1.015) + str(";") + str(quality)
 
     bent_box_up["data"]["matrix"][1][0] = str(0) + str(";") + str(quality)
-    bent_box_up["data"]["matrix"][1][1] = str(0.1375) + str(";") + str(quality)
+    bent_box_up["data"]["matrix"][1][1] = str(0.175) + str(";") + str(quality)
 
     bent_box_up["data"]["matrix"][2][0] = str(0) + str(";") + str(quality)
     bent_box_up["data"]["matrix"][2][1] = str(tranch_length) + str(";") + str(quality)
@@ -123,7 +123,7 @@ if __name__ == "__main__":
     #4 quality
     #5 quality_env
     #python. / build_result.py tranch_length env_X env_Y_up env_Y_down quality quality_env
-    tranch_length = int(sys.argv[1])
+    tranch_length = float(sys.argv[1])
     env_X = float(sys.argv[2])
     env_Y_up = float(sys.argv[3])
     env_Y_down = float(sys.argv[4])

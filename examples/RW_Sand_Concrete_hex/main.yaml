@@ -1,0 +1,65 @@
+data:
+  class: block.Matrix
+  items_do_quadrate_map: 1
+  items_do_structure_map: 1
+  items_zone:
+  - RW
+  - Sand
+  - Concrete_0
+  items_zone_map:
+  - - - 2
+      - 2
+      - 2
+    - - 2
+      - 2
+      - 2
+    - - 2
+      - 2
+      - 2
+    - - 2
+      - 2
+      - 2
+  - - - 2
+      - 0
+      - 2
+    - - 2
+      - 2
+      - 2
+    - - 2
+      - 2
+      - 2
+    - - 2
+      - 1
+      - 2
+  - - - 2
+      - 2
+      - 2
+    - - 2
+      - 2
+      - 2
+    - - 2
+      - 2
+      - 2
+    - - 2
+      - 2
+      - 2
+  matrix:
+  - - '0'
+    - 1.0;0.4;10
+    - 10.5;0.4;10
+    - 11.5;0.4;10
+  - - '0'
+    - 1.0;0.4;10
+    - 21.0;0.4;10
+    - 22;0.4;10
+  - - '0'
+    - 1.0;0.4;10
+    - 5.0;0.4;10
+    - 8.0;0.4;10
+    - 9;0.4;10
+metadata:
+  run:
+    factory: geo
+    log_path: null
+    strategy:
+      class: strategy.NoBoolean

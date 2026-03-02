@@ -1,0 +1,37 @@
+metadata:
+  run:
+    factory: geo
+    strategy:
+      class: strategy.NoBoolean
+data:
+  class: block.Block
+  do_register: 0
+  children: [
+    /blockTopB.yaml,
+    /blockTopR.yaml,
+    /blockLB.yaml,
+    /blockLR.yaml,
+    /blockRB.yaml,
+    /blockRR.yaml,
+    /bottomLR.yaml,
+    /bottomLB.yaml,
+    /bottomBR.yaml,
+    /bottomBB.yaml,
+    /bottomRR.yaml
+  ]
+  transforms: [ [0, 0, 0] ]
+  children_transforms: [
+    [ [ 0, 0, 0.000 ] ],
+    [ [ 0, 0, 0.000 ] ],
+    [ [ 0, 0, 0.000 ] ],
+    [ [ 0, 0, 0.000 ] ],
+    [ [ 0, 0, 0.000 ] ],
+    [ [ 0, 0, 0.000 ] ],
+    [ [ 0, 0, 0.000 ] ],
+    [ [ 0, 0, 0.000 ] ],
+    [ [ 0, 0, 0.000 ] ],
+    [ [ 0, 0, 0.000 ] ],
+    [ [ 0, 0, 0.000 ] ]
+  ]
+  #children_do_quadrate_map: [ 0 ]  # Set 0 for tetrahedral mesh
+  #children_do_structure_map: [  1 ]  # Set 0 for unstructured mesh

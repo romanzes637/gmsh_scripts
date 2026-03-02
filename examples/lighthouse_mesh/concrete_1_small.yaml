@@ -1,0 +1,21 @@
+data:
+  children:
+  - /RW+Sand.yaml
+  children_transforms:
+  - - - 1.0
+      - 1.0
+      - 1.0
+  class: block.Matrix
+  items_boolean_level_map: 3
+  items_zone:
+  - Concrete_0
+  matrix:
+  - - 0;3.0
+    - 11.5;3.0
+  - - 0;3.0
+    - 22.0;3.0
+  - - 0;3.0
+    - 9.0;3.0
+metadata:
+  run:
+    factory: occ

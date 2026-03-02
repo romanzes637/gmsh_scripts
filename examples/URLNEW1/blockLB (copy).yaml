@@ -1,0 +1,52 @@
+data: 
+  class: block.Block
+  zone: [ ConcreteL, [ NXLb, XLb, Y, NY, NZ, NX ] ] 
+  points: [
+  # NZ
+  # P1 P0
+  # P2 P3
+  # Z
+  # P5 P4
+  # P6 P7
+    [-2.925,   0, -5.25, 0.1],
+    [-3.005,  0, -5.25, 0.1],
+    [-3.005,  8, -5.25, 0.1],
+    [-2.925,  8, -5.25, 0.1],
+    [-2.925,  0,  0.0,  0.1],
+    [-3.005,  0, 0.05,  0.1],
+    [-3.005,  8, 0.05,  0.1],
+    [-2.925,  8, 0.0,   0.1],
+  ]
+  curves: [
+    # ('geo', 'circle_arc'): {'tag': -1, 'nx': 0., 'ny': 0., 'nz': 0.},
+    # ('geo', 'ellipse_arc'): {'tag': -1, 'nx': 0., 'ny': 0., 'nz': 0.},
+    # ('geo', 'spline'): {'tag': -1},
+    # ('geo', 'bspline'): {'tag': -1},
+    # ('geo', 'bezier'): {'tag': -1},
+    # ('geo', 'polyline'): {'tag': -1}, 
+    # X direction curves from P0 by right-hand rule:
+    #['spline', [[0.2, 0.1, 0], [0.5, -0.1, 0], [0.7, 0.2, 0]]],  # C0: P1 -> P0
+    ['line'],  # C0: P1 -> P0
+    ['line'],  # C1: P5 -> P4
+    ['line'],  # C2: P6 -> P7
+    ['line'],  # C3: P2 -> P3
+    # Y direction curves from P0 by right-hand rule:   
+    ['line'],  # P3 -> P0
+    ['line'],  # P2 -> P1
+    ['line'],  # P6 -> P5
+    ['line'],  # P7 -> P4
+    # Z direction curves from P0 by right-hand rule:   
+    ['line'],  # P0 -> P4
+    ['line'],  # P1 -> P5
+    ['line'],  # P2 -> P6
+    ['line'],  # P3 -> P7
+  ]
+  structure: [
+    [4, 0, 1.0], # X
+    [9, 0, 1.0], # Y
+    [15, 0, 1.0], # Z
+  ] 
+  do_structure: true
+  do_quadrate: true
+
+

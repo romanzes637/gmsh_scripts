@@ -1,0 +1,73 @@
+data:
+  class: block.Block
+#  items_do_quadrate_map: 1
+#  items_do_structure_map: 1
+  do_register: 0
+  children: [
+    /single_rw.yaml,
+    /single_rw_1.yaml,
+    /single_rw_2.yaml,
+    /single_rw_3.yaml,
+    /single_rw_4.yaml,
+    /single_rw_5.yaml,
+    /single_rw_6.yaml,
+    /single_rw_7.yaml,
+    /single_rw_8.yaml,
+    /single_rw_9.yaml,
+    /single_rw_10.yaml,
+    /single_rw_11.yaml,
+    /single_rw_12.yaml,
+    /single_rw_13.yaml,
+    /single_rw_14.yaml,
+    /single_rw_15.yaml,
+    /single_rw_16.yaml,
+    /single_rw_17.yaml,
+    /single_rw_18.yaml,
+    /single_rw_19.yaml
+  ]
+  children_transforms: [
+                         [[0,0,0], [0,0,0,0,0,0,0]],
+                         [[11.5,0,0], [0,0,0,0,0,0,0]],
+                         [[23,0,0], [0,0,0,0,0,0,0]],
+                         [[0,22,0], [0,0,0,0,0,0,0]],
+                         [[11.5,22,0], [0,0,0,0,0,0,0]],
+                         [[23,22,0], [0,0,0,0,0,0,0]],
+
+                         [[46,71,0], [0,0,0,0,0,1,0]],
+                         [[46,93,0], [0,0,0,0,0,1,0]],
+                         [[34.5,71,0], [0,0,0,0,0,1,0]],
+                         [[34.5,93,0], [0,0,0,0,0,1,0]],
+                         [[23,71,0], [0,0,0,0,0,1,0]],
+                         [[23,93,0], [0,0,0,0,0,1,0]],
+                         [[11.5,71,0], [0,0,0,0,0,1,0]],
+                         [[11.5,93,0], [0,0,0,0,0,1,0]],
+                         [[0,71,0], [0,0,0,0,0,1,0]],
+                         [[0,93,0], [0,0,0,0,0,1,0]],
+                         [[-11.5,71,0], [0,0,0,0,0,1,0]],
+                         [[-11.5,93,0], [0,0,0,0,0,1,0]],
+                         [[-23,71,0], [0,0,0,0,0,1,0]],
+                         [[-23,93,0], [0,0,0,0,0,1,0]]
+                         ]
+##      [ ], [ [ 11.5, 0, 0 ] ] ,[ [ 23,0,0 ] ], [ [ 0, 22, 0 ] ] ,[ [ 11.5,22,0 ] ],
+##      [ [ 23, 22, 0 ] ],
+##    [ [ -140,0,0 ] ], [ [ -151.5, 0, 0 ] ] ,[ [ -163,0,0 ] ],
+##      [ [ -140, 22, 0 ] ] ,[ [ -151.5,22,0 ] ], [ [ -163, 22, 0 ] ],
+##
+#      [ [ -140,44,0 ] ], [ [ -151.5, 44,  0] ] ,[ [ -163,44,0 ] ],
+#      [ [ -140, 66, 0 ] ] ,[ [ -151.5,66, 0] ], [ [ -163, 66, 0 ] ],
+#      [ [ -140,88,0 ] ], [ [ -151.5, 88, 0 ] ],  [ [ -163, 88, 0 ] ]
+#  ]
+    #      [[0, 0, 0, 0, 1, 0, -90], [28.5, 0, 0]],
+    #      [[1.375, 0, -10.75]],
+    #      [[-1.375, 0, -10.75]]]
+    #  children_items_zone: [[Rock], [Tunnel], [Borehole1], [Borehole2]]
+    #  children_items_boolean_level_map: [0, 2, 1, 1]
+    #  children_items_do_unregister_boolean_map: [0, 1, 1, 1]
+#    children_items_do_quadrate_map: [ 0, 0,0 ]
+#    children_items_do_structure_map: [ 0, 0,0 ]
+metadata:
+  run:
+    factory: geo
+    log_path: null
+    strategy:
+      class: strategy.NoBoolean

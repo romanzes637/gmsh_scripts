@@ -1,0 +1,56 @@
+data:
+  class: block.Block
+#  boolean_level: -2
+#  boolean_level_map: 1
+#  items_do_quadrate_map: 1
+#  items_do_structure_map: 1
+  do_register: 0
+  zone: [ [ "em", [ NX, X, NY, Y, NZ, Z ] ] ]
+  children: [
+    /single_hole.yaml,
+    /single_hole.yaml,
+    /single_hole.yaml,
+    /single_hole.yaml,
+    /single_hole.yaml,
+    /single_hole.yaml,
+    /single_hole.yaml,
+    /single_hole.yaml,
+    /single_hole.yaml,
+    /single_hole.yaml,
+    /single_hole.yaml,
+    /single_hole.yaml,
+    /single_hole.yaml,
+    /single_hole.yaml,
+    /single_hole.yaml,
+    /single_hole.yaml,
+    /single_hole.yaml,
+    /single_hole.yaml,
+    /single_hole.yaml,
+    /single_hole.yaml
+  ]
+  children_transforms: [
+                         [[0,0,0], [0,0,0,0,0,0,0]],
+                         [[11.5,0,0], [0,0,0,0,0,0,0]],
+                         [[23,0,0], [0,0,0,0,0,0,0]],
+                         [[0,22,0], [0,0,0,0,0,0,0]],
+                         [[11.5,22,0], [0,0,0,0,0,0,0]],
+                         [[23,22,0], [0,0,0,0,0,0,0]],
+
+                         [[46,71,0], [0,0,0,0,0,1,0]],
+                         [[46,93,0], [0,0,0,0,0,1,0]],
+                         [[34.5,71,0], [0,0,0,0,0,1,0]],
+                         [[34.5,93,0], [0,0,0,0,0,1,0]],
+                         [[23,71,0], [0,0,0,0,0,1,0]],
+                         [[23,93,0], [0,0,0,0,0,1,0]],
+                         [[11.5,71,0], [0,0,0,0,0,1,0]],
+                         [[11.5,93,0], [0,0,0,0,0,1,0]],
+                         [[0,71,0], [0,0,0,0,0,1,0]],
+                         [[0,93,0], [0,0,0,0,0,1,0]],
+                         [[-11.5,71,0], [0,0,0,0,0,1,0]],
+                         [[-11.5,93,0], [0,0,0,0,0,1,0]],
+                         [[-23,71,0], [0,0,0,0,0,1,0]],
+                         [[-23,93,0], [0,0,0,0,0,1,0]]
+                         ]
+metadata:
+  run:
+    factory: occ

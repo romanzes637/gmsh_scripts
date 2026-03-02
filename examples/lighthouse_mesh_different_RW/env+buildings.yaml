@@ -1,0 +1,51 @@
+data:
+  boolean_level: 2
+  children:
+  - /small_building.yaml
+  - /long_building.yaml
+  children_transforms:
+  - - - 67.75
+      - 20.5
+      - 0
+  - - - 44.75
+      - 96.5
+      - 0
+  class: block.Block
+  points:
+  - - 168.95
+    - 158.3
+    - 0
+    - 2.0
+  - - 1.05
+    - 158.3
+    - 0
+    - 2.0
+  - - 16.05
+    - 1.7
+    - 0
+    - 2.0
+  - - 153.95
+    - 1.7
+    - 0
+    - 2.0
+  - - 148.95
+    - 138.3
+    - 13.0
+    - 2.0
+  - - 21.05
+    - 138.3
+    - 13.0
+    - 2.0
+  - - 36.05
+    - 21.7
+    - 13.0
+    - 2.0
+  - - 133.95
+    - 21.7
+    - 13.0
+    - 2.0
+  zone:
+  - env_1
+metadata:
+  run:
+    factory: occ

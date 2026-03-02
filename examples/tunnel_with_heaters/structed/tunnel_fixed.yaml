@@ -1,0 +1,131 @@
+data:
+  class: block.Layer
+  items_do_quadrate_map: 1
+  items_do_register_map:
+  - - - - 0
+        - 1
+        - 1
+  - - - - 0
+        - 1
+        - 1
+  - - - - 0
+        - 1
+        - 1
+  - - - - 0
+        - 1
+        - 1
+  items_do_structure_map: 1
+  items_zone:
+  - - n
+    - - NX
+      - X
+      - NY
+      - Y
+      - NZ
+      - Z
+  - - concrete
+    - - hall
+      - concrete_env
+      - concrete_env
+      - concrete_env
+      - NZ
+      - Z
+  - - concrete
+    - - NX
+      - X
+      - concrete_env
+      - hall_down
+      - NZ
+      - Z
+  - - concrete
+    - - concrete_env
+      - hall
+      - NY
+      - Y
+      - NZ
+      - Z
+  - - concrete
+    - - NX
+      - X
+      - hall_up
+      - concrete_env
+      - NZ
+      - Z
+  - - env_up
+    - - NX
+      - X
+      - NY
+      - Y
+      - NZ
+      - Z
+  - - env_down
+    - - NX
+      - X
+      - NY
+      - Y
+      - NZ
+      - Z
+  items_zone_map:
+  - - 0
+    - 1
+    - 6
+  - - 0
+    - 4
+    - 5
+  - - 0
+    - 3
+    - 6
+  - - 0
+    - 2
+    - 6
+  layer:
+  - - 2.925;;15       # количество радиусов
+    - 3.025;;5        # точек по радиусу
+    - 30.0;;40:0:1.1
+  - - 4.5;;15          # количество радиусо
+    - 4.6;;5           # точек по радиусу
+    - 30.0;;40:0:1.1
+  - - 2.925;;15           # количество радиусо
+    - 3.025;;5             # точек по радиусу
+    - 30.0;;40:0:1.1
+  - - 4.5;;15            # количество радиусо
+    - 4.69;;5            # точек по радиусу
+    - 30.0;;40:0:1.1
+  - - 70.0;;30
+  layer_curves:
+  - - line
+    - line
+    - line
+  - - - bspline
+      - - - 0.1
+          - 1
+          - 0
+        - - 0.5
+          - 1
+          - 0
+        - - 0.9
+          - 1
+          - 0
+    - - bspline
+      - - - 0.1
+          - 1
+          - 0
+        - - 0.5
+          - 1
+          - 0
+        - - 0.9
+          - 1
+          - 0
+    - line
+  - - line
+    - line
+    - line
+  - - line
+    - line
+    - line
+  - - line
+metadata:
+  run:
+    factory: geo
+    strategy:
+      class: strategy.NoBoolean
